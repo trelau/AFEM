@@ -18,6 +18,7 @@ class Part(TopoDS_Shape, ViewableItem):
         super(Part, self).__init__()
         ViewableItem.__init__(self)
         self._name = name
+        self._metadata = {}
         AssemblyMgr.add_parts(None, self)
         print('Creating part: ', name)
 
@@ -30,6 +31,34 @@ class Part(TopoDS_Shape, ViewableItem):
         shp_tol = ShapeAnalysis_ShapeTolerance()
         shp_tol.AddTolerance(self)
         return shp_tol.GlobalTolerance(0)
+
+    @property
+    def metadata(self):
+        return self._metadata
+
+    def add_metadata(self, key, value):
+        """
+        Add metadata to the body.
+
+        :param key:
+        :param value:
+
+        :return:
+        """
+        self._metadata[key] = value
+
+    def get_metadata(self, key):
+        """
+        Get metadata.
+
+        :param key:
+
+        :return:
+        """
+        try:
+            return self._metadata[key]
+        except KeyError:
+            return None
 
     def set_shape(self, shape):
         """
