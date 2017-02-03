@@ -40,6 +40,10 @@ class SurfacePart(Part):
         return ShapeTools.get_edges(self)
 
     @property
+    def nfaces(self):
+        return len(self.faces)
+
+    @property
     def elements(self):
         elm_set = set()
         for f in self.faces:
