@@ -298,6 +298,13 @@ def _process_wing(compound):
 
     if vsp_surf:
         wing.add_metadata('vsp surface', vsp_surf)
+        upr_srf = CreateGeom.copy_geom(vsp_surf)
+        v_le = vsp_surf.local_to_global_param('v', 0.5)
+        upr_srf.segment(vsp_surf.u1, vsp_surf.u2, v_le, vsp_surf.v2)
+        wing.add_metadata('upper surface', upr_srf)
+        lwr_srf = CreateGeom.copy_geom(vsp_surf)
+        lwr_srf.segment(vsp_surf.u1, vsp_surf.u2, vsp_surf.v1, v_le)
+        wing.add_metadata('lower surface', lwr_srf)
 
     return wing
 
