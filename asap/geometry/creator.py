@@ -49,6 +49,17 @@ class CreateGeom(object):
         return None
 
     @staticmethod
+    def point(xyz=(0., 0., 0.)):
+        """
+        Create a Point.
+
+        :param xyz:
+
+        :return:
+        """
+        return Point(xyz[0], xyz[1], xyz[2])
+
+    @staticmethod
     def point_by_xyz(x=0., y=0., z=0.):
         """
         Create a Point by x-, y-, and z-location.
