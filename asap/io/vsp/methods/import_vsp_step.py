@@ -129,6 +129,7 @@ def import_vsp_step(fname):
         if metadata['m_Type'] == 5 and metadata['m_SurfType'] != 99:
             wing = _process_wing(compound)
             if wing is not None:
+                wing.set_name(comp_name)
                 bodies[comp_name] = wing
                 sref_id = metadata['Sref ID']
                 wing_bodies[sref_id] = wing
@@ -137,6 +138,7 @@ def import_vsp_step(fname):
         elif metadata['m_Type'] in [4, 9]:
             fuse = _process_fuse(compound)
             if fuse is not None:
+                fuse.set_name(comp_name)
                 bodies[comp_name] = fuse
 
         # Next shape.

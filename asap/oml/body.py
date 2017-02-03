@@ -9,11 +9,12 @@ class Body(TopoDS_Solid, ViewableItem):
     Base class for OML bodies.
     """
 
-    def __init__(self, shape):
+    def __init__(self, shape, name=None):
         super(Body, self).__init__()
         ViewableItem.__init__(self)
         self.set_shape(shape)
         self._metadata = {}
+        self._name = name
 
     @property
     def shape(self):
@@ -30,6 +31,24 @@ class Body(TopoDS_Solid, ViewableItem):
     @property
     def metadata(self):
         return self._metadata
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self.set_name(name)
+
+    def set_name(self, name):
+        """
+        Set name of body.
+
+        :param name:
+
+        :return:
+        """
+        self._name = name
 
     def add_metadata(self, key, value):
         """
