@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from asap.geometry import CreateGeom
 from asap.graphics import Viewer
-from asap.io import ImportVSP, StepExport
+from asap.io import ImportVSP
 from asap.structure import CreatePart
 from asap.topology import ShapeTools
 
@@ -61,17 +61,14 @@ bh1.discard(above_floor)
 bh2.discard(above_floor)
 
 # View
-# compound = ShapeTools.make_compound([floor, skin, bh1, bh2] + frames)
-# faces = ShapeTools.get_faces(compound)
-# for f in faces:
-#     Viewer.display(f, 'random')
 skin.set_color(0.5, 0.5, 0.5)
 skin.set_transparency(0.5)
 Viewer.add_items(*[floor, skin, bh1, bh2])
 Viewer.add_items(*frames)
 Viewer.show()
 
-# Export to STEP file.
-step_out = StepExport()
-step_out.transfer(frames[0])
-step_out.write('fuselage.stp')
+# Mesh
+for part in [floor, bh1, bh2, skin] + frames:
+    part.mesh(maxh=4., quad_dominated=False)
+    Viewer.add_meshes(part)
+Viewer.show_mesh()
