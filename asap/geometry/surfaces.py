@@ -247,6 +247,17 @@ class NurbsSurface(Geom_BSplineSurface, Geometry):
         self.D0(u, v, p)
         return p
 
+    def eval_params(self, uprms, vprms):
+        """
+        Evaluate the surface at multiple parameters.
+
+        :param uprms:
+        :param vprms:
+
+        :return:
+        """
+        return [self.eval(u, v) for u, v in zip(uprms, vprms)]
+
     def deriv(self, u, v, nu, nv):
         """
         Calculate the surface derivative.
