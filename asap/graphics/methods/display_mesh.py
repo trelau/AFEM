@@ -11,9 +11,9 @@ def display_part_mesh(display, part):
     """
     Display the mesh from a part.
     """
-    from ...fem.data import MeshData
+    from ...fem.mesh_mgr import MeshMgr
     for f in part.faces:
-        mesh = MeshData.mesh_from_shape(f)
+        mesh = MeshMgr.mesh_from_shape(f)
         if not mesh:
             continue
         display_trimesh(display, mesh, part.color)

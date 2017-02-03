@@ -1,12 +1,8 @@
-class MeshData(object):
+class MeshMgr(object):
     """
     Mesh data.
     """
     _shape_to_mesh = {}
-
-    @staticmethod
-    def _get_key(shape):
-        return shape.HashCode(9999999)
 
     @classmethod
     def shape_to_mesh(cls, shape, mesh):

@@ -1,6 +1,6 @@
 from OCC.TopAbs import TopAbs_EDGE, TopAbs_FACE
 
-from .data import MeshData
+from .mesh_mgr import MeshMgr
 from .methods.mesh_1d import mesh_edge
 from .methods.mesh_2d import mesh_face
 from ..topology import ShapeTools
@@ -71,7 +71,7 @@ class EdgeMesh(ShapeMesh):
         """
         nodes = mesh_edge(edge, maxh, density)
         self._nodes = nodes
-        MeshData.shape_to_mesh(edge, self)
+        MeshMgr.shape_to_mesh(edge, self)
 
     @property
     def nodes(self):
@@ -95,13 +95,13 @@ class FaceMesh(ShapeMesh, ViewableItem):
         """
         # Mesh all the edges in the face.
         for e in ShapeTools.get_edges(face):
-            if not MeshData.has_mesh(e):
+            if not MeshMgr.has_mesh(e):
                 EdgeMesh(e, maxh, density)
 
         # Mesh the face.
         elms = mesh_face(face, quad_dominated)
         self._elms = elms
-        MeshData.shape_to_mesh(face, self)
+        MeshMgr.shape_to_mesh(face, self)
 
     @property
     def nodes(self):

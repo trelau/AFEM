@@ -1,6 +1,6 @@
 from itertools import product
 
-from ...fem.data import MeshData
+from ...fem.mesh_mgr import MeshMgr
 
 
 def get_shared_edges(part1, part2):
@@ -35,7 +35,7 @@ def get_shared_nodes(part1, part2):
 
     node_set = set()
     for e in shared_edges:
-        mesh = MeshData.mesh_from_shape(e)
+        mesh = MeshMgr.mesh_from_shape(e)
         if not mesh:
             continue
         for n in mesh.nodes:

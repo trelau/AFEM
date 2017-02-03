@@ -8,7 +8,7 @@ from numpy.linalg import norm
 from scipy.spatial import KDTree
 
 from .map_face import FaceMap
-from ..data import MeshData
+from ..mesh_mgr import MeshMgr
 from ..elements import Elm2D
 from ..nodes import Node
 from ...config import Settings
@@ -73,7 +73,7 @@ def mesh_face(face, quad_dominated=False):
     while wexp.More():
         edge = ShapeTools.to_edge(wexp.Current())
         # Get 3-D nodes for the edge.
-        edge_mesh = MeshData.mesh_from_shape(edge)
+        edge_mesh = MeshMgr.mesh_from_shape(edge)
         nodes = edge_mesh.nodes
 
         # Reverse the node list if the edge is reversed.

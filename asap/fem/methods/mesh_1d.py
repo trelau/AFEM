@@ -3,7 +3,7 @@ from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from numpy import ceil
 
-from ..data import MeshData
+from ..mesh_mgr import MeshMgr
 from ..nodes import Node
 from ...config import Settings
 from ...geometry import CheckGeom
@@ -63,15 +63,15 @@ def mesh_edge(edge, maxh=None, density=None, face=None):
     # always follow the orientation of the curve.
     if edge.Orientation() == TopAbs_REVERSED:
         v1, v2 = v2, v1
-    n1 = MeshData.mesh_from_shape(v1)
-    n2 = MeshData.mesh_from_shape(v2)
+    n1 = MeshMgr.mesh_from_shape(v1)
+    n2 = MeshMgr.mesh_from_shape(v2)
     for i in range(npts):
         if i == 0:
             if isinstance(n1, Node):
                 node = n1
             else:
                 node = Node(t=prms[i], pnt=pnts[i])
-                MeshData.shape_to_mesh(v1, node)
+                MeshMgr.shape_to_mesh(v1, node)
         elif i == npts - 1:
             if isinstance(n2, Node):
                 node = n2
@@ -80,7 +80,7 @@ def mesh_edge(edge, maxh=None, density=None, face=None):
                     node = nodes[0]
                 else:
                     node = Node(t=prms[i], pnt=pnts[i])
-                MeshData.shape_to_mesh(v2, node)
+                MeshMgr.shape_to_mesh(v2, node)
         else:
             node = Node(t=prms[i], pnt=pnts[i])
         nodes.append(node)

@@ -9,7 +9,7 @@ from .methods.mesh_parts import mesh_surface_part
 from .methods.modify_parts import cut_part, discard_faces_by_distance, \
     discard_faces_by_solid
 from .part import Part
-from ..fem.data import MeshData
+from ..fem.mesh_mgr import MeshMgr
 from ..topology import ShapeTools
 
 
@@ -47,9 +47,9 @@ class SurfacePart(Part):
     def elements(self):
         elm_set = set()
         for f in self.faces:
-            if not MeshData.has_mesh(f):
+            if not MeshMgr.has_mesh(f):
                 continue
-            mesh = MeshData.mesh_from_shape(f)
+            mesh = MeshMgr.mesh_from_shape(f)
             for e in mesh.elements:
                 elm_set.add(e)
         return elm_set
