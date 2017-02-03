@@ -1,0 +1,5 @@
+recursive-include examples *.py
+graft examples/models
+graft demos/models
+include NOTICE.rst
+include .gitignore
