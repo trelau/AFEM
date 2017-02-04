@@ -1,5 +1,6 @@
 import netgen.meshing as ng_mesh
 from OCC.BRepAdaptor import BRepAdaptor_Curve2d, BRepAdaptor_Surface
+from OCC.BRepCheck import BRepCheck_NoError, BRepCheck_Wire
 from OCC.GeomAbs import GeomAbs_Plane
 from OCC.TopAbs import TopAbs_REVERSED
 from netgen.geom2d import SplineGeometry
@@ -8,8 +9,8 @@ from numpy.linalg import norm
 from scipy.spatial import KDTree
 
 from .map_face import FaceMap
-from ..mesh_mgr import MeshMgr
 from ..elements import Elm2D
+from ..mesh_mgr import MeshMgr
 from ..nodes import Node
 from ...config import Settings
 from ...geometry import CheckGeom
@@ -65,66 +66,50 @@ def mesh_face(face, quad_dominated=False):
     """
     Mesh a face.
     """
+    # Average h.
+    havg = []
+
     # Get the outer wire of the face and use a wire explorer to get the
     # boundary nodes.
-    bnodes = []
-    wire = ShapeTools.outer_wire(face)
-    wexp = ShapeTools.wire_explorer(wire, face)
-    while wexp.More():
-        edge = ShapeTools.to_edge(wexp.Current())
-        # Get 3-D nodes for the edge.
-        edge_mesh = MeshMgr.mesh_from_shape(edge)
-        nodes = edge_mesh.nodes
-
-        # Reverse the node list if the edge is reversed.
-        if wexp.Orientation() == TopAbs_REVERSED:
-            nodes.reverse()
-
-        # Parameters along edge.
-        t = [n.t for n in nodes]
-
-        # Get first and last parameters for the vertices of the edge and
-        # update the list.
-        u1, u2 = ShapeTools.parameters(edge, face)
-        t[0], t[-1] = u1, u2
-
-        # For each node except the last one, generate a 2-D node and add to
-        # the list using an adaptor curve.
-        adp_crv2d = BRepAdaptor_Curve2d(edge, face)
-        for ni, ti in zip(nodes, t)[:-1]:
-            gp_pnt2d = adp_crv2d.Value(ti)
-            u, v = gp_pnt2d.X(), gp_pnt2d.Y()
-            n2d = Node2D(ni, u, v, pnt=ni.pnt)
-            bnodes.append(n2d)
-
-        # Next edge.
-        wexp.Next()
+    bwire = ShapeTools.outer_wire(face)
+    bnodes = _process_closed_wire(bwire, face)
 
     if len(bnodes) < 3:
         return []
 
-    # Check direction of boundary nodes are CCW.
-    xy = [b.uv for b in bnodes]
-    xy.append(xy[0])
-    xy = array(xy)
-    nm = xy.shape
-    x0, y0 = xy[0]
-    xn, yn = xy[-1]
-    a = xn * y0 - x0 * yn
-    for i in range(0, nm[0] - 1):
-        a += xy[i, 0] * xy[i + 1, 1]
-        a -= xy[i + 1, 0] * xy[i, 1]
-    a *= 0.5
-    # assert a > 0., "Boundary nodes need reversed"
-    if a < 0:
-        bnodes.reverse()
+    # Check direction of boundary nodes.
+    _check_order(bnodes, True)
 
-    # Min distance between boundary nodes for surface map.
-    h = []
-    for n1, n2 in pairwise(bnodes):
-        h.append(n1.distance(n2))
-    h.append(bnodes[-1].distance(bnodes[0]))
-    h = mean(h)
+    # Average distance between boundary nodes for surface map.
+    hb = _havg(bnodes)
+    havg.append(hb)
+
+    # Explore for closed wires that define a hole.
+    wires = ShapeTools.get_wires(face)
+    internal_wires = []
+    hnodes = []
+    for wire in wires:
+        # Make sure this is not the boundary wire.
+        if bwire.IsSame(wire):
+            continue
+
+        # Check if wire is closed. If not, add it to internal wires for
+        # later processing.
+        check = BRepCheck_Wire(wire)
+        if check.Closed() != BRepCheck_NoError:
+            internal_wires.append(wire)
+            continue
+
+        # Process nodes on wire, check order, and calculate havg.
+        nodes = _process_closed_wire(wire, face)
+        _check_order(nodes, False)
+        havg.append(_havg(nodes))
+
+        # Add to hole list.
+        hnodes.append(nodes)
+
+    # Calculate average h.
+    h = mean(havg)
 
     # Build face distance map.
     adp_srf = BRepAdaptor_Surface(face, True)
@@ -137,6 +122,8 @@ def mesh_face(face, quad_dominated=False):
     node_to_point = {}
     point_to_node = {}
     points = []
+
+    # Boundary
     for n in bnodes:
         if smap:
             s = smap.eval_udist(n.u, n.v)
@@ -163,6 +150,33 @@ def mesh_face(face, quad_dominated=False):
     n2 = point_to_node[p2]
     h.append(norm(n1.pnt - n2.pnt))
 
+    # Holes
+    for hnode in hnodes:
+        points = []
+        for n in hnode:
+            if smap:
+                s = smap.eval_udist(n.u, n.v)
+                t = smap.eval_vdist(n.u, n.v)
+            else:
+                s, t = n.u, n.v
+            p = geo.AppendPoint(s, t)
+            node_to_point[n] = p
+            point_to_node[p] = n
+            points.append(p)
+            n.s, n.t = s, t
+
+        for p1, p2 in pairwise(points):
+            geo.Append(['line', p1, p2])
+            n1 = point_to_node[p1]
+            n2 = point_to_node[p2]
+            h.append(norm(n1.pnt - n2.pnt))
+        # Last segment.
+        p1, p2 = points[-1], points[0]
+        geo.Append(['line', p1, p2])
+        n1 = point_to_node[p1]
+        n2 = point_to_node[p2]
+        h.append(norm(n1.pnt - n2.pnt))
+
     # Set warning level.
     if Settings.warnings:
         # noinspection PyUnresolvedReferences
@@ -181,12 +195,91 @@ def mesh_face(face, quad_dominated=False):
     mesh = geo.GenerateMesh(mp=mp)
 
     # Get nodes.
-    nodes = _get_nodes2d(bnodes, mesh, smap, adp_srf, Settings.mtol)
+    all_n2d = []
+    for n in bnodes:
+        all_n2d.append(n)
+    for hnode in hnodes:
+        for n in hnode:
+            all_n2d.append(n)
+
+    nodes = _get_nodes2d(all_n2d, mesh, smap, adp_srf, Settings.mtol)
 
     # Get elements.
     elements = _get_elements(nodes, mesh)
 
     return elements
+
+
+def _process_closed_wire(wire, face):
+    """
+    Process a closed wire.
+    """
+    wire_nodes = []
+    wexp = ShapeTools.wire_explorer(wire, face)
+    while wexp.More():
+        edge = ShapeTools.to_edge(wexp.Current())
+        # Get 3-D nodes for the edge.
+        edge_mesh = MeshMgr.mesh_from_shape(edge)
+        nodes = edge_mesh.nodes
+
+        # Reverse the node list if the edge is reversed.
+        if wexp.Orientation() == TopAbs_REVERSED:
+            nodes.reverse()
+
+        # Parameters along edge.
+        t = [n.t for n in nodes]
+
+        # Get first and last parameters for the vertices of the edge and
+        # update the list.
+        u1, u2 = ShapeTools.parameters(edge, face)
+        t[0], t[-1] = u1, u2
+
+        # For each node except the last one, generate a 2-D node and add to
+        # the list using an adaptor curve.
+        adp_crv2d = BRepAdaptor_Curve2d(edge, face)
+        for ni, ti in zip(nodes, t)[:-1]:
+            gp_pnt2d = adp_crv2d.Value(ti)
+            u, v = gp_pnt2d.X(), gp_pnt2d.Y()
+            n2d = Node2D(ni, u, v, pnt=ni.pnt)
+            wire_nodes.append(n2d)
+
+        # Next edge.
+        wexp.Next()
+
+    return wire_nodes
+
+
+def _check_order(nodes, is_boundary):
+    """
+    Check the order of the nodes along the wire.
+    """
+    xy = [n.uv for n in nodes]
+    xy.append(xy[0])
+    xy = array(xy)
+    nm = xy.shape
+    x0, y0 = xy[0]
+    xn, yn = xy[-1]
+    a = xn * y0 - x0 * yn
+    for i in range(0, nm[0] - 1):
+        a += xy[i, 0] * xy[i + 1, 1]
+        a -= xy[i + 1, 0] * xy[i, 1]
+    a *= 0.5
+    # Boundary nodes should be CCW for Netgen, CW for holes.
+    if a < 0 and is_boundary:
+        nodes.reverse()
+    elif a > 0. and not is_boundary:
+        nodes.reverse()
+
+
+def _havg(nodes):
+    """
+    Calculate average distance between nodes.
+    """
+    h = []
+    for n1, n2 in pairwise(nodes):
+        h.append(n1.distance(n2))
+    h.append(nodes[-1].distance(nodes[0]))
+    return mean(h)
 
 
 def _get_nodes2d(fixed_nodes2d, mesh, smap, adp_srf, tol):

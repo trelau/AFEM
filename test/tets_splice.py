@@ -19,6 +19,9 @@ start = time.time()
 fspar = CreatePart.spar.by_parameters('fspar', wing, 0.15, 0.05, 0.15, 0.925)
 rspar = CreatePart.spar.by_parameters('rspar', wing, 0.65, 0.05, 0.65, 0.925)
 
+fspar.add_hole(12. * 20, 10.)
+fspar.add_hole(12. * 15, 15.)
+
 # Bulkheads
 bh1 = CreatePart.bulkhead.by_sref('bh1', fuselage, fspar.rshape)
 bh2 = CreatePart.bulkhead.by_sref('bh2', fuselage, rspar.rshape)
@@ -28,6 +31,9 @@ fspar.join(bh1)
 rspar.join(bh2)
 
 for part in [fspar, rspar, bh1, bh2]:
-    part.mesh(12., quad_dominated=False)
+    part.mesh(4., quad_dominated=False)
 Viewer.add_meshes(bh1, bh2, fspar, rspar)
 Viewer.show_mesh()
+
+Viewer.add_items(fspar, rspar, bh1, bh2)
+Viewer.show()
