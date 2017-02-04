@@ -69,6 +69,6 @@ Viewer.show()
 
 # Mesh
 for part in [floor, bh1, bh2, skin] + frames:
-    part.mesh(maxh=4., quad_dominated=False)
+    part.mesh(maxh=6., quad_dominated=False)
     Viewer.add_meshes(part)
 Viewer.show_mesh()

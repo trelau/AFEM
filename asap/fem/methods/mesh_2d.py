@@ -1,6 +1,6 @@
 import netgen.meshing as ng_mesh
+from OCC.BRep import BRep_Tool
 from OCC.BRepAdaptor import BRepAdaptor_Curve2d, BRepAdaptor_Surface
-from OCC.BRepCheck import BRepCheck_NoError, BRepCheck_Wire
 from OCC.GeomAbs import GeomAbs_Plane
 from OCC.TopAbs import TopAbs_REVERSED
 from netgen.geom2d import SplineGeometry
@@ -95,8 +95,7 @@ def mesh_face(face, quad_dominated=False):
 
         # Check if wire is closed. If not, add it to internal wires for
         # later processing.
-        check = BRepCheck_Wire(wire)
-        if check.Closed() != BRepCheck_NoError:
+        if not BRep_Tool.IsClosed(wire):
             internal_wires.append(wire)
             continue
 
