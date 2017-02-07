@@ -33,9 +33,6 @@ class Point(gp_Pnt, Geometry):
     def __getitem__(self, item):
         return self.xyz[item]
 
-    def __eq__(self, other):
-        return self.is_equal(other, Settings.gtol)
-
     def __add__(self, other):
         return add(self, other)
 
@@ -162,9 +159,6 @@ class Point2D(gp_Pnt2d, Geometry):
 
     def __getitem__(self, item):
         return self.xy[item]
-
-    def __eq__(self, other):
-        return self.is_equal(other, Settings.gtol)
 
     def __add__(self, other):
         return add(self, other)

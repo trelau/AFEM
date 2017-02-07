@@ -1,15 +1,13 @@
-from itertools import count
-
-
 class Element(object):
     """
     Base class for elements.
     """
-    _ids = count(1)
+    _ids = 1
 
     def __init__(self, nodes):
         self._nodes = nodes
-        self._eid = self._ids.next()
+        self._eid = self._ids
+        self._ids += 1
 
     def __str__(self):
         eid = 'Element {0}: '.format(str(self.eid))

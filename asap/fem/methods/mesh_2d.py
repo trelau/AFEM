@@ -34,9 +34,6 @@ class Node2D(object):
     def __str__(self):
         return 'Node2D = ({0}, {1})'.format(self.u, self.v)
 
-    def __eq__(self, other):
-        return self.is_equal(other, Settings.mtol)
-
     @property
     def uv(self):
         return array([self.u, self.v])
@@ -236,7 +233,7 @@ def _process_closed_wire(wire, face):
         # For each node except the last one, generate a 2-D node and add to
         # the list using an adaptor curve.
         adp_crv2d = BRepAdaptor_Curve2d(edge, face)
-        for ni, ti in zip(nodes, t)[:-1]:
+        for ni, ti in list(zip(nodes, t))[:-1]:
             gp_pnt2d = adp_crv2d.Value(ti)
             u, v = gp_pnt2d.X(), gp_pnt2d.Y()
             n2d = Node2D(ni, u, v, pnt=ni.pnt)
