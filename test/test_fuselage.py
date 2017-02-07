@@ -41,12 +41,12 @@ for pln in plns:
     frames.append(frame)
 
 # Skin
-skin = CreatePart.surface_part('fuse_skin', fuselage.shell)
+skin = CreatePart.surface_part('fuse skin', fuselage.shell)
 skin.set_shape(fuselage.shell)
 
 # Join
 floor.join(bh1, bh2, *frames)
-skin.join(floor, bh1, bh2, *frames)
+skin.join(bh1, bh2, *frames)
 
 fwd = ShapeTools.create_halfspace(bh1, [0, 0, 0])
 aft = ShapeTools.create_halfspace(bh2, [1e6, 0, 0])
@@ -63,12 +63,12 @@ bh2.discard(above_floor)
 # View
 skin.set_color(0.5, 0.5, 0.5)
 skin.set_transparency(0.5)
-Viewer.add_items(*[floor, skin, bh1, bh2])
+Viewer.add_items(*[floor, bh1, bh2, skin])
 Viewer.add_items(*frames)
 Viewer.show()
 
 # Mesh
 for part in [floor, bh1, bh2, skin] + frames:
-    part.mesh(maxh=6., quad_dominated=False)
+    part.mesh(maxh=4., quad_dominated=False)
     Viewer.add_meshes(part)
 Viewer.show_mesh()

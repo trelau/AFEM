@@ -232,7 +232,6 @@ def build_wingbox(wing, params):
 
 
 if __name__ == '__main__':
-    # Settings.activate_warnings()
     start = time.time()
 
     # Import model

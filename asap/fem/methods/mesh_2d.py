@@ -48,14 +48,14 @@ class Node2D(object):
         """
         Distance to other node.
         """
-        return norm(self.pnt - other.pnt)
+        return norm(self.uv - other.uv)
 
     def is_equal(self, other, tol=None):
         """
         Check to see if nodes are equivalent.
         """
         if tol is None:
-            tol = Settings.mtol
+            tol = Settings.ptol
         if self.distance(other) <= tol:
             return True
         return False
@@ -71,22 +71,22 @@ def mesh_face(face, quad_dominated=False):
     # Get the outer wire of the face and use a wire explorer to get the
     # boundary nodes.
     bwire = ShapeTools.outer_wire(face)
-    bnodes = _process_closed_wire(bwire, face)
+    bnodes2d = _process_closed_wire(bwire, face)
 
-    if len(bnodes) < 3:
+    if len(bnodes2d) < 3:
         return []
 
     # Check direction of boundary nodes.
-    _check_order(bnodes, True)
+    _check_order(bnodes2d, True)
 
     # Average distance between boundary nodes for surface map.
-    hb = _havg(bnodes)
+    hb = _havg(bnodes2d)
     havg.append(hb)
 
     # Explore for closed wires that define a hole.
     wires = ShapeTools.get_wires(face)
     internal_wires = []
-    hnodes = []
+    hnodes2d = []
     for wire in wires:
         # Make sure this is not the boundary wire.
         if bwire.IsSame(wire):
@@ -99,12 +99,12 @@ def mesh_face(face, quad_dominated=False):
             continue
 
         # Process nodes on wire, check order, and calculate havg.
-        nodes = _process_closed_wire(wire, face)
-        _check_order(nodes, False)
-        havg.append(_havg(nodes))
+        nodes2d = _process_closed_wire(wire, face)
+        _check_order(nodes2d, False)
+        havg.append(_havg(nodes2d))
 
         # Add to hole list.
-        hnodes.append(nodes)
+        hnodes2d.append(nodes2d)
 
     # Calculate average h.
     h = mean(havg)
@@ -117,63 +117,118 @@ def mesh_face(face, quad_dominated=False):
 
     # Generate the geometry using Netgen points and line segments.
     geo = SplineGeometry()
-    node_to_point = {}
-    point_to_node = {}
+    node2d_to_point = {}
+    point_to_node2d = {}
     points = []
 
     # Boundary
-    for n in bnodes:
+    for n2d in bnodes2d:
         if smap:
-            s = smap.eval_udist(n.u, n.v)
-            t = smap.eval_vdist(n.u, n.v)
+            s = smap.eval_udist(n2d.u, n2d.v)
+            t = smap.eval_vdist(n2d.u, n2d.v)
         else:
-            s, t = n.u, n.v
+            s, t = n2d.u, n2d.v
         p = geo.AppendPoint(s, t)
-        node_to_point[n] = p
-        point_to_node[p] = n
+        node2d_to_point[n2d] = p
+        point_to_node2d[p] = n2d
         points.append(p)
-        n.s, n.t = s, t
+        n2d.s, n2d.t = s, t
 
     # Generate line segments from pairwise points.
     h = []
+    h2d = []
     for p1, p2 in pairwise(points):
         geo.Append(['line', p1, p2])
-        n1 = point_to_node[p1]
-        n2 = point_to_node[p2]
+        n1 = point_to_node2d[p1]
+        n2 = point_to_node2d[p2]
         h.append(norm(n1.pnt - n2.pnt))
+        h2d.append(n1.distance(n2))
     # Last segment.
     p1, p2 = points[-1], points[0]
     geo.Append(['line', p1, p2])
-    n1 = point_to_node[p1]
-    n2 = point_to_node[p2]
+    n1 = point_to_node2d[p1]
+    n2 = point_to_node2d[p2]
     h.append(norm(n1.pnt - n2.pnt))
+    h2d.append(n1.distance(n2))
 
     # Holes
-    for hnode in hnodes:
+    for hnode in hnodes2d:
         points = []
-        for n in hnode:
+        for n2d in hnode:
             if smap:
-                s = smap.eval_udist(n.u, n.v)
-                t = smap.eval_vdist(n.u, n.v)
+                s = smap.eval_udist(n2d.u, n2d.v)
+                t = smap.eval_vdist(n2d.u, n2d.v)
             else:
-                s, t = n.u, n.v
+                s, t = n2d.u, n2d.v
             p = geo.AppendPoint(s, t)
-            node_to_point[n] = p
-            point_to_node[p] = n
+            node2d_to_point[n2d] = p
+            point_to_node2d[p] = n2d
             points.append(p)
-            n.s, n.t = s, t
+            n2d.s, n2d.t = s, t
 
         for p1, p2 in pairwise(points):
             geo.Append(['line', p1, p2])
-            n1 = point_to_node[p1]
-            n2 = point_to_node[p2]
+            n1 = point_to_node2d[p1]
+            n2 = point_to_node2d[p2]
             h.append(norm(n1.pnt - n2.pnt))
+            h2d.append(n1.distance(n2))
         # Last segment.
         p1, p2 = points[-1], points[0]
         geo.Append(['line', p1, p2])
-        n1 = point_to_node[p1]
-        n2 = point_to_node[p2]
+        n1 = point_to_node2d[p1]
+        n2 = point_to_node2d[p2]
         h.append(norm(n1.pnt - n2.pnt))
+        h2d.append(n1.distance(n2))
+
+    # Gather existing node 2-D instances.
+    all_n2d = node2d_to_point.keys()
+
+    # Calculate a tolerance in 2-D to check for equivalent nodes.
+    tol2d = min(h2d) / 10.
+
+    # Internal wires
+    inodes2d = []
+    for wire in internal_wires:
+        # Process nodes on wire.
+        nodes2d = _process_internal_wire(wire, face)
+
+        # Check if any created 2-D node can be replaced with existing.
+        for i, n2d1 in enumerate(nodes2d):
+            for n2d2 in all_n2d:
+                if n2d1.is_equal(n2d2, tol2d):
+                    nodes2d[i] = n2d2
+                    break
+
+        # Add to list.
+        inodes2d.append(nodes2d)
+
+    # Generate internal line segments.
+    for inode in inodes2d:
+        points = []
+        boundaries = []
+        for n2d in inode:
+            is_boundary = False
+            if n2d in node2d_to_point:
+                is_boundary = True
+            elif smap:
+                s = smap.eval_udist(n2d.u, n2d.v)
+                t = smap.eval_vdist(n2d.u, n2d.v)
+            else:
+                s, t = n2d.u, n2d.v
+
+            if is_boundary:
+                p = node2d_to_point[n2d]
+            else:
+                p = geo.AppendPoint(s, t)
+                node2d_to_point[n2d] = p
+                point_to_node2d[p] = n2d
+                n2d.s, n2d.t = s, t
+            points.append(p)
+            boundaries.append(is_boundary)
+
+        for p1, p2 in pairwise(points):
+            # The zero is for the boundary condition.
+            geo.Append(['line', p1, p2], 0)
 
     # Set warning level.
     if Settings.warnings:
@@ -194,16 +249,20 @@ def mesh_face(face, quad_dominated=False):
 
     # Get nodes.
     all_n2d = []
-    for n in bnodes:
-        all_n2d.append(n)
-    for hnode in hnodes:
-        for n in hnode:
-            all_n2d.append(n)
+    for n2d in bnodes2d:
+        all_n2d.append(n2d)
+    for hnode in hnodes2d:
+        for n2d in hnode:
+            all_n2d.append(n2d)
+    for inode in inodes2d:
+        for n2d in inode:
+            if n2d not in all_n2d:
+                all_n2d.append(n2d)
 
-    nodes = _get_nodes2d(all_n2d, mesh, smap, adp_srf, Settings.mtol)
+    nodes2d = _get_nodes2d(all_n2d, mesh, smap, adp_srf, Settings.mtol)
 
     # Get elements.
-    elements = _get_elements(nodes, mesh)
+    elements = _get_elements(nodes2d, mesh)
 
     return elements
 
@@ -212,7 +271,7 @@ def _process_closed_wire(wire, face):
     """
     Process a closed wire.
     """
-    wire_nodes = []
+    wire_nodes2d = []
     wexp = ShapeTools.wire_explorer(wire, face)
     while wexp.More():
         edge = ShapeTools.to_edge(wexp.Current())
@@ -239,19 +298,81 @@ def _process_closed_wire(wire, face):
             gp_pnt2d = adp_crv2d.Value(ti)
             u, v = gp_pnt2d.X(), gp_pnt2d.Y()
             n2d = Node2D(ni, u, v, pnt=ni.pnt)
-            wire_nodes.append(n2d)
+            wire_nodes2d.append(n2d)
 
         # Next edge.
         wexp.Next()
 
-    return wire_nodes
+    return wire_nodes2d
 
 
-def _check_order(nodes, is_boundary):
+def _process_internal_wire(wire, face):
     """
-    Check the order of the nodes along the wire.
+    Process an internal wire.
     """
-    xy = [n.uv for n in nodes]
+    wire_nodes2d = []
+    wexp = ShapeTools.wire_explorer(wire, face)
+
+    # Put all edges in ordered list. This is a hack since wire explorer
+    # seems to crash if wire only has one edge...
+    all_edges = ShapeTools.get_edges(wire, False)
+    edges = []
+    orienation = []
+    if len(all_edges) < 1:
+        return []
+    elif len(all_edges) == 1:
+        edge = ShapeTools.to_edge(all_edges[0])
+        edges.append(edge)
+        orienation.append(edge.Orientation())
+    else:
+        while wexp.More():
+            edge = ShapeTools.to_edge(wexp.Current())
+            edges.append(edge)
+            orienation.append(wexp.Orientation())
+            wexp.Next()
+
+    nedges = len(edges)
+    for i, edge in enumerate(edges):
+        # Get 3-D nodes for the edge.
+        edge_mesh = MeshMgr.mesh_from_shape(edge)
+        nodes = edge_mesh.nodes
+
+        # Reverse the node list if the edge is reversed.
+        if orienation[i] == TopAbs_REVERSED:
+            nodes.reverse()
+
+        # Parameters along edge.
+        t = [n.t for n in nodes]
+
+        # Get first and last parameters for the vertices of the edge and
+        # update the list.
+        u1, u2 = ShapeTools.parameters(edge, face)
+        t[0], t[-1] = u1, u2
+
+        # For each node, generate a 2-D node and add to the list using an
+        # adaptor curve.
+        adp_crv2d = BRepAdaptor_Curve2d(edge, face)
+        if i == nedges - 1:
+            for ni, ti in list(zip(nodes, t)):
+                gp_pnt2d = adp_crv2d.Value(ti)
+                u, v = gp_pnt2d.X(), gp_pnt2d.Y()
+                n2d = Node2D(ni, u, v, pnt=ni.pnt)
+                wire_nodes2d.append(n2d)
+        else:
+            for ni, ti in list(zip(nodes, t))[:-1]:
+                gp_pnt2d = adp_crv2d.Value(ti)
+                u, v = gp_pnt2d.X(), gp_pnt2d.Y()
+                n2d = Node2D(ni, u, v, pnt=ni.pnt)
+                wire_nodes2d.append(n2d)
+
+    return wire_nodes2d
+
+
+def _check_order(nodes2d, is_boundary):
+    """
+    Check the order of the nodes2d along the wire.
+    """
+    xy = [n.uv for n in nodes2d]
     xy.append(xy[0])
     xy = array(xy)
     nm = xy.shape
@@ -262,21 +383,21 @@ def _check_order(nodes, is_boundary):
         a += xy[i, 0] * xy[i + 1, 1]
         a -= xy[i + 1, 0] * xy[i, 1]
     a *= 0.5
-    # Boundary nodes should be CCW for Netgen, CW for holes.
+    # Boundary nodes2d should be CCW for Netgen, CW for holes.
     if a < 0 and is_boundary:
-        nodes.reverse()
+        nodes2d.reverse()
     elif a > 0. and not is_boundary:
-        nodes.reverse()
+        nodes2d.reverse()
 
 
 def _havg(nodes):
     """
-    Calculate average distance between nodes.
+    Calculate average distance between nodes in 3-D.
     """
     h = []
     for n1, n2 in pairwise(nodes):
-        h.append(n1.distance(n2))
-    h.append(nodes[-1].distance(nodes[0]))
+        h.append(n1.pnt.distance(n2.pnt))
+    h.append(nodes[-1].pnt.distance(nodes[0].pnt))
     return mean(h)
 
 

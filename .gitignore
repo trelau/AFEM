@@ -1,7 +1,3 @@
-# examples and test folders
-examples/
-test/
-
 # FEM files
 *.bdf
 
