@@ -10,3 +10,11 @@ Installing
 ASAP can be installed using the command:
 
     python setup.py develop
+
+ASAP relies on PythonOCC which can be found here:
+
+https://github.com/tpaviot/pythonocc-core
+
+and installed using conda with:
+
+    conda install -c pythonocc -c dlr-sc pythonocc-core
