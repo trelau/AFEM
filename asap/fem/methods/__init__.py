@@ -18,6 +18,7 @@ def _add_netgen_path():
     path_name = '/'.join([fdir, netgen_path])
     sys.path.append(path_name)
     try:
+        # noinspection PyUnresolvedReferences
         import netgen
         return True
     except ImportError:
@@ -25,6 +26,7 @@ def _add_netgen_path():
 
 
 try:
+    # noinspection PyUnresolvedReferences
     import netgen
 except ImportError:
     status = _add_netgen_path()
