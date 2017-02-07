@@ -114,6 +114,9 @@ class SurfacePart(Part):
 
         :return:
         """
+        cutter = ShapeTools.to_shape(cutter)
+        if not cutter:
+            return False
         return cut_part(self, cutter)
 
     def discard(self, shape, tol=None):

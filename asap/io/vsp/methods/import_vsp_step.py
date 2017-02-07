@@ -157,7 +157,7 @@ def import_vsp_step(fname):
     return bodies
 
 
-def _build_solid(compound, divide_closed=False):
+def _build_solid(compound, divide_closed=True):
     # Get all the faces in the compound. The surfaces must be split. Discard
     # any with zero area.
     top_exp = TopExp_Explorer(compound, TopAbs_FACE)

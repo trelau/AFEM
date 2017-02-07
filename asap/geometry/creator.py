@@ -9,7 +9,7 @@ from .methods.create import create_crv_by_approx_pnts, \
     create_planes_along_curve, create_planes_between_planes, \
     create_point_from_other, create_points_along_curve, \
     create_srf_by_approx_crvs, create_srf_by_interp_crvs
-from .points import Point
+from .points import Point, Point2D
 from .surfaces import Plane
 from .vectors import Direction
 
@@ -58,6 +58,17 @@ class CreateGeom(object):
         :return:
         """
         return Point(xyz[0], xyz[1], xyz[2])
+
+    @staticmethod
+    def point2d(xy=(0., 0.)):
+        """
+        Create a Point.
+
+        :param xy:
+
+        :return:
+        """
+        return Point2D(xy[0], xy[1])
 
     @staticmethod
     def point_by_xyz(x=0., y=0., z=0.):

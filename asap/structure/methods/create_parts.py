@@ -1,5 +1,6 @@
-from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace
+from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakeWire
 from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset
+from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 
 from ..bulkhead import Bulkhead
 from ..floor import Floor
@@ -113,6 +114,9 @@ def create_frame_by_sref(name, fuselage, rshape, h):
     w = ShapeTools.to_wire(offset.Shape())
     if not w:
         return None
+    # Force concatenation of wire to avoid small edges.
+    e = brepalgo_ConcatenateWireC0(w)
+    w = BRepBuilderAPI_MakeWire(e).Wire()
     builder = BRepBuilderAPI_MakeFace(f)
     builder.Add(w)
     face = builder.Face()
