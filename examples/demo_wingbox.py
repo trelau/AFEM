@@ -5,7 +5,7 @@ import time
 from asap.config import Settings
 from asap.geometry import CreateGeom, ProjectGeom
 from asap.graphics import Viewer
-from asap.io import ImportVSP, StepExport
+from asap.io import ImportVSP
 from asap.structure import AssemblyMgr, CreatePart, PartTools
 from asap.topology import ShapeTools
 
@@ -227,16 +227,6 @@ def build_wingbox(wing, params):
 
     # MESH --------------------------------------------------------------------
     AssemblyMgr.mesh_assy(maxh=4., quad_dominated=False)
-
-    # EXPORT ------------------------------------------------------------------
-    # Export to STEP file.
-    step_out = StepExport()
-    # Put structure into compounds which are essentially treated as assemblies.
-    internal = ShapeTools.make_compound(internal_parts)
-    skin = ShapeTools.make_compound([skin])
-    assy_out = ShapeTools.make_compound([internal, skin])
-    step_out.transfer(assy_out)
-    step_out.write('wingbox.stp')
 
     return AssemblyMgr.get_active()
 
