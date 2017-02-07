@@ -9,8 +9,4 @@ Installing
 ----------
 ASAP can be installed using the command:
 
-    python setup.py install
-
-or
-
-    python setup.py develop (recommended)
+    python setup.py develop
