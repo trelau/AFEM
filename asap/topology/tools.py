@@ -1,3 +1,5 @@
+from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_COMMON, BOPAlgo_CUT, \
+    BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_SECTION
 from OCC.BRep import BRep_Builder, BRep_Tool
 from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
@@ -12,19 +14,20 @@ from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_UniformAbscissa
 from OCC.GProp import GProp_GProps
 from OCC.GeomConvert import geomconvert
-from OCC.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_ShapeTolerance
+from OCC.ShapeAnalysis import ShapeAnalysis_Edge, \
+    ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
 from OCC.ShapeFix import ShapeFix_Shape
 from OCC.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
 from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
     TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, \
     TopAbs_WIRE
 from OCC.TopExp import TopExp_Explorer
+from OCC.TopTools import Handle_TopTools_HSequenceOfShape, \
+    TopTools_HSequenceOfShape
 from OCC.TopoDS import TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge, \
     TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex, \
     TopoDS_Wire, topods_CompSolid, topods_Compound, topods_Edge, topods_Face, \
     topods_Shell, topods_Solid, topods_Vertex, topods_Wire
-from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_FUSE, BOPAlgo_SECTION, \
-    BOPAlgo_COMMON, BOPAlgo_CUT, BOPAlgo_CUT21
 
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
@@ -224,7 +227,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                    shape.ShapeType() == TopAbs_COMPSOLID):
+                shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -946,3 +949,43 @@ class ShapeTools(object):
         if bop.ErrorStatus() != 0:
             return None
         return bop.Shape()
+
+    @staticmethod
+    def connect_edges(edges, tol=1.0e-6, shared=False):
+        """
+        Build wires from a list of unsorted edges.
+
+        :param edges:
+        :param tol:
+        :param shared:
+
+        :return:
+        """
+        hedges = TopTools_HSequenceOfShape()
+        for e in edges:
+            hedges.Append(e)
+
+        # noinspection PyArgumentList
+        hwires = Handle_TopTools_HSequenceOfShape()
+        ShapeAnalysis_FreeBounds_ConnectEdgesToWires(hedges.GetHandle(),
+                                                     tol, shared, hwires)
+
+        wires_obj = hwires.GetObject()
+        wires = []
+        for i in range(1, wires_obj.Length() + 1):
+            w = topods_Wire(wires_obj.Value(i))
+            wires.append(w)
+
+        return wires
+
+    @staticmethod
+    def make_prism(shape, vec):
+        """
+        Make a linear swept topology (i.e., prism).
+
+        :param shape:
+        :param vec:
+
+        :return:
+        """
+        return BRepPrimAPI_MakePrism(shape, vec).Shape()
