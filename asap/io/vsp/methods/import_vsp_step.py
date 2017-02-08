@@ -31,12 +31,13 @@ from ....oml.wing import Wing
 from ....topology import ShapeTools
 
 
-def import_vsp_step(fname):
+def import_vsp_step(fname, divide_closed):
     """
     Import a OpenVSP STEP file and translate into ASAP wing and fuselage
     bodies.
 
     :param str fname: Filename (and path) to STEP file.
+    :param divide_closed:
 
     :return: Dictionaries of wing and fuselage bodies.
     :rtype: dict
@@ -97,7 +98,7 @@ def import_vsp_step(fname):
             indx += 1
             comp_name = '.'.join(['Uknown', str(indx)])
             print('---Processing OpenVSP component:', comp_name)
-            solid = _build_solid(compound)
+            solid = _build_solid(compound, divide_closed)
             if solid:
                 body = Body(solid)
                 bodies[comp_name] = body
@@ -127,7 +128,7 @@ def import_vsp_step(fname):
 
         # Wing
         if metadata['m_Type'] == 5 and metadata['m_SurfType'] != 99:
-            wing = _process_wing(compound)
+            wing = _process_wing(compound, divide_closed)
             if wing is not None:
                 wing.set_name(comp_name)
                 bodies[comp_name] = wing
@@ -136,7 +137,7 @@ def import_vsp_step(fname):
 
         # Fuselage
         elif metadata['m_Type'] in [4, 9]:
-            fuse = _process_fuse(compound)
+            fuse = _process_fuse(compound, divide_closed)
             if fuse is not None:
                 fuse.set_name(comp_name)
                 bodies[comp_name] = fuse
@@ -157,7 +158,7 @@ def import_vsp_step(fname):
     return bodies
 
 
-def _build_solid(compound, divide_closed=True):
+def _build_solid(compound, divide_closed):
     # Get all the faces in the compound. The surfaces must be split. Discard
     # any with zero area.
     top_exp = TopExp_Explorer(compound, TopAbs_FACE)
@@ -278,7 +279,7 @@ def _build_solid(compound, divide_closed=True):
     return solid
 
 
-def _process_wing(compound):
+def _process_wing(compound, divide_closed):
     # Note that for VSP wings, the spanwise direction is u and the chord
     # direction is v, where v=0 is the TE and follows the lower surface fwd to
     # the LE, and then aft along the upper surface to the TE.
@@ -288,10 +289,10 @@ def _process_wing(compound):
     faces = ShapeTools.get_faces(compound)
     vsp_surf = None
     if len(faces) == 1:
-        solid = _process_unsplit_wing(compound)
+        solid = _process_unsplit_wing(compound, divide_closed)
         vsp_surf = ShapeTools.surface_of_face(faces[0])
     else:
-        solid = _build_solid(compound)
+        solid = _build_solid(compound, divide_closed)
 
     if not solid:
         return None
@@ -311,11 +312,11 @@ def _process_wing(compound):
     return wing
 
 
-def _process_fuse(compound):
+def _process_fuse(compound, divide_closed):
     # For VSP fuselages, the longitudinal direction is u, and the
     # circumferential direction is v.
     # Build the solid.
-    solid = _build_solid(compound)
+    solid = _build_solid(compound, divide_closed)
     if not solid:
         return None
 
@@ -356,7 +357,7 @@ def _process_sref(compound):
     return srf
 
 
-def _process_unsplit_wing(compound):
+def _process_unsplit_wing(compound, divide_closed):
     # Process a wing that was generated without "Split Surfs" option.
 
     faces = ShapeTools.get_faces(compound)
@@ -446,4 +447,4 @@ def _process_unsplit_wing(compound):
     # Put all faces into a compound a generate solid.
     new_compound = ShapeTools.make_compound(new_faces)
 
-    return _build_solid(new_compound)
+    return _build_solid(new_compound, divide_closed)
