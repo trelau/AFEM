@@ -48,14 +48,14 @@ skin.set_shape(fuselage.shell)
 floor.join(bh1, bh2, *frames)
 skin.join(bh1, bh2, *frames)
 
-fwd = ShapeTools.create_halfspace(bh1, [0, 0, 0])
-aft = ShapeTools.create_halfspace(bh2, [1e6, 0, 0])
+fwd = ShapeTools.make_halfspace(bh1, [0, 0, 0])
+aft = ShapeTools.make_halfspace(bh2, [1e6, 0, 0])
 skin.discard(fwd)
 skin.discard(aft)
 floor.discard(fwd)
 floor.discard(aft)
 
-above_floor = ShapeTools.create_halfspace(floor, [0, 0, 1e6])
+above_floor = ShapeTools.make_halfspace(floor, [0, 0, 1e6])
 
 bh1.discard(above_floor)
 bh2.discard(above_floor)

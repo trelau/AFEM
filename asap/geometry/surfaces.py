@@ -60,6 +60,20 @@ class Plane(Geom_Plane, Geometry):
         v = Vector(self.DN(u, v, nu, nv).XYZ())
         return v
 
+    def norm(self, u, v):
+        """
+        Calculate the plane normal.
+
+        :param u:
+        :param v:
+
+        :return:
+        """
+        du = self.deriv(u, v, 1, 0)
+        dv = self.deriv(u, v, 0, 1)
+        vn = Vector(du.Crossed(dv).XYZ())
+        return vn
+
 
 class NurbsSurface(Geom_BSplineSurface, Geometry):
     """

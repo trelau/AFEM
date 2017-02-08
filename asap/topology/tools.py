@@ -7,7 +7,7 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge, \
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepGProp import brepgprop_SurfaceProperties
-from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace
+from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_UniformAbscissa
 from OCC.GProp import GProp_GProps
@@ -222,7 +222,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                shape.ShapeType() == TopAbs_COMPSOLID):
+                    shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -635,7 +635,7 @@ class ShapeTools(object):
         return []
 
     @staticmethod
-    def create_halfspace(shape, pref):
+    def make_halfspace(shape, pref):
         """
         Create a half-space.
 
@@ -873,3 +873,31 @@ class ShapeTools(object):
         brepgprop_SurfaceProperties(shape, props, Settings.gtol)
         cg = props.CentreOfMass()
         return CreateGeom.point_by_xyz(cg.Y(), cg.Y(), cg.Z())
+
+    @staticmethod
+    def box_from_plane(pln, width, height, depth):
+        """
+        Create a solid box from a plane.
+
+        :param pln:
+        :param width:
+        :param height:
+        :param depth:
+
+        :return:
+        """
+        if not CheckGeom.is_plane(pln):
+            return None
+
+        # Make finite face from plane.
+        w = width / 2.
+        h = height / 2.
+        gp_pln = pln.Pln()
+        face = BRepBuilderAPI_MakeFace(gp_pln, -w, w, -h, h).Face()
+
+        # Get normal vector at center of plane and use depth to extrude.
+        vn = pln.norm(0., 0.)
+        vn.Normalize()
+        vn.Scale(depth)
+        shape = BRepPrimAPI_MakePrism(face, vn).Shape()
+        return shape

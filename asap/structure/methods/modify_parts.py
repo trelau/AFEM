@@ -107,8 +107,8 @@ def discard_wing_part_faces(part):
     # Translate points to define half space.
     pref1 = p1 + 100. * v1.xyz
     pref2 = p2 + 100. * v2.xyz
-    hs1 = ShapeTools.create_halfspace(pln1, pref1)
-    hs2 = ShapeTools.create_halfspace(pln2, pref2)
+    hs1 = ShapeTools.make_halfspace(pln1, pref1)
+    hs2 = ShapeTools.make_halfspace(pln2, pref2)
 
     # Discard
     status1 = discard_faces_by_solid(part, hs1)
