@@ -146,3 +146,14 @@ class Body(TopoDS_Solid, ViewableItem):
         :return:
         """
         return self._bop(body, inplace, 'cut')
+
+    def intersect(self, body, rtype=None):
+        """
+        Find intersection between the bodies.
+
+        :param body:
+        :param rtype:
+
+        :return:
+        """
+        return ShapeTools.bsection(self, body, rtype)
