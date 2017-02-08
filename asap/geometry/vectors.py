@@ -121,3 +121,21 @@ class Vector(gp_Vec, Geometry):
         :return: None.
         """
         self.Reverse()
+
+    def normalize(self):
+        """
+        Normalize the vector.
+
+        :return:
+        """
+        self.Normalize()
+
+    def scale(self, scale):
+        """
+        Scale the vector.
+
+        :param scale:
+
+        :return:
+        """
+        self.Scale(scale)
