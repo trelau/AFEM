@@ -11,7 +11,7 @@ from .methods.create import create_crv_by_approx_pnts, \
     create_srf_by_approx_crvs, create_srf_by_interp_crvs
 from .points import Point, Point2D
 from .surfaces import Plane
-from .vectors import Direction
+from .vectors import Direction, Vector
 
 
 class CreateGeom(object):
@@ -417,6 +417,31 @@ class CreateGeom(object):
             return None
 
         return create_isocurve(surface, u, v)
+
+    @staticmethod
+    def vector(vxyz=(0., 0., 1.)):
+        """
+        Create a vector.
+
+        :param vxyz:
+
+        :return:
+        """
+        return Vector(*vxyz)
+
+    @staticmethod
+    def vector_by_points(p1, p2):
+        """
+        Create a vector between two points.
+
+        :param p1:
+        :param p2:
+
+        :return:
+        """
+        p1 = CheckGeom.to_point(p1)
+        p2 = CheckGeom.to_point(p2)
+        return Vector(p1, p2)
 
 
 class CreatedPoints(object):

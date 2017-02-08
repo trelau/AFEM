@@ -147,7 +147,7 @@ class Body(TopoDS_Solid, ViewableItem):
         """
         return self._bop(body, inplace, 'cut')
 
-    def intersect(self, body, rtype=None):
+    def section(self, body, rtype=None):
         """
         Find intersection between the bodies.
 
@@ -157,3 +157,14 @@ class Body(TopoDS_Solid, ViewableItem):
         :return:
         """
         return ShapeTools.bsection(self, body, rtype)
+
+    def bop_algo(self, bodies, operation='fuse'):
+        """
+        Perform BOP on multiple bodies.
+
+        :param operation:
+        :param bodies:
+
+        :return:
+        """
+        return ShapeTools.bop_algo([self], bodies, operation)
