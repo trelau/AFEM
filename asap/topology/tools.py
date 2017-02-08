@@ -23,6 +23,8 @@ from OCC.TopoDS import TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge, \
     TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex, \
     TopoDS_Wire, topods_CompSolid, topods_Compound, topods_Edge, topods_Face, \
     topods_Shell, topods_Solid, topods_Vertex, topods_Wire
+from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_FUSE, BOPAlgo_SECTION, \
+    BOPAlgo_COMMON, BOPAlgo_CUT, BOPAlgo_CUT21
 
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
@@ -901,3 +903,46 @@ class ShapeTools(object):
         vn.Scale(depth)
         shape = BRepPrimAPI_MakePrism(face, vn).Shape()
         return shape
+
+    @staticmethod
+    def bop_algo(args, tools, operation='fuse'):
+        """
+        Perform BOP using BOPAlgo_BOP tool.
+
+        :param args:
+        :param tools:
+        :param operation:
+
+        :return:
+        """
+        bop = BOPAlgo_BOP()
+
+        for shape in args:
+            shape = ShapeTools.to_shape(shape)
+            bop.AddArgument(shape)
+        for shape in tools:
+            shape = ShapeTools.to_shape(shape)
+            bop.AddTool(shape)
+
+        try:
+            operation = operation.lower()
+        except AttributeError:
+            return None
+        if operation in ['fuse']:
+            operation = BOPAlgo_FUSE
+        elif operation in ['common']:
+            operation = BOPAlgo_COMMON
+        elif operation in ['cut']:
+            operation = BOPAlgo_CUT
+        elif operation in ['cut21']:
+            operation = BOPAlgo_CUT21
+        elif operation in ['section', 'intersect']:
+            operation = BOPAlgo_SECTION
+        else:
+            return None
+
+        bop.SetOperation(operation)
+        bop.Perform()
+        if bop.ErrorStatus() != 0:
+            return None
+        return bop.Shape()
