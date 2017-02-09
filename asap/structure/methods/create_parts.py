@@ -9,7 +9,7 @@ from ..frame import Frame
 from ..rib import Rib
 from ..spar import Spar
 from ..surface_part import SurfacePart
-from ...geometry import CheckGeom
+from ...geometry import CheckGeom, IntersectGeom
 from ...geometry.methods.create import create_nurbs_curve_from_occ
 from ...oml import CheckOML
 from ...topology import ShapeTools
@@ -148,6 +148,53 @@ def create_wing_part_by_sref(etype, name, wing, rshape, build):
         wing_part.build()
 
     return wing_part
+
+
+def create_wing_part_between_geom(etype, name, wing, geom1, geom2, rshape,
+                                  build):
+    """
+    Create a wing part between geometry.
+    """
+    if not CheckOML.is_wing(wing):
+        return None
+
+    rshape = ShapeTools.to_shape(rshape)
+    if not rshape:
+        return None
+
+    # Intersect the wing reference surface with the reference shape.
+    edges = ShapeTools.bsection(rshape, wing.sref, 'edge')
+    if not edges:
+        return None
+
+    # Build wires
+    tol = ShapeTools.get_tolerance(rshape)
+    wires = ShapeTools.connect_edges(edges, tol)
+    if not wires:
+        return None
+
+    # Use only one wire and concatenate and create reference curve.
+    w = wires[0]
+    e = ShapeTools.concatenate_wire(w)
+    crv_data = _brep_tool.Curve(e)
+    hcrv = crv_data[0]
+    adp_crv = GeomAdaptor_Curve(hcrv)
+    occ_crv = adp_crv.BSpline().GetObject()
+    cref = create_nurbs_curve_from_occ(occ_crv)
+
+    # Intersect geometry and create by points.
+    tol = ShapeTools.get_tolerance(w)
+    ci = IntersectGeom.perform(cref, geom1, tol)
+    if not ci.success:
+        return None
+    p1 = ci.point(1)
+
+    ci = IntersectGeom.perform(cref, geom2, tol)
+    if not ci.success:
+        return None
+    p2 = ci.point(1)
+
+    return create_wing_part_by_points(etype, name, wing, p1, p2, rshape, build)
 
 
 def create_frame_by_sref(name, fuselage, rshape, h):
