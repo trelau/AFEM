@@ -10,6 +10,7 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge, \
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepGProp import brepgprop_SurfaceProperties
+from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_UniformAbscissa
@@ -228,7 +229,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                    shape.ShapeType() == TopAbs_COMPSOLID):
+                shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -1004,3 +1005,45 @@ class ShapeTools(object):
         if not wire:
             return None
         return brepalgo_ConcatenateWireC0(wire)
+
+    @staticmethod
+    def incremental_mesh(shape, linear, is_relative=False, angular=0.5):
+        """
+        Builds the mesh of a shape.
+
+        :param shape:
+        :param linear:
+        :param is_relative:
+        :param angular:
+
+        :return:
+        """
+        BRepMesh_IncrementalMesh(shape, linear, is_relative, angular, False)
+
+    @staticmethod
+    def plane_from_section(shape1, shape2, pref):
+        """
+        Create plane from intersection of two shapes.
+        """
+        # Intersect the two shapes.
+        edges = ShapeTools.bsection(shape1, shape2, 'edge')
+        if not edges:
+            return None
+
+        # Tessellate the edges.
+        for e in edges:
+            ShapeTools.incremental_mesh(e, 1., True)
+
+        # Gather points to fit a plane.
+        pnts = [pref]
+        for e in edges:
+            hpoly = BRep_Tool().Polygon3D(e, e.Location())
+            tcol_pnts = hpoly.GetObject().Nodes()
+            for i in range(1, tcol_pnts.Length() + 1):
+                gp_pnt = tcol_pnts.Value(i)
+                pnt = CheckGeom.to_point(gp_pnt)
+                pnts.append(pnt)
+        if len(pnts) < 3:
+            return None
+
+        return CreateGeom.fit_plane(pnts)

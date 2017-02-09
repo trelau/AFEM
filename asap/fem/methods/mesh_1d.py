@@ -38,7 +38,10 @@ def mesh_edge(edge, maxh=None, density=None, face=None):
         if nstep < npts:
             nstep = int(npts)
 
-    pac = GCPnts_UniformAbscissa(adp_crv, nstep, Settings.gtol)
+    if nstep <= 1:
+        nstep = 2
+
+    pac = GCPnts_UniformAbscissa(adp_crv, nstep + 1, Settings.gtol)
     if not pac.IsDone():
         return []
 
