@@ -22,6 +22,8 @@ class SurfacePart(Part):
         super(SurfacePart, self).__init__(name)
         self._rshape = rshape
         self._fshapes = set()
+        self._sref = None
+        self._set_sref()
 
     @property
     def rshape(self):
@@ -44,6 +46,10 @@ class SurfacePart(Part):
         return len(self.faces)
 
     @property
+    def sref(self):
+        return self._sref
+
+    @property
     def elements(self):
         elm_set = set()
         for f in self.faces:
@@ -61,6 +67,27 @@ class SurfacePart(Part):
             for n in e.nodes:
                 node_set.add(n)
         return node_set
+
+    def _set_sref(self):
+        """
+        Set part reference surface is available.
+        """
+        if not self._rshape:
+            return False
+
+        # Only set sref if rshape is a face or a shell with one face.
+        try:
+            face = ShapeTools.get_faces(self._rshape)[0]
+        except IndexError:
+            return False
+
+        # Convert to ASAP surface.
+        sref = ShapeTools.surface_of_face(face)
+        if not sref:
+            return False
+
+        self._sref = sref
+        return True
 
     def form(self, *bodies):
         """

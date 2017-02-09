@@ -15,7 +15,9 @@ from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_UniformAbscissa
 from OCC.GProp import GProp_GProps
-from OCC.GeomConvert import geomconvert
+from OCC.GeomAbs import GeomAbs_BSplineSurface, GeomAbs_BezierSurface, \
+    GeomAbs_Plane
+from OCC.GeomAdaptor import GeomAdaptor_Surface
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge, \
     ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
 from OCC.ShapeFix import ShapeFix_Shape
@@ -34,6 +36,7 @@ from OCC.TopoDS import TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge, \
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
 from ..geometry.methods.create import create_nurbs_surface_from_occ
+from ..geometry.surfaces import Plane
 
 
 class ShapeTools(object):
@@ -446,11 +449,16 @@ class ShapeTools(object):
         :return:
         """
         hsrf = BRep_Tool.Surface(face)
-        try:
-            occ_srf = geomconvert.SurfaceToBSplineSurface(hsrf).GetObject()
+        adp_srf = GeomAdaptor_Surface(hsrf)
+        if adp_srf.GetType() == GeomAbs_Plane:
+            gp_pln = adp_srf.Plane()
+            return Plane(gp_pln)
+        elif adp_srf.GetType() in [GeomAbs_BezierSurface,
+                                   GeomAbs_BSplineSurface]:
+            occ_srf = adp_srf.BSpline().GetObject()
             return create_nurbs_surface_from_occ(occ_srf)
-        except (RuntimeError, TypeError):
-            return hsrf.GetObject()
+
+        return None
 
     @staticmethod
     def sew_faces(faces, tol=None):
