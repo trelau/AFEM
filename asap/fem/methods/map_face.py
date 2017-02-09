@@ -4,10 +4,7 @@ from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepTools import breptools_UVBounds
 from OCC.Bnd import Bnd_Box
 from numpy import float64, linspace, sqrt, zeros
-from numpy.linalg import norm
 from scipy.interpolate import LinearNDInterpolator, RectBivariateSpline
-
-from ...geometry.methods.create import create_nurbs_surface_from_occ
 
 
 class FaceMap(object):
@@ -111,9 +108,8 @@ def face_distance_map(face, n=None, h=None):
         if ntemp > n:
             n = ntemp
 
-    # Extract an adaptor surface from the face and convert.
+    # Use adaptor surface from the face.
     adp_srf = BRepAdaptor_Surface(face, True)
-    surface = create_nurbs_surface_from_occ(adp_srf.BSpline().GetObject())
 
     # Parameter domain of the face on the surface.
     umin, umax, vmin, vmax = breptools_UVBounds(face)
@@ -126,7 +122,7 @@ def face_distance_map(face, n=None, h=None):
     nu = len(ugrid)
     nv = len(vgrid)
 
-    seval = surface.eval
+    seval = adp_srf.Value
     # Map u-direction.
     udist = zeros((nu, nv), dtype=float64)
     for j in range(0, nv):
@@ -137,7 +133,7 @@ def face_distance_map(face, n=None, h=None):
             du_1 = ugrid[i]
             pi = seval(du_0, dv)
             pi1 = seval(du_1, dv)
-            d += norm(pi1 - pi)
+            d += pi1.Distance(pi)
             udist[i, j] = d
 
     # Map v-direction.
@@ -150,7 +146,7 @@ def face_distance_map(face, n=None, h=None):
             dv_1 = vgrid[j]
             pi = seval(du, dv_0)
             pi1 = seval(du, dv_1)
-            d += norm(pi1 - pi)
+            d += pi1.Distance(pi)
             vdist[i, j] = d
 
     # Build interpolation functions for parameters.
