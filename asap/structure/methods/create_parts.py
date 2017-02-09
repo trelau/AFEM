@@ -1,6 +1,7 @@
+from OCC.BRep import BRep_Tool
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakeWire
 from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset
-from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
+from OCC.GeomAdaptor import GeomAdaptor_Curve
 
 from ..bulkhead import Bulkhead
 from ..floor import Floor
@@ -9,8 +10,11 @@ from ..rib import Rib
 from ..spar import Spar
 from ..surface_part import SurfacePart
 from ...geometry import CheckGeom
+from ...geometry.methods.create import create_nurbs_curve_from_occ
 from ...oml import CheckOML
 from ...topology import ShapeTools
+
+_brep_tool = BRep_Tool()
 
 
 def create_surface_part(name, rshape, *bodies):
@@ -49,7 +53,7 @@ def create_wing_part_by_params(etype, name, wing, u1, v1, u2, v2, rshape,
     if not rshape:
         return None
 
-    # Create the wing frame.
+    # Create the wing part.
     if etype in ['spar']:
         wing_part = Spar(name, wing, rshape)
     else:
@@ -90,6 +94,62 @@ def create_wing_part_by_points(etype, name, wing, p1, p2, rshape, build):
                                       rshape, build)
 
 
+def create_wing_part_by_sref(etype, name, wing, rshape, build):
+    """
+    Create wing part by reference surface.
+    """
+    if not CheckOML.is_wing(wing):
+        return None
+
+    rshape = ShapeTools.to_shape(rshape)
+    if not rshape:
+        return None
+
+    # Intersect the wing reference surface with the reference shape.
+    edges = ShapeTools.bsection(rshape, wing.sref, 'edge')
+    if not edges:
+        return None
+
+    # Build wires
+    tol = ShapeTools.get_tolerance(rshape)
+    wires = ShapeTools.connect_edges(edges, tol)
+    if not wires:
+        return None
+
+    # Use only one wire and concatenate and create reference curve.
+    w = wires[0]
+    e = ShapeTools.concatenate_wire(w)
+    crv_data = _brep_tool.Curve(e)
+    hcrv = crv_data[0]
+    adp_crv = GeomAdaptor_Curve(hcrv)
+    occ_crv = adp_crv.BSpline().GetObject()
+    cref = create_nurbs_curve_from_occ(occ_crv)
+
+    # Orient the cref such that its first point is closest to the corner of
+    # the wing.
+    umin, vmin = wing.sref.u1, wing.sref.v1
+    p0 = wing.eval(umin, vmin)
+    p1 = cref.eval(cref.u1)
+    p2 = cref.eval(cref.u2)
+    d1 = p0.distance(p1)
+    d2 = p0.distance(p2)
+    if d2 < d1:
+        cref.reverse()
+
+    # Create the wing part.
+    if etype in ['spar']:
+        wing_part = Spar(name, wing, rshape)
+    else:
+        wing_part = Rib(name, wing, rshape)
+    wing_part.set_cref(cref)
+    wing_part.form(wing)
+
+    if build:
+        wing_part.build()
+
+    return wing_part
+
+
 def create_frame_by_sref(name, fuselage, rshape, h):
     """
     Create a frame using a reference shape.
@@ -115,7 +175,7 @@ def create_frame_by_sref(name, fuselage, rshape, h):
     if not w:
         return None
     # Force concatenation of wire to avoid small edges.
-    e = brepalgo_ConcatenateWireC0(w)
+    e = ShapeTools.concatenate_wire(w)
     w = BRepBuilderAPI_MakeWire(e).Wire()
     builder = BRepBuilderAPI_MakeFace(f)
     builder.Add(w)

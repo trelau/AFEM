@@ -1,6 +1,7 @@
 from .methods.create_parts import create_bulkhead_by_sref, \
     create_floor_by_sref, create_frame_by_sref, create_surface_part, \
-    create_wing_part_by_params, create_wing_part_by_points
+    create_wing_part_by_params, create_wing_part_by_points, \
+    create_wing_part_by_sref
 
 
 class CreateSpar(object):
@@ -44,47 +45,61 @@ class CreateSpar(object):
         return create_wing_part_by_points('spar', name, wing, p1, p2,
                                           rshape, build)
 
-    # @staticmethod
-    # def between_geom(name, wing, geom1, geom2, rshape, tol=None, angle=None,
-    #                  assy=None):
-    #     """
-    #     Create a spar between geometry.
-    #
-    #     :param name:
-    #     :param wing:
-    #     :param geom1:
-    #     :param geom2:
-    #     :param rshape:
-    #     :param float tol:
-    #     :param float angle:
-    #     :param assy: Part assembly by name or instance. If *None* is
-    #         provided then the active assembly will be used.
-    #
-    #     :return:
-    #     """
-    #     return create_wing_part_between_geom('spar', name, wing, geom1, geom2,
-    #                                          rshape, tol,
-    #                                          angle, assy)
-    #
-    # @staticmethod
-    # def by_sref(name, wing, rshape, p1, p2, tol=None, angle=None, assy=None):
-    #     """
-    #     Create a spar using a reference surface only.
-    #
-    #     :param name:
-    #     :param wing:
-    #     :param rshape:
-    #     :param p1:
-    #     :param p2:
-    #     :param float tol:
-    #     :param float angle:
-    #     :param assy: Part assembly by name or instance. If *None* is
-    #         provided then the active assembly will be used.
-    #
-    #     :return:
-    #     """
-    #     return create_wing_part_by_sref('spar', name, wing, rshape, p1, p2, tol,
-    #                                     angle, assy)
+    @staticmethod
+    def by_sref(name, wing, rshape, build=True):
+        """
+        Create a spar using a reference shape.
+
+        :param name:
+        :param wing:
+        :param rshape:
+        :param build:
+
+        :return:
+        """
+        return create_wing_part_by_sref('spar', name, wing, rshape, build)
+
+        # @staticmethod
+        # def between_geom(name, wing, geom1, geom2, rshape, tol=None, angle=None,
+        #                  assy=None):
+        #     """
+        #     Create a spar between geometry.
+        #
+        #     :param name:
+        #     :param wing:
+        #     :param geom1:
+        #     :param geom2:
+        #     :param rshape:
+        #     :param float tol:
+        #     :param float angle:
+        #     :param assy: Part assembly by name or instance. If *None* is
+        #         provided then the active assembly will be used.
+        #
+        #     :return:
+        #     """
+        #     return create_wing_part_between_geom('spar', name, wing, geom1, geom2,
+        #                                          rshape, tol,
+        #                                          angle, assy)
+        #
+        # @staticmethod
+        # def by_sref(name, wing, rshape, p1, p2, tol=None, angle=None, assy=None):
+        #     """
+        #     Create a spar using a reference surface only.
+        #
+        #     :param name:
+        #     :param wing:
+        #     :param rshape:
+        #     :param p1:
+        #     :param p2:
+        #     :param float tol:
+        #     :param float angle:
+        #     :param assy: Part assembly by name or instance. If *None* is
+        #         provided then the active assembly will be used.
+        #
+        #     :return:
+        #     """
+        #     return create_wing_part_by_sref('spar', name, wing, rshape, p1, p2, tol,
+        #                                     angle, assy)
 
 
 class CreateRib(object):
@@ -169,6 +184,20 @@ class CreateRib(object):
         #     """
         #     return create_wing_part_by_sref('rib', name, wing, rshape, p1, p2, tol,
         #                                     angle, assy)
+
+    @staticmethod
+    def by_sref(name, wing, rshape, build=True):
+        """
+        Create a rib using a reference shape.
+
+        :param name:
+        :param wing:
+        :param rshape:
+        :param build:
+
+        :return:
+        """
+        return create_wing_part_by_sref('rib', name, wing, rshape, build)
 
 
 class CreateBulkhead(object):

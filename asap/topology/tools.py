@@ -2,6 +2,7 @@ from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_COMMON, BOPAlgo_CUT, \
     BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_SECTION
 from OCC.BRep import BRep_Builder, BRep_Tool
 from OCC.BRepAdaptor import BRepAdaptor_Curve
+from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
     BRepAlgoAPI_Fuse, BRepAlgoAPI_Section
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge, \
@@ -227,7 +228,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                shape.ShapeType() == TopAbs_COMPSOLID):
+                    shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -989,3 +990,17 @@ class ShapeTools(object):
         :return:
         """
         return BRepPrimAPI_MakePrism(shape, vec).Shape()
+
+    @staticmethod
+    def concatenate_wire(wire):
+        """
+        Create an edge by joining all the edges of the wire. The edge may
+        have C0 continuity.
+
+        :param wire:
+        :return:
+        """
+        wire = ShapeTools.to_wire(wire)
+        if not wire:
+            return None
+        return brepalgo_ConcatenateWireC0(wire)
