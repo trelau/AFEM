@@ -1,7 +1,7 @@
 from OCC.TopAbs import TopAbs_REVERSED
 from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-from numpy import ceil
+from numpy import floor
 
 from ..mesh_mgr import MeshMgr
 from ..nodes import Node
@@ -29,7 +29,7 @@ def mesh_edge(edge, maxh=None, density=None, face=None):
     # Adjust maxh and/or density if needed.
     if maxh is not None:
         arc_len = GCPnts_AbscissaPoint.Length(adp_crv, Settings.gtol)
-        nstep = int(ceil(arc_len / maxh)) + 1
+        nstep = int(floor(arc_len / maxh)) + 1
     else:
         nstep = int(npts)
 
