@@ -1,7 +1,8 @@
 from .methods.modify_parts import cut_wing_part_with_circle, \
     discard_wing_part_faces
 from .surface_part import SurfacePart
-from ..geometry import CheckGeom, CreateGeom, ProjectGeom
+from ..geometry import CheckGeom, ProjectGeom
+from ..topology import ShapeTools
 
 
 class WingPart(SurfacePart):
@@ -70,7 +71,8 @@ class WingPart(SurfacePart):
         except AttributeError:
             return None
 
-    def distribute_points(self, dx, s1=None, s2=None, u1=None, u2=None):
+    def distribute_points(self, dx, s1=None, s2=None, u1=None, u2=None,
+                          shape1=None, shape2=None):
         """
         Create evenly distributed points along the reference curve.
 
@@ -79,6 +81,8 @@ class WingPart(SurfacePart):
         :param float s2:
         :param float u1:
         :param float u2:
+        :param shape1:
+        :param shape2:
 
         :return:
         """
@@ -87,9 +91,8 @@ class WingPart(SurfacePart):
             dx = None
         else:
             npts = None
-        pac = CreateGeom.points_along_curve(self.cref, dx, npts, u1, u2,
-                                            s1, s2)
-        return pac.pnts
+        return ShapeTools.points_along_shape(self.cref, dx, npts, u1, u2,
+                                             s1, s2, shape1, shape2)
 
     def project_points(self, pnts):
         """

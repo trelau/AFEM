@@ -13,11 +13,12 @@ from OCC.BRepGProp import brepgprop_SurfaceProperties
 from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
-from OCC.GCPnts import GCPnts_UniformAbscissa
+from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GProp import GProp_GProps
+from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCC.GeomAbs import GeomAbs_BSplineSurface, GeomAbs_BezierSurface, \
     GeomAbs_Plane
-from OCC.GeomAdaptor import GeomAdaptor_Surface
+from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge, \
     ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
 from OCC.ShapeFix import ShapeFix_Shape
@@ -32,6 +33,7 @@ from OCC.TopoDS import TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge, \
     TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex, \
     TopoDS_Wire, topods_CompSolid, topods_Compound, topods_Edge, topods_Face, \
     topods_Shell, topods_Solid, topods_Vertex, topods_Wire
+from numpy import ceil
 
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
@@ -232,7 +234,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                shape.ShapeType() == TopAbs_COMPSOLID):
+                    shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -1055,3 +1057,108 @@ class ShapeTools(object):
             return None
 
         return CreateGeom.fit_plane(pnts)
+
+    @staticmethod
+    def points_along_shape(shape, maxd=None, npts=None, u1=None, u2=None,
+                           s1=None, s2=None, shape1=None, shape2=None):
+        """
+        Create points along an edge, wire, or curve.
+
+        :param shape:
+        :param maxd:
+        :param npts:
+        :param u1:
+        :param u2:
+        :param s1:
+        :param s2:
+        :param shape1:
+        :param shape2:
+
+        :return:
+        """
+        # Get adaptor curve.
+        if CheckGeom.is_curve_like(shape):
+            adp_crv = GeomAdaptor_Curve(shape.GetHandle())
+            edge = BRepBuilderAPI_MakeEdge(shape.GetHandle()).Edge()
+        elif isinstance(shape, TopoDS_Shape):
+            if shape.ShapeType() == TopAbs_EDGE:
+                edge = shape
+                adp_crv = BRepAdaptor_Curve(edge)
+            elif shape.ShapeType() == TopAbs_WIRE:
+                edge = brepalgo_ConcatenateWireC0(shape)
+                adp_crv = BRepAdaptor_Curve(edge)
+            else:
+                return []
+        else:
+            return []
+
+        # Check parameters.
+        if u1 is None:
+            u1 = adp_crv.FirstParameter()
+        if u2 is None:
+            u2 = adp_crv.LastParameter()
+        if u1 > u2:
+            u1, u2 = u2, u1
+
+        # Adjust parameter if shapes are provided.
+        if isinstance(shape1, TopoDS_Shape):
+            verts = ShapeTools.bsection(edge, shape1, 'vertex')
+            prms = []
+            for v in verts:
+                gp_pnt = BRep_Tool.Pnt(v)
+                proj = GeomAPI_ProjectPointOnCurve(gp_pnt, adp_crv.Curve())
+                if proj.NbPoints() < 1:
+                    continue
+                umin = proj.LowerDistanceParameter()
+                prms.append(umin)
+            u1 = min(prms)
+        if isinstance(shape2, TopoDS_Shape):
+            verts = ShapeTools.bsection(edge, shape2, 'vertex')
+            prms = []
+            for v in verts:
+                gp_pnt = BRep_Tool.Pnt(v)
+                proj = GeomAPI_ProjectPointOnCurve(gp_pnt, adp_crv.Curve())
+                if proj.NbPoints() < 1:
+                    continue
+                umin = proj.LowerDistanceParameter()
+                prms.append(umin)
+            u2 = max(prms)
+
+        # Adjust u1 and u2 is s1 and s2 are provided.
+        if s1 is not None:
+            pac = GCPnts_AbscissaPoint(Settings.gtol, adp_crv, s1, u1)
+            if pac.IsDone():
+                u1 = pac.Parameter()
+        if s2 is not None:
+            pac = GCPnts_AbscissaPoint(Settings.gtol, adp_crv, s2, u2)
+            if pac.IsDone():
+                u2 = pac.Parameter()
+
+        # Adjust step size if necessary.
+        if maxd is not None:
+            arc_len = GCPnts_AbscissaPoint.Length(adp_crv, Settings.gtol)
+            nstep = int(ceil(arc_len / maxd)) + 1
+        else:
+            nstep = int(npts)
+
+        # Minimum number of points if maxd and npts are provided.
+        if maxd is not None and npts is not None:
+            if nstep < npts:
+                nstep = int(npts)
+
+        # OCC uniform abscissa.
+        occ_pnts = GCPnts_UniformAbscissa(adp_crv, nstep, u1, u2,
+                                          Settings.gtol)
+        if not occ_pnts.IsDone():
+            return []
+
+        # Gather results.
+        npts = occ_pnts.NbPoints()
+        points = []
+        for i in range(1, npts + 1):
+            u = occ_pnts.Parameter(i)
+            gp_pnt = adp_crv.Value(u)
+            pnt = CheckGeom.to_point(gp_pnt)
+            points.append(pnt)
+
+        return points
