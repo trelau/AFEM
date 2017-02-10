@@ -9,6 +9,7 @@ from .methods.fuse_parts import fuse_surface_parts
 from .methods.mesh_parts import mesh_surface_part
 from .methods.modify_parts import discard_faces_by_distance, \
     discard_faces_by_solid
+from .methods.sew_parts import sew_surface_parts
 from .part import Part
 from ..fem.mesh_mgr import MeshMgr
 from ..topology import ShapeTools
@@ -146,6 +147,22 @@ class SurfacePart(Part):
         if not cutter:
             return False
         return cut_part(self, cutter)
+
+    def sew(self, *other_parts):
+        """
+        Sew with other parts.
+
+        :param other_parts:
+
+        :return:
+        """
+        _other_parts = []
+        for part in other_parts:
+            if isinstance(part, TopoDS_Shape) and not part.IsNull():
+                _other_parts.append(part)
+        if not _other_parts:
+            return False
+        return sew_surface_parts(self, *_other_parts)
 
     def discard(self, shape, tol=None):
         """

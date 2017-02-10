@@ -7,7 +7,7 @@ from ...topology import ShapeTools
 
 def fuse_surface_parts(main_part, *other_parts):
     """
-    Join parts using BOP Fuse.
+    Fuse parts.
     """
 
     if main_part.IsNull() or len(other_parts) == 0:
@@ -28,7 +28,7 @@ def fuse_surface_parts(main_part, *other_parts):
 
 def fuse_wing_parts(parts, tol=None):
     """
-    Attempt to automatically join wing parts.
+    Attempt to automatically fuse wing parts.
     """
     # Test all combinations of the parts for potential intersection using
     # the part reference curve.
