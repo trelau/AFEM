@@ -20,8 +20,7 @@ from OCC.StepRepr import StepRepr_RepresentationItem
 from OCC.TColStd import TColStd_HSequenceOfReal
 from OCC.TopAbs import TopAbs_FACE
 from OCC.TopExp import TopExp_Explorer
-from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell, \
-    topods_Face, topods_Shell, topods_Wire
+from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
 from ....geometry import CreateGeom
 from ....geometry.methods.create import create_nurbs_surface_from_occ
@@ -96,7 +95,7 @@ def import_vsp_step(fname, divide_closed):
         name = rep_item.GetObject().Name().GetObject().ToCString()
         if not name:
             indx += 1
-            comp_name = '.'.join(['Uknown', str(indx)])
+            comp_name = '.'.join(['Body', str(indx)])
             print('---Processing OpenVSP component:', comp_name)
             solid = _build_solid(compound, divide_closed)
             if solid:
@@ -165,7 +164,7 @@ def _build_solid(compound, divide_closed):
     faces = []
     while top_exp.More():
         shape = top_exp.Current()
-        face = topods_Face(shape)
+        face = ShapeTools.to_face(shape)
         fprop = GProp_GProps()
         brepgprop.SurfaceProperties(face, fprop, 1.0e-7)
         a = fprop.Mass()
@@ -188,7 +187,7 @@ def _build_solid(compound, divide_closed):
                 # the planar end caps.
                 fix = ShapeFix_Shape(w)
                 fix.Perform()
-                w = topods_Wire(fix.Shape())
+                w = ShapeTools.to_wire(fix.Shape())
                 # Build the planar face.
                 fnew = BRepBuilderAPI_MakeFace(is_pln.Plan(), w, True).Face()
                 planar_faces.append(fnew)
@@ -247,14 +246,14 @@ def _build_solid(compound, divide_closed):
 
     # Attempt to unify planar domains.
     unify_shp = ShapeUpgrade_UnifySameDomain(sewn_shape, False, False, False)
-    unify_shp.UnifyFaces()
-    shape = unify_shp.Shape()
+    try:
+        unify_shp.UnifyFaces()
+        shape = unify_shp.Shape()
+    except RuntimeError:
+        shape = sewn_shape
 
     # Make solid.
-    if isinstance(shape, TopoDS_Shell):
-        shell = shape
-    else:
-        shell = topods_Shell(shape)
+    shell = ShapeTools.to_shell(shape)
     solid = ShapeFix_Solid().SolidFromShell(shell)
 
     # Split closed faces of the solid to make OCC more robust.
@@ -262,6 +261,9 @@ def _build_solid(compound, divide_closed):
         divide = ShapeUpgrade_ShapeDivideClosed(solid)
         divide.Perform()
         solid = divide.Result()
+
+    # Make sure it's a solid.
+    solid = ShapeTools.to_solid(solid)
 
     # Check the solid and attempt to fix.
     check_shp = BRepCheck_Analyzer(solid, True)
@@ -337,7 +339,7 @@ def _process_sref(compound):
     # Wing reference surfaces should be a single bilinear surface. Extract
     # this from the compound.
     top_exp = TopExp_Explorer(compound, TopAbs_FACE)
-    face = topods_Face(top_exp.Current())
+    face = ShapeTools.to_face(top_exp.Current())
     hsrf = BRep_Tool.Surface(face)
     adp_srf = GeomAdaptor_Surface(hsrf)
     occ_srf = adp_srf.BSpline().GetObject()
