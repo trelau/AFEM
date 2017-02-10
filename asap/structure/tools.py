@@ -1,4 +1,4 @@
-from .methods.join_parts import fuse_wing_parts
+from .methods.fuse_parts import fuse_wing_parts
 from .wing_part import WingPart
 
 
