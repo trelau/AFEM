@@ -45,8 +45,8 @@ skin = CreatePart.surface_part('fuse skin', fuselage.shell)
 skin.set_shape(fuselage.shell)
 
 # Join
-floor.join(bh1, bh2, *frames)
-skin.join(bh1, bh2, *frames)
+floor.fuse(bh1, bh2, *frames)
+skin.fuse(bh1, bh2, *frames)
 
 fwd = ShapeTools.make_halfspace(bh1, [0, 0, 0])
 aft = ShapeTools.make_halfspace(bh2, [1e6, 0, 0])

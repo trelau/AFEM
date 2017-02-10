@@ -5,7 +5,7 @@ from ...geometry import IntersectGeom
 from ...topology import ShapeTools
 
 
-def join_surface_parts(main_part, *other_parts):
+def fuse_surface_parts(main_part, *other_parts):
     """
     Join parts using BOP Fuse.
     """
@@ -26,7 +26,7 @@ def join_surface_parts(main_part, *other_parts):
     return reshape_surface_parts(bop, [main_part] + other_parts)
 
 
-def join_wing_parts(parts, tol=None):
+def fuse_wing_parts(parts, tol=None):
     """
     Attempt to automatically join wing parts.
     """
@@ -59,7 +59,7 @@ def join_wing_parts(parts, tol=None):
     # parts.
     status_out = False
     for main, other_parts in zip(main_parts, join_parts):
-        if join_surface_parts(main, *other_parts):
+        if fuse_surface_parts(main, *other_parts):
             status_out = True
 
     return status_out

@@ -4,7 +4,7 @@ from OCC.TopoDS import TopoDS_Shape
 from .methods.build_parts import build_surface_part
 from .methods.explore_parts import get_shared_edges, get_shared_nodes
 from .methods.form_parts import form_with_solid
-from .methods.join_parts import join_surface_parts
+from .methods.join_parts import fuse_surface_parts
 from .methods.mesh_parts import mesh_surface_part
 from .methods.modify_parts import cut_part, discard_faces_by_distance, \
     discard_faces_by_solid
@@ -117,9 +117,9 @@ class SurfacePart(Part):
         """
         return build_surface_part(self, unify)
 
-    def join(self, *other_parts):
+    def fuse(self, *other_parts):
         """
-        Joint with other part.
+        Fuse with other parts.
 
         :param other_parts:
 
@@ -131,7 +131,7 @@ class SurfacePart(Part):
                 _other_parts.append(part)
         if not _other_parts:
             return False
-        return join_surface_parts(self, *_other_parts)
+        return fuse_surface_parts(self, *_other_parts)
 
     def cut(self, cutter):
         """

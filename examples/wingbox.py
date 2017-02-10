@@ -203,7 +203,7 @@ def build_wingbox(wing, params):
     # JOIN --------------------------------------------------------------------
     # Fuse internal structure and discard faces
     internal_parts = AssemblyMgr.get_parts()
-    PartTools.join_wing_parts(internal_parts)
+    PartTools.fuse_wing_parts(internal_parts)
     for part in internal_parts:
         part.discard()
 
@@ -212,7 +212,7 @@ def build_wingbox(wing, params):
     skin.set_shape(wing.shell)
 
     # Join the wing skin and internal structure
-    skin.join(*internal_parts)
+    skin.fuse(*internal_parts)
 
     # Discard faces touching reference surface.
     skin.discard(wing.sref)

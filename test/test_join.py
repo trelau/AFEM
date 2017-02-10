@@ -75,14 +75,14 @@ wing_skin.set_shape(wing.shell)
 
 # Fuse internal structure
 wing_parts = [fspar, rspar, fc_spar, rc_spar, mspar] + ribs
-status = PartTools.join_wing_parts(wing_parts)
+status = PartTools.fuse_wing_parts(wing_parts)
 
 # Discard faces on internal structure
 for part in [fspar, rspar, fc_spar, rc_spar, mspar] + ribs:
     part.discard()
 
 # Join the fuse_skin and internal structure
-wing_skin.join(fspar, rspar, fc_spar, rc_spar, mspar, *ribs)
+wing_skin.fuse(fspar, rspar, fc_spar, rc_spar, mspar, *ribs)
 wing_skin.fix()
 
 # Discard faces touching reference surface.
@@ -118,8 +118,8 @@ fuse_skin = CreatePart.surface_part('fuse wing_skin', fuselage.shell)
 fuse_skin.set_shape(fuselage.shell)
 
 # Join
-floor.join(bh1, bh2, *frames)
-fuse_skin.join(floor, bh1, bh2, *frames)
+floor.fuse(bh1, bh2, *frames)
+fuse_skin.fuse(floor, bh1, bh2, *frames)
 
 fwd = ShapeTools.make_halfspace(bh1, [0, 0, 0])
 aft = ShapeTools.make_halfspace(bh2, [1e6, 0, 0])

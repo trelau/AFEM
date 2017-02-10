@@ -27,8 +27,8 @@ bh1 = CreatePart.bulkhead.by_sref('bh1', fuselage, fspar.rshape)
 bh2 = CreatePart.bulkhead.by_sref('bh2', fuselage, rspar.rshape)
 
 # Join
-fspar.join(bh1)
-rspar.join(bh2)
+fspar.fuse(bh1)
+rspar.fuse(bh2)
 
 for part in [fspar, rspar, bh1, bh2]:
     part.mesh(4., quad_dominated=False)

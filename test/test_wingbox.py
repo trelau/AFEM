@@ -75,14 +75,14 @@ skin.set_shape(wing.shell)
 
 # Fuse internal structure
 wing_parts = [fspar, rspar, fc_spar, rc_spar, mspar] + ribs
-status = PartTools.join_wing_parts(wing_parts)
+status = PartTools.fuse_wing_parts(wing_parts)
 
 # Discard faces on internal structure
 for part in [fspar, rspar, fc_spar, rc_spar, mspar] + ribs:
     part.discard()
 
 # Join the fuse_skin and internal structure
-skin.join(fspar, rspar, fc_spar, rc_spar, mspar, *ribs)
+skin.fuse(fspar, rspar, fc_spar, rc_spar, mspar, *ribs)
 skin.fix()
 
 print('wing_skin tol:', skin.tol)

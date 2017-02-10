@@ -41,7 +41,7 @@ for pf, pr in zip(p1, p2):
 ribs.append(tip)
 
 # Fuse internal structure
-status = PartTools.join_wing_parts([fspar, rspar] + ribs)
+status = PartTools.fuse_wing_parts([fspar, rspar] + ribs)
 
 # Discard faces on internal structure
 for part in [fspar, rspar] + ribs:
@@ -52,7 +52,7 @@ skin = CreatePart.surface_part('wing skin', wing.shell)
 skin.set_shape(wing.shell)
 
 # Join the fuse_skin and internal structure
-skin.join(fspar, rspar, *ribs)
+skin.fuse(fspar, rspar, *ribs)
 skin.fix()
 
 # Discard faces touching reference surface.

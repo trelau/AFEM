@@ -1,4 +1,4 @@
-from .methods.join_parts import join_wing_parts
+from .methods.join_parts import fuse_wing_parts
 from .wing_part import WingPart
 
 
@@ -8,9 +8,9 @@ class PartTools(object):
     """
 
     @staticmethod
-    def join_wing_parts(parts, tol=None):
+    def fuse_wing_parts(parts, tol=None):
         """
-        Automatically join wing parts.
+        Automatically fuse wing parts.
 
         :param parts:
         :param float tol:
@@ -21,4 +21,4 @@ class PartTools(object):
         for part in parts:
             if isinstance(part, WingPart):
                 _wing_parts.append(part)
-        return join_wing_parts(_wing_parts, tol)
+        return fuse_wing_parts(_wing_parts, tol)

@@ -33,7 +33,7 @@ pln = CreateGeom.plane_by_normal([1000, 0, -12], [0, 0, 1])
 floor = CreatePart.floor.by_sref('floor', fuselage, pln)
 
 # Join parts.
-floor.join(bulkhead, frame)
+floor.fuse(bulkhead, frame)
 
 Viewer.add_items(frame, bulkhead, floor)
 Viewer.show()
