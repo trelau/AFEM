@@ -2,11 +2,12 @@ from OCC.TopAbs import TopAbs_COMPSOLID, TopAbs_SOLID
 from OCC.TopoDS import TopoDS_Shape
 
 from .methods.build_parts import build_surface_part
+from .methods.cut_parts import cut_part
 from .methods.explore_parts import get_shared_edges, get_shared_nodes
 from .methods.form_parts import form_with_solid
 from .methods.join_parts import fuse_surface_parts
 from .methods.mesh_parts import mesh_surface_part
-from .methods.modify_parts import cut_part, discard_faces_by_distance, \
+from .methods.modify_parts import discard_faces_by_distance, \
     discard_faces_by_solid
 from .part import Part
 from ..fem.mesh_mgr import MeshMgr

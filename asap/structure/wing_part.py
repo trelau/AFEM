@@ -1,5 +1,5 @@
-from .methods.modify_parts import cut_wing_part_with_circle, \
-    discard_wing_part_faces
+from .methods.cut_parts import cut_wing_part_with_circle
+from .methods.modify_parts import discard_wing_part_faces
 from .surface_part import SurfacePart
 from ..geometry import CheckGeom, ProjectGeom
 from ..topology import ShapeTools
@@ -128,9 +128,9 @@ class WingPart(SurfacePart):
             # Call original method.
             return super(WingPart, self).discard(shape, tol)
 
-    def add_hole(self, dx, r):
+    def cut_hole(self, dx, r):
         """
-        Add a circular hole in the part.
+        Cut a circular hole in the part.
 
         :param dx:
         :param r:
