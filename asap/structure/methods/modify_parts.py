@@ -13,6 +13,7 @@ from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.TopAbs import TopAbs_IN
 from OCC.gp import gp_Dir, gp_Pnt, gp_Vec
 
+from .reshape_parts import reshape_surface_parts
 from ...config import Settings
 from ...geometry import CreateGeom
 from ...topology import ShapeTools
@@ -165,27 +166,9 @@ def cut_wing_part_with_circle(part, dx, r):
         return False
 
     # Replace modified face(s) of result into original shapes.
-    reshape = ShapeBuild_ReShape()
-    perform = False
-    for f in part.faces:
-        mod = bop.Modified(f)
-        if mod.IsEmpty():
-            continue
-        # Create a reshape operation to replace the face. Put all modified
-        # shapes into a compound and replace.
-        faces = []
-        while not mod.IsEmpty():
-            shape = mod.First()
-            faces.append(shape)
-            mod.RemoveFirst()
-        compound = ShapeTools.make_compound(faces)
-        reshape.Replace(f, compound)
-        perform = True
-    if perform:
-        new_shape = reshape.Apply(part)
-        part.set_shape(new_shape)
+    status = reshape_surface_parts(bop, [part])
 
-    return perform
+    return status
 
 
 def cut_part(part, cutter):
@@ -200,24 +183,4 @@ def cut_part(part, cutter):
         return False
 
     # Replace modified face(s) of result into original shapes.
-    reshape = ShapeBuild_ReShape()
-    perform = False
-    for f in part.faces:
-        mod = bop.Modified(f)
-        if mod.IsEmpty():
-            continue
-        # Create a reshape operation to replace the face. Put all modified
-        # shapes into a compound and replace.
-        faces = []
-        while not mod.IsEmpty():
-            shape = mod.First()
-            faces.append(shape)
-            mod.RemoveFirst()
-        compound = ShapeTools.make_compound(faces)
-        reshape.Replace(f, compound)
-        perform = True
-    if perform:
-        new_shape = reshape.Apply(part)
-        part.set_shape(new_shape)
-        return True
-    return False
+    return reshape_surface_parts(bop, [part])

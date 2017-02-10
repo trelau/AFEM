@@ -1,6 +1,6 @@
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Fuse
-from OCC.ShapeBuild import ShapeBuild_ReShape
 
+from .reshape_parts import reshape_surface_parts
 from ...geometry import IntersectGeom
 from ...topology import ShapeTools
 
@@ -23,39 +23,7 @@ def join_surface_parts(main_part, *other_parts):
         return False
 
     # Replace modified face(s) of result into original shapes.
-    def _replace_faces(_part):
-        reshape = ShapeBuild_ReShape()
-        perform = False
-        for f in _part.faces:
-            mod = bop.Modified(f)
-            if mod.IsEmpty():
-                continue
-            # Create a reshape operation to replace the face. Put all modified
-            # shapes into a compound and replace.
-            faces = []
-            while not mod.IsEmpty():
-                shape = mod.First()
-                if not str(shape) in used_faces:
-                    faces.append(shape)
-                    used_faces.append(str(shape))
-                mod.RemoveFirst()
-            compound = ShapeTools.make_compound(faces)
-            reshape.Replace(f, compound)
-            perform = True
-        if perform:
-            new_shape = reshape.Apply(_part)
-            _part.set_shape(new_shape)
-        return perform
-
-    # Only replace unique faces so they aren't overlapping between parts.
-    # This should avoid duplicate/overlapping faces in splices.
-    used_faces = []
-    was_performed = []
-    for part in [main_part] + other_parts:
-        status = _replace_faces(part)
-        was_performed.append(status)
-
-    return True in was_performed
+    return reshape_surface_parts(bop, [main_part] + other_parts)
 
 
 def join_wing_parts(parts, tol=None):

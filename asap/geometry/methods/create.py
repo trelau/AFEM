@@ -233,17 +233,17 @@ def create_points_along_curve(curve, maxd, npts, u1, u2, s1=None, s2=None):
     if maxd is not None:
         # Adjust step size if necessary.
         arc_len = curve.arc_length(u1, u2)
-        nstep = int(ceil(arc_len / maxd)) + 1
+        nb_pts = int(arc_len / maxd) + 1
     else:
-        nstep = int(npts)
+        nb_pts = int(npts)
 
     # Minimum number of points if maxd and npts are provided.
     if maxd is not None and npts is not None:
-        if nstep < npts:
-            nstep = int(npts)
+        if nb_pts < npts:
+            nb_pts = int(npts)
 
     # OCC uniform abscissa.
-    occ_pnts = GCPnts_UniformAbscissa(curve.adaptor, nstep, u1, u2,
+    occ_pnts = GCPnts_UniformAbscissa(curve.adaptor, nb_pts, u1, u2,
                                       Settings.gtol)
     if not occ_pnts.IsDone():
         return 0, [], []

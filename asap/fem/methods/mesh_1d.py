@@ -29,19 +29,20 @@ def mesh_edge(edge, maxh=None, density=None, face=None):
     # Adjust maxh and/or density if needed.
     if maxh is not None:
         arc_len = GCPnts_AbscissaPoint.Length(adp_crv, Settings.gtol)
-        nstep = int(floor(arc_len / maxh)) + 1
+        nb_pts = int(arc_len / maxh) + 1
     else:
-        nstep = int(npts)
+        nb_pts = int(npts)
 
     # Minimum number of points if maxh and npts are provided.
     if maxh is not None and npts is not None:
-        if nstep < npts:
-            nstep = int(npts)
+        if nb_pts < npts:
+            nb_pts = int(npts)
 
-    if nstep <= 1:
-        nstep = 2
+    # Force at least one element.
+    if nb_pts <= 1:
+        nb_pts = 2
 
-    pac = GCPnts_UniformAbscissa(adp_crv, nstep + 1, Settings.gtol)
+    pac = GCPnts_UniformAbscissa(adp_crv, nb_pts, Settings.gtol)
     if not pac.IsDone():
         return []
 

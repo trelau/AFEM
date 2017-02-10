@@ -1137,17 +1137,17 @@ class ShapeTools(object):
         # Adjust step size if necessary.
         if maxd is not None:
             arc_len = GCPnts_AbscissaPoint.Length(adp_crv, Settings.gtol)
-            nstep = int(ceil(arc_len / maxd)) + 1
+            nb_pts = int(ceil(arc_len / maxd)) + 1
         else:
-            nstep = int(npts)
+            nb_pts = int(npts)
 
         # Minimum number of points if maxd and npts are provided.
         if maxd is not None and npts is not None:
-            if nstep < npts:
-                nstep = int(npts)
+            if nb_pts < npts:
+                nb_pts = int(npts)
 
         # OCC uniform abscissa.
-        occ_pnts = GCPnts_UniformAbscissa(adp_crv, nstep, u1, u2,
+        occ_pnts = GCPnts_UniformAbscissa(adp_crv, nb_pts, u1, u2,
                                           Settings.gtol)
         if not occ_pnts.IsDone():
             return []
