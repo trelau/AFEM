@@ -1,7 +1,8 @@
 from .methods.create_parts import create_bulkhead_by_sref, \
-    create_floor_by_sref, create_frame_by_sref, create_surface_part, \
-    create_wing_part_between_geom, create_wing_part_by_params, \
-    create_wing_part_by_points, create_wing_part_by_sref
+    create_floor_by_sref, create_frame_by_sref, create_skin_from_body, \
+    create_surface_part, create_wing_part_between_geom, \
+    create_wing_part_by_params, create_wing_part_by_points, \
+    create_wing_part_by_sref
 
 
 class CreateSpar(object):
@@ -118,48 +119,6 @@ class CreateRib(object):
         return create_wing_part_by_points('rib', name, wing, p1, p2, rshape,
                                           build)
 
-        # @staticmethod
-        # def between_geom(name, wing, geom1, geom2, rshape, tol=None, angle=None,
-        #                  assy=None):
-        #     """
-        #     Create a rib between geometry.
-        #
-        #     :param name:
-        #     :param wing:
-        #     :param geom1:
-        #     :param geom2:
-        #     :param rshape:
-        #     :param float tol:
-        #     :param float angle:
-        #     :param assy: Part assembly by name or instance. If *None* is
-        #         provided then the active assembly will be used.
-        #
-        #     :return:
-        #     """
-        #     return create_wing_part_between_geom('rib', name, wing, geom1, geom2,
-        #                                          rshape, tol,
-        #                                          angle, assy)
-        #
-        # @staticmethod
-        # def by_sref(name, wing, rshape, p1, p2, tol=None, angle=None, assy=None):
-        #     """
-        #     Create a rib using a reference surface only.
-        #
-        #     :param name:
-        #     :param wing:
-        #     :param rshape:
-        #     :param p1:
-        #     :param p2:
-        #     :param float tol:
-        #     :param float angle:
-        #     :param assy: Part assembly by name or instance. If *None* is
-        #         provided then the active assembly will be used.
-        #
-        #     :return:
-        #     """
-        #     return create_wing_part_by_sref('rib', name, wing, rshape, p1, p2, tol,
-        #                                     angle, assy)
-
     @staticmethod
     def by_sref(name, wing, rshape, build=True):
         """
@@ -252,6 +211,24 @@ class CreateFrame(object):
         return create_frame_by_sref(name, fuselage, rshape, height)
 
 
+class CreateSkin(object):
+    """
+    Skin creation.
+    """
+
+    @staticmethod
+    def from_body(name, body):
+        """
+        Create skin from the outer shell of a body.
+
+        :param name:
+        :param body:
+
+        :return:
+        """
+        return create_skin_from_body(name, body)
+
+
 class CreatePart(object):
     """
     Part creator.
@@ -261,9 +238,7 @@ class CreatePart(object):
     bulkhead = CreateBulkhead()
     floor = CreateFloor()
     frame = CreateFrame()
-
-    # fuse_skin = CreateSkin()
-    # wall = CreateWall()
+    skin = CreateSkin()
 
     @staticmethod
     def surface_part(name, rshape, *bodies):

@@ -7,6 +7,7 @@ from ..bulkhead import Bulkhead
 from ..floor import Floor
 from ..frame import Frame
 from ..rib import Rib
+from ..skin import Skin
 from ..spar import Spar
 from ..surface_part import SurfacePart
 from ...geometry import CheckGeom, IntersectGeom
@@ -284,3 +285,17 @@ def create_floor_by_sref(name, fuselage, rshape, build):
         floor.build()
 
     return floor
+
+
+def create_skin_from_body(name, body):
+    """
+    Create skin from outer shell of body.
+    """
+    if not CheckOML.is_body(body):
+        return None
+
+    outer_shell = body.shell
+    skin = Skin(name, outer_shell)
+    skin.set_shape(outer_shell)
+
+    return skin
