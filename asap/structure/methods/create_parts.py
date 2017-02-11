@@ -10,10 +10,11 @@ from ..rib import Rib
 from ..skin import Skin
 from ..spar import Spar
 from ..surface_part import SurfacePart
-from ...geometry import CheckGeom, IntersectGeom
+from ...geometry import CheckGeom, CreateGeom, IntersectGeom
 from ...geometry.methods.create import create_nurbs_curve_from_occ
 from ...oml import CheckOML
 from ...topology import ShapeTools
+from ...utils import pairwise
 
 _brep_tool = BRep_Tool()
 
@@ -299,3 +300,51 @@ def create_skin_from_body(name, body):
     skin.set_shape(outer_shell)
 
     return skin
+
+
+def create_frames_between_plns(name, fuselage, planes, h, maxd=None,
+                               nplns=None, indx=1):
+    """
+    Create frames evenly spaced between planes.
+    """
+    if not CheckOML.is_fuselage(fuselage):
+        return []
+
+    # Generate planes between consecutive planes.
+    plns = []
+    for pln1, pln2 in pairwise(planes):
+        plns += CreateGeom.planes_between_planes(pln1, pln2, maxd, nplns)
+    if not plns:
+        return []
+
+    # Create frames.
+    frames = []
+    for pln in plns:
+        fname = ' '.join([name, str(indx)])
+        frame = create_frame_by_sref(fname, fuselage, pln, h)
+        if not frame:
+            continue
+        frames.append(frame)
+        indx += 1
+
+    return frames
+
+
+def create_frames_at_shapes(name, fuselage, shapes, h, indx=1):
+    """
+    Create frames at shapes.
+    """
+    if not CheckOML.is_fuselage(fuselage):
+        return []
+
+    frames = []
+    for shape in shapes:
+        shape = ShapeTools.to_shape(shape)
+        fname = ' '.join([name, str(indx)])
+        frame = create_frame_by_sref(fname, fuselage, shape, h)
+        if not frame:
+            continue
+        frames.append(frame)
+        indx += 1
+
+    return frames

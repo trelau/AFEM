@@ -180,7 +180,7 @@ class CreateGeom(object):
                                          s1, s2)
 
     @staticmethod
-    def planes_between_planes(pln1, pln2, maxd=None, npts=None,
+    def planes_between_planes(pln1, pln2, maxd=None, nplns=None,
                               s1=None, s2=None):
         """
         Create planes between two other planes.
@@ -188,13 +188,13 @@ class CreateGeom(object):
         :param pln1:
         :param pln2:
         :param maxd:
-        :param npts:
+        :param nplns:
         :param float s1:
         :param float s2:
 
         :return:
         """
-        return create_planes_between_planes(pln1, pln2, maxd, npts, s1, s2)
+        return create_planes_between_planes(pln1, pln2, maxd, nplns, s1, s2)
 
     @staticmethod
     def line_by_vector(origin, v):

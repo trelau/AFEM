@@ -14,7 +14,7 @@ from OCC.TColStd import TColStd_Array1OfInteger, TColStd_Array1OfReal, \
 from OCC.TColgp import TColgp_Array1OfPnt, TColgp_Array1OfPnt2d, \
     TColgp_Array2OfPnt
 from OCC.gp import gp_Dir, gp_Pln, gp_Pnt
-from numpy import array, ceil, cross, mean, ones, zeros
+from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
 
@@ -413,7 +413,7 @@ def create_planes_along_curve(curve, maxd, npts, pref, u1, u2,
     return planes
 
 
-def create_planes_between_planes(pln1, pln2, maxd, npts, s1=None, s2=None):
+def create_planes_between_planes(pln1, pln2, maxd, nplns, s1=None, s2=None):
     """
     Create planes between two other planes.
     """
@@ -422,7 +422,7 @@ def create_planes_between_planes(pln1, pln2, maxd, npts, s1=None, s2=None):
     u, v = proj.Parameters(1)
     p2 = pln2.eval(u, v)
     line = create_crv_by_interp_pnts([p1, p2], False, Settings.gtol)
-    planes = create_planes_along_curve(line, maxd, npts, None, None, None,
+    planes = create_planes_along_curve(line, maxd, nplns, None, None, None,
                                        s1, s2)
     if not planes:
         return []

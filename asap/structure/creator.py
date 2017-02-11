@@ -1,8 +1,8 @@
 from .methods.create_parts import create_bulkhead_by_sref, \
-    create_floor_by_sref, create_frame_by_sref, create_skin_from_body, \
-    create_surface_part, create_wing_part_between_geom, \
+    create_floor_by_sref, create_frame_by_sref, create_frames_between_plns, \
+    create_skin_from_body, create_surface_part, create_wing_part_between_geom, \
     create_wing_part_by_params, create_wing_part_by_points, \
-    create_wing_part_by_sref
+    create_wing_part_by_sref, create_frames_at_shapes
 
 
 class CreateSpar(object):
@@ -209,6 +209,40 @@ class CreateFrame(object):
         :return:
         """
         return create_frame_by_sref(name, fuselage, rshape, height)
+
+    @staticmethod
+    def between_planes(name, fuselage, planes, height, maxd=None, nplns=None,
+                       indx=1):
+        """
+        Create frames between planes.
+
+        :param name:
+        :param fuselage:
+        :param planes:
+        :param height:
+        :param maxd:
+        :param nplns:
+        :param indx:
+
+        :return:
+        """
+        return create_frames_between_plns(name, fuselage, planes, height,
+                                          maxd, nplns, indx)
+
+    @staticmethod
+    def at_shapes(name, fuselage, shapes, height, indx=1):
+        """
+        Create frames at shapes.
+
+        :param name:
+        :param fuselage:
+        :param shapes:
+        :param height:
+        :param indx:
+
+        :return:
+        """
+        return create_frames_at_shapes(name, fuselage, shapes, height, indx)
 
 
 class CreateSkin(object):
