@@ -132,6 +132,16 @@ class Point(gp_Pnt, Geometry):
             return self.IsEqual(other, tol)
         return False
 
+    def translate(self, v):
+        """
+        Translate the point along the vector.
+
+        :param v:
+
+        :return:
+        """
+        self.Translate(v)
+
 
 class Point2D(gp_Pnt2d, Geometry):
     """

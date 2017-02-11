@@ -1000,6 +1000,7 @@ class ShapeTools(object):
 
         :return:
         """
+        vec = CheckGeom.to_vector(vec)
         return BRepPrimAPI_MakePrism(shape, vec).Shape()
 
     @staticmethod
