@@ -5,7 +5,7 @@ from .methods.build_parts import build_surface_part
 from .methods.cut_parts import cut_part
 from .methods.explore_parts import get_shared_edges, get_shared_nodes
 from .methods.form_parts import form_with_solid
-from .methods.fuse_parts import fuse_surface_parts
+from .methods.fuse_parts import fuse_surface_part
 from .methods.mesh_parts import mesh_surface_part
 from .methods.modify_parts import discard_faces_by_distance, \
     discard_faces_by_solid
@@ -133,7 +133,7 @@ class SurfacePart(Part):
                 _other_parts.append(part)
         if not _other_parts:
             return False
-        return fuse_surface_parts(self, *_other_parts)
+        return fuse_surface_part(self, *_other_parts)
 
     def cut(self, cutter):
         """

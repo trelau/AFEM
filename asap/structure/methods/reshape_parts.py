@@ -27,9 +27,9 @@ def reshape_surface_parts(tool, parts):
                 mod.RemoveFirst()
             compound = ShapeTools.make_compound(faces)
             reshape.Replace(f, compound)
-            new_shape = reshape.Apply(part)
-            part.set_shape(new_shape)
             performed = True
+        new_shape = reshape.Apply(part)
+        part.set_shape(new_shape)
         status.append(performed)
 
     return True in status

@@ -1,13 +1,14 @@
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Fuse
+from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_FUSE
 
 from .reshape_parts import reshape_surface_parts
 from ...geometry import IntersectGeom
 from ...topology import ShapeTools
 
 
-def fuse_surface_parts(main_part, *other_parts):
+def fuse_surface_part(main_part, *other_parts):
     """
-    Fuse parts.
+    Fuse surface part with other parts.
     """
 
     if main_part.IsNull() or len(other_parts) == 0:
@@ -24,6 +25,23 @@ def fuse_surface_parts(main_part, *other_parts):
 
     # Replace modified face(s) of result into original shapes.
     return reshape_surface_parts(bop, [main_part] + other_parts)
+
+
+def fuse_surface_parts(parts):
+    """
+    Fuse all surface parts with each other.
+    """
+    bop = BOPAlgo_BOP()
+    bop.SetOperation(BOPAlgo_FUSE)
+    bop.AddArgument(parts[0])
+    for part in parts[1:]:
+        bop.AddTool(part)
+    bop.Perform()
+    if bop.ErrorStatus() != 0:
+        return False
+
+    # Replace modified face(s) of result into original shapes.
+    return reshape_surface_parts(bop, parts)
 
 
 def fuse_wing_parts(parts, tol=None):
@@ -59,7 +77,7 @@ def fuse_wing_parts(parts, tol=None):
     # parts.
     status_out = False
     for main, other_parts in zip(main_parts, join_parts):
-        if fuse_surface_parts(main, *other_parts):
+        if fuse_surface_part(main, *other_parts):
             status_out = True
 
     return status_out
