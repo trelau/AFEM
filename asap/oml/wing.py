@@ -1,6 +1,6 @@
 from .body import Body
 from .methods.extract import extract_wing_plane, extract_wing_ref_curve
-from ..geometry import CheckGeom, ProjectGeom
+from ..geometry import CheckGeom, ProjectGeom, CreateGeom
 
 
 class Wing(Body):
@@ -15,6 +15,22 @@ class Wing(Body):
     @property
     def sref(self):
         return self._sref
+
+    @property
+    def u1(self):
+        return self.sref.u1
+
+    @property
+    def v1(self):
+        return self.sref.v1
+
+    @property
+    def u2(self):
+        return self.sref.u2
+
+    @property
+    def v2(self):
+        return self.sref.v2
 
     def set_sref(self, sref):
         """
@@ -92,3 +108,14 @@ class Wing(Body):
         """
         p = CheckGeom.to_point(p)
         return ProjectGeom.invert(p, self.sref)
+
+    def isocurve(self, u=None, v=None):
+        """
+        Extract isocurve in wing reference surface.
+
+        :param u:
+        :param v:
+
+        :return:
+        """
+        return CreateGeom.isocurve(self.sref, u, v)
