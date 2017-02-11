@@ -2,7 +2,7 @@ from OCC.TopAbs import TopAbs_COMPSOLID, TopAbs_SOLID
 from OCC.TopoDS import TopoDS_Shape
 
 from .methods.build_parts import build_surface_part
-from .methods.cut_parts import cut_part
+from .methods.cut_parts import cut_surface_part
 from .methods.explore_parts import get_shared_edges, get_shared_nodes
 from .methods.form_parts import form_with_solid
 from .methods.fuse_parts import fuse_surface_part
@@ -146,7 +146,7 @@ class SurfacePart(Part):
         cutter = ShapeTools.to_shape(cutter)
         if not cutter:
             return False
-        return cut_part(self, cutter)
+        return cut_surface_part(self, cutter)
 
     def sew(self, *other_parts):
         """

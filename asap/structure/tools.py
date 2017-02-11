@@ -1,4 +1,5 @@
 from .checker import CheckPart
+from .methods.cut_parts import cut_surface_parts
 from .methods.fuse_parts import fuse_surface_parts, fuse_wing_parts
 from .wing_part import WingPart
 
@@ -35,3 +36,16 @@ class PartTools(object):
             if isinstance(part, WingPart):
                 _wing_parts.append(part)
         return fuse_wing_parts(_wing_parts, tol)
+
+    @staticmethod
+    def cut_parts(parts, cutter):
+        """
+        Cut surface parts.
+
+        :param parts:
+        :param cutter:
+
+        :return:
+        """
+        _parts = [part for part in parts if CheckPart.is_part(part)]
+        return cut_surface_parts(_parts, cutter)

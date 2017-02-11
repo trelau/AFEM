@@ -66,9 +66,9 @@ def cut_wing_part_with_circle(part, dx, r):
     return status
 
 
-def cut_part(part, cutter):
+def cut_surface_part(part, cutter):
     """
-    Cut a part with a shape.
+    Cut a surface part.
     """
     if part.IsNull() or cutter.IsNull():
         return False
@@ -79,3 +79,23 @@ def cut_part(part, cutter):
 
     # Replace modified face(s) of result into original shapes.
     return reshape_surface_parts(bop, [part])
+
+
+def cut_surface_parts(parts, cutter):
+    """
+    Cut surface parts.
+    """
+    if len(parts) == 0 or cutter.IsNull():
+        return False
+
+    # Put parts into compound.
+    parts = list(parts)
+    compound = ShapeTools.make_compound(parts)
+    # Cut the parts. Putting them in a compound avoids cutting them with each
+    # other.
+    bop = BRepAlgoAPI_Cut(compound, cutter)
+    if bop.ErrorStatus() != 0:
+        return False
+
+    # Replace modified face(s) of result into original shapes.
+    return reshape_surface_parts(bop, parts)
