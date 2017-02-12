@@ -1,8 +1,9 @@
 from .methods.create_parts import create_bulkhead_by_sref, \
-    create_floor_by_sref, create_frame_by_sref, create_frames_between_plns, \
-    create_skin_from_body, create_surface_part, create_wing_part_between_geom, \
-    create_wing_part_by_params, create_wing_part_by_points, \
-    create_wing_part_by_sref, create_frames_at_shapes
+    create_floor_by_sref, create_frame_by_sref, create_frames_at_shapes, \
+    create_frames_between_planes, create_skin_from_body, create_surface_part, \
+    create_wing_part_between_geom, create_wing_part_by_params, \
+    create_wing_part_by_points, create_wing_part_by_sref, \
+    create_wing_parts_between_planes
 
 
 class CreateSpar(object):
@@ -77,6 +78,27 @@ class CreateSpar(object):
         return create_wing_part_between_geom('spar', name, wing, geom1, geom2,
                                              rshape, build)
 
+    @staticmethod
+    def between_planes(name, wing, planes, geom1, geom2, maxd=None,
+                       nplns=None, indx=1):
+        """
+        Create spars evenly spaced between planes
+
+        :param name:
+        :param wing:
+        :param planes:
+        :param geom1:
+        :param geom2:
+        :param maxd:
+        :param nplns:
+        :param indx:
+
+        :return:
+        """
+        return create_wing_parts_between_planes('spar', name, wing, planes,
+                                                geom1, geom2, maxd, nplns,
+                                                indx)
+
 
 class CreateRib(object):
     """
@@ -149,6 +171,27 @@ class CreateRib(object):
         """
         return create_wing_part_between_geom('rib', name, wing, geom1, geom2,
                                              rshape, build)
+
+    @staticmethod
+    def between_planes(name, wing, planes, geom1, geom2, maxd=None,
+                       nplns=None, indx=1):
+        """
+        Create ribs evenly spaced between planes
+
+        :param name:
+        :param wing:
+        :param planes:
+        :param geom1:
+        :param geom2:
+        :param maxd:
+        :param nplns:
+        :param indx:
+
+        :return:
+        """
+        return create_wing_parts_between_planes('rib', name, wing, planes,
+                                                geom1, geom2, maxd, nplns,
+                                                indx)
 
 
 class CreateBulkhead(object):
@@ -226,8 +269,8 @@ class CreateFrame(object):
 
         :return:
         """
-        return create_frames_between_plns(name, fuselage, planes, height,
-                                          maxd, nplns, indx)
+        return create_frames_between_planes(name, fuselage, planes, height,
+                                            maxd, nplns, indx)
 
     @staticmethod
     def at_shapes(name, fuselage, shapes, height, indx=1):

@@ -302,8 +302,8 @@ def create_skin_from_body(name, body):
     return skin
 
 
-def create_frames_between_plns(name, fuselage, planes, h, maxd=None,
-                               nplns=None, indx=1):
+def create_frames_between_planes(name, fuselage, planes, h, maxd=None,
+                                 nplns=None, indx=1):
     """
     Create frames evenly spaced between planes.
     """
@@ -348,3 +348,32 @@ def create_frames_at_shapes(name, fuselage, shapes, h, indx=1):
         indx += 1
 
     return frames
+
+
+def create_wing_parts_between_planes(etype, name, wing, planes, geom1, geom2,
+                                     maxd=None, nplns=None, indx=1):
+    """
+    Create wing part evenly spaced between planes.
+    """
+    if not CheckOML.is_wing(wing):
+        return []
+
+    # Generate planes between consecutive planes.
+    plns = []
+    for pln1, pln2 in pairwise(planes):
+        plns += CreateGeom.planes_between_planes(pln1, pln2, maxd, nplns)
+    if not plns:
+        return []
+
+    # Create wing parts.
+    parts = []
+    for pln in plns:
+        rname = ' '.join([name, str(indx)])
+        part = create_wing_part_between_geom(etype, rname, wing, geom1,
+                                             geom2, pln, True)
+        if not part:
+            continue
+        parts.append(part)
+        indx += 1
+
+    return parts
