@@ -33,7 +33,6 @@ from OCC.TopoDS import TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge, \
     TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex, \
     TopoDS_Wire, topods_CompSolid, topods_Compound, topods_Edge, topods_Face, \
     topods_Shell, topods_Solid, topods_Vertex, topods_Wire
-from numpy import ceil
 
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
@@ -1138,7 +1137,7 @@ class ShapeTools(object):
         # Adjust step size if necessary.
         if maxd is not None:
             arc_len = GCPnts_AbscissaPoint.Length(adp_crv, Settings.gtol)
-            nb_pts = int(ceil(arc_len / maxd)) + 1
+            nb_pts = int(arc_len / maxd) + 1
         else:
             nb_pts = int(npts)
 
