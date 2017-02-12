@@ -32,6 +32,14 @@ class Wing(Body):
     def v2(self):
         return self.sref.v2
 
+    @property
+    def uknots(self):
+        return self.sref.uknots
+
+    @property
+    def vknots(self):
+        return self.sref.vknots
+
     def set_sref(self, sref):
         """
         Set the wing reference surface.
