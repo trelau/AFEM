@@ -463,29 +463,6 @@ def create_plane_by_fit_points(pnts, tol=None):
 
     return Plane(gp_pln)
 
-    # # Move points to centroid.
-    # pc = pnts - p0
-    #
-    # # Use SVD.
-    # u, s, v = svd(pc, False)
-    #
-    # # Check that points are not on a line
-    # if abs(s[2] - s[1]) <= 1.0e-12:
-    #     return None
-    #
-    # # Find min and max values that define normal vector and major and minor
-    # # axes of the plane.
-    # indx = argsort(s)
-    # vn = v[indx[0]]
-    # vx = v[indx[2]]
-    #
-    # origin = Point(*p0)
-    # n = Direction(*vn)
-    # vx = Direction(*vx)
-    # ax = Axis3(origin, n, vx)
-    # pln = gp_Pln(ax)
-    # return Plane(pln)
-
 
 def create_srf_by_approx_crvs(curves, mind, maxd, tol3d, tol2d, niter,
                               method='chord', continuity='C2'):
