@@ -1,7 +1,7 @@
 from .methods.cut_parts import cut_wing_part_with_circle
 from .methods.modify_parts import discard_wing_part_faces
 from .surface_part import SurfacePart
-from ..geometry import CheckGeom, ProjectGeom
+from ..geometry import CheckGeom, CreateGeom, ProjectGeom
 from ..topology import ShapeTools
 
 
@@ -138,3 +138,16 @@ class WingPart(SurfacePart):
         :return:
         """
         return cut_wing_part_with_circle(self, dx, r)
+
+    def get_plane(self, u=None, dx=None, pnt=None, ref_pln=None):
+        """
+        Get a plane along the reference curve.
+
+        :param u:
+        :param dx:
+        :param pnt:
+        :param ref_pln:
+
+        :return:
+        """
+        return CreateGeom.plane_on_curve(self.cref, u, dx, pnt, ref_pln)

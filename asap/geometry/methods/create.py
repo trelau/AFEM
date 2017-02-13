@@ -3,7 +3,7 @@ from OCC.Approx import Approx_Centripetal, Approx_ChordLength, \
     Approx_IsoParametric
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GeomAPI import GeomAPI_Interpolate, GeomAPI_PointsToBSpline, \
-    GeomAPI_ProjectPointOnSurf
+    GeomAPI_ProjectPointOnCurve, GeomAPI_ProjectPointOnSurf
 from OCC.GeomAbs import GeomAbs_C0, GeomAbs_C1, GeomAbs_C2, GeomAbs_C3, \
     GeomAbs_G1, GeomAbs_G2
 from OCC.GeomAdaptor import GeomAdaptor_Curve
@@ -378,6 +378,34 @@ def create_plane_by_points(p1, p2, p3):
     ax = Axis3(p1, n, vx)
     pln = gp_Pln(ax)
     return Plane(pln)
+
+
+def create_plane_on_curve(curve, u=None, dx=None, pnt=None, pref=None):
+    """
+    Create a plane at a point on the curve.
+    """
+    if u is None:
+        u = curve.u1
+
+    if isinstance(pnt, Point):
+        proj = GeomAPI_ProjectPointOnCurve(pnt, curve.handle)
+        if proj.NbPoints() < 0:
+            u = proj.LowerDistanceParameter()
+
+    if dx is not None:
+        u, p0 = create_point_from_other(curve, dx, u)
+    else:
+        p0 = curve.eval(u)
+
+    if isinstance(pref, Plane):
+        gp_pln = pref.Pln()
+        ax1 = gp_pln.Axis()
+        dn = ax1.Direction()
+        return Plane(p0, dn)
+
+    vn = curve.deriv(u, 1)
+    dn = Direction(vn)
+    return Plane(p0, dn)
 
 
 def create_planes_along_curve(curve, maxd, npts, pref, u1, u2,

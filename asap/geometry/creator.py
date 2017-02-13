@@ -5,7 +5,7 @@ from .methods.create import create_crv_by_approx_pnts, \
     create_nurbs_curve, create_nurbs_curve_from_occ, \
     create_nurbs_curve_from_occ2d, create_nurbs_surface, \
     create_nurbs_surface_from_occ, create_plane_by_axes, \
-    create_plane_by_fit_points, create_plane_by_points, \
+    create_plane_by_fit_points, create_plane_by_points, create_plane_on_curve, \
     create_planes_along_curve, create_planes_between_planes, \
     create_point_from_other, create_points_along_curve, \
     create_srf_by_approx_crvs, create_srf_by_interp_crvs
@@ -158,6 +158,22 @@ class CreateGeom(object):
         if not _pnts:
             return None
         return create_plane_by_fit_points(_pnts)
+
+    @staticmethod
+    def plane_on_curve(curve, u=None, dx=None, pnt=None, pref=None):
+        """
+        Create a plane on a curve.
+
+        :param curve:
+        :param u:
+        :param dx
+        :param pnt:
+        :param pref:
+
+        :return:
+        """
+        pnt = CheckGeom.to_point(pnt)
+        return create_plane_on_curve(curve, u, dx, pnt, pref)
 
     @staticmethod
     def planes_along_curve(curve, maxd=None, npts=None, pref=None, u1=None,
