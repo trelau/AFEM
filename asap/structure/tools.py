@@ -49,3 +49,19 @@ class PartTools(object):
         """
         _parts = [part for part in parts if CheckPart.is_part(part)]
         return cut_surface_parts(_parts, cutter)
+
+    @staticmethod
+    def discard_faces(parts, shape=None, tol=None):
+        """
+        Discard faces of parts.
+
+        :param parts:
+        :param shape:
+        :param tol:
+
+        :return:
+        """
+        _parts = [part for part in parts if CheckPart.is_surface_part(part)]
+        for part in _parts:
+            part.discard(shape, tol)
+        return True
