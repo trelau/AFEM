@@ -10,7 +10,7 @@ from ..rib import Rib
 from ..skin import Skin
 from ..spar import Spar
 from ..surface_part import SurfacePart
-from ...geometry import CheckGeom, CreateGeom, IntersectGeom, ProjectGeom
+from ...geometry import CheckGeom, CreateGeom, IntersectGeom
 from ...geometry.methods.create import create_nurbs_curve_from_occ
 from ...oml import CheckOML
 from ...topology import ShapeTools
@@ -36,7 +36,7 @@ def create_surface_part(name, rshape, *bodies):
 
 
 def create_wing_part_by_params(etype, name, wing, u1, v1, u2, v2, rshape,
-                               build, cref=None):
+                               build):
     """
     Create a spar by parameters.
     """
@@ -62,8 +62,7 @@ def create_wing_part_by_params(etype, name, wing, u1, v1, u2, v2, rshape,
         wing_part = Rib(name, wing, rshape)
 
     # Set reference curve.
-    if not CheckGeom.is_curve_like(cref):
-        cref = wing.extract_curve((u1, v1), (u2, v2), rshape)
+    cref = wing.extract_curve((u1, v1), (u2, v2), rshape)
     if cref:
         wing_part.set_cref(cref)
 
@@ -76,8 +75,7 @@ def create_wing_part_by_params(etype, name, wing, u1, v1, u2, v2, rshape,
     return wing_part
 
 
-def create_wing_part_by_points(etype, name, wing, p1, p2, rshape, build,
-                               cref=None):
+def create_wing_part_by_points(etype, name, wing, p1, p2, rshape, build):
     """
     Create a spar between points.
     """
@@ -95,7 +93,7 @@ def create_wing_part_by_points(etype, name, wing, p1, p2, rshape, build,
         return None
 
     return create_wing_part_by_params(etype, name, wing, u1, v1, u2, v2,
-                                      rshape, build, cref)
+                                      rshape, build)
 
 
 def create_wing_part_by_sref(etype, name, wing, rshape, build):
@@ -198,16 +196,8 @@ def create_wing_part_between_geom(etype, name, wing, geom1, geom2, rshape,
         return None
     p2 = ci.point(1)
 
-    # Segment curve between p1 and p2 and reverse if necessary.
-    u1 = ProjectGeom.invert(p1, cref)
-    u2 = ProjectGeom.invert(p2, cref)
-    if u1 > u2:
-        cref.reverse()
-        u1, u2 = cref.reversed_u(u1), cref.reversed_u(u2)
-    cref.segment(u1, u2)
-
     return create_wing_part_by_points(etype, name, wing, p1, p2, rshape,
-                                      build, cref)
+                                      build)
 
 
 def create_frame_by_sref(name, fuselage, rshape, h):
@@ -415,3 +405,6 @@ def create_wing_parts_along_curve(etype, name, wing, curve, geom1, geom2,
         indx += 1
 
     return parts
+
+
+# TODO Create wing parts between shapes.
