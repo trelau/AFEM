@@ -377,3 +377,30 @@ def create_wing_parts_between_planes(etype, name, wing, planes, geom1, geom2,
         indx += 1
 
     return parts
+
+
+def create_wing_parts_along_curve(etype, name, wing, curve, geom1, geom2,
+                                  maxd=None, npts=None, ref_pln=None,
+                                  u1=None, u2=None, s1=None, s2=None, indx=1):
+    """
+    Create wing parts along a curve.
+    """
+    if not CheckOML.is_wing(wing) or not CheckGeom.is_curve_like(curve):
+        return []
+
+    # Generate planes along the curve.
+    plns = CreateGeom.planes_along_curve(curve, maxd, npts, ref_pln, u1, u2,
+                                         s1, s2)
+
+    # Create wing parts.
+    parts = []
+    for pln in plns:
+        rname = ' '.join([name, str(indx)])
+        part = create_wing_part_between_geom(etype, rname, wing, geom1,
+                                             geom2, pln, True)
+        if not part:
+            continue
+        parts.append(part)
+        indx += 1
+
+    return parts

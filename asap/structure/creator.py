@@ -3,7 +3,7 @@ from .methods.create_parts import create_bulkhead_by_sref, \
     create_frames_between_planes, create_skin_from_body, create_surface_part, \
     create_wing_part_between_geom, create_wing_part_by_params, \
     create_wing_part_by_points, create_wing_part_by_sref, \
-    create_wing_parts_between_planes
+    create_wing_parts_along_curve, create_wing_parts_between_planes
 
 
 class CreateSpar(object):
@@ -99,6 +99,32 @@ class CreateSpar(object):
                                                 geom1, geom2, maxd, nplns,
                                                 indx)
 
+    @staticmethod
+    def along_curve(name, wing, curve, geom1, geom2, maxd=None, npts=None,
+                    ref_pln=None, u1=None, u2=None, s1=None, s2=None, indx=1):
+        """
+        Create spars along a curve.
+
+        :param name:
+        :param wing:
+        :param curve:
+        :param geom1:
+        :param geom2:
+        :param maxd:
+        :param npts:
+        :param ref_pln:
+        :param u1:
+        :param u2:
+        :param s1:
+        :param s2:
+        :param indx:
+
+        :return:
+        """
+        return create_wing_parts_along_curve('spar', name, wing, curve, geom1,
+                                             geom2, maxd, npts, ref_pln, u1,
+                                             u2, s1, s2, indx)
+
 
 class CreateRib(object):
     """
@@ -192,6 +218,32 @@ class CreateRib(object):
         return create_wing_parts_between_planes('rib', name, wing, planes,
                                                 geom1, geom2, maxd, nplns,
                                                 indx)
+
+    @staticmethod
+    def along_curve(name, wing, curve, geom1, geom2, maxd=None, npts=None,
+                    ref_pln=None, u1=None, u2=None, s1=None, s2=None, indx=1):
+        """
+        Create ribs along a curve.
+
+        :param name:
+        :param wing:
+        :param curve:
+        :param geom1:
+        :param geom2:
+        :param maxd:
+        :param npts:
+        :param ref_pln:
+        :param u1:
+        :param u2:
+        :param s1:
+        :param s2:
+        :param indx:
+
+        :return:
+        """
+        return create_wing_parts_along_curve('rib', name, wing, curve, geom1,
+                                             geom2, maxd, npts, ref_pln, u1,
+                                             u2, s1, s2, indx)
 
 
 class CreateBulkhead(object):
