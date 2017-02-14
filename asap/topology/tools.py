@@ -999,6 +999,7 @@ class ShapeTools(object):
 
         :return:
         """
+        shape = ShapeTools.to_shape(shape)
         vec = CheckGeom.to_vector(vec)
         return BRepPrimAPI_MakePrism(shape, vec).Shape()
 
