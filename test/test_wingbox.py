@@ -5,7 +5,7 @@ import time
 from asap.geometry import CreateGeom, ProjectGeom
 from asap.graphics import Viewer
 from asap.io import ImportVSP
-from asap.structure import CreatePart, PartTools
+from asap.structure import CreatePart, PartTools, AssemblyMgr
 from asap.topology import ShapeTools
 
 # Import model
@@ -93,6 +93,12 @@ skin.discard(wing.sref, 0.005)
 print(time.time() - start)
 
 # View
+parts = AssemblyMgr.get_parts()
+skin.set_color(0.5, 0.5, 0.5)
+skin.set_transparency(0.5)
+Viewer.add_items(*parts)
+Viewer.show()
+
 compound = ShapeTools.make_compound([fspar, rspar, fc_spar, rc_spar,
                                      skin, mspar] + ribs)
 
