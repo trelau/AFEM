@@ -344,6 +344,25 @@ class ShapeTools(object):
         return faces
 
     @staticmethod
+    def get_shells(shape):
+        """
+        Get shells from a shape.
+
+        :return:
+        """
+        if isinstance(shape, TopoDS_Shell):
+            return [shape]
+
+        exp = TopExp_Explorer(shape, TopAbs_SHELL)
+        shells = []
+        while exp.More():
+            si = exp.Current()
+            shell = topods_Shell(si)
+            shells.append(shell)
+            exp.Next()
+        return shells
+
+    @staticmethod
     def get_solids(shape):
         """
         Get solids from a shape.
