@@ -1,6 +1,7 @@
 from .checker import CheckPart
 from .methods.cut_parts import cut_surface_parts
 from .methods.fuse_parts import fuse_surface_parts, fuse_wing_parts
+from .methods.sew_parts import sew_surface_parts
 from .wing_part import WingPart
 
 
@@ -49,6 +50,18 @@ class PartTools(object):
         """
         _parts = [part for part in parts if CheckPart.is_part(part)]
         return cut_surface_parts(_parts, cutter)
+
+    @staticmethod
+    def sew_parts(parts):
+        """
+        Sew surface parts.
+
+        :param parts:
+
+        :return:
+        """
+        _parts = [part for part in parts if CheckPart.is_part(part)]
+        return sew_surface_parts(_parts)
 
     @staticmethod
     def discard_faces(parts, shape=None, tol=None):

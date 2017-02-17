@@ -4,31 +4,29 @@ from numpy import mean
 from ...topology import ShapeTools
 
 
-def sew_surface_parts(main_part, *other_parts):
+def sew_surface_parts(parts):
     """
-    Sew parts.
+    Sew surface parts.
     """
-    if main_part.IsNull() or len(other_parts) == 0:
+    if len(parts) == 0:
         return False
 
     # Put other parts into a list.
-    other_parts = list(other_parts)
+    parts = list(parts)
 
     # Calculate tolerances for sewing using the tolerances of the parts.
-    tol = mean([ShapeTools.get_tolerance(part, 0) for part in [main_part] +
-               other_parts])
-    max_tol = max([ShapeTools.get_tolerance(part, 1) for part in [main_part] +
-                   other_parts])
+    tol = mean([ShapeTools.get_tolerance(part, 0) for part in parts])
+    max_tol = max([ShapeTools.get_tolerance(part, 1) for part in parts])
 
     # Perform sewing
     sew = BRepBuilderAPI_Sewing(tol, True, True, True, True)
     sew.SetMaxTolerance(max_tol)
-    for part in [main_part] + other_parts:
+    for part in parts:
         sew.Add(part)
     sew.Perform()
 
     modified = False
-    for part in [main_part] + other_parts:
+    for part in parts:
         if not sew.IsModified(part):
             continue
         mod = sew.Modified(part)
