@@ -35,8 +35,9 @@ def reshape_surface_parts(tool, parts):
             compound = ShapeTools.make_compound(faces)
             reshape.Replace(f, compound)
             performed = True
-        new_shape = reshape.Apply(part)
-        part.set_shape(new_shape)
+        if performed:
+            new_shape = reshape.Apply(part)
+            part.set_shape(new_shape)
         status.append(performed)
 
     return True in status
