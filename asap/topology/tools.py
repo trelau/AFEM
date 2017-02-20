@@ -22,7 +22,8 @@ from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge, \
     ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
 from OCC.ShapeFix import ShapeFix_Shape
-from OCC.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
+from OCC.ShapeUpgrade import ShapeUpgrade_UnifySameDomain,\
+    ShapeUpgrade_ShapeDivideContinuity, ShapeUpgrade_ShapeDivideClosed
 from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
     TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, \
     TopAbs_WIRE
@@ -1182,3 +1183,37 @@ class ShapeTools(object):
             points.append(pnt)
 
         return points
+
+    @staticmethod
+    def divide_closed(shape):
+        """
+        Divide a closed shape.
+
+        :param shape:
+
+        :return:
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        div = ShapeUpgrade_ShapeDivideClosed(shape)
+        div.Perform()
+        return ShapeTools.to_shape(div.Result())
+
+    @staticmethod
+    def divide_c0(shape):
+        """
+        Divide a shape at C0 boundaries.
+
+        :param shape:
+
+        :return:
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        div = ShapeUpgrade_ShapeDivideContinuity(shape)
+        div.Perform()
+        return ShapeTools.to_shape(div.Result())

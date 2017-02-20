@@ -1,5 +1,5 @@
 from OCC.BRep import BRep_Tool
-from OCC.BRepAdaptor import BRepAdaptor_CompCurve
+from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Section
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace
 from OCC.ShapeAnalysis import ShapeAnalysis_FreeBounds_ConnectEdgesToWires
@@ -38,6 +38,7 @@ def extract_wing_ref_curve(wing, uv1, uv2, rshape):
     """
     # Wing reference surface.
     sref = wing.sref
+    sref_shape = wing.sref_shape
     if not CheckGeom.is_surface(sref):
         return None
 
@@ -65,8 +66,8 @@ def extract_wing_ref_curve(wing, uv1, uv2, rshape):
         pln = extract_wing_plane(wing, uv1, uv2)
         rshape = BRepBuilderAPI_MakeFace(pln.handle, 0.).Face()
 
-    # Generate section edges with BOP Section.
-    bop = BRepAlgoAPI_Section(rshape, sref.handle)
+    # Generate section edges with BOP Section using sref shape.
+    bop = BRepAlgoAPI_Section(rshape, sref_shape)
     if bop.ErrorStatus() != 0:
         return None
     bop.RefineEdges()
@@ -88,7 +89,8 @@ def extract_wing_ref_curve(wing, uv1, uv2, rshape):
     wires_obj = hwires.GetObject()
     for i in range(1, wires_obj.Length() + 1):
         wire = topods_Wire(wires_obj.Value(i))
-        adp_crv = BRepAdaptor_CompCurve(wire, False, 0., 1., max(tol))
+        edge = ShapeTools.concatenate_wire(wire)
+        adp_crv = BRepAdaptor_Curve(edge)
         occ_crv = adp_crv.BSpline().GetObject()
         crv = create_nurbs_curve_from_occ(occ_crv)
         crvs.append(crv)
