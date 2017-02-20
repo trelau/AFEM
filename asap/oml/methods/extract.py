@@ -86,7 +86,6 @@ def extract_wing_ref_curve(wing, uv1, uv2, rshape):
                                                  max(tol), False, hwires)
     crvs = []
     wires_obj = hwires.GetObject()
-    print(wires_obj.Length())
     for i in range(1, wires_obj.Length() + 1):
         wire = topods_Wire(wires_obj.Value(i))
         adp_crv = BRepAdaptor_CompCurve(wire, False, 0., 1., max(tol))
