@@ -1,8 +1,7 @@
 from OCC.BRep import BRep_Tool
-from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
+from OCC.BRepAdaptor import BRepAdaptor_CompCurve
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Section
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace
-from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.ShapeAnalysis import ShapeAnalysis_FreeBounds_ConnectEdgesToWires
 from OCC.TopAbs import TopAbs_EDGE
 from OCC.TopExp import TopExp_Explorer
@@ -13,6 +12,7 @@ from OCC.TopoDS import topods_Edge, topods_Wire
 from ...geometry import CheckGeom, CreateGeom, ProjectGeom
 from ...geometry.methods.create import create_nurbs_curve_from_occ
 from ...geometry.methods.distance import curve_nearest_point
+from ...topology import ShapeTools
 
 _brep_tool = BRep_Tool()
 
@@ -75,21 +75,21 @@ def extract_wing_ref_curve(wing, uv1, uv2, rshape):
     # Gather all the edges and build wire(s).
     top_exp = TopExp_Explorer(shape, TopAbs_EDGE)
     edges = TopTools_HSequenceOfShape()
+    tol = []
     while top_exp.More():
         ei = topods_Edge(top_exp.Current())
         edges.Append(ei)
         top_exp.Next()
+        tol.append(ShapeTools.get_tolerance(ei, 1))
     hwires = Handle_TopTools_HSequenceOfShape()
     ShapeAnalysis_FreeBounds_ConnectEdgesToWires(edges.GetHandle(),
-                                                 0.005, False, hwires)
+                                                 max(tol), False, hwires)
     crvs = []
     wires_obj = hwires.GetObject()
+    print(wires_obj.Length())
     for i in range(1, wires_obj.Length() + 1):
         wire = topods_Wire(wires_obj.Value(i))
-        c0_edge = brepalgo_ConcatenateWireC0(wire)
-        crv_data = _brep_tool.Curve(c0_edge)
-        hcrv = crv_data[0]
-        adp_crv = GeomAdaptor_Curve(hcrv)
+        adp_crv = BRepAdaptor_CompCurve(wire, False, 0., 1., max(tol))
         occ_crv = adp_crv.BSpline().GetObject()
         crv = create_nurbs_curve_from_occ(occ_crv)
         crvs.append(crv)
