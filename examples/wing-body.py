@@ -209,23 +209,16 @@ PartTools.sew_parts(wing_parts + fuselage_parts)
 print('complete', time.time() - start)
 
 # Viewing
-wskin.set_transparency(0.5)
-wskin.set_color(0.5, 0.5, 0.5)
+fskin.set_transparency(0.35)
+floor.set_transparency(0.35)
+for part in wing_parts + fuselage_parts:
+    Viewer.add_items(part)
+Viewer.show()
 
 for part in wing_parts + fuselage_parts:
     part.mesh(maxh=4., quad_dominated=False)
     Viewer.add_meshes(part)
 Viewer.show_mesh()
-
-for oml in [wing, gear, fuselage]:
-    oml.set_color(0.5, 0.5, 0.5)
-    oml.set_transparency(0.5)
-
-# Viewer.add_items(wing)
-Viewer.add_items(fwd_bh, rear_bh, aft_bh, fskin, floor, *frames)
-Viewer.add_items(fc_spar, rc_spar, root_rib, tip_rib, fspar, rspar)
-Viewer.add_items(wskin)
-Viewer.show()
 
 # from asap.io import StepExport
 #
