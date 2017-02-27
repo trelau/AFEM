@@ -8,7 +8,8 @@ from OCC.ShapeFix import ShapeFix_ShapeTolerance
 from OCC.TopAbs import TopAbs_VERTEX
 from numpy import mean
 
-from .create import create_line_from_occ, create_nurbs_curve_from_occ
+from .create import create_nurbs_curve_from_occ
+from ..curves import Line
 from ..points import Point
 from ...config import Settings
 
@@ -99,11 +100,11 @@ def intersect_surface_surface(surface1, surface2, itol=None):
         hcrv = ssi.Line(i)
         adp_crv = GeomAdaptor_Curve(hcrv)
         if adp_crv.GetType() == GeomAbs_Line:
-            lin = adp_crv.Line()
-            crv = create_line_from_occ(lin)
+            gp_lin = adp_crv.Line()
+            crv = Line(gp_lin)
             crvs.append(crv)
         elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
-            crv = adp_crv.BSpline()
+            crv = adp_crv.BSpline().GetObject()
             crv = create_nurbs_curve_from_occ(crv)
             crvs.append(crv)
 
