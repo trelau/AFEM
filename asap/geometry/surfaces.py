@@ -247,6 +247,34 @@ class NurbsSurface(Geom_BSplineSurface, Geometry):
         else:
             return global_to_local_param(self.v1, self.v2, *args)
 
+    def D0(self, u, v, p):
+        """
+        wrap superclass D0 to accept float-like inputs.
+
+        :param float u: Parameter in u-direction.
+        :param float v: Parameter in v-direction.
+        :param Point p
+
+        :return:
+        :rtype: :class: None
+        """
+        super(NurbsSurface, self).D0(float(u), float(v), p)
+        return None
+
+    def DN(self, u, v, nu, nv):
+        """
+        wrap superclass DN to accept float-like inputs
+
+        :param float u: Parameter in u-direction.
+        :param float v: Parameter in v-direction.
+        :param int nu: derivative order in u-direction
+        :param int nv: derivative order in v-direction
+
+        :return:
+        :rtype: :class: gp_Vec
+        """
+        return super(NurbsSurface, self).DN(float(u), float(v), nu, nv)
+
     def eval(self, u, v):
         """
         Evaluate surface at parameters.
@@ -261,8 +289,22 @@ class NurbsSurface(Geom_BSplineSurface, Geometry):
         self.D0(u, v, p)
         return p
 
-    def __call__(self, u, v):
-        return self.eval(u, v)
+    def __call__(self, u, v, nu=0, nv=0):
+        """
+        Evaluate surface or its derivative
+
+        :param float u: Parameter in u-direction.
+        :param float v: Parameter in v-direction.
+        :param int nu: derivative order in u-direction
+        :param int nv: derivative order in v-direction
+
+        :return: Point on surface or derivative
+        :rtype: :class:`.Point` or Vector
+        """
+        if (nu + nv) < 1:
+            return self.eval(u, v)
+        else:
+            return self.deriv(u, v, nu, nv)
 
     def eval_params(self, uprms, vprms):
         """
