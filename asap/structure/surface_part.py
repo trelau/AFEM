@@ -162,7 +162,7 @@ class SurfacePart(Part):
                 _other_parts.append(part)
         if not _other_parts:
             return False
-        return sew_surface_parts(self, *_other_parts)
+        return sew_surface_parts([self] + _other_parts)
 
     def discard(self, shape, tol=None):
         """

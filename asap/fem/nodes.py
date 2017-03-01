@@ -17,8 +17,8 @@ class Node(object):
         self.pnt = pnt
         self.h = None
         self.is_boundary = False
-        self._nid = self._ids
-        self._ids += 1
+        self._nid = Node._ids
+        Node._ids += 1
 
     def __str__(self):
         return 'Node {0}: ({1}, {2}, {3})'.format(self._nid, *self.pnt)

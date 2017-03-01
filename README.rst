@@ -18,3 +18,8 @@ https://github.com/tpaviot/pythonocc-core
 and installed using conda with:
 
     conda install -c pythonocc -c dlr-sc pythonocc-core
+
+Getting Started
+---------------
+The way to get started is to examine and run the files in the examples and
+test folders.

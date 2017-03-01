@@ -232,7 +232,7 @@ def _build_solid(compound, divide_closed):
         builder.Add(shell, f)
 
     # Sew shape.
-    sew = BRepBuilderAPI_Sewing(0.01)
+    sew = BRepBuilderAPI_Sewing(1.0e-7)
     sew.Load(shell)
     sew.Perform()
     sewn_shape = sew.SewedShape()
@@ -253,7 +253,7 @@ def _build_solid(compound, divide_closed):
         shape = sewn_shape
 
     # Make solid.
-    shell = ShapeTools.to_shell(shape)
+    shell = ShapeTools.get_shells(shape)[0]
     solid = ShapeFix_Solid().SolidFromShell(shell)
 
     # Split closed faces of the solid to make OCC more robust.

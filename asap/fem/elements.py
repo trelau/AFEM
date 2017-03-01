@@ -6,8 +6,8 @@ class Element(object):
 
     def __init__(self, nodes):
         self._nodes = nodes
-        self._eid = self._ids
-        self._ids += 1
+        self._eid = Element._ids
+        Element._ids += 1
 
     def __str__(self):
         eid = 'Element {0}: '.format(str(self.eid))

@@ -2,10 +2,16 @@ from __future__ import print_function
 
 from OCC.ShapeAnalysis import ShapeAnalysis_ShapeTolerance
 
-from asap.io import ImportVSP
 from asap.graphics import Viewer
+from asap.io import ImportVSP
 
+# fn = r'.\test_io\777-200LR_mod_vsp350_split_sref.stp'
+# fn = r'.\test_io\777-200LR_mod_vsp350_sref.stp'
+# fn = r'.\test_io\777-200LR_mod_vsp310_split.stp'
+# fn = r'.\test_io\TBW_SUGAR_mod_vsp350_sref.stp'
 fn = r'.\test_io\F-16.stp'
+# fn = r'.\test_io\HWB.stp'
+# fn = r'.\test_io\N2A.stp'
 
 ImportVSP.step_file(fn)
 

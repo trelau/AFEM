@@ -1,6 +1,7 @@
 from .body import Body
 from .methods.extract import extract_wing_plane, extract_wing_ref_curve
-from ..geometry import CheckGeom, ProjectGeom, CreateGeom
+from ..geometry import CheckGeom, CreateGeom, ProjectGeom
+from ..topology.adaptors import ShapeAdaptorSurface
 
 
 class Wing(Body):
@@ -11,10 +12,15 @@ class Wing(Body):
     def __init__(self, shape):
         super(Wing, self).__init__(shape)
         self._sref = None
+        self._sref_adp = None
 
     @property
     def sref(self):
         return self._sref
+
+    @property
+    def sref_shape(self):
+        return self._sref_adp.shape
 
     @property
     def u1(self):
@@ -49,6 +55,8 @@ class Wing(Body):
         """
         if CheckGeom.is_surface_like(sref):
             self._sref = sref
+            self._sref_adp = ShapeAdaptorSurface()
+            self._sref_adp.build(sref)
             return True
         return False
 

@@ -119,6 +119,8 @@ PartTools.fuse_parts([fwd_bh, rear_bh, aft_bh, floor, fskin] + frames)
 # fskin.cut(windows)
 
 # Viewing
+fskin.set_transparency(0.5)
+floor.set_transparency(0.5)
 Viewer.add_items(fskin, floor, fwd_bh, rear_bh, aft_bh, *frames)
 Viewer.show()
 

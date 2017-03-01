@@ -42,7 +42,7 @@ class Node2D(object):
 
     @property
     def st(self):
-        return self.s, self.t
+        return array([self.s, self.t])
 
     def distance(self, other):
         """
