@@ -11,13 +11,18 @@ ASAP can be installed using the command:
 
     python setup.py develop
 
-ASAP relies on PythonOCC which can be found here:
+ASAP relies on PythonOCC, SMESH, and Netgen which can be found here:
 
-https://github.com/tpaviot/pythonocc-core
+https://github.com/trelau
 
 and installed using conda with:
 
-    conda install -c pythonocc -c dlr-sc pythonocc-core
+    conda install -c trelau pythonocc-core
+
+This relies on OpenCASCADE Community Edition 0.17.2 (OCE) which can be
+installed with:
+
+    conda install -c oce oce=0.17.2
 
 Getting Started
 ---------------

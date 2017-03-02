@@ -1,11 +1,11 @@
 # noinspection PyUnresolvedReferences
-import netgen.meshing as ng_mesh
+# import netgen.meshing as ng_mesh
 from OCC.BRep import BRep_Tool
 from OCC.BRepAdaptor import BRepAdaptor_Curve2d, BRepAdaptor_Surface
 from OCC.GeomAbs import GeomAbs_Plane
 from OCC.TopAbs import TopAbs_REVERSED
 # noinspection PyUnresolvedReferences
-from netgen.geom2d import SplineGeometry
+# from netgen.geom2d import SplineGeometry
 from numpy import array, mean
 from numpy.linalg import norm
 from scipy.spatial import KDTree

@@ -1,8 +1,11 @@
 from OCC.AIS import AIS_Triangulation
 from OCC.Graphic3d import Graphic3d_AspectFillArea3d
+from OCC.MeshVS import MeshVS_BP_Mesh, MeshVS_DA_DisplayNodes, MeshVS_Mesh, \
+    MeshVS_MeshPrsBuilder
 from OCC.Poly import Poly_Array1OfTriangle, Poly_Triangle, Poly_Triangulation
 from OCC.Prs3d import Prs3d_ShadingAspect
 from OCC.Quantity import Quantity_Color
+from OCC.SMESH import SMESH_MeshVSLink
 
 from ...utils.tcol import to_tcolgp_array1_pnt
 
@@ -68,4 +71,21 @@ def display_trimesh(display, mesh, color=None):
 
     display.SetModeWireFrame()
     display.Context.Display(ais_tri.GetHandle(), False)
+    return True
+
+
+def display_smesh(display, mesh):
+    """
+    Display an SMESH generated mesh.
+    """
+    ds = SMESH_MeshVSLink(mesh)
+    mesh_vs = MeshVS_Mesh(True)
+    prs_builder = MeshVS_MeshPrsBuilder(mesh_vs.GetHandle(), 1,
+                                        ds.GetHandle(), 0, MeshVS_BP_Mesh)
+    mesh_vs.SetDataSource(ds.GetHandle())
+    mesh_vs.AddBuilder(prs_builder.GetHandle(), True)
+    mesh_vs.GetDrawer().GetObject().SetBoolean(MeshVS_DA_DisplayNodes, False)
+    context = display.Context
+    context.Display(mesh_vs.GetHandle())
+    context.Deactivate(mesh_vs.GetHandle())
     return True

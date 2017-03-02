@@ -2,7 +2,7 @@ from OCC.Display.SimpleGui import init_display
 from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
 from numpy.random import rand
 
-from .methods.display_mesh import display_part_mesh, display_trimesh
+from .methods.display_mesh import display_part_mesh, display_trimesh, display_smesh
 
 
 class ViewableItem(object):
@@ -53,6 +53,7 @@ class Viewer(object):
     _items = []
     _meshes = []
     _entities = []
+    _smeshes = []
 
     @classmethod
     def clear(cls):
@@ -74,6 +75,8 @@ class Viewer(object):
                               transparency=item.transparency)
         for entity, color, transparency in cls._entities:
             disp.DisplayShape(entity, color=color, transparency=transparency)
+        for mesh in cls._smeshes:
+            display_smesh(disp, mesh)
 
         disp.FitAll()
         disp.Repaint()
@@ -120,6 +123,17 @@ class Viewer(object):
         """
         for mesh in meshes:
             cls._meshes.append(mesh)
+
+    @classmethod
+    def display_mesh(cls, mesh):
+        """
+        Display an SMESH mesh.
+
+        :param mesh:
+
+        :return:
+        """
+        cls._smeshes.append(mesh)
 
     @classmethod
     def show_mesh(cls, clear=True):
