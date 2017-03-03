@@ -45,9 +45,9 @@ class Mesh(object):
         self._smesh_mesh.ShapeToMesh(shape)
         return True
 
-    def add_hypothesis(self, shape, *hypotheses):
+    def add_hypotheses(self, shape, *hypotheses):
         """
-        Add a hypothesis to the shape.
+        Add hypotheses to the shape.
 
         :param hypotheses:
         :param shape:
