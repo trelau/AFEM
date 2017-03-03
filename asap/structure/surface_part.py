@@ -6,12 +6,10 @@ from .methods.cut_parts import cut_surface_part
 from .methods.explore_parts import get_shared_edges, get_shared_nodes
 from .methods.form_parts import form_with_solid
 from .methods.fuse_parts import fuse_surface_part
-from .methods.mesh_parts import mesh_surface_part
 from .methods.modify_parts import discard_faces_by_distance, \
     discard_faces_by_solid
 from .methods.sew_parts import sew_surface_parts
 from .part import Part
-from ..fem.mesh_mgr import MeshMgr
 from ..topology import ShapeTools
 
 
@@ -50,25 +48,6 @@ class SurfacePart(Part):
     @property
     def sref(self):
         return self._sref
-
-    @property
-    def elements(self):
-        elm_set = set()
-        for f in self.faces:
-            if not MeshMgr.has_mesh(f):
-                continue
-            mesh = MeshMgr.mesh_from_shape(f)
-            for e in mesh.elements:
-                elm_set.add(e)
-        return elm_set
-
-    @property
-    def nodes(self):
-        node_set = set()
-        for e in self.elements:
-            for n in e.nodes:
-                node_set.add(n)
-        return node_set
 
     def _set_sref(self):
         """
@@ -189,17 +168,6 @@ class SurfacePart(Part):
         :return:
         """
         return get_shared_edges(self, other_part)
-
-    def mesh(self, maxh=4., quad_dominated=True):
-        """
-        Mesh the part.
-
-        :param maxh:
-        :param quad_dominated:
-
-        :return:
-        """
-        return mesh_surface_part(self, maxh, quad_dominated)
 
     def shared_nodes(self, other_part):
         """

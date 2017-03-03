@@ -21,20 +21,6 @@ class Assembly(object):
     def parts(self):
         return list(self._parts)
 
-    @property
-    def elements(self):
-        elm_set = set()
-        for part in self.parts:
-            elm_set.update(part.elements)
-        return elm_set
-
-    @property
-    def nodes(self):
-        node_set = set()
-        for part in self.parts:
-            node_set.update(part.nodes)
-        return node_set
-
     def activate(self):
         """
         Activate this assembly.
@@ -202,19 +188,3 @@ class AssemblyMgr(object):
         if not isinstance(assy, Assembly):
             return {}
         return assy.mesh(maxh, quad_dominated=quad_dominated)
-
-    @classmethod
-    def get_nodes(cls, assy=None):
-        """
-        Get the asembly nodes.
-
-        :param assy:
-
-        :return: Set of nodes from each part in the assembly.
-        :rtype: set
-        """
-        assy = cls.get_assy(assy)
-        try:
-            return assy.nodes
-        except AttributeError:
-            return set()
