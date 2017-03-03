@@ -104,11 +104,11 @@ compound = ShapeTools.make_compound([fspar, rspar, fc_spar, rc_spar,
 
 faces = ShapeTools.get_faces(compound)
 for f in faces:
-    Viewer.display(f, 'random')
+    Viewer.add_entity(f, 'random')
 Viewer.show()
 
 for rib in ribs:
     edges = rib.shared_edges(skin)
     for e in edges:
-        Viewer.display(e)
+        Viewer.add_entity(e)
 Viewer.show()
