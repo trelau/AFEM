@@ -257,13 +257,15 @@ class ShapeTools(object):
         return None
 
     @staticmethod
-    def get_vertices(shape):
+    def get_vertices(shape, as_compound=False):
         """
         Get vertices from a shape.
 
         :return:
         """
         if isinstance(shape, TopoDS_Vertex):
+            if as_compound:
+                return ShapeTools.make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_VERTEX)
@@ -273,19 +275,24 @@ class ShapeTools(object):
             vertex = topods_Vertex(vi)
             vertices.append(vertex)
             exp.Next()
+        if as_compound:
+            return ShapeTools.make_compound(vertices)
         return vertices
 
     @staticmethod
-    def get_edges(shape, unique=True):
+    def get_edges(shape, as_compound=False, unique=True):
         """
         Get edges from a shape.
 
         :param shape:
         :param bool unique: Unique edges based on TShape and Location.
+        :param as_compound:
 
         :return:
         """
         if isinstance(shape, TopoDS_Edge):
+            if as_compound:
+                return ShapeTools.make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_EDGE)
@@ -304,16 +311,20 @@ class ShapeTools(object):
             else:
                 edges.append(edge)
             exp.Next()
+        if as_compound:
+            return ShapeTools.make_compound(edges)
         return edges
 
     @staticmethod
-    def get_wires(shape):
+    def get_wires(shape, as_compound=False):
         """
         Get wires from a shape.
 
         :return:
         """
         if isinstance(shape, TopoDS_Wire):
+            if as_compound:
+                return ShapeTools.make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_WIRE)
@@ -323,16 +334,20 @@ class ShapeTools(object):
             wire = topods_Wire(wi)
             wires.append(wire)
             exp.Next()
+        if as_compound:
+            return ShapeTools.make_compound(wires)
         return wires
 
     @staticmethod
-    def get_faces(shape):
+    def get_faces(shape, as_compound=False):
         """
         Get faces from a shape.
 
         :return:
         """
         if isinstance(shape, TopoDS_Face):
+            if as_compound:
+                return ShapeTools.make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_FACE)
@@ -342,16 +357,20 @@ class ShapeTools(object):
             face = topods_Face(fi)
             faces.append(face)
             exp.Next()
+        if as_compound:
+            return ShapeTools.make_compound(faces)
         return faces
 
     @staticmethod
-    def get_shells(shape):
+    def get_shells(shape, as_compound=False):
         """
         Get shells from a shape.
 
         :return:
         """
         if isinstance(shape, TopoDS_Shell):
+            if as_compound:
+                return ShapeTools.make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_SHELL)
@@ -361,16 +380,20 @@ class ShapeTools(object):
             shell = topods_Shell(si)
             shells.append(shell)
             exp.Next()
+        if as_compound:
+            return ShapeTools.make_compound(shells)
         return shells
 
     @staticmethod
-    def get_solids(shape):
+    def get_solids(shape, as_compound=False):
         """
         Get solids from a shape.
 
         :return:
         """
         if isinstance(shape, TopoDS_Solid):
+            if as_compound:
+                return ShapeTools.make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_SOLID)
@@ -380,16 +403,20 @@ class ShapeTools(object):
             solid = topods_Solid(si)
             solids.append(solid)
             exp.Next()
+        if as_compound:
+            return ShapeTools.make_compound(solids)
         return solids
 
     @staticmethod
-    def get_compounds(shape):
+    def get_compounds(shape, as_compound=False):
         """
         Get compounds from a shape.
 
         :return:
         """
         if isinstance(shape, TopoDS_Compound):
+            if as_compound:
+                return ShapeTools.make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_COMPOUND)
@@ -399,6 +426,8 @@ class ShapeTools(object):
             compound = topods_Compound(ci)
             compounds.append(compound)
             exp.Next()
+        if as_compound:
+            return ShapeTools.make_compound(compounds)
         return compounds
 
     @staticmethod
