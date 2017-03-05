@@ -8,7 +8,7 @@ _mesh_gen = SMESH_Gen_get()
 
 class Mesh(object):
     """
-    Mesh class.
+    Mesh.
     """
     _all = {}
     _indx = 0
@@ -16,8 +16,8 @@ class Mesh(object):
     def __init__(self, name):
         self._name = name
         Mesh._all[name] = self
-        self._smesh_mesh = _mesh_gen.CreateMesh(Mesh._indx, True)
-        self._smesh_ds = self._smesh_mesh.GetMeshDS()
+        self._mesh = _mesh_gen.CreateMesh(Mesh._indx, True)
+        self._ds = self._mesh.GetMeshDS()
         self._id = Mesh._indx
         Mesh._indx += 1
 
@@ -27,35 +27,35 @@ class Mesh(object):
 
     @property
     def shape(self):
-        return self._smesh_mesh.GetShapeToMesh()
+        return self._mesh.GetShapeToMesh()
 
     @property
     def has_shape(self):
-        return self._smesh_mesh.HasShapeToMesh()
+        return self._mesh.HasShapeToMesh()
 
     @property
     def smesh_obj(self):
-        return self._smesh_mesh
+        return self._mesh
 
     @property
     def nb_nodes(self):
-        return self._smesh_ds.NbNodes()
+        return self._ds.NbNodes()
 
     @property
     def min_node_id(self):
-        return self._smesh_ds.MinNodeID()
+        return self._ds.MinNodeID()
 
     @property
     def max_node_id(self):
-        return self._smesh_ds.MaxNodeID()
+        return self._ds.MaxNodeID()
 
     @property
     def min_elm_id(self):
-        return self._smesh_ds.MinElementID()
+        return self._ds.MinElementID()
 
     @property
     def max_elm_id(self):
-        return self._smesh_ds.MaxElementID()
+        return self._ds.MaxElementID()
 
     @classmethod
     def get_mesh(cls, mesh=None):
@@ -93,7 +93,7 @@ class Mesh(object):
         shape = ShapeTools.to_shape(shape)
         if not shape:
             return False
-        self._smesh_mesh.ShapeToMesh(shape)
+        self._mesh.ShapeToMesh(shape)
         return True
 
     def add_hypothesis(self, hypothesis, shape=None):
@@ -114,7 +114,7 @@ class Mesh(object):
         hypothesis = HypothesisData.get_hypothesis(hypothesis)
         if not hypothesis:
             return False
-        self._smesh_mesh.AddHypothesis(shape, hypothesis.id)
+        self._mesh.AddHypothesis(shape, hypothesis.id)
         return True
 
     def compute(self):
@@ -123,7 +123,7 @@ class Mesh(object):
 
         :return:
         """
-        return _mesh_gen.Compute(self._smesh_mesh, self.shape)
+        return _mesh_gen.Compute(self._mesh, self.shape)
 
     def clear(self):
         """
@@ -131,22 +131,41 @@ class Mesh(object):
 
         :return:
         """
-        self._smesh_mesh.Clear()
+        self._mesh.Clear()
         return True
 
-    def get_submesh(self, subshape):
+    def get_submesh(self, sub_shape):
         """
-        Get a SubMesh from a subshape.
+        Get a SubMesh from a sub-shape.
 
-        :param subshape:
+        :param sub_shape:
 
         :return:
         """
-        # TODO Get SubMeshes.
+        mesh = self._mesh.GetSubMesh(sub_shape)
+        return SubMesh(mesh)
 
 
 class SubMesh(object):
-    pass
+    """
+    SubMesh.
+    """
+
+    def __init__(self, smesh_submesh):
+        self._mesh = smesh_submesh
+        self._ds = smesh_submesh.GetSubMeshDS()
+
+    @property
+    def is_empty(self):
+        return self._mesh.IsEmpty()
+
+    @property
+    def is_computed(self):
+        return self._mesh.IsMeshComputed()
+
+    @property
+    def nb_nodes(self):
+        return self._ds.NbNodes()
 
 
 class MeshData(object):
@@ -240,3 +259,18 @@ class MeshData(object):
         if not mesh:
             return False
         return mesh.compute()
+
+    @classmethod
+    def get_submesh(cls, sub_shape, mesh=None):
+        """
+        Get a SubMesh from the sub-shape.
+
+        :param sub_shape:
+        :param mesh:
+
+        :return:
+        """
+        mesh = cls.get_mesh(mesh)
+        if not mesh:
+            return None
+        return mesh.get_submesh(sub_shape)
