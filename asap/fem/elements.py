@@ -24,7 +24,7 @@ class Element(object):
     @property
     def nodes(self):
         nodes = []
-        niter = self._elm.nodesIterator()
+        niter = self._elm.nodeIterator()
         while niter.more():
             n = Node(niter.next())
             nodes.append(n)
