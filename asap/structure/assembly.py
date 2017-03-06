@@ -21,6 +21,22 @@ class Assembly(object):
     def parts(self):
         return list(self._parts)
 
+    @property
+    def elements(self):
+        elms = {}
+        for part in self.parts:
+            for e in part.elements:
+                elms[e.eid] = e
+        return elms.values()
+
+    @property
+    def nodes(self):
+        nodes = {}
+        for part in self.parts:
+            for n in part.nodes:
+                nodes[n.nid] = n
+        return nodes.values()
+
     def activate(self):
         """
         Activate this assembly.

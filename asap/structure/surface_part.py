@@ -71,6 +71,14 @@ class SurfacePart(Part):
             elms.append(elm)
         return elms
 
+    @property
+    def nodes(self):
+        nodes = {}
+        for e in self.elements:
+            for n in e.nodes:
+                nodes[n.nid] = n
+        return nodes.values()
+
     def _set_sref(self):
         """
         Set part reference surface is available.

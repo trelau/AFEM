@@ -58,6 +58,10 @@ class Mesh(object):
     def max_elm_id(self):
         return self._ds.MaxElementID()
 
+    @property
+    def nodes(self):
+        return self.get_nodes()
+
     @classmethod
     def get_mesh(cls, mesh=None):
         """
