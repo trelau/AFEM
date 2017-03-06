@@ -1,5 +1,5 @@
 from OCC.NETGENPlugin import NETGENPlugin_NETGEN_2D, \
-    NETGENPlugin_SimpleHypothesis_2D
+    NETGENPlugin_SimpleHypothesis_2D, NETGENPlugin_NETGEN_2D_ONLY
 from OCC.SMESH import SMESH_Gen_get
 from OCC.StdMeshers import StdMeshers_Adaptive1D, StdMeshers_Deflection1D, \
     StdMeshers_LocalLength, StdMeshers_MaxLength, \
@@ -136,6 +136,16 @@ class NetgenAlgo2D(Hypothesis):
         super(NetgenAlgo2D, self).__init__(name, smesh_hypo)
 
 
+class NetgenAlgoOnly2D(Hypothesis):
+    """
+    Netgen 2-D only algorithm.
+    """
+
+    def __init__(self, name):
+        smesh_hypo = NETGENPlugin_NETGEN_2D_ONLY
+        super(NetgenAlgoOnly2D, self).__init__(name, smesh_hypo)
+
+
 class HypothesisData(object):
     """
     Hypothesis data manager.
@@ -248,3 +258,14 @@ class HypothesisData(object):
         :return:
         """
         return NetgenAlgo2D(name)
+
+    @staticmethod
+    def create_netgen_algo_only_2d(name):
+        """
+        Create NetgenAlgoOnly2D hypothesis.
+
+        :param name:
+
+        :return:
+        """
+        return NetgenAlgoOnly2D(name)
