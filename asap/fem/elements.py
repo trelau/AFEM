@@ -64,8 +64,8 @@ class Elm0D(Element):
     Generic 0-D element.
     """
 
-    def __init__(self, nodes):
-        super(Elm0D, self).__init__(nodes)
+    def __init__(self, smesh_element):
+        super(Elm0D, self).__init__(smesh_element)
 
 
 class Elm1D(Element):
@@ -73,8 +73,8 @@ class Elm1D(Element):
     Generic 1-D element.
     """
 
-    def __init__(self, nodes):
-        super(Elm1D, self).__init__(nodes)
+    def __init__(self, smesh_element):
+        super(Elm1D, self).__init__(smesh_element)
 
 
 class Elm2D(Element):
@@ -82,5 +82,5 @@ class Elm2D(Element):
     Generic 2-D element.
     """
 
-    def __init__(self, nodes):
-        super(Elm2D, self).__init__(nodes)
+    def __init__(self, smesh_element):
+        super(Elm2D, self).__init__(smesh_element)

@@ -1,3 +1,4 @@
+from OCC.SMESH import SMESH_Mesh
 from OCC.TopAbs import TopAbs_COMPSOLID, TopAbs_SOLID
 from OCC.TopoDS import TopoDS_Shape
 
@@ -10,6 +11,8 @@ from .methods.modify_parts import discard_faces_by_distance, \
     discard_faces_by_solid
 from .methods.sew_parts import sew_surface_parts
 from .part import Part
+from ..fem import MeshData
+from ..fem.elements import Elm2D
 from ..topology import ShapeTools
 
 
@@ -48,6 +51,25 @@ class SurfacePart(Part):
     @property
     def sref(self):
         return self._sref
+
+    @property
+    def elements(self):
+        smesh_mesh = MeshData.get_mesh().smesh_obj
+        if not isinstance(smesh_mesh, SMESH_Mesh):
+            return []
+        compound = ShapeTools.get_faces(self, True)
+        submesh = smesh_mesh.GetSubMesh(compound)
+        if submesh.IsEmpty():
+            return []
+        submesh_ds = submesh.GetSubMeshDS()
+        if not submesh_ds:
+            return []
+        elm_iter = submesh_ds.GetElements()
+        elms = []
+        while elm_iter.more():
+            elm = Elm2D(elm_iter.next())
+            elms.append(elm)
+        return elms
 
     def _set_sref(self):
         """
