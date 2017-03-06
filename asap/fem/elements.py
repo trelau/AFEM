@@ -17,6 +17,12 @@ class Element(object):
         nids = ' '.join([str(n) for n in self.nids])
         return ''.join([eid, nids])
 
+    def __eq__(self, other):
+        return self.eid == other.eid
+
+    def __hash__(self):
+        return hash(self.eid)
+
     @property
     def eid(self):
         return self._elm.GetID()

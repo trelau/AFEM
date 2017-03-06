@@ -65,19 +65,19 @@ class SurfacePart(Part):
         if not submesh_ds:
             return []
         elm_iter = submesh_ds.GetElements()
-        elms = []
+        elm_set = set()
         while elm_iter.more():
             elm = Elm2D(elm_iter.next())
-            elms.append(elm)
-        return elms
+            elm_set.add(elm)
+        return elm_set
 
     @property
     def nodes(self):
-        nodes = {}
+        node_set = set()
         for e in self.elements:
             for n in e.nodes:
-                nodes[n.nid] = n
-        return nodes.values()
+                node_set.add(n)
+        return node_set
 
     def _set_sref(self):
         """

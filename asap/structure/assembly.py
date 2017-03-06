@@ -23,19 +23,17 @@ class Assembly(object):
 
     @property
     def elements(self):
-        elms = {}
+        elm_set = set()
         for part in self.parts:
-            for e in part.elements:
-                elms[e.eid] = e
-        return elms.values()
+            elm_set.update(part.elements)
+        return elm_set
 
     @property
     def nodes(self):
-        nodes = {}
+        node_set = set()
         for part in self.parts:
-            for n in part.nodes:
-                nodes[n.nid] = n
-        return nodes.values()
+            node_set.update(part.nodes)
+        return node_set
 
     def activate(self):
         """

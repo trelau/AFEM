@@ -14,6 +14,12 @@ class Node(object):
     def __str__(self):
         return 'Node {0}: ({1}, {2}, {3})'.format(self.nid, *self.xyz)
 
+    def __eq__(self, other):
+        return self.nid == other.nid
+
+    def __hash__(self):
+        return hash(self.nid)
+
     @property
     def nid(self):
         return self._node.GetID()
