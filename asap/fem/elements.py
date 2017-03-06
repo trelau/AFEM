@@ -1,13 +1,16 @@
+from OCC.SMDS import SMDS_MeshElement
+
+from .nodes import Node
+
+
 class Element(object):
     """
     Base class for elements.
     """
-    _ids = 1
 
-    def __init__(self, nodes):
-        self._nodes = nodes
-        self._eid = Element._ids
-        Element._ids += 1
+    def __init__(self, smesh_element):
+        assert isinstance(smesh_element, SMDS_MeshElement)
+        self._elm = smesh_element
 
     def __str__(self):
         eid = 'Element {0}: '.format(str(self.eid))
@@ -16,19 +19,24 @@ class Element(object):
 
     @property
     def eid(self):
-        return self._eid
+        return self._elm.GetID()
 
     @property
     def nodes(self):
-        return [n for n in self._nodes]
+        nodes = []
+        niter = self._elm.nodesIterator()
+        while niter.more():
+            n = Node(niter.next())
+            nodes.append(n)
+        return nodes
 
     @property
     def nids(self):
-        return [n.nid for n in self._nodes]
+        return [n.nid for n in self.nodes]
 
     @property
     def ncount(self):
-        return len(self._nodes)
+        return self._elm.NbNodes()
 
     @property
     def is_0d(self):
