@@ -2,6 +2,7 @@ from OCC.SMESH import SMESH_Gen_get
 
 from .hypotheses import HypothesisData
 from ..topology import ShapeTools
+from .nodes import Node
 
 _mesh_gen = SMESH_Gen_get()
 
@@ -145,6 +146,21 @@ class Mesh(object):
         mesh = self._mesh.GetSubMesh(sub_shape)
         return SubMesh(mesh)
 
+    def get_nodes(self, order=False):
+        """
+        Get nodes from the mesh.
+
+        :param bool order: Order nodes order by ID.
+
+        :return:
+        """
+        niter = self._ds.nodesIterator(order)
+        nodes = []
+        while niter.more():
+            n = Node(niter.next())
+            nodes.append(n)
+        return nodes
+
 
 class SubMesh(object):
     """
@@ -274,3 +290,18 @@ class MeshData(object):
         if not mesh:
             return None
         return mesh.get_submesh(sub_shape)
+
+    @classmethod
+    def get_nodes(cls, order=False, mesh=None):
+        """
+        Get nodes from the mesh.
+
+        :param bool order: Order nodes order by ID.
+        :param mesh:
+
+        :return:
+        """
+        mesh = cls.get_mesh(mesh)
+        if not mesh:
+            return Node
+        return mesh.get_nodes(order)
