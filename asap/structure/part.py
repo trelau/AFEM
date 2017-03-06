@@ -5,7 +5,7 @@ from OCC.ShapeAnalysis import ShapeAnalysis_ShapeTolerance
 from OCC.ShapeFix import ShapeFix_Shape
 from OCC.TopoDS import TopoDS_Shape
 
-from .assembly import AssemblyMgr
+from .assembly import AssemblyData
 from ..graphics.viewer import ViewableItem
 
 
@@ -19,7 +19,7 @@ class Part(TopoDS_Shape, ViewableItem):
         ViewableItem.__init__(self)
         self._name = name
         self._metadata = {}
-        AssemblyMgr.add_parts(None, self)
+        AssemblyData.add_parts(None, self)
         print('Creating part: ', name)
 
     @property

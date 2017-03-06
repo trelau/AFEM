@@ -5,7 +5,7 @@ import time
 from asap.geometry import CreateGeom
 from asap.graphics import Viewer
 from asap.io import ImportVSP
-from asap.structure import AssemblyMgr, CreatePart, PartTools
+from asap.structure import AssemblyData, CreatePart, PartTools
 from asap.topology import ShapeTools
 
 # Import model
@@ -22,7 +22,7 @@ other_wing = ImportVSP.get_body('Wing.2')
 other_htail = ImportVSP.get_body('Htail.1')
 
 # FUSELAGE --------------------------------------------------------------------
-AssemblyMgr.create_assy('fuselage assy')
+AssemblyData.create_assy('fuselage assy')
 
 # Fwd bulkhead at 25% wing chord
 p0 = wing.eval(0.25, 0.)
@@ -88,7 +88,7 @@ PartTools.cut_parts([fskin, fwd_bh, rear_bh, aft_bh, floor] + frames, cutter)
 PartTools.fuse_parts([fwd_bh, rear_bh, aft_bh, floor, fskin] + frames)
 
 # WING ------------------------------------------------------------------------
-AssemblyMgr.create_assy('wing assy')
+AssemblyData.create_assy('wing assy')
 
 # Root rib
 
@@ -177,7 +177,7 @@ center_ribs = CreatePart.rib.along_curve('center rib', wing, fc_spar.cref,
                                          ref_pln=xz_pln, s1=30., s2=-30.)
 
 # Fuse wing internal structure and discard faces
-internal_parts = AssemblyMgr.get_parts()
+internal_parts = AssemblyData.get_parts()
 PartTools.fuse_wing_parts(internal_parts)
 PartTools.discard_faces(internal_parts)
 
@@ -201,8 +201,8 @@ wskin.cut(frame_cut)
 PartTools.cut_parts([wskin, fc_spar, aux_spar], fuselage.shell)
 print('done cutting', time.time() - start)
 
-wing_parts = AssemblyMgr.get_parts('wing assy')
-fuselage_parts = AssemblyMgr.get_parts('fuselage assy')
+wing_parts = AssemblyData.get_parts('wing assy')
+fuselage_parts = AssemblyData.get_parts('fuselage assy')
 print('starting assy join')
 start = time.time()
 PartTools.sew_parts(wing_parts + fuselage_parts)

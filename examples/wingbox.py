@@ -6,7 +6,7 @@ from asap.config import Settings
 from asap.geometry import CreateGeom, ProjectGeom
 from asap.graphics import Viewer
 from asap.io import ImportVSP
-from asap.structure import AssemblyMgr, CreatePart, PartTools
+from asap.structure import AssemblyData, CreatePart, PartTools
 from asap.topology import ShapeTools
 
 
@@ -46,7 +46,7 @@ def build_wingbox(wing, params):
     Settings.set_part_tol(params['part tol'])
 
     # BUILD -------------------------------------------------------------------
-    AssemblyMgr.create_assy(assy_name)
+    AssemblyData.create_assy(assy_name)
 
     # Front spar
     fspar = CreatePart.spar.by_parameters('front spar', wing,
@@ -175,7 +175,7 @@ def build_wingbox(wing, params):
 
     # Aux ribs
     if build_aux_spar:
-        assy = AssemblyMgr.get_active()
+        assy = AssemblyData.get_active()
         aux_rib_id = 1
         for rib_id in aux_rib_list:
             rib_name = ' '.join(['rib', rib_id])
@@ -202,7 +202,7 @@ def build_wingbox(wing, params):
 
     # JOIN --------------------------------------------------------------------
     # Fuse internal structure and discard faces
-    internal_parts = AssemblyMgr.get_parts()
+    internal_parts = AssemblyData.get_parts()
     PartTools.fuse_wing_parts(internal_parts)
     for part in internal_parts:
         part.discard()
@@ -226,9 +226,9 @@ def build_wingbox(wing, params):
     skin.set_color(0.5, 0.5, 0.5)
 
     # MESH --------------------------------------------------------------------
-    AssemblyMgr.mesh_assy(maxh=4., quad_dominated=False)
+    AssemblyData.mesh_assy(maxh=4., quad_dominated=False)
 
-    return AssemblyMgr.get_active()
+    return AssemblyData.get_active()
 
 
 if __name__ == '__main__':

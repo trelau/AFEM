@@ -43,7 +43,7 @@ class Assembly(object):
 
         :return:
         """
-        AssemblyMgr._active = self
+        AssemblyData._active = self
 
     def add_parts(self, *parts):
         """
@@ -87,9 +87,9 @@ class Assembly(object):
         return results
 
 
-class AssemblyMgr(object):
+class AssemblyData(object):
     """
-    Assembly manager.
+    Assembly data.
     """
     _master = Assembly('Model', None)
     _all = {'Model': _master}

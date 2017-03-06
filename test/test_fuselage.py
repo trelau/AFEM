@@ -3,7 +3,7 @@ from __future__ import print_function
 from asap.geometry import CreateGeom
 from asap.graphics import Viewer
 from asap.io import ImportVSP
-from asap.structure import CreatePart, AssemblyMgr, PartTools
+from asap.structure import CreatePart, AssemblyData, PartTools
 from asap.topology import ShapeTools
 
 # Import model
@@ -15,7 +15,7 @@ wing = ImportVSP.get_body('Wing')
 fuselage = ImportVSP.get_body('Fuselage')
 other_wing = ImportVSP.get_body('Wing.2')
 
-AssemblyMgr.create_assy('fuselage assy')
+AssemblyData.create_assy('fuselage assy')
 
 # Fwd bulkhead at 25% wing chord
 p0 = wing.eval(0.25, 0.)
@@ -124,6 +124,6 @@ floor.set_transparency(0.5)
 Viewer.add_items(fskin, floor, fwd_bh, rear_bh, aft_bh, *frames)
 Viewer.show()
 
-AssemblyMgr.mesh_assy(maxh=4., quad_dominated=False)
-Viewer.add_meshes(*AssemblyMgr.get_parts())
+AssemblyData.mesh_assy(maxh=4., quad_dominated=False)
+Viewer.add_meshes(*AssemblyData.get_parts())
 Viewer.show_mesh()
