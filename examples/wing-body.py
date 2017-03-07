@@ -113,6 +113,12 @@ rshape = ShapeTools.make_prism(shape, vz)
 
 root_rib = CreatePart.rib.by_sref('root rib', wing, rshape)
 
+# Cut the root rib where the frame reference planes are. This 1) Resolves
+# some issues the mesher was having with the root rib topology and 2) Allow
+# for 1-D elements to be created at frame locations for stiffeners.
+for frame in frames:
+    root_rib.cut(frame.sref)
+
 # Center spars between root chord and root rib.
 root_chord = wing.isocurve(v=wing.v1)
 
@@ -210,8 +216,6 @@ PartTools.sew_parts(wing_parts + fuselage_parts)
 print('complete', time.time() - start)
 
 # Viewing
-fskin.set_transparency(0.35)
-floor.set_transparency(0.35)
 for part in wing_parts + fuselage_parts:
     Viewer.add_items(part)
 Viewer.show(False)
