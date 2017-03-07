@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import time
 
+from asap.fem import MeshData
 from asap.geometry import CreateGeom
 from asap.graphics import Viewer
 from asap.io import ImportVSP
@@ -213,16 +214,26 @@ fskin.set_transparency(0.35)
 floor.set_transparency(0.35)
 for part in wing_parts + fuselage_parts:
     Viewer.add_items(part)
+Viewer.show(False)
+
+# Mesh
+shape_to_mesh = AssemblyData.prepare_shape_to_mesh()
+MeshData.create_mesh('wing-body mesh', shape_to_mesh)
+
+# Use a single global hypothesis based on local length.
+MeshData.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
+MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
+MeshData.add_hypothesis('netgen hypo')
+MeshData.add_hypothesis('netgen algo')
+
+# Compute the mesh
+mesh_start = time.time()
+print('Computing mesh...')
+status = MeshData.compute_mesh()
+if not status:
+    print('Failed to compute mesh')
+else:
+    print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
+
+Viewer.add_meshes(MeshData.get_active())
 Viewer.show()
-
-for part in wing_parts + fuselage_parts:
-    part.mesh(maxh=4., quad_dominated=False)
-    Viewer.add_meshes(part)
-Viewer.show_mesh()
-
-# from asap.io import StepExport
-#
-# assy = ShapeTools.make_compound([wing_compound, fuselage_compound])
-# step_out = StepExport()
-# step_out.transfer(assy)
-# step_out.write('wing-body.stp')
