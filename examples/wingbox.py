@@ -3,10 +3,11 @@ from __future__ import print_function
 import time
 
 from asap.config import Settings
+from asap.fem import MeshData
 from asap.geometry import CreateGeom, ProjectGeom
 from asap.graphics import Viewer
 from asap.io import ImportVSP
-from asap.structure import AssemblyMgr, CreatePart, PartTools
+from asap.structure import AssemblyData, CreatePart, PartTools
 from asap.topology import ShapeTools
 
 
@@ -46,7 +47,7 @@ def build_wingbox(wing, params):
     Settings.set_part_tol(params['part tol'])
 
     # BUILD -------------------------------------------------------------------
-    AssemblyMgr.create_assy(assy_name)
+    AssemblyData.create_assy(assy_name)
 
     # Front spar
     fspar = CreatePart.spar.by_parameters('front spar', wing,
@@ -175,7 +176,7 @@ def build_wingbox(wing, params):
 
     # Aux ribs
     if build_aux_spar:
-        assy = AssemblyMgr.get_active()
+        assy = AssemblyData.get_active()
         aux_rib_id = 1
         for rib_id in aux_rib_list:
             rib_name = ' '.join(['rib', rib_id])
@@ -202,7 +203,7 @@ def build_wingbox(wing, params):
 
     # JOIN --------------------------------------------------------------------
     # Fuse internal structure and discard faces
-    internal_parts = AssemblyMgr.get_parts()
+    internal_parts = AssemblyData.get_parts()
     PartTools.fuse_wing_parts(internal_parts)
     for part in internal_parts:
         part.discard()
@@ -222,13 +223,30 @@ def build_wingbox(wing, params):
     skin.fix()
 
     # Viewing
-    skin.set_transparency(0.5)
-    skin.set_color(0.5, 0.5, 0.5)
+    # skin.set_transparency(0.5)
+    # skin.set_color(0.5, 0.5, 0.5)
 
     # MESH --------------------------------------------------------------------
-    AssemblyMgr.mesh_assy(maxh=4., quad_dominated=False)
+    # Initialize
+    shape_to_mesh = AssemblyData.prepare_shape_to_mesh()
+    MeshData.create_mesh('wing-box mesh', shape_to_mesh)
 
-    return AssemblyMgr.get_active()
+    # Use a single global hypothesis based on local length.
+    MeshData.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
+    MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
+    MeshData.add_hypothesis('netgen hypo')
+    MeshData.add_hypothesis('netgen algo')
+
+    # Compute the mesh
+    mesh_start = time.time()
+    print('Computing mesh...')
+    status = MeshData.compute_mesh()
+    if not status:
+        print('Failed to compute mesh')
+    else:
+        print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
+
+    return AssemblyData.get_active()
 
 
 if __name__ == '__main__':
@@ -245,7 +263,5 @@ if __name__ == '__main__':
     print('Complete in ', time.time() - start, ' seconds.')
 
     Viewer.add_items(*assy.parts)
+    Viewer.add_meshes(MeshData.get_active())
     Viewer.show()
-
-    Viewer.add_meshes(*assy.parts)
-    Viewer.show_mesh()

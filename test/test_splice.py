@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-import time
-
 from asap.graphics import Viewer
 from asap.io import ImportVSP
 from asap.structure import CreatePart
@@ -14,7 +12,6 @@ ImportVSP.step_file(fn)
 wing = ImportVSP.get_body('Wing')
 fuselage = ImportVSP.get_body('Fuselage')
 
-start = time.time()
 # Spars
 fspar = CreatePart.spar.by_parameters('fspar', wing, 0.15, 0.05, 0.15, 0.925)
 rspar = CreatePart.spar.by_parameters('rspar', wing, 0.65, 0.05, 0.65, 0.925)

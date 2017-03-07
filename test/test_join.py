@@ -153,5 +153,5 @@ print('Complete in ', time.time() - start, ' seconds.')
 
 faces = ShapeTools.get_faces(shape)
 for f in faces:
-    Viewer.display(f, 'random', 0.5)
+    Viewer.add_entity(f, 'random', 0.5)
 Viewer.show()

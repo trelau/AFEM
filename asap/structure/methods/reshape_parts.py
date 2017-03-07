@@ -13,11 +13,18 @@ def reshape_surface_parts(tool, parts):
         reshape = ShapeBuild_ReShape()
         performed = False
         for f in part.faces:
+            # Check deleted.
+            if tool.IsDeleted(f):
+                # Remove the face.
+                reshape.Remove(f)
+                performed = True
+                continue
+
+            # Check modified.
             mod = tool.Modified(f)
             if mod.IsEmpty():
                 continue
-            # Create a reshape operation to replace the face. Put all modified
-            # shapes into a compound and replace.
+            # Replace the face with modified face(s).
             faces = []
             while not mod.IsEmpty():
                 shape = mod.First()
@@ -28,8 +35,9 @@ def reshape_surface_parts(tool, parts):
             compound = ShapeTools.make_compound(faces)
             reshape.Replace(f, compound)
             performed = True
-        new_shape = reshape.Apply(part)
-        part.set_shape(new_shape)
+        if performed:
+            new_shape = reshape.Apply(part)
+            part.set_shape(new_shape)
         status.append(performed)
 
     return True in status

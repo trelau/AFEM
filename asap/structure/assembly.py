@@ -1,3 +1,6 @@
+from ..topology import ShapeTools
+
+
 class Assembly(object):
     """
     Structural assembly.
@@ -8,6 +11,8 @@ class Assembly(object):
         self._parent = parent
         self._children = set()
         self._parts = set()
+        if isinstance(self._parent, Assembly):
+            self._parent._children.add(self)
 
     @property
     def name(self):
@@ -41,7 +46,7 @@ class Assembly(object):
 
         :return:
         """
-        AssemblyMgr._active = self
+        AssemblyData._active = self
 
     def add_parts(self, *parts):
         """
@@ -65,29 +70,38 @@ class Assembly(object):
                 return part
         return None
 
-    def mesh(self, maxh=1., quad_dominated=True):
+    def get_parts(self, include_subassy=True):
         """
-        Mesh the assembly.
+        Get all the parts from the assembly and its sub-assemblies.
 
-        :param float maxh:
-        :param bool quad_dominated: Option to generate a quad-dominated mesh.
+        :param include_subassy:
 
-        :return: Mesh status dictionary where the part names are the key
-            and the status is the value.
-        :rtype: dict
+        :return:
         """
-        # Mesh parts in assembly.
-        results = {}
-        for part in self.parts:
-            status = part.mesh(maxh, quad_dominated=quad_dominated)
-            results[part.name] = status
+        parts = self.parts
+        if include_subassy:
+            for assy in self._children:
+                parts += assy.get_parts(True)
+        return parts
 
-        return results
+    def prepare_shape_to_mesh(self, include_subassy=True):
+        """
+        Prepare a shape to mesh using the parts in the assembly and its
+        sub-assemblies.
+
+        :param include_subassy:
+
+        :return:
+        """
+        parts = self.get_parts(include_subassy)
+        if not parts:
+            return None
+        return ShapeTools.make_compound(parts)
 
 
-class AssemblyMgr(object):
+class AssemblyData(object):
     """
-    Assembly manager.
+    Assembly data.
     """
     _master = Assembly('Model', None)
     _all = {'Model': _master}
@@ -148,7 +162,10 @@ class AssemblyMgr(object):
         """
         if name in cls._all:
             return None
-        parent = cls.get_assy(parent)
+        if parent is None:
+            parent = cls._master
+        else:
+            parent = cls.get_assy(parent)
         assy = Assembly(name, parent)
         if active:
             cls._active = assy
@@ -173,48 +190,33 @@ class AssemblyMgr(object):
         return True
 
     @classmethod
-    def get_parts(cls, assy=None):
+    def get_parts(cls, assy=None, include_subassy=True):
         """
         Get parts from assembly.
 
         :param assy:
+        :param include_subassy
 
         :return:
         """
         assy = cls.get_assy(assy)
         if not isinstance(assy, Assembly):
             return False
-        return assy.parts
+        return assy.get_parts(include_subassy)
 
     @classmethod
-    def mesh_assy(cls, assy=None, maxh=1., quad_dominated=True):
+    def prepare_shape_to_mesh(cls, assy=None):
         """
-        Mesh the assembly.
-
+        Prepare a shape for meshing.
 
         :param assy:
-        :param float maxh:
-        :param bool quad_dominated: Option to generate a quad-dominated mesh.
 
         :return:
         """
-        assy = cls.get_assy(assy)
-        if not isinstance(assy, Assembly):
-            return {}
-        return assy.mesh(maxh, quad_dominated=quad_dominated)
-
-    @classmethod
-    def get_nodes(cls, assy=None):
-        """
-        Get the asembly nodes.
-
-        :param assy:
-
-        :return: Set of nodes from each part in the assembly.
-        :rtype: set
-        """
-        assy = cls.get_assy(assy)
-        try:
-            return assy.nodes
-        except AttributeError:
-            return set()
+        if assy is None:
+            assy = cls._master
+        else:
+            assy = cls.get_assy(assy)
+        if not assy:
+            return None
+        return assy.prepare_shape_to_mesh()

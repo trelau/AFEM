@@ -2,7 +2,7 @@ from OCC.Display.SimpleGui import init_display
 from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
 from numpy.random import rand
 
-from .methods.display_mesh import display_part_mesh, display_trimesh
+from .methods.display_mesh import display_smesh
 
 
 class ViewableItem(object):
@@ -74,6 +74,8 @@ class Viewer(object):
                               transparency=item.transparency)
         for entity, color, transparency in cls._entities:
             disp.DisplayShape(entity, color=color, transparency=transparency)
+        for mesh in cls._meshes:
+            display_smesh(disp, mesh)
 
         disp.FitAll()
         disp.Repaint()
@@ -96,7 +98,7 @@ class Viewer(object):
                 cls._items.append(item)
 
     @classmethod
-    def display(cls, entity, color=None, transparency=0.):
+    def add_entity(cls, entity, color=None, transparency=0.):
         """
         Add an entity to the viewer.
         """
@@ -120,23 +122,3 @@ class Viewer(object):
         """
         for mesh in meshes:
             cls._meshes.append(mesh)
-
-    @classmethod
-    def show_mesh(cls, clear=True):
-        """
-        Show the mesh viewer.
-        """
-        disp, start_display, _, _ = init_display()
-        for mesh in cls._meshes:
-            if hasattr(mesh, 'faces'):
-                # Assume it's a surface part.
-                display_part_mesh(disp, mesh)
-            else:
-                display_trimesh(disp, mesh)
-
-        disp.FitAll()
-        disp.Repaint()
-        start_display()
-
-        if clear:
-            cls.clear()
