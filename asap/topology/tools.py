@@ -20,7 +20,8 @@ from OCC.GeomAbs import GeomAbs_BSplineSurface, GeomAbs_BezierSurface, \
     GeomAbs_Plane
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge, \
-    ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
+    ShapeAnalysis_FreeBounds_ConnectEdgesToWires, \
+    ShapeAnalysis_ShapeTolerance, ShapeAnalysis_FreeBounds
 from OCC.ShapeFix import ShapeFix_Shape
 from OCC.ShapeUpgrade import ShapeUpgrade_UnifySameDomain,\
     ShapeUpgrade_ShapeDivideContinuity, ShapeUpgrade_ShapeDivideClosed
@@ -1246,3 +1247,27 @@ class ShapeTools(object):
         div = ShapeUpgrade_ShapeDivideContinuity(shape)
         div.Perform()
         return ShapeTools.to_shape(div.Result())
+
+    @staticmethod
+    def get_free_edges(shape, as_compound=False):
+        """
+        Get the free edges of a shape.
+
+        :param shape:
+        :param bool as_compound:
+
+        :return:
+        """
+        faces = ShapeTools.get_faces(shape)
+        if not shape:
+            return []
+
+        compound = ShapeTools.make_compound(faces)
+        tol = ShapeTools.get_tolerance(compound, 1)
+        fb_tool = ShapeAnalysis_FreeBounds(compound, tol)
+        closed_edges = ShapeTools.get_edges(fb_tool.GetClosedWires())
+        open_edges = ShapeTools.get_edges(fb_tool.GetOpenWires())
+        edges = closed_edges + open_edges
+        if as_compound:
+            return ShapeTools.make_compound(edges)
+        return edges
