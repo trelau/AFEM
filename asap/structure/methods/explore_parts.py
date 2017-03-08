@@ -27,8 +27,6 @@ def get_shared_nodes(part1, part2):
     """
     Get the shared nodes of the two parts.
     """
-    shared_edges = get_shared_edges(part1, part2)
-    if not shared_edges:
-        return []
-
-    # TODO Update get_shared_nodes method
+    nodes1 = part1.nodes
+    nodes2 = part2.nodes
+    return list(nodes1 & nodes2)

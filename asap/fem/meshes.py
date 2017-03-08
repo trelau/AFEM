@@ -187,6 +187,23 @@ class SubMesh(object):
     def nb_nodes(self):
         return self._ds.NbNodes()
 
+    @property
+    def nodes(self):
+        return self.get_nodes()
+
+    def get_nodes(self):
+        """
+        Get nodes from the sub-mesh.
+
+        :return:
+        """
+        niter = self._ds.GetNodes()
+        nodes = []
+        while niter.more():
+            n = Node(niter.next())
+            nodes.append(n)
+        return nodes
+
 
 class MeshData(object):
     """
