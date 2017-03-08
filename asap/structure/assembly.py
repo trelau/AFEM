@@ -13,6 +13,7 @@ class Assembly(object):
         self._parts = set()
         if isinstance(self._parent, Assembly):
             self._parent._children.add(self)
+        self._metadata = {}
 
     @property
     def name(self):
@@ -39,6 +40,35 @@ class Assembly(object):
         for part in self.parts:
             node_set.update(part.nodes)
         return node_set
+
+    @property
+    def metadata(self):
+        return self._metadata
+
+    def add_metadata(self, key, value):
+        """
+        Add metadata to the assembly.
+
+        :param key:
+        :param value:
+
+        :return:
+        """
+        self._metadata[key] = value
+        return True
+
+    def get_metadata(self, key):
+        """
+        Get metadata.
+
+        :param key:
+
+        :return:
+        """
+        try:
+            return self._metadata[key]
+        except KeyError:
+            return None
 
     def activate(self):
         """
@@ -220,3 +250,34 @@ class AssemblyData(object):
         if not assy:
             return None
         return assy.prepare_shape_to_mesh()
+
+    @classmethod
+    def add_metadata(cls, key, value, assy=None):
+        """
+        Add metadata to the assembly.
+
+        :param key:
+        :param value:
+        :param assy:
+
+        :return:
+        """
+        assy = cls.get_assy(assy)
+        if not isinstance(assy, Assembly):
+            return False
+        return assy.add_metadata(key, value)
+
+    @classmethod
+    def get_metadata(cls, key, assy=None):
+        """
+        Get metadata.
+
+        :param key:
+        :param assy:
+
+        :return:
+        """
+        assy = cls.get_assy(assy)
+        if not isinstance(assy, Assembly):
+            return None
+        return assy.get_metadata(key)

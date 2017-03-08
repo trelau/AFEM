@@ -38,7 +38,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
     def add_metadata(self, key, value):
         """
-        Add metadata to the body.
+        Add metadata to the part.
 
         :param key:
         :param value:
