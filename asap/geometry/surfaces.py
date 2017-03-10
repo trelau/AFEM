@@ -247,34 +247,6 @@ class NurbsSurface(Geom_BSplineSurface, Geometry):
         else:
             return global_to_local_param(self.v1, self.v2, *args)
 
-    def D0(self, u, v, p):
-        """
-        wrap superclass D0 to accept float-like inputs.
-
-        :param float u: Parameter in u-direction.
-        :param float v: Parameter in v-direction.
-        :param Point p
-
-        :return:
-        :rtype: :class: None
-        """
-        super(NurbsSurface, self).D0(float(u), float(v), p)
-        return None
-
-    def DN(self, u, v, nu, nv):
-        """
-        wrap superclass DN to accept float-like inputs
-
-        :param float u: Parameter in u-direction.
-        :param float v: Parameter in v-direction.
-        :param int nu: derivative order in u-direction
-        :param int nv: derivative order in v-direction
-
-        :return:
-        :rtype: :class: gp_Vec
-        """
-        return super(NurbsSurface, self).DN(float(u), float(v), nu, nv)
-
     def eval(self, u, v):
         """
         Evaluate surface at parameters.
