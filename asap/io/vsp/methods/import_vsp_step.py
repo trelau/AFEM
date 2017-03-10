@@ -18,7 +18,7 @@ from OCC.ShapeUpgrade import ShapeUpgrade_ShapeDivideClosed, \
     ShapeUpgrade_SplitSurface, ShapeUpgrade_UnifySameDomain
 from OCC.StepRepr import StepRepr_RepresentationItem
 from OCC.TColStd import TColStd_HSequenceOfReal
-from OCC.TopAbs import TopAbs_FACE
+from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
 from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
@@ -84,11 +84,15 @@ def import_vsp_step(fname, divide_closed):
 
     # Iterate over master shape to find compounds for geometric sets. These
     # sets contain the metadata and the surfaces that make up the component.
-    # TODO How to handle a single component?
     iterator = TopoDS_Iterator(master_shape, True, True)
-    while iterator.More():
+    more = True
+    while iterator.More() and more:
         # The compound.
         compound = iterator.Value()
+        # Hack to handle single component for now...
+        if compound.ShapeType() != TopAbs_COMPOUND:
+            compound = master_shape
+            more = False
         # Get the metadata.
         entity = transfer_reader.EntityFromShapeResult(compound, 1)
         rep_item = StepRepr_RepresentationItem().GetHandle().DownCast(entity)
