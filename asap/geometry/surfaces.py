@@ -261,8 +261,22 @@ class NurbsSurface(Geom_BSplineSurface, Geometry):
         self.D0(u, v, p)
         return p
 
-    def __call__(self, u, v):
-        return self.eval(u, v)
+    def __call__(self, u, v, nu=0, nv=0):
+        """
+        Evaluate surface or its derivative
+
+        :param float u: Parameter in u-direction.
+        :param float v: Parameter in v-direction.
+        :param int nu: derivative order in u-direction
+        :param int nv: derivative order in v-direction
+
+        :return: Point on surface or derivative
+        :rtype: :class:`.Point` or Vector
+        """
+        if (nu + nv) < 1:
+            return self.eval(u, v)
+        else:
+            return self.deriv(u, v, nu, nv)
 
     def eval_params(self, uprms, vprms):
         """
