@@ -230,7 +230,6 @@ def create_frame_by_sref(name, fuselage, rshape, h):
     builder = BRepBuilderAPI_MakeFace(f)
     builder.Add(w)
     face = builder.Face()
-    # TODO Offset wires are causing issues for STEP export.
 
     # Make the face a shell.
     shell = ShapeTools.to_shell(face)

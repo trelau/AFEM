@@ -1187,7 +1187,8 @@ class ShapeTools(object):
 
         # Adjust step size if necessary.
         if maxd is not None:
-            arc_len = GCPnts_AbscissaPoint.Length(adp_crv, Settings.gtol)
+            arc_len = GCPnts_AbscissaPoint.Length(adp_crv, u1, u2,
+                                                  Settings.gtol)
             nb_pts = int(arc_len / maxd) + 1
         else:
             nb_pts = int(npts)
