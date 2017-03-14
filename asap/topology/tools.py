@@ -1198,6 +1198,9 @@ class ShapeTools(object):
             if nb_pts < npts:
                 nb_pts = int(npts)
 
+        if nb_pts < 1:
+            return []
+
         # OCC uniform abscissa.
         occ_pnts = GCPnts_UniformAbscissa(adp_crv, nb_pts, u1, u2,
                                           Settings.gtol)
