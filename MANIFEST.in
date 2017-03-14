@@ -1,5 +1,4 @@
 recursive-include examples *.py
 graft examples/models
-graft asap/fem/methods/netgen
 include NOTICE.rst
 include .gitignore
