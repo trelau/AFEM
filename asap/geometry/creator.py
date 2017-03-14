@@ -443,7 +443,7 @@ class CreateGeom(object):
 
         :return:
         """
-        return Vector(*vxyz)
+        return Vector(vxyz[0], vxyz[1], vxyz[2])
 
     @staticmethod
     def vector_by_points(p1, p2):

@@ -130,7 +130,7 @@ class CheckGeom(object):
         elif isinstance(geom, (tuple, list, ndarray)):
             return Vector(*geom)
         elif isinstance(geom, Direction):
-            return Vector(Direction)
+            return Vector(geom)
         return None
 
     @staticmethod
@@ -161,7 +161,7 @@ class CheckGeom(object):
         elif isinstance(geom, (tuple, list, ndarray)):
             return Direction(*geom)
         elif isinstance(geom, Vector):
-            return Direction(Vector)
+            return Direction(geom)
         return None
 
     @staticmethod
