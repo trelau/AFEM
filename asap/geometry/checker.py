@@ -20,7 +20,7 @@ class CheckGeom(object):
         """
         Check if the entity is geometry.
 
-        :param geom: Entity.
+        :param geom: An entity.
 
         :return: *True* if entity is geometry, *False* if not.
         :rtype: bool
@@ -30,12 +30,9 @@ class CheckGeom(object):
     @staticmethod
     def is_point_like(geom):
         """
-        Check to see if the entity is point_like, which includes a Point
-        instance, a tuple, list, or NumPy array of shape 1 x 3 that contains
-        pnt coordinates.
+        Check if the entity is point_like.
 
-        :param geom: Entity
-        :type geom: :class:`.Point`  or array_like
+        :param geom: An entity.
 
         :return: *True* if the entity is point_like, *False* if not.
         :rtype: bool
@@ -49,10 +46,10 @@ class CheckGeom(object):
     @staticmethod
     def is_point(geom):
         """
-        Check to see if the entity is a point.
+        Check if the entity is a Point.
 
-        :param geom: Geometric entity.
-        :return: *True* if the entity is a point, *False* if not.
+        :param geom: An entity.
+        :return: *True* if the entity is a Point, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, Point)
@@ -60,9 +57,9 @@ class CheckGeom(object):
     @staticmethod
     def is_point2d(geom):
         """
-        Check to see if the entity is a Point2D.
+        Check if the entity is a Point2D.
 
-        :param geom: Geometric entity.
+        :param geom: An entity.
         :return: *True* if the entity is a Point2D, *False* if not.
         :rtype: bool
         """
@@ -71,19 +68,17 @@ class CheckGeom(object):
     @staticmethod
     def to_point(geom):
         """
-        Check to see if the entity is a :class:`.Point` instance and return
-        the instance if it is. If the entity is point_like, create a new
-        :class:`.Point` instance and return it.
+        Convert entity to a Point if possible.
 
-        :param geom: Geometric entity or possible array.
+        :param geom: An entity.
 
-        :return: The Point instance if already a point, or a new Point in
-            case it is array_like.
-        :rtype: :class:`.Point`
+        :return: The entity if already a Point, or a new Point if it is
+            array_like. Returns *None* otherwise.
+        :rtype: :class:`.Point` or None
         """
         if isinstance(geom, Point):
             return geom
-        elif isinstance(geom, (tuple, list, ndarray)):
+        elif CheckGeom.is_point_like(geom):
             return Point(*geom)
         elif isinstance(geom, gp_Pnt):
             return Point(geom.XYZ())
@@ -92,23 +87,23 @@ class CheckGeom(object):
     @staticmethod
     def to_points(geoms):
         """
-        Check to see if the entities are a :class:`.Point` instance or
-        convert them if they are point_like.
+        Convert entities to Points if possible.
 
         :param list geoms: List of point_like entities.
 
-        :return: List of :class:`.Point` instances.
+        :return: List of Point instances.
         :rtype: list
         """
-        return [CheckGeom.to_point(p) for p in geoms]
+        return [CheckGeom.to_point(p) for p in geoms if
+                CheckGeom.is_point_like(p)]
 
     @staticmethod
     def is_vector(geom):
         """
-        Check to see if the entity is a vector.
+        Check if the entity is a Vector.
 
-        :param geom: Geometric entity.
-        :return: *True* if the entity is a vector, *False* if not.
+        :param geom: An entity.
+        :return: *True* if the entity is a Vector, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, Vector)
@@ -116,14 +111,13 @@ class CheckGeom(object):
     @staticmethod
     def to_vector(geom):
         """
-        Check to see if the entity is a :class:`.Vector` instance and return
-        the instance if it is. If the entity is array_like, create a new
-        :class:`.Vector` instance and return it.
+        Convert entity to a Vector if possible.
 
-        :param geom: Geometric entity or possible array.
+        :param geom: An entity.
 
-        :return: The Vector.
-        :rtype: :class:`.Vector`
+        :return: The entity if already a Vector, or a new Vector if it is
+            array_like. Returns *None* otherwise.
+        :rtype: :class:`.Vector` or None
         """
         if isinstance(geom, Vector):
             return geom
@@ -136,10 +130,10 @@ class CheckGeom(object):
     @staticmethod
     def is_direction(geom):
         """
-        Check to see if the entity is a direction.
+        Check if the entity is a Direction.
 
-        :param geom: Geometric entity.
-        :return: *True* if the entity is a direction, *False* if not.
+        :param geom: An entity.
+        :return: *True* if the entity is a Direction, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, Direction)
@@ -147,14 +141,13 @@ class CheckGeom(object):
     @staticmethod
     def to_direction(geom):
         """
-        Check to see if the entity is a :class:`.Direction` instance and return
-        the instance if it is. If the entity is array_like, create a new
-        :class:`.Direction` instance and return it.
+        Convert entity to a Direction if possible.
 
-        :param geom: Geometric entity or possible array.
+        :param geom: An entity.
 
-        :return: The Direction.
-        :rtype: :class:`.Direction`
+        :return: The entity if already a Direction, or a new Direction if it is
+            array_like. Returns *None* otherwise.
+        :rtype: :class:`.Direction` or None
         """
         if isinstance(geom, Direction):
             return geom
@@ -167,10 +160,10 @@ class CheckGeom(object):
     @staticmethod
     def is_plane(geom):
         """
-        Check to see if the entity is a plane.
+        Check if the entity is a Plane.
 
-        :param geom: Geometric entity.
-        :return: *True* if the entity is a plane, *False* if not.
+        :param geom: An entity.
+        :return: *True* if the entity is a Plane, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, Plane)
@@ -178,10 +171,10 @@ class CheckGeom(object):
     @staticmethod
     def is_line(geom):
         """
-        Check to see if the entity is a line.
+        Check if the entity is a Line.
 
-        :param geom: Geometric entity.
-        :return: *True* if the entity is a line, *False* if not.
+        :param geom: An entity.
+        :return: *True* if the entity is a Line, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, Line)
@@ -189,9 +182,9 @@ class CheckGeom(object):
     @staticmethod
     def is_curve(geom):
         """
-        Check to see if the entity is a curve.
+        Check if the entity is a curve.
 
-        :param geom: Geometric entity.
+        :param geom: An entity.
         :return: *True* if the entity is a curve, *False* if not.
         :rtype: bool
         """
@@ -200,9 +193,9 @@ class CheckGeom(object):
     @staticmethod
     def is_curve_like(geom):
         """
-        Check to see if the entity is a curve or line.
+        Check if the entity is a curve or line.
 
-        :param geom: Geometric entity.
+        :param geom: An entity.
         :return: *True* if the entity is a line or curve, *False* if not.
         :rtype: bool
         """
@@ -211,10 +204,10 @@ class CheckGeom(object):
     @staticmethod
     def is_curve2d(geom):
         """
-        Check to see if the entity is a 2-D curve.
+        Check if the entity is a 2-D curve.
 
-        :param geom: Geometric entity.
-        :return: *True* if the entity is a curve, *False* if not.
+        :param geom: An entity.
+        :return: *True* if the entity is a 2-D curve, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, NurbsCurve2D)
@@ -222,9 +215,9 @@ class CheckGeom(object):
     @staticmethod
     def is_surface(geom):
         """
-        Check to see if the entity is a surface.
+        Check if the entity is a surface.
 
-        :param geom: Geometric entity.
+        :param geom: An entity.
         :return: *True* if the entity is a surface, *False* if not.
         :rtype: bool
         """
@@ -233,9 +226,9 @@ class CheckGeom(object):
     @staticmethod
     def is_surface_like(geom):
         """
-        Check to see if the entity is a surface or a plane.
+        Check if the entity is a surface or a plane.
 
-        :param geom: Geometric entity.
+        :param geom: An entity.
         :return: *True* if the entity is a surface or plane, *False* if not.
         :rtype: bool
         """
@@ -244,11 +237,11 @@ class CheckGeom(object):
     @staticmethod
     def is_axis3(geom):
         """
-        Check to see if the entity is an axis.
+        Check if the entity is an Axis3.
 
-        :param geom:
+        :param geom: An entity.
 
-        :return: *True* if axis, *False* if not.
+        :return: *True* if Axis3, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, Axis3)
