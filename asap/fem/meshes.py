@@ -191,18 +191,35 @@ class SubMesh(object):
     def nodes(self):
         return self.get_nodes()
 
-    def get_nodes(self):
+    def get_nodes(self, include_subshapes=True):
         """
         Get nodes from the sub-mesh.
 
+        :param bool include_subshapes: Option to include sub-shapes when
+            retrieving nodes.
+
         :return:
         """
-        niter = self._ds.GetNodes()
-        nodes = []
-        while niter.more():
-            n = Node(niter.next())
-            nodes.append(n)
-        return nodes
+        # Return nodes on sub-shape only.
+        if not include_subshapes:
+            niter = self._ds.GetNodes()
+            nodes = []
+            while niter.more():
+                n = Node(niter.next())
+                nodes.append(n)
+            return nodes
+        # Can't figure out how to get nodes from sub-shapes, so get the
+        # elements and then the nodes from them.
+        # TODO Figure out how to access sub-nodes.
+        elm_iter = self._ds.GetElements()
+        node_set = set()
+        while elm_iter.more():
+            elm = elm_iter.next()
+            niter = elm.nodeIterator()
+            while niter.more():
+                n = Node(niter.next())
+                node_set.add(n)
+        return list(node_set)
 
 
 class MeshData(object):
