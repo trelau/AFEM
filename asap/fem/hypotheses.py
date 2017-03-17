@@ -1,5 +1,5 @@
-from OCC.NETGENPlugin import NETGENPlugin_NETGEN_2D, \
-    NETGENPlugin_SimpleHypothesis_2D, NETGENPlugin_NETGEN_2D_ONLY
+from OCC.NETGENPlugin import NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D, \
+    NETGENPlugin_NETGEN_2D_ONLY, NETGENPlugin_SimpleHypothesis_2D
 from OCC.SMESH import SMESH_Gen_get
 from OCC.StdMeshers import StdMeshers_Adaptive1D, StdMeshers_Deflection1D, \
     StdMeshers_LocalLength, StdMeshers_MaxLength, \
@@ -112,6 +112,30 @@ class Deflection1D(Hypothesis):
         smesh_hypo = StdMeshers_Deflection1D
         super(Deflection1D, self).__init__(name, smesh_hypo)
         self.smesh_obj.SetDeflection(deflection)
+
+
+class NetgenHypothesis(Hypothesis):
+    """
+    Netgen hypothesis.
+    """
+
+    def __init__(self, name, max_size=1000., min_size=0., allow_quads=False,
+                 second_order=False, optimize=True, fineness=2,
+                 growth_rate=0.3, nseg_per_edge=1, nseg_per_radius=2,
+                 surface_curvature=False, fuse_edges=False):
+        smesh_hypo = NETGENPlugin_Hypothesis
+        super(NetgenHypothesis, self).__init__(name, smesh_hypo)
+        self.smesh_obj.SetMaxSize(max_size)
+        self.smesh_obj.SetMinSize(min_size)
+        self.smesh_obj.SetQuadAllowed(allow_quads)
+        self.smesh_obj.SetSecondOrder(second_order)
+        self.smesh_obj.SetOptimize(optimize)
+        self.smesh_obj.SetFineness(fineness)
+        self.smesh_obj.SetGrowthRate(growth_rate)
+        self.smesh_obj.SetNbSegPerEdge(nseg_per_edge)
+        self.smesh_obj.SetNbSegPerRadius(nseg_per_radius)
+        self.smesh_obj.SetSurfaceCurvature(surface_curvature)
+        self.smesh_obj.SetFuseEdges(fuse_edges)
 
 
 class NetgenSimple2D(Hypothesis):
@@ -234,6 +258,35 @@ class HypothesisData(object):
         :return:
         """
         return Deflection1D(name, deflection)
+
+    @staticmethod
+    def create_netgen_hypothesis(name, max_size=1000., min_size=0.,
+                                 allow_quads=False, second_order=False,
+                                 optimize=True, fineness=2, growth_rate=0.3,
+                                 nseg_per_edge=1, nseg_per_radius=2,
+                                 surface_curvature=False, fuse_edges=False):
+        """
+        Create NetgenHypothesis.
+
+        :param name:
+        :param max_size:
+        :param min_size:
+        :param allow_quads:
+        :param second_order:
+        :param optimize:
+        :param fineness:
+        :param growth_rate:
+        :param nseg_per_edge:
+        :param nseg_per_radius:
+        :param surface_curvature:
+        :param fuse_edges:
+
+        :return:
+        """
+        return NetgenHypothesis(name, max_size, min_size, allow_quads,
+                                second_order, optimize, fineness, growth_rate,
+                                nseg_per_edge, nseg_per_radius,
+                                surface_curvature, fuse_edges)
 
     @staticmethod
     def create_netgen_simple_2d(name, local_length, allow_quads=True):
