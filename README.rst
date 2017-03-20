@@ -13,31 +13,31 @@ ASAP prerequisites using the Anaconda cloud (only for Windows 64-bit).
 
 Prerequisites
 -------------
-ASAP relies on a number of LGPL licensed open-source tools, including:
+ASAP relies on a number of LGPL licensed open-source tools, including
 
     - `OpenCASCADE Community Edition <https://github.com/tpaviot/oce/releases/tag/OCE-0.17.2>`_
 
-    - `pythonocc-core<https://github.com/trelau/pythonocc-core/tree/review/smesh-support>`_
+    - `pythonocc-core <https://github.com/trelau/pythonocc-core/tree/review/smesh-support>`_
 
-    - `Netgen<https://github.com/trelau/netgen/tree/netgen4smesh>`_
+    - `Netgen <https://github.com/trelau/netgen/tree/netgen4smesh>`_
 
-    - `SMESH<https://github.com/trelau/smesh/tree/review/fc-smesh-771>`_
+    - `SMESH <https://github.com/trelau/smesh/tree/review/fc-smesh-771>`_
 
 Pre-built binaries for these tools are available through the Anaconda cloud
 for Python 3.5 Windows 64-bit. It is recommended that a designated environment
 be created and used for ASAP. An example of creating this environment for
-Anaconda Python within an Anaconda command prompt is:
+Anaconda Python within an Anaconda command prompt is
 
     conda create -n asap python=3.5
 
 This will create an environment named "asap" with Python 3.5. Make sure this
 environment is active when using ASAP. For Anaconda Python, activating this
-environment may look like:
+environment may look like
 
     activate asap
 
 within an Anaconda command prompt. At this point the prerequisites can be
-installed using specified channels on the Anaconda cloud:
+installed using specified channels on the Anaconda cloud
 
     conda install -c trelau -c oce -c dlr-sc pythonocc-core=smesh
 
@@ -46,7 +46,7 @@ required packages.
 
 Installing ASAP
 ---------------
-ASAP is a pure Python package and can be installed using the command:
+ASAP is a pure Python package and can be installed using the command
 
     python setup.py develop
 
