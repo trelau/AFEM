@@ -44,6 +44,9 @@ installed using specified channels on the Anaconda cloud
 This should automatically resolve all dependencies and install all the
 required packages.
 
+Other dependencies such as NumPy and SciPy can be installed as needed using
+the conda package manager.
+
 Installing ASAP
 ---------------
 ASAP is a pure Python package and can be installed using the command
@@ -54,6 +57,6 @@ within the ASAP root folder. The "develop" option links to the source code
 at runtime so changes in the source are reflected in any programs using ASAP.
 
 Getting Started
----------------
+===============
 The best way to get started is to examine and run the files in the examples and
 test folders.
