@@ -143,11 +143,16 @@ class NetgenSimple2D(Hypothesis):
     Netgen 2-D simple hypothesis.
     """
 
-    def __init__(self, name, local_length, allow_quads=True):
+    def __init__(self, name, local_length, allow_quads=True,
+                 length_from_edges=False, max_area=0.):
         smesh_hypo = NETGENPlugin_SimpleHypothesis_2D
         super(NetgenSimple2D, self).__init__(name, smesh_hypo)
         self.smesh_obj.SetLocalLength(local_length)
         self.smesh_obj.SetAllowQuadrangles(allow_quads)
+        if length_from_edges:
+            self.smesh_obj.LengthFromEdges()
+        if max_area > 0.:
+            self.smesh_obj.SetMaxElementArea(max_area)
 
 
 class NetgenAlgo2D(Hypothesis):
@@ -289,17 +294,21 @@ class HypothesisData(object):
                                 surface_curvature, fuse_edges)
 
     @staticmethod
-    def create_netgen_simple_2d(name, local_length, allow_quads=True):
+    def create_netgen_simple_2d(name, local_length, allow_quads=True,
+                                length_from_edges=False, max_area=0.):
         """
         Create a NetgenSimple2D hypothesis.
 
         :param name:
         :param local_length:
         :param allow_quads:
+        :param length_from_edges:
+        :param max_area:
 
         :return:
         """
-        return NetgenSimple2D(name, local_length, allow_quads)
+        return NetgenSimple2D(name, local_length, allow_quads,
+                              length_from_edges, max_area)
 
     @staticmethod
     def create_netgen_algo_2d(name):
