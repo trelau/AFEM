@@ -96,7 +96,7 @@ def build_wingbox(wing, params):
         rib = ribs[mid_spar_rib - 1]
         u = rib.local_to_global(0.5)
         p2 = rib.eval(u)
-        mspar = CreatePart.rib.by_points('mid spar', wing, p1, p2)
+        mspar = CreatePart.spar.by_points('mid spar', wing, p1, p2)
 
     # Aux spar.
     aspar = None
@@ -104,7 +104,15 @@ def build_wingbox(wing, params):
         p1 = root.p2
         u = rspar.local_to_global(0.25)
         p2 = rspar.eval(u)
-        aspar = CreatePart.spar.by_points('aux spar', wing, p1, p2)
+        # Find nearest rib point and set equal to aux spar.
+        pnts = [rib.p2 for rib in ribs]
+        p2 = CreateGeom.nearest_point(p2, pnts)
+        indx = pnts.index(p2)
+        rib = ribs[indx]
+        # Use intersection of the rib and rear spar to define plane for aux
+        # spar.
+        sref = ShapeTools.plane_from_section(rspar, rib, p1)
+        aspar = CreatePart.spar.by_points('aux spar', wing, p1, p2, sref)
 
     # Build ribs from root rib to front spar.
     root_ribs = []
@@ -223,8 +231,7 @@ def build_wingbox(wing, params):
     skin.fix()
 
     # Viewing
-    # skin.set_transparency(0.5)
-    # skin.set_color(0.5, 0.5, 0.5)
+    skin.set_transparency(0.5)
 
     # MESH --------------------------------------------------------------------
     # Initialize
@@ -253,7 +260,7 @@ if __name__ == '__main__':
     start = time.time()
 
     # Import model
-    fname = r'.\models\777-200LR_mod_vsp350_split_sref.stp'
+    fname = r'.\models\777-200LR_mod_vsp350_sref.stp'
     ImportVSP.step_file(fname)
     wing_in = ImportVSP.get_body('Wing')
 

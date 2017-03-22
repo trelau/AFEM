@@ -85,6 +85,27 @@ class CreateGeom(object):
         return Point(x, y, z)
 
     @staticmethod
+    def nearest_point(p, pnts):
+        """
+        Find the point nearest to a given point.
+
+        :param p:
+        :param pnts:
+
+        :return:
+        """
+        p = CheckGeom.to_point(p)
+        pnts = [CheckGeom.to_point(pi) for pi in pnts]
+        dmin = p.distance(pnts[0])
+        pmin = pnts[0]
+        for pi in pnts[1:]:
+            di = p.distance(pi)
+            if di < dmin:
+                dmin = di
+                pmin = pi
+        return pmin
+
+    @staticmethod
     def direction_by_xyz(vx=1., vy=0., vz=0.):
         """
         Create a unit vector by components.
