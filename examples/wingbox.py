@@ -253,6 +253,13 @@ def build_wingbox(wing, params):
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
+    # Uncomment this to export STEP file. For now the model will be in
+    # millimeters. Units will be optional in future release.
+    # from asap.io import StepExport
+    # step = StepExport()
+    # step.transfer(shape_to_mesh)
+    # step.write('wingbox.step')
+
     return AssemblyData.get_active()
 
 

@@ -1,4 +1,4 @@
 recursive-include examples *.py
 graft examples/models
-include NOTICE.rst
+include LICENSE.rst
 include .gitignore
