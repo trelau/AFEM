@@ -1,7 +1,6 @@
 import logging
 
 # Initialize logger.
-# Logger
 with open('asap.log', 'w') as log:
     log.write('-----------------------------\n')
     log.write('ASAP LOGGING FILE INITIALIZED\n')
@@ -12,6 +11,22 @@ _fh = logging.FileHandler('asap.log')
 _fmt = logging.Formatter('%(levelname)s: %(message)s')
 _fh.setFormatter(_fmt)
 logger.addHandler(_fh)
+
+# Dictionary for units
+units_dict = {'i': 'IN',
+              'in': 'IN',
+              'inch': 'IN',
+              'inches': 'IN',
+              'f': 'FT',
+              'ft': 'FT',
+              'foot': 'FT',
+              'feet': 'FT',
+              'm': 'M',
+              'meter': 'M',
+              'meters': 'M',
+              'mm': 'MM',
+              'millimeter': 'MM',
+              'millimeters': 'MM'}
 
 
 class Settings(object):
@@ -39,6 +54,7 @@ class Settings(object):
     part_tol = 0.005
     part_angle = 30.0
     warnings = False
+    units = 'IN'
 
     @classmethod
     def set_gtol(cls, gtol=1.0e-7):
@@ -150,3 +166,22 @@ class Settings(object):
             return False
         logger.setLevel(log_dict[level.lower()])
         return True
+
+    @classmethod
+    def set_units(cls, units='inch'):
+        """
+        Set units.
+        
+        :param units:
+         
+        :return: 
+        """
+        if not isinstance(units, str):
+            return False
+
+        units = units.lower()
+        try:
+            cls.units = units_dict[units]
+            return True
+        except KeyError:
+            return False

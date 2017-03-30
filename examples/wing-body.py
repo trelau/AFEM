@@ -2,12 +2,16 @@ from __future__ import print_function
 
 import time
 
+from asap.config import Settings
 from asap.fem import MeshData
 from asap.geometry import CreateGeom
 from asap.graphics import Viewer
 from asap.io import ImportVSP
 from asap.structure import AssemblyData, CreatePart, PartTools
 from asap.topology import ShapeTools
+
+# Set units to inch.
+Settings.set_units('in')
 
 # Import model
 fn = './models/777-200LR_mod_vsp350_sref.stp'

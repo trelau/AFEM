@@ -22,6 +22,7 @@ from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
 from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
+from ....config import Settings
 from ....geometry import CreateGeom
 from ....geometry.methods.create import create_nurbs_surface_from_occ
 from ....oml.body import Body
@@ -50,8 +51,7 @@ def import_vsp_step(fname, divide_closed):
     wing_bodies = {}
     ref_surfs = {}
 
-    # Convert to millimeters.
-    Interface_Static.SetCVal("xstep.cascade.unit", "MM")
+    # Set STEP reader parameters.
     Interface_Static.SetIVal("read.step.ideas", 1)
     Interface_Static.SetIVal("read.step.nonmanifold", 1)
 
@@ -65,8 +65,8 @@ def import_vsp_step(fname, divide_closed):
     if status > 1:
         return bodies
 
-    # Convert to inches.
-    Interface_Static.SetCVal("xstep.cascade.unit", "INCH")
+    # Convert to desired units.
+    Interface_Static.SetCVal("xstep.cascade.unit", Settings.units)
 
     # Check.
     failsonly = False

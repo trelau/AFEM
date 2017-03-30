@@ -15,6 +15,9 @@ def build_wingbox(wing, params):
     """
     Simple 2 spar wing box with mid spar and aux spar.
     """
+    # Set units to inch.
+    Settings.set_units('in')
+
     # SETUP -------------------------------------------------------------------
     _default = {'rib spacing': 30.,
                 'fspar chord': 0.15,
@@ -253,12 +256,11 @@ def build_wingbox(wing, params):
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    # Uncomment this to export STEP file. For now the model will be in
-    # millimeters. Units will be optional in future release.
-    # from asap.io import StepExport
-    # step = StepExport()
-    # step.transfer(shape_to_mesh)
-    # step.write('wingbox.step')
+    # Uncomment this to export STEP file.
+    from asap.io import StepExport
+    step = StepExport()
+    step.transfer(shape_to_mesh)
+    step.write('wingbox.step')
 
     return AssemblyData.get_active()
 
