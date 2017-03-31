@@ -3,4 +3,3 @@
 # Use shapes and BRepAdaptor curves for wing parts. Attach ref geom as needed.
 # Use shape and BRepAdaptor in wing reference surface.
 # Do above two items to improve robustness and retain tolerance.
-# TODO Control units on step import/export and working units.
