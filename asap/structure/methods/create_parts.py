@@ -4,6 +4,7 @@ from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 
 from ..bulkhead import Bulkhead
+from ..curve_part import CurvePart
 from ..floor import Floor
 from ..frame import Frame
 from ..rib import Rib
@@ -19,9 +20,22 @@ from ...utils import pairwise
 _brep_tool = BRep_Tool()
 
 
+def create_curve_part(name, curve_shape):
+    """
+    Create a curve part.
+    """
+    wire = ShapeTools.to_wire(curve_shape)
+    if not wire:
+        return None
+
+    part = CurvePart(name, wire)
+
+    return part
+
+
 def create_surface_part(name, rshape, *bodies):
     """
-    Create a surface frame.
+    Create a surface part.
     """
     rshape = ShapeTools.to_shape(rshape)
     if not rshape:
@@ -404,6 +418,5 @@ def create_wing_parts_along_curve(etype, name, wing, curve, geom1, geom2,
         indx += 1
 
     return parts
-
 
 # TODO Create wing parts between shapes.

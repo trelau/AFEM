@@ -6,7 +6,8 @@ from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
     BRepAlgoAPI_Fuse, BRepAlgoAPI_Section
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge, \
-    BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakeVertex, BRepBuilderAPI_Sewing
+    BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakeVertex, \
+    BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepGProp import brepgprop_SurfaceProperties
@@ -16,15 +17,14 @@ from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GProp import GProp_GProps
 from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
-from OCC.GeomAbs import GeomAbs_BSplineSurface, GeomAbs_BezierSurface, \
-    GeomAbs_Plane
+from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BSplineSurface, \
+    GeomAbs_BezierCurve, GeomAbs_BezierSurface, GeomAbs_Line, GeomAbs_Plane
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
-from OCC.ShapeAnalysis import ShapeAnalysis_Edge, \
-    ShapeAnalysis_FreeBounds_ConnectEdgesToWires, \
-    ShapeAnalysis_ShapeTolerance, ShapeAnalysis_FreeBounds
+from OCC.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds, \
+    ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
 from OCC.ShapeFix import ShapeFix_Shape
-from OCC.ShapeUpgrade import ShapeUpgrade_UnifySameDomain,\
-    ShapeUpgrade_ShapeDivideContinuity, ShapeUpgrade_ShapeDivideClosed
+from OCC.ShapeUpgrade import ShapeUpgrade_ShapeDivideClosed, \
+    ShapeUpgrade_ShapeDivideContinuity, ShapeUpgrade_UnifySameDomain
 from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
     TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, \
     TopAbs_WIRE
@@ -38,7 +38,9 @@ from OCC.TopoDS import TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge, \
 
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
-from ..geometry.methods.create import create_nurbs_surface_from_occ
+from ..geometry.curves import Line
+from ..geometry.methods.create import create_nurbs_curve_from_occ, \
+    create_nurbs_surface_from_occ
 from ..geometry.surfaces import Plane
 
 
@@ -156,6 +158,10 @@ class ShapeTools(object):
         """
         if isinstance(shape, TopoDS_Wire):
             return shape
+
+        if CheckGeom.is_curve_like(shape):
+            edge = BRepBuilderAPI_MakeEdge(shape.GetHandle()).Edge()
+            return BRepBuilderAPI_MakeWire(edge).Wire()
 
         if ShapeTools.is_shape(shape) and shape.ShapeType() == TopAbs_WIRE:
             return topods_Wire(shape)
@@ -474,21 +480,26 @@ class ShapeTools(object):
             builder.Add(compound, shape)
         return compound
 
-    # @staticmethod
-    # def curve_of_edge(edge):
-    #     """
-    #     Get the curve of the edge.
-    #
-    #     :param edge:
-    #
-    #     :return:
-    #     """
-    #     hcrv, u1, u2 = BRep_Tool.Curve(edge)
-    #     try:
-    #         occ_crv = geomconvert.CurveToBSplineCurve(hcrv).GetObject()
-    #         return create_nurbs_curve_from_occ(occ_crv)
-    #     except (RuntimeError, TypeError):
-    #         return hcrv.GetObject()
+    @staticmethod
+    def curve_of_edge(edge):
+        """
+        Get the curve of the edge.
+
+        :param edge:
+
+        :return:
+        """
+        hcrv, u1, u2 = BRep_Tool.Curve(edge)
+        adp_crv = GeomAdaptor_Curve(hcrv)
+        if adp_crv.GetType() == GeomAbs_Line:
+            gp_lin = adp_crv.Line()
+            crv = Line(gp_lin)
+            return crv
+        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
+            crv = adp_crv.BSpline().GetObject()
+            crv = create_nurbs_curve_from_occ(crv)
+            return crv
+        return None
 
     @staticmethod
     def surface_of_face(face):

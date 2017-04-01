@@ -1,4 +1,4 @@
-from .methods.create_parts import create_bulkhead_by_sref, \
+from .methods.create_parts import create_bulkhead_by_sref, create_curve_part, \
     create_floor_by_sref, create_frame_by_sref, create_frames_at_shapes, \
     create_frames_between_planes, create_skin_from_body, create_surface_part, \
     create_wing_part_between_geom, create_wing_part_by_params, \
@@ -370,15 +370,28 @@ class CreatePart(object):
     skin = CreateSkin()
 
     @staticmethod
+    def curve_part(name, curve_shape):
+        """
+        Create a curve part.
+        
+        :param str name: Part name. 
+        :param curve_shape: Curve or shape for part.
+        
+        :return: Curve part of *None* if method fails.
+        :rtype: :class:`.CurvePart`
+        """
+        return create_curve_part(name, curve_shape)
+
+    @staticmethod
     def surface_part(name, rshape, *bodies):
         """
-        Create a surface frame.
+        Create a surface part.
 
         :param str name: Part name.
         :param surface_like rshape: Part reference shape.
         :param bodies:
 
-        :return: Surface frame or *None* if method fails.
+        :return: Surface part or *None* if method fails.
         :return: :class:`.SurfacePart`
         """
         return create_surface_part(name, rshape, *bodies)
