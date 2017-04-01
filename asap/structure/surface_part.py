@@ -53,6 +53,10 @@ class SurfacePart(Part):
         return self._sref
 
     @property
+    def reshapes(self):
+        return self.faces
+
+    @property
     def elements(self):
         smesh_mesh = MeshData.get_mesh().smesh_obj
         if not isinstance(smesh_mesh, SMESH_Mesh):

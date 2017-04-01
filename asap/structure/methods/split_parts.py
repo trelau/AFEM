@@ -1,6 +1,6 @@
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 
-from .reshape_parts import reshape_surface_parts
+from .reshape_parts import reshape_parts
 
 
 def split_part(part, splitter, split_both=True):
@@ -23,5 +23,5 @@ def split_part(part, splitter, split_both=True):
 
     # Replace modified shapes.
     if split_both:
-        return reshape_surface_parts(geom_split, [part, splitter])
-    return reshape_surface_parts(geom_split, [part])
+        return reshape_parts(geom_split, [part, splitter])
+    return reshape_parts(geom_split, [part])

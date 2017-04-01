@@ -1,7 +1,7 @@
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Fuse
 from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_FUSE
 
-from .reshape_parts import reshape_surface_parts
+from .reshape_parts import reshape_parts
 from ...geometry import IntersectGeom
 from ...topology import ShapeTools
 
@@ -24,7 +24,7 @@ def fuse_surface_part(main_part, *other_parts):
         return False
 
     # Replace modified face(s) of result into original shapes.
-    return reshape_surface_parts(bop, [main_part] + other_parts)
+    return reshape_parts(bop, [main_part] + other_parts)
 
 
 def fuse_surface_parts(parts):
@@ -41,7 +41,7 @@ def fuse_surface_parts(parts):
         return False
 
     # Replace modified face(s) of result into original shapes.
-    return reshape_surface_parts(bop, parts)
+    return reshape_parts(bop, parts)
 
 
 def fuse_wing_parts(parts, tol=None):

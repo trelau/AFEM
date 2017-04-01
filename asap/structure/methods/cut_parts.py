@@ -8,7 +8,7 @@ from OCC.Extrema import Extrema_ExtFlag_MIN
 from OCC.GC import GC_MakeCircle
 from OCC.gp import gp_Dir, gp_Pnt, gp_Vec
 
-from .reshape_parts import reshape_surface_parts
+from .reshape_parts import reshape_parts
 from ...geometry import CreateGeom
 from ...topology import ShapeTools
 
@@ -61,7 +61,7 @@ def cut_wing_part_with_circle(part, dx, r):
         return False
 
     # Replace modified face(s) of result into original shapes.
-    status = reshape_surface_parts(bop, [part])
+    status = reshape_parts(bop, [part])
 
     return status
 
@@ -78,7 +78,7 @@ def cut_surface_part(part, cutter):
         return False
 
     # Replace modified face(s) of result into original shapes.
-    return reshape_surface_parts(bop, [part])
+    return reshape_parts(bop, [part])
 
 
 def cut_surface_parts(parts, cutter):
@@ -98,4 +98,4 @@ def cut_surface_parts(parts, cutter):
         return False
 
     # Replace modified face(s) of result into original shapes.
-    return reshape_surface_parts(bop, parts)
+    return reshape_parts(bop, parts)
