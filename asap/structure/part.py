@@ -6,6 +6,7 @@ from OCC.ShapeFix import ShapeFix_Shape
 from OCC.TopoDS import TopoDS_Shape
 
 from .assembly import AssemblyData
+from .methods.split_parts import split_part
 from ..graphics.viewer import ViewableItem
 
 
@@ -96,3 +97,14 @@ class Part(TopoDS_Shape, ViewableItem):
         shape = fix.Shape()
         self.set_shape(shape)
         return self.check()
+
+    def split(self, splitter, split_both=True):
+        """
+        Split the part with another part or shape.
+        
+        :param splitter: 
+        :param split_both:
+         
+        :return: 
+        """
+        return split_part(self, splitter, split_both)
