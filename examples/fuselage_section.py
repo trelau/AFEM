@@ -49,8 +49,10 @@ frames = CreatePart.frame.between_planes('frame', fuselage, [pln1, pln2],
 # Floor beams and posts
 rev_cylinder = cylinder.Reversed()
 above_floor = ShapeTools.make_prism(main_floor, [0, 2 * diameter, 0])
-pln = CreateGeom.plane_by_axes([-.667 * radius, 0, 0], 'yz')
-face = ShapeTools.face_from_plane(pln, -diameter, diameter, 0, length)
+pln1 = CreateGeom.plane_by_axes([-.667 * radius, 0, 0], 'yz')
+face1 = ShapeTools.face_from_plane(pln1, -diameter, diameter, 0, length)
+pln2 = CreateGeom.plane_by_axes([.667 * radius, 0, 0], 'yz')
+face2 = ShapeTools.face_from_plane(pln2, -diameter, diameter, 0, length)
 i = 1
 for frame in frames:
     # Beam
@@ -61,15 +63,25 @@ for frame in frames:
     beam.set_shape(shape)
     beam.cut(rev_cylinder)
     # Post
-    shape = ShapeTools.bsection(face, frame.sref)
+    shape = ShapeTools.bsection(face1, frame.sref)
     shape = ShapeTools.bcut(shape, above_floor)
     shape = ShapeTools.bcut(shape, rev_cylinder)
-    name = ' '.join(['floor post', str(i)])
+    name = ' '.join(['left floor post', str(i)])
     edge = ShapeTools.get_edges(shape)[0]
-    post = CreatePart.curve_part(name, edge)
-    i += 1
+    CreatePart.curve_part(name, edge)
+    shape = ShapeTools.bsection(face2, frame.sref)
+    shape = ShapeTools.bcut(shape, above_floor)
+    shape = ShapeTools.bcut(shape, rev_cylinder)
+    name = ' '.join(['right floor post', str(i)])
+    edge = ShapeTools.get_edges(shape)[0]
+    CreatePart.curve_part(name, edge)
     # Cut cargo floor with frame
     cargo_floor.cut(frame.sref)
+    i += 1
+
+# Cut the main floor with post planes.
+main_floor.cut(pln1)
+main_floor.cut(pln2)
 
 # Fuse all parts together.
 PartTools.split_parts(AssemblyData.get_parts())
