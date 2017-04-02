@@ -1,8 +1,9 @@
 from .methods.create_parts import create_bulkhead_by_sref, create_curve_part, \
     create_floor_by_sref, create_frame_by_sref, create_frames_at_shapes, \
-    create_frames_between_planes, create_skin_from_body, create_surface_part, \
-    create_wing_part_between_geom, create_wing_part_by_params, \
-    create_wing_part_by_points, create_wing_part_by_sref, \
+    create_frames_between_planes, create_skin_from_body, \
+    create_skin_from_solid, create_surface_part,\
+    create_wing_part_between_geom, create_wing_part_by_params,\
+    create_wing_part_by_points, create_wing_part_by_sref,\
     create_wing_parts_along_curve, create_wing_parts_between_planes
 
 
@@ -344,6 +345,18 @@ class CreateSkin(object):
     """
     Skin creation.
     """
+
+    @staticmethod
+    def from_solid(name, solid):
+        """
+        Create skin from the outer shell of a solid.
+        
+        :param name: 
+        :param solid:
+         
+        :return: 
+        """
+        return create_skin_from_solid(name, solid)
 
     @staticmethod
     def from_body(name, body):

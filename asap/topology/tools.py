@@ -61,6 +61,22 @@ class ShapeTools(object):
         return isinstance(shape, TopoDS_Shape)
 
     @staticmethod
+    def is_solid(shape):
+        """
+        Check if the shape is a solid.
+
+        :param shape:
+
+        :return: 
+        """
+        if isinstance(shape, TopoDS_Solid):
+            return True
+        if isinstance(shape, TopoDS_Shape) and shape.ShapeType() == \
+                TopAbs_SOLID:
+            return True
+        return False
+
+    @staticmethod
     def to_shape(entity):
         """
         Convert the entity (shape or geometry) to a shape.
@@ -165,6 +181,9 @@ class ShapeTools(object):
 
         if ShapeTools.is_shape(shape) and shape.ShapeType() == TopAbs_WIRE:
             return topods_Wire(shape)
+
+        if ShapeTools.is_shape(shape) and shape.ShapeType() == TopAbs_EDGE:
+            return BRepBuilderAPI_MakeWire(shape).Wire()
 
         return None
 
@@ -533,7 +552,7 @@ class ShapeTools(object):
         :return:
         """
         if tol is None:
-            tol = Settings.gtol
+            tol = max([ShapeTools.get_tolerance(f) for f in faces])
 
         shell = TopoDS_Shell()
         builder = BRep_Builder()
@@ -1286,3 +1305,23 @@ class ShapeTools(object):
         if as_compound:
             return ShapeTools.make_compound(edges)
         return edges
+
+    @staticmethod
+    def face_from_plane(pln, umin, umax, vmin, vmax):
+        """
+        Create a finite face from a plane.
+        
+        :param pln: 
+        :param umin: 
+        :param umax: 
+        :param vmin: 
+        :param vmax: 
+        
+        :return: 
+        """
+        if not CheckGeom.is_plane(pln):
+            return None
+        builder = BRepBuilderAPI_MakeFace(pln.Pln(), umin, umax, vmin, vmax)
+        if not builder.IsDone():
+            return None
+        return builder.Face()

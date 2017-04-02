@@ -2,6 +2,7 @@ from .checker import CheckPart
 from .methods.cut_parts import cut_surface_part
 from .methods.fuse_parts import fuse_surface_parts, fuse_wing_parts
 from .methods.sew_parts import sew_surface_parts
+from .methods.split_parts import split_parts
 
 
 class PartTools(object):
@@ -77,3 +78,15 @@ class PartTools(object):
         for part in _parts:
             part.discard(shape, tol)
         return True
+
+    @staticmethod
+    def split_parts(parts, tools=None):
+        """
+        Split parts.
+        
+        :param parts: 
+        :param tools: 
+        
+        :return: 
+        """
+        return split_parts(parts, tools)

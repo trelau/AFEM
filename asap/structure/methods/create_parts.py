@@ -230,8 +230,9 @@ def create_frame_by_sref(name, fuselage, rshape, h):
     if not faces:
         return None
 
-    f = faces[0]
-    offset = BRepOffsetAPI_MakeOffset(f)
+    outer_face = faces[0]
+    offset = BRepOffsetAPI_MakeOffset(outer_face)
+    # Negative offset so it trims inner part of face.
     offset.Perform(-h)
     if not offset.IsDone():
         return None
@@ -241,12 +242,20 @@ def create_frame_by_sref(name, fuselage, rshape, h):
     # Force concatenation of wire to avoid small edges.
     e = ShapeTools.concatenate_wire(w)
     w = BRepBuilderAPI_MakeWire(e).Wire()
-    builder = BRepBuilderAPI_MakeFace(f)
-    builder.Add(w)
-    face = builder.Face()
+    # Create an inner face to cut from outer face.
+    builder = BRepBuilderAPI_MakeFace(w, True)
+    if not builder.IsDone():
+        return None
+    inner_face = builder.Face()
+
+    faces = ShapeTools.bcut(outer_face, inner_face, 'face')
+    if not faces:
+        return None
 
     # Make the face a shell.
-    shell = ShapeTools.to_shell(face)
+    shell = ShapeTools.sew_faces(faces)
+    if not shell:
+        return None
 
     # Create the frame.
     frame = Frame(name, fuselage, rshape)
@@ -310,6 +319,21 @@ def create_skin_from_body(name, body):
         return None
 
     outer_shell = body.shell
+    skin = Skin(name, outer_shell)
+    skin.set_shape(outer_shell)
+
+    return skin
+
+
+def create_skin_from_solid(name, solid):
+    """
+    Create skin from outer shell of solid. 
+    """
+    solid = ShapeTools.to_solid(solid)
+    if not solid:
+        return None
+
+    outer_shell = ShapeTools.outer_shell(solid)
     skin = Skin(name, outer_shell)
     skin.set_shape(outer_shell)
 
