@@ -3,10 +3,10 @@ from OCC.TopAbs import TopAbs_COMPSOLID, TopAbs_SOLID
 from OCC.TopoDS import TopoDS_Shape
 
 from .methods.build_parts import build_surface_part
-from .methods.cut_parts import cut_part
 from .methods.explore_parts import get_shared_edges, get_shared_nodes
 from .methods.form_parts import form_with_solid
 from .methods.fuse_parts import fuse_surface_part
+from .methods.merge_parts import merge_surface_part
 from .methods.modify_parts import discard_faces_by_distance, \
     discard_faces_by_solid
 from .methods.sew_parts import sew_surface_parts
@@ -163,6 +163,16 @@ class SurfacePart(Part):
         if not _other_parts:
             return False
         return sew_surface_parts([self] + _other_parts)
+
+    def merge(self, other):
+        """
+        Merge other part or shape with this one.
+        
+        :param other:
+         
+        :return: 
+        """
+        return merge_surface_part(self, other)
 
     def discard(self, shape, tol=None):
         """

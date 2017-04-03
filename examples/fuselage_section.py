@@ -49,6 +49,7 @@ frames = CreatePart.frame.between_planes('frame', fuselage, [pln1, pln2],
 # Floor beams and posts
 rev_cylinder = cylinder.Reversed()
 above_floor = ShapeTools.make_prism(main_floor, [0, 2 * diameter, 0])
+below_cargo_floor = ShapeTools.make_prism(cargo_floor, [0, -60, 0])
 pln1 = CreateGeom.plane_by_axes([-.667 * radius, 0, 0], 'yz')
 face1 = ShapeTools.face_from_plane(pln1, -diameter, diameter, 0, length)
 pln2 = CreateGeom.plane_by_axes([.667 * radius, 0, 0], 'yz')
@@ -71,16 +72,22 @@ for frame in frames:
     post = CreatePart.curve_part(name, shape1=face2, shape2=frame.sref)
     post.cut(above_floor)
     post.cut(rev_cylinder)
-    # Cut cargo floor with frame
-    cargo_floor.cut(frame.sref)
+    # Create segment beneath cargo floor and merge with frame.
+    shape = ShapeTools.bcommon(below_cargo_floor, frame.sref)
+    shape = ShapeTools.bcut(shape, rev_cylinder)
+    frame.merge(shape)
+    shape = ShapeTools.unify_shape(frame)
+    frame.set_shape(shape)
     i += 1
+
+cargo_floor.set_transparency(0.5)
 
 # Cut the main floor with post planes.
 main_floor.cut(pln1)
 main_floor.cut(pln2)
 
 # Fuse all parts together.
-PartTools.split_parts(AssemblyData.get_parts(), order=False)
+PartTools.split_parts(AssemblyData.get_parts())
 
 Viewer.add_items(*AssemblyData.get_parts())
 Viewer.show(False)
@@ -93,7 +100,7 @@ MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
 MeshData.add_hypothesis('netgen')
 MeshData.add_hypothesis('netgen algo')
 # edges = ShapeTools.get_edges(the_shape, True)
-# MeshData.hypotheses.create_local_length_1d('local length', 4.)
+# MeshData.hypotheses.create_local_length_1d('local length', 4)
 # MeshData.hypotheses.create_regular_1d('algo 1d')
 # MeshData.add_hypothesis('local length', edges)
 # MeshData.add_hypothesis('algo 1d', edges)
