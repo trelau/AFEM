@@ -16,18 +16,29 @@ class Part(TopoDS_Shape, ViewableItem):
     """
     Base class for all parts.
     """
+    _indx = 1
+    _all = {}
 
     def __init__(self, name):
         super(Part, self).__init__()
         ViewableItem.__init__(self)
         self._name = name
         self._metadata = {}
+        # Store in active assembly.
         AssemblyData.add_parts(None, self)
+        # Store by index.
+        self._id = Part._indx
+        Part._all[self._id] = self
+        Part._indx += 1
         print('Creating part: ', name)
 
     @property
     def name(self):
         return self._name
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def tol(self):
