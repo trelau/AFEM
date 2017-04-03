@@ -65,13 +65,13 @@ for frame in frames:
     # Post
     shape = ShapeTools.bsection(face1, frame.sref)
     shape = ShapeTools.bcut(shape, above_floor)
-    shape = ShapeTools.bcut(shape, rev_cylinder)
+    shape = ShapeTools.bcommon(shape, fuselage)
     name = ' '.join(['left floor post', str(i)])
     edge = ShapeTools.get_edges(shape)[0]
     CreatePart.curve_part(name, edge)
     shape = ShapeTools.bsection(face2, frame.sref)
     shape = ShapeTools.bcut(shape, above_floor)
-    shape = ShapeTools.bcut(shape, rev_cylinder)
+    shape = ShapeTools.bcommon(shape, fuselage)
     name = ' '.join(['right floor post', str(i)])
     edge = ShapeTools.get_edges(shape)[0]
     CreatePart.curve_part(name, edge)
