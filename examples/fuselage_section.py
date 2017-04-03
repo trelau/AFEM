@@ -75,11 +75,10 @@ for frame in frames:
     # Create segment beneath cargo floor and merge with frame.
     shape = ShapeTools.bcommon(below_cargo_floor, frame.sref)
     shape = ShapeTools.bcut(shape, rev_cylinder)
-    frame.merge(shape)
-    shape = ShapeTools.unify_shape(frame)
-    frame.set_shape(shape)
+    frame.merge(shape, True)
     i += 1
 
+main_floor.set_transparency(0.5)
 cargo_floor.set_transparency(0.5)
 
 # Cut the main floor with post planes.

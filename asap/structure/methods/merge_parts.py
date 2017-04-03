@@ -1,7 +1,7 @@
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Fuse
 
 
-def merge_surface_part(part, other):
+def merge_surface_part(part, other, unify=False):
     """
     Merge surface part with other part or shape.
     """
@@ -16,4 +16,6 @@ def merge_surface_part(part, other):
 
     # The resulting shape will be the original part now.
     part.set_shape(bop.Shape())
-    return True
+    if not unify:
+        return True
+    return part.unify()

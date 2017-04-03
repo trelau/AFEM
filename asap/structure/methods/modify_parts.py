@@ -5,6 +5,7 @@ from OCC.Extrema import Extrema_ExtFlag_MIN
 from OCC.GProp import GProp_GProps
 from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.TopAbs import TopAbs_IN
+from OCC.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
 
 from ...config import Settings
 from ...geometry import CreateGeom
@@ -108,3 +109,13 @@ def discard_wing_part_faces(part):
     status2 = discard_faces_by_solid(part, hs2)
 
     return status1 or status2
+
+
+def unify_surface_part(part, edges=True, faces=True, concat_bsplines=False):
+    """
+    Unify domain of surface part.
+    """
+    unify = ShapeUpgrade_UnifySameDomain(part, edges, faces, concat_bsplines)
+    unify.Build()
+    part.set_shape(unify.Shape())
+    return True

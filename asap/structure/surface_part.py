@@ -8,7 +8,7 @@ from .methods.form_parts import form_with_solid
 from .methods.fuse_parts import fuse_surface_part
 from .methods.merge_parts import merge_surface_part
 from .methods.modify_parts import discard_faces_by_distance, \
-    discard_faces_by_solid
+    discard_faces_by_solid, unify_surface_part
 from .methods.sew_parts import sew_surface_parts
 from .part import Part
 from ..fem import MeshData
@@ -164,15 +164,28 @@ class SurfacePart(Part):
             return False
         return sew_surface_parts([self] + _other_parts)
 
-    def merge(self, other):
+    def merge(self, other, unify=False):
         """
         Merge other part or shape with this one.
         
         :param other:
+        :param bool unify:
          
         :return: 
         """
-        return merge_surface_part(self, other)
+        return merge_surface_part(self, other, unify)
+
+    def unify(self, edges=True, faces=True, concat_bsplines=False):
+        """
+        Attempt to unify the same domains of the part shape.
+        
+        :param edges: 
+        :param faces: 
+        :param concat_bsplines:
+         
+        :return: 
+        """
+        return unify_surface_part(self, edges, faces, concat_bsplines)
 
     def discard(self, shape, tol=None):
         """
