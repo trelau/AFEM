@@ -63,18 +63,14 @@ for frame in frames:
     beam.set_shape(shape)
     beam.cut(rev_cylinder)
     # Post
-    shape = ShapeTools.bsection(face1, frame.sref)
-    shape = ShapeTools.bcut(shape, above_floor)
-    shape = ShapeTools.bcommon(shape, fuselage)
     name = ' '.join(['left floor post', str(i)])
-    edge = ShapeTools.get_edges(shape)[0]
-    CreatePart.curve_part(name, edge)
-    shape = ShapeTools.bsection(face2, frame.sref)
-    shape = ShapeTools.bcut(shape, above_floor)
-    shape = ShapeTools.bcommon(shape, fuselage)
+    post = CreatePart.curve_part(name, shape1=face1, shape2=frame.sref)
+    post.cut(above_floor)
+    post.cut(rev_cylinder)
     name = ' '.join(['right floor post', str(i)])
-    edge = ShapeTools.get_edges(shape)[0]
-    CreatePart.curve_part(name, edge)
+    post = CreatePart.curve_part(name, shape1=face2, shape2=frame.sref)
+    post.cut(above_floor)
+    post.cut(rev_cylinder)
     # Cut cargo floor and beams with frame
     cargo_floor.cut(frame.sref)
     beam.cut(frame)
