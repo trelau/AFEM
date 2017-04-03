@@ -6,8 +6,10 @@ from OCC.ShapeFix import ShapeFix_Shape
 from OCC.TopoDS import TopoDS_Shape
 
 from .assembly import AssemblyData
+from .methods.cut_parts import cut_part
 from .methods.split_parts import split_part
 from ..graphics.viewer import ViewableItem
+from ..topology import ShapeTools
 
 
 class Part(TopoDS_Shape, ViewableItem):
@@ -97,6 +99,19 @@ class Part(TopoDS_Shape, ViewableItem):
         shape = fix.Shape()
         self.set_shape(shape)
         return self.check()
+
+    def cut(self, cutter):
+        """
+        Cut the part with a shape.
+
+        :param cutter:
+
+        :return:
+        """
+        cutter = ShapeTools.to_shape(cutter)
+        if not cutter:
+            return False
+        return cut_part(self, cutter)
 
     def split(self, splitter, split_both=True):
         """

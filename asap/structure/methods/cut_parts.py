@@ -66,9 +66,9 @@ def cut_wing_part_with_circle(part, dx, r):
     return status
 
 
-def cut_surface_part(part, cutter):
+def cut_part(part, cutter):
     """
-    Cut a surface part.
+    Cut a part.
     """
     if part.IsNull() or cutter.IsNull():
         return False
@@ -77,7 +77,7 @@ def cut_surface_part(part, cutter):
     if bop.ErrorStatus() != 0:
         return False
 
-    # Replace modified face(s) of result into original shapes.
+    # Replace modified shape(s).
     return reshape_parts(bop, [part])
 
 

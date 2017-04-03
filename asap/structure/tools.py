@@ -1,5 +1,5 @@
 from .checker import CheckPart
-from .methods.cut_parts import cut_surface_part
+from .methods.cut_parts import cut_part
 from .methods.fuse_parts import fuse_surface_parts, fuse_wing_parts
 from .methods.sew_parts import sew_surface_parts
 from .methods.split_parts import split_parts
@@ -48,7 +48,7 @@ class PartTools(object):
 
         :return:
         """
-        return True in [cut_surface_part(part, cutter) for part in parts if
+        return True in [cut_part(part, cutter) for part in parts if
                         CheckPart.is_surface_part(part)]
 
     @staticmethod
