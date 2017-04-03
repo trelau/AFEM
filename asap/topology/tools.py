@@ -1042,7 +1042,7 @@ class ShapeTools(object):
         return bop.Shape()
 
     @staticmethod
-    def connect_edges(edges, tol=1.0e-6, shared=False):
+    def connect_edges(edges, tol=None, shared=False):
         """
         Build wires from a list of unsorted edges.
 
@@ -1055,6 +1055,9 @@ class ShapeTools(object):
         hedges = TopTools_HSequenceOfShape()
         for e in edges:
             hedges.Append(e)
+
+        if tol is None:
+            tol = max([ShapeTools.get_tolerance(e) for e in edges])
 
         # noinspection PyArgumentList
         hwires = Handle_TopTools_HSequenceOfShape()
@@ -1325,3 +1328,18 @@ class ShapeTools(object):
         if not builder.IsDone():
             return None
         return builder.Face()
+
+    @staticmethod
+    def wires_from_shape(shape):
+        """
+        Use edges from the shape to create connected wires.
+        
+        :param shape:
+         
+        :return: 
+        """
+        edges = ShapeTools.get_edges(shape)
+        if not edges:
+            return []
+
+        return ShapeTools.connect_edges(edges)

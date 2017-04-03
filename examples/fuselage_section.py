@@ -9,7 +9,7 @@ from asap.fem import MeshData
 
 # Inputs
 diameter = 244
-length = 720
+length = 360
 main_floor_yloc = -12
 cargo_floor_yloc = -108
 frame_height = 3.5
@@ -75,8 +75,9 @@ for frame in frames:
     name = ' '.join(['right floor post', str(i)])
     edge = ShapeTools.get_edges(shape)[0]
     CreatePart.curve_part(name, edge)
-    # Cut cargo floor with frame
+    # Cut cargo floor and beams with frame
     cargo_floor.cut(frame.sref)
+    beam.cut(frame)
     i += 1
 
 # Cut the main floor with post planes.
@@ -96,11 +97,11 @@ MeshData.hypotheses.create_netgen_simple_2d('netgen', 4.)
 MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
 MeshData.add_hypothesis('netgen')
 MeshData.add_hypothesis('netgen algo')
-edges = ShapeTools.get_edges(the_shape, True)
-MeshData.hypotheses.create_local_length_1d('local length', 4.)
-MeshData.hypotheses.create_regular_1d('algo 1d')
-MeshData.add_hypothesis('local length', edges)
-MeshData.add_hypothesis('algo 1d', edges)
+# edges = ShapeTools.get_edges(the_shape, True)
+# MeshData.hypotheses.create_local_length_1d('local length', 4.)
+# MeshData.hypotheses.create_regular_1d('algo 1d')
+# MeshData.add_hypothesis('local length', edges)
+# MeshData.add_hypothesis('algo 1d', edges)
 MeshData.compute_mesh()
 
 Viewer.add_meshes(MeshData.get_active())

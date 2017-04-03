@@ -1,9 +1,9 @@
 from .methods.create_parts import create_bulkhead_by_sref, create_curve_part, \
-    create_floor_by_sref, create_frame_by_sref, create_frames_at_shapes, \
-    create_frames_between_planes, create_skin_from_body, \
-    create_skin_from_solid, create_surface_part,\
-    create_wing_part_between_geom, create_wing_part_by_params,\
-    create_wing_part_by_points, create_wing_part_by_sref,\
+    create_curve_part_by_section, create_floor_by_sref, create_frame_by_sref, \
+    create_frames_at_shapes, create_frames_between_planes, \
+    create_skin_from_body, create_skin_from_solid, create_surface_part, \
+    create_wing_part_between_geom, create_wing_part_by_params, \
+    create_wing_part_by_points, create_wing_part_by_sref, \
     create_wing_parts_along_curve, create_wing_parts_between_planes
 
 
@@ -383,17 +383,23 @@ class CreatePart(object):
     skin = CreateSkin()
 
     @staticmethod
-    def curve_part(name, curve_shape):
+    def curve_part(name, curve_shape=None, shape1=None, shape2=None):
         """
         Create a curve part.
         
         :param str name: Part name. 
         :param curve_shape: Curve or shape for part.
+        :param shape1:
+        :param shape2:
         
         :return: Curve part of *None* if method fails.
         :rtype: :class:`.CurvePart`
         """
-        return create_curve_part(name, curve_shape)
+        if curve_shape:
+            return create_curve_part(name, curve_shape)
+        if shape1 and shape2:
+            return create_curve_part_by_section(name, shape1, shape2)
+        return None
 
     @staticmethod
     def surface_part(name, rshape, *bodies):

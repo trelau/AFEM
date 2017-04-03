@@ -28,9 +28,30 @@ def create_curve_part(name, curve_shape):
     if not wire:
         return None
 
-    part = CurvePart(name, wire)
+    return CurvePart(name, wire)
 
-    return part
+
+def create_curve_part_by_section(name, shape1, shape2):
+    """
+    Create a curve part from the section between two shapes. 
+    """
+    shape1, shape2 = ShapeTools.to_shape(shape1), ShapeTools.to_shape(shape2)
+    if not shape1 or not shape2:
+        return None
+
+    # Find intersection between two shapes.
+    section = ShapeTools.bsection(shape1, shape2)
+    if not section:
+        return None
+
+    # Create wires from section.
+    wires = ShapeTools.wires_from_shape(section)
+    if not wires:
+        return None
+
+    # TODO Decide on method to select wire if more than one.
+    wire = wires[0]
+    return CurvePart(name, wire)
 
 
 def create_surface_part(name, rshape, *bodies):
