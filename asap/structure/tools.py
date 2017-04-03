@@ -80,13 +80,32 @@ class PartTools(object):
         return True
 
     @staticmethod
-    def split_parts(parts, tools=None):
+    def split_parts(parts, tools=None, order=False):
         """
         Split parts.
         
         :param parts: 
-        :param tools: 
+        :param tools:
+        :param bool order:
         
         :return: 
         """
+        if order:
+            parts = PartTools.order_parts(parts)
         return split_parts(parts, tools)
+
+    @staticmethod
+    def order_parts(parts):
+        """
+        Order the list of parts by id.
+        
+        :param parts:
+         
+        :return: 
+        """
+        if not parts:
+            return []
+
+        part_order = [(part.id, part) for part in parts]
+        part_order.sort(key=lambda tup: tup[0])
+        return [row[1] for row in part_order]

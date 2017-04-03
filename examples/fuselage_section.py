@@ -71,9 +71,8 @@ for frame in frames:
     post = CreatePart.curve_part(name, shape1=face2, shape2=frame.sref)
     post.cut(above_floor)
     post.cut(rev_cylinder)
-    # Cut cargo floor and beams with frame
+    # Cut cargo floor with frame
     cargo_floor.cut(frame.sref)
-    beam.cut(frame)
     i += 1
 
 # Cut the main floor with post planes.
@@ -81,7 +80,7 @@ main_floor.cut(pln1)
 main_floor.cut(pln2)
 
 # Fuse all parts together.
-PartTools.split_parts(AssemblyData.get_parts())
+PartTools.split_parts(AssemblyData.get_parts(), order=False)
 
 Viewer.add_items(*AssemblyData.get_parts())
 Viewer.show(False)
