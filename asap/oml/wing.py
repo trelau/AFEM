@@ -84,17 +84,17 @@ class Wing(Body):
         """
         return self.sref.norm(u, v)
 
-    def extract_curve(self, uv1, uv2, rshape=None):
+    def extract_curve(self, uv1, uv2, surface_shape=None):
         """
         Extract curve along wing reference surface.
 
         :param uv1:
         :param uv2:
-        :param rshape:
+        :param surface_shape:
 
         :return:
         """
-        return extract_wing_ref_curve(self, uv1, uv2, rshape)
+        return extract_wing_ref_curve(self, uv1, uv2, surface_shape)
 
     def extract_plane(self, uv1, uv2):
         """

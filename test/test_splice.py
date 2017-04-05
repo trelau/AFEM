@@ -20,8 +20,8 @@ fspar.cut_hole(12. * 20, 10.)
 fspar.cut_hole(12. * 15, 15.)
 
 # Bulkheads
-bh1 = CreatePart.bulkhead.by_sref('bh1', fuselage, fspar.rshape)
-bh2 = CreatePart.bulkhead.by_sref('bh2', fuselage, rspar.rshape)
+bh1 = CreatePart.bulkhead.by_sref('bh1', fuselage, fspar.surface_shape)
+bh2 = CreatePart.bulkhead.by_sref('bh2', fuselage, rspar.surface_shape)
 
 # Join
 fspar.fuse(bh1)
@@ -39,8 +39,8 @@ Viewer.show()
 fspar = CreatePart.spar.by_parameters('fspar', wing, 0.15, 0.05, 0.15, 0.925)
 rspar = CreatePart.spar.by_parameters('rspar', wing, 0.65, 0.05, 0.65, 0.925)
 
-bh1 = CreatePart.bulkhead.by_sref('bh1', fuselage, fspar.rshape)
-bh2 = CreatePart.bulkhead.by_sref('bh2', fuselage, rspar.rshape)
+bh1 = CreatePart.bulkhead.by_sref('bh1', fuselage, fspar.surface_shape)
+bh2 = CreatePart.bulkhead.by_sref('bh2', fuselage, rspar.surface_shape)
 
 # Cut bulkheads with spars
 bh1.cut(fspar)

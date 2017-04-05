@@ -6,5 +6,5 @@ class Spar(WingPart):
     Wing spar.
     """
 
-    def __init__(self, name, wing, rshape):
-        super(Spar, self).__init__(name, wing, rshape)
+    def __init__(self, name, wing, surface_shape):
+        super(Spar, self).__init__(name, wing, surface_shape)

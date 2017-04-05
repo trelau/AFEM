@@ -32,7 +32,7 @@ def extract_wing_plane(wing, uv1, uv2):
     return CreateGeom.plane_by_points(p0, p1, p2)
 
 
-def extract_wing_ref_curve(wing, uv1, uv2, rshape):
+def extract_wing_ref_curve(wing, uv1, uv2, surface_shape):
     """
     Extract a curve on the wing reference surface.
     """
@@ -60,14 +60,17 @@ def extract_wing_ref_curve(wing, uv1, uv2, rshape):
             return None
 
     # Generate intersecting shape.
-    if CheckGeom.is_surface_like(rshape):
-        rshape = BRepBuilderAPI_MakeFace(rshape.handle, 0.).Face()
-    elif rshape is None:
+    if CheckGeom.is_surface_like(surface_shape):
+        builder = BRepBuilderAPI_MakeFace(surface_shape.handle, 0.)
+        if not builder.IsDone():
+            return None
+        surface_shape = builder.Face()
+    elif surface_shape is None:
         pln = extract_wing_plane(wing, uv1, uv2)
-        rshape = BRepBuilderAPI_MakeFace(pln.handle, 0.).Face()
+        surface_shape = BRepBuilderAPI_MakeFace(pln.handle, 0.).Face()
 
     # Generate section edges with BOP Section using sref shape.
-    bop = BRepAlgoAPI_Section(rshape, sref_shape)
+    bop = BRepAlgoAPI_Section(surface_shape, sref_shape)
     if bop.ErrorStatus() != 0:
         return None
     bop.RefineEdges()

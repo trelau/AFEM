@@ -6,5 +6,5 @@ class Floor(FuselagePart):
     Floor.
     """
 
-    def __init__(self, name, fuselage, rshape):
-        super(Floor, self).__init__(name, fuselage, rshape)
+    def __init__(self, name, fuselage, surface_shape):
+        super(Floor, self).__init__(name, fuselage, surface_shape)

@@ -28,18 +28,9 @@ def build_surface_part(part, unify=False):
     else:
         shape = fshapes[0]
 
-    # Get all the faces from the result and form shell(s).
-    faces = ShapeTools.get_faces(shape)
-    if not faces:
-        return False
-    shape = ShapeTools.sew_faces(faces)
-
     # Unify the frame if desired.
     if unify:
         shape = ShapeTools.unify_shape(shape, False, True, False)
-
-    # Clear reference to underlying shape.
-    part.Nullify()
 
     # Set the frame shape to reference the result.
     part.set_shape(shape)

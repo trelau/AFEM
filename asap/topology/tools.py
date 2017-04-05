@@ -10,7 +10,7 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge, \
     BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d
-from OCC.BRepGProp import brepgprop_SurfaceProperties
+from OCC.BRepGProp import brepgprop, brepgprop_SurfaceProperties
 from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
@@ -42,6 +42,8 @@ from ..geometry.curves import Line
 from ..geometry.methods.create import create_nurbs_curve_from_occ, \
     create_nurbs_surface_from_occ
 from ..geometry.surfaces import Plane
+
+_brep_tool = BRep_Tool()
 
 
 class ShapeTools(object):
@@ -260,7 +262,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                    shape.ShapeType() == TopAbs_COMPSOLID):
+                shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -508,8 +510,8 @@ class ShapeTools(object):
 
         :return:
         """
-        hcrv, u1, u2 = BRep_Tool.Curve(edge)
-        adp_crv = GeomAdaptor_Curve(hcrv)
+        crv_data = _brep_tool.Curve(edge)
+        adp_crv = GeomAdaptor_Curve(crv_data[0])
         if adp_crv.GetType() == GeomAbs_Line:
             gp_lin = adp_crv.Line()
             crv = Line(gp_lin)
@@ -1343,3 +1345,75 @@ class ShapeTools(object):
             return []
 
         return ShapeTools.connect_edges(edges)
+
+    @staticmethod
+    def shape_length(shape):
+        """
+        Calculate the length of the shape.
+        
+        :param shape: 
+        
+        :return: 
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        props = GProp_GProps()
+        brepgprop.LinearProperties(shape, props)
+        # Mass is length for edges.
+        return props.Mass()
+
+    @staticmethod
+    def shape_area(shape):
+        """
+        Calculate the area of the shape.
+
+        :param shape: 
+
+        :return: 
+        """
+        # Mass is area for faces.
+        return ShapeTools.shape_length(shape)
+
+    @staticmethod
+    def longest_wire(wires):
+        """
+        Get the longest wire.
+        
+        :param wires:
+         
+        :return: 
+        """
+        wire_data = []
+        for w in wires:
+            wi = ShapeTools.to_wire(w)
+            if wi:
+                length = ShapeTools.shape_length(wi)
+                wire_data.append((length, wi))
+        if not wire_data:
+            return None
+        # Sort by length.
+        wire_data.sort(key=lambda tup: tup[0])
+        return wire_data[-1][1]
+
+    @staticmethod
+    def shortest_wire(wires):
+        """
+        Get the shortest wire.
+
+        :param wires:
+
+        :return: 
+        """
+        wire_data = []
+        for w in wires:
+            wi = ShapeTools.to_wire(w)
+            if wi:
+                length = ShapeTools.shape_length(wi)
+                wire_data.append((length, wi))
+        if not wire_data:
+            return None
+        # Sort by length.
+        wire_data.sort(key=lambda tup: tup[0])
+        return wire_data[0][1]

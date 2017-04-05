@@ -32,7 +32,10 @@ def reshape_parts(tool, parts):
                     new_shapes.append(shape)
                     used_shapes.append(str(shape))
                 mod.RemoveFirst()
-            compound = ShapeTools.make_compound(new_shapes)
+            if len(new_shapes) > 1:
+                compound = ShapeTools.make_compound(new_shapes)
+            else:
+                compound = new_shapes[0]
             reshape.Replace(old_shape, compound)
             performed = True
         if performed:

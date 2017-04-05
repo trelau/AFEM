@@ -21,16 +21,16 @@ class SurfacePart(Part):
     Base class for surface-based parts.
     """
 
-    def __init__(self, name, rshape):
+    def __init__(self, name, surface_shape):
         super(SurfacePart, self).__init__(name)
-        self._rshape = rshape
+        self._surface_shape = ShapeTools.to_shape(surface_shape)
         self._fshapes = set()
         self._sref = None
         self._set_sref()
 
     @property
-    def rshape(self):
-        return self._rshape
+    def surface_shape(self):
+        return self._surface_shape
 
     @property
     def fshapes(self):
@@ -87,12 +87,12 @@ class SurfacePart(Part):
         """
         Set part reference surface is available.
         """
-        if not self._rshape:
+        if not self._surface_shape or self._surface_shape.IsNull():
             return False
 
-        # Only set sref if rshape is a face or a shell with one face.
+        # Only set sref if surface_shape is a face or a shell with one face.
         try:
-            face = ShapeTools.get_faces(self._rshape)[0]
+            face = ShapeTools.get_faces(self._surface_shape)[0]
         except IndexError:
             return False
 
@@ -114,7 +114,7 @@ class SurfacePart(Part):
         """
         status = {}
         for body in bodies:
-            shape = form_with_solid(self._rshape, body)
+            shape = form_with_solid(self._surface_shape, body)
             if not shape:
                 status[body] = False
             else:

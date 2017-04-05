@@ -138,13 +138,15 @@ tip_rib = CreatePart.rib.by_parameters('tip rib', wing, 0.15, v, 0.65, v)
 
 # Front and rear spar. Use intersection of root rib and center spars to
 # define planes so the edges all align at the root rib.
-pln = ShapeTools.plane_from_section(root_rib.rshape, fc_spar.rshape,
+pln = ShapeTools.plane_from_section(root_rib.surface_shape,
+                                    fc_spar.surface_shape,
                                     tip_rib.p1)
 p1 = root_rib.p1
 p2 = tip_rib.p1
 fspar = CreatePart.spar.by_points('fspar', wing, p1, p2, pln)
 
-pln = ShapeTools.plane_from_section(root_rib.rshape, rc_spar.rshape,
+pln = ShapeTools.plane_from_section(root_rib.surface_shape,
+                                    rc_spar.surface_shape,
                                     tip_rib.p2)
 p1 = root_rib.p2
 p2 = tip_rib.p2
