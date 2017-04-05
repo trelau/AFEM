@@ -38,6 +38,7 @@ from OCC.TopoDS import TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge, \
 
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
+from ..geometry.bounding_box import BBox
 from ..geometry.curves import Line
 from ..geometry.methods.create import create_nurbs_curve_from_occ, \
     create_nurbs_surface_from_occ
@@ -1417,3 +1418,23 @@ class ShapeTools(object):
         # Sort by length.
         wire_data.sort(key=lambda tup: tup[0])
         return wire_data[0][1]
+
+    @staticmethod
+    def bounding_box(shape):
+        """
+        Create a bounding box from the shape.
+        
+        :param shape:
+         
+        :return: 
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        if shape.IsNull():
+            return None
+
+        bbox = BBox()
+        bbox.add_shape(shape)
+        return bbox
