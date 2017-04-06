@@ -164,11 +164,12 @@ class CreateGeom(object):
         return create_plane_by_points(p1, p2, p3)
 
     @staticmethod
-    def fit_plane(pnts):
+    def fit_plane(pnts, tol=1.0e-7):
         """
         Fit a plane to points.
 
         :param pnts:
+        :param float tol:
         :return:
         """
         _pnts = []
@@ -178,7 +179,7 @@ class CreateGeom(object):
                 _pnts.append(pi)
         if not _pnts:
             return None
-        return create_plane_by_fit_points(_pnts)
+        return create_plane_by_fit_points(_pnts, tol)
 
     @staticmethod
     def plane_on_curve(curve, u=None, dx=None, pnt=None, pref=None):

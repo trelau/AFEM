@@ -247,7 +247,9 @@ def create_frame_by_sref(name, fuselage, surface_shape, h):
         return None
 
     outer_face = faces[0]
-    offset = BRepOffsetAPI_MakeOffset(outer_face)
+    offset = BRepOffsetAPI_MakeOffset()
+    outer_wire = ShapeTools.outer_wire(outer_face)
+    offset.AddWire(outer_wire)
     # Negative offset so it trims inner part of face.
     offset.Perform(-h)
     if not offset.IsDone():

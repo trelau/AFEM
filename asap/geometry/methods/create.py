@@ -465,9 +465,6 @@ def create_plane_by_fit_points(pnts, tol=None):
     """
     Fit a plane to points.
     """
-    if tol is None:
-        tol = Settings.gtol
-
     # Convert points to array.
     pnts = array(pnts, dtype=float)
     if pnts.shape[0] < 3:
@@ -478,7 +475,8 @@ def create_plane_by_fit_points(pnts, tol=None):
     from OCC.GeomPlate import GeomPlate_BuildAveragePlane
 
     avg_pln = GeomPlate_BuildAveragePlane(tcol_pnts.GetHandle(),
-                                          tcol_pnts.Length(), tol, 1, 1)
+                                          tcol_pnts.Length(), Settings.gtol,
+                                          1, 1)
     if not avg_pln.IsPlane():
         return None
 
@@ -489,7 +487,19 @@ def create_plane_by_fit_points(pnts, tol=None):
     pcg = Point(*mean(pnts, axis=0))
     gp_pln.SetLocation(pcg)
 
-    return Plane(gp_pln)
+    # Create the plane.
+    pln = Plane(gp_pln)
+
+    # Check that all points are within tolerance to the plane.
+    if not tol:
+        return pln
+
+    for p in pnts:
+        p = gp_Pnt(*p)
+        di = gp_pln.Distance(p)
+        if di > tol:
+            return None
+    return pln
 
 
 def create_srf_by_approx_crvs(curves, mind, maxd, tol3d, tol2d, niter,
