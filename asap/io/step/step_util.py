@@ -1,6 +1,7 @@
-from OCC.IFSelect import IFSelect_RetError
+from OCC.IFSelect import IFSelect_ItemsByEntity, IFSelect_RetError
 from OCC.Interface import Interface_Static_SetCVal
-from OCC.STEPControl import STEPControl_AsIs, STEPControl_Writer
+from OCC.STEPControl import STEPControl_AsIs, STEPControl_Reader, \
+    STEPControl_Writer
 
 from ...config import Settings, units_dict
 from ...topology import ShapeTools
@@ -53,3 +54,42 @@ class StepExport(STEPControl_Writer):
         if status < IFSelect_RetError:
             return True
         return False
+
+
+class StepImport(STEPControl_Reader):
+    """
+    Import a STEP file.
+    """
+
+    def __init__(self):
+        super(StepImport, self).__init__()
+        self._shape = None
+
+    @property
+    def shape(self):
+        return self._shape
+
+    def read(self, fn):
+        """
+        Read a STEP file.
+        
+        :param fn:
+         
+        :return: 
+        """
+        # Read file.
+        status = self.ReadFile(fn)
+        if status > 1:
+            return False
+
+        # Convert to desired units.
+        Interface_Static_SetCVal("xstep.cascade.unit", Settings.units)
+
+        # Check
+        self.PrintCheckLoad(False, IFSelect_ItemsByEntity)
+        self.PrintCheckTransfer(False, IFSelect_ItemsByEntity)
+
+        # Transfer
+        self.TransferRoot(1)
+        self._shape = self.Shape(1)
+        return True
