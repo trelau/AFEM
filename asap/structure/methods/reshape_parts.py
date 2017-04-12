@@ -1,14 +1,15 @@
+from OCC.BRep import BRep_Builder
 from OCC.ShapeBuild import ShapeBuild_ReShape
-
-from ...topology import ShapeTools
+from OCC.TopTools import TopTools_IndexedMapOfShape
+from OCC.TopoDS import TopoDS_Compound
 
 
 def reshape_parts(tool, parts):
     """
     Update the part shape if modified by a tool.
     """
-    used_shapes = []
     status = []
+    index_map = TopTools_IndexedMapOfShape()
     for part in parts:
         reshape = ShapeBuild_ReShape()
         performed = False
@@ -24,20 +25,24 @@ def reshape_parts(tool, parts):
             mod = tool.Modified(old_shape)
             if mod.IsEmpty():
                 continue
-            # Replace the old shape with modified shape(s).
-            new_shapes = []
+
+            # Put modified shapes into a compound.
+            new_shape = TopoDS_Compound()
+            builder = BRep_Builder()
+            builder.MakeCompound(new_shape)
             while not mod.IsEmpty():
                 shape = mod.First()
-                if not str(shape) in used_shapes:
-                    new_shapes.append(shape)
-                    used_shapes.append(str(shape))
+                if not index_map.Contains(shape):
+                    builder.Add(new_shape, shape)
+                    index_map.Add(shape)
                 mod.RemoveFirst()
-            if len(new_shapes) > 1:
-                compound = ShapeTools.make_compound(new_shapes)
-            else:
-                compound = new_shapes[0]
-            reshape.Replace(old_shape, compound)
-            performed = True
+
+            # Replace the old shape with modified shape(s).
+            if not new_shape.IsNull():
+                reshape.Replace(old_shape, new_shape)
+                performed = True
+
+        # Set the new shape.
         if performed:
             new_shape = reshape.Apply(part)
             part.set_shape(new_shape)
