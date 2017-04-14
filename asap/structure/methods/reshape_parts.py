@@ -13,7 +13,7 @@ def reshape_parts(tool, parts):
     for part in parts:
         reshape = ShapeBuild_ReShape()
         performed = False
-        index_map.Clear()
+        # index_map.Clear()
         for old_shape in part.reshapes:
             # Check deleted.
             if tool.IsDeleted(old_shape):
@@ -31,16 +31,18 @@ def reshape_parts(tool, parts):
             new_shape = TopoDS_Compound()
             builder = BRep_Builder()
             builder.MakeCompound(new_shape)
+            modified = False
             while not mod.IsEmpty():
                 shape = mod.First()
                 if not index_map.Contains(shape) and \
                         not old_shape.IsSame(shape):
                     builder.Add(new_shape, shape)
                     index_map.Add(shape)
+                    modified = True
                 mod.RemoveFirst()
 
             # Replace the old shape with modified shape(s).
-            if not index_map.IsEmpty():
+            if modified:
                 reshape.Replace(old_shape, new_shape)
                 performed = True
 
