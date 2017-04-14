@@ -158,3 +158,27 @@ step = StepExport()
 shape = ShapeTools.make_compound(AssemblyData.get_parts())
 step.transfer(shape)
 step.write('gt_supersonic_delta.stp')
+
+# Try IGES export.
+from OCC.IGESControl import IGESControl_Writer, IGESControl_Controller_Init
+
+
+IGESControl_Controller_Init()
+iges = IGESControl_Writer('IN', 1)
+for part in AssemblyData.get_parts():
+    print(part.name, part, part.ShapeType())
+    try:
+        print(iges.AddShape(part))
+    except RuntimeError:
+        print('Failed to translate shape to IGES file.')
+print(iges.Write('gt_supersonic_dela.igs'))
+
+# Try STL export.
+from asap.io import StlExport
+from OCC.BRepMesh import BRepMesh_IncrementalMesh
+
+# Increase tessellation.
+BRepMesh_IncrementalMesh(shape, 1.0e-7)
+
+stl = StlExport()
+stl.write(shape, 'gt_supersonic_delta.stl')

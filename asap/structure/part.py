@@ -19,17 +19,19 @@ class Part(TopoDS_Shape, ViewableItem):
     _indx = 1
     _all = {}
 
-    def __init__(self, name):
+    def __init__(self, name, add_to_assy=True):
         super(Part, self).__init__()
         ViewableItem.__init__(self)
         self._name = name
         self._metadata = {}
-        # Store in active assembly.
-        AssemblyData.add_parts(None, self)
+        self._subparts = {}
         # Store by index.
         self._id = Part._indx
         Part._all[self._id] = self
         Part._indx += 1
+        # Store in active assembly.
+        if add_to_assy:
+            AssemblyData.add_parts(None, self)
         print('Creating part: ', name)
 
     @property
@@ -49,6 +51,10 @@ class Part(TopoDS_Shape, ViewableItem):
     @property
     def metadata(self):
         return self._metadata
+
+    @property
+    def subparts(self):
+        return self._subparts.values()
 
     def add_metadata(self, key, value):
         """
@@ -71,6 +77,19 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         try:
             return self._metadata[key]
+        except KeyError:
+            return None
+
+    def get_subpart(self, name):
+        """
+        Get a sub-part.
+        
+        :param name:
+         
+        :return: 
+        """
+        try:
+            return self._subparts[name]
         except KeyError:
             return None
 

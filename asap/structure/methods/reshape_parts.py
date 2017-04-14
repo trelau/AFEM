@@ -13,6 +13,7 @@ def reshape_parts(tool, parts):
     for part in parts:
         reshape = ShapeBuild_ReShape()
         performed = False
+        index_map.Clear()
         for old_shape in part.reshapes:
             # Check deleted.
             if tool.IsDeleted(old_shape):
@@ -32,13 +33,14 @@ def reshape_parts(tool, parts):
             builder.MakeCompound(new_shape)
             while not mod.IsEmpty():
                 shape = mod.First()
-                if not index_map.Contains(shape):
+                if not index_map.Contains(shape) and \
+                        not old_shape.IsSame(shape):
                     builder.Add(new_shape, shape)
                     index_map.Add(shape)
                 mod.RemoveFirst()
 
             # Replace the old shape with modified shape(s).
-            if not new_shape.IsNull():
+            if not index_map.IsEmpty():
                 reshape.Replace(old_shape, new_shape)
                 performed = True
 
@@ -47,5 +49,9 @@ def reshape_parts(tool, parts):
             new_shape = reshape.Apply(part)
             part.set_shape(new_shape)
         status.append(performed)
+
+        # Perform for sub-parts.
+        for subpart in part.subparts:
+            reshape_parts(tool, [subpart])
 
     return True in status

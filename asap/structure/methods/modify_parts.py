@@ -4,9 +4,10 @@ from OCC.BRepGProp import brepgprop
 from OCC.Extrema import Extrema_ExtFlag_MIN
 from OCC.GProp import GProp_GProps
 from OCC.ShapeBuild import ShapeBuild_ReShape
-from OCC.TopAbs import TopAbs_IN
 from OCC.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
+from OCC.TopAbs import TopAbs_IN
 
+from ..stiffener import Stiffener
 from ...config import Settings
 from ...geometry import CreateGeom
 from ...topology import ShapeTools
@@ -119,3 +120,30 @@ def unify_surface_part(part, edges=True, faces=True, concat_bsplines=False):
     unify.Build()
     part.set_shape(unify.Shape())
     return True
+
+
+def add_stiffener_to_surface_part(surface_part, stiffener, name):
+    """
+    Add a stiffener to a surface part. 
+    """
+    # If stiffener is already a Stiffener part, split the two parts.
+    # Otherwise, find the intersection and create the stiffener.
+    if not isinstance(stiffener, Stiffener):
+        shape = ShapeTools.to_shape(stiffener)
+        if not shape:
+            return None
+        edges = ShapeTools.bsection(surface_part, shape, 'edge')
+        if not edges:
+            return None
+        wires = ShapeTools.connect_edges(edges)
+        if not wires:
+            return None
+        if len(wires) == 1:
+            curve_shape = wires[0]
+        else:
+            curve_shape = ShapeTools.make_compound(wires)
+        stiffener = Stiffener(name, curve_shape)
+
+    # Split the parts.
+    surface_part.split(stiffener)
+    return stiffener

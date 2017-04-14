@@ -7,10 +7,11 @@ from .methods.explore_parts import get_shared_edges, get_shared_nodes
 from .methods.form_parts import form_with_solid
 from .methods.fuse_parts import fuse_surface_part
 from .methods.merge_parts import merge_surface_part
-from .methods.modify_parts import discard_faces_by_distance, \
-    discard_faces_by_solid, unify_surface_part
+from .methods.modify_parts import add_stiffener_to_surface_part, \
+    discard_faces_by_distance, discard_faces_by_solid, unify_surface_part
 from .methods.sew_parts import sew_surface_parts
 from .part import Part
+from .stiffener import Stiffener
 from ..fem import MeshData
 from ..fem.elements import Elm2D
 from ..topology import ShapeTools
@@ -55,6 +56,10 @@ class SurfacePart(Part):
     @property
     def reshapes(self):
         return self.faces
+
+    @property
+    def stiffeners(self):
+        return [part for part in self.subparts if isinstance(part, Stiffener)]
 
     @property
     def elements(self):
@@ -222,3 +227,28 @@ class SurfacePart(Part):
         :return:
         """
         return get_shared_nodes(self, other_part)
+
+    def add_stiffener(self, name, stiffener):
+        """
+        Add a stiffener to the surface part.
+        
+        :param name:
+        :param stiffener: 
+        
+        :return: 
+        """
+        stiffener = add_stiffener_to_surface_part(self, stiffener, name)
+        if not stiffener:
+            return None
+        self._subparts[stiffener.name] = stiffener
+        return stiffener
+
+    def get_stiffener(self, name):
+        """
+        Get stiffener.
+        
+        :param name:
+         
+        :return: 
+        """
+        return self.get_subpart(name)
