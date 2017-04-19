@@ -13,7 +13,6 @@ def reshape_parts(tool, parts):
     for part in parts:
         reshape = ShapeBuild_ReShape()
         performed = False
-        # index_map.Clear()
         for old_shape in part.reshapes:
             # Check deleted.
             if tool.IsDeleted(old_shape):

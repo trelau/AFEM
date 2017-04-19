@@ -4,18 +4,21 @@ import json
 
 import OCC.ShapeAnalysis as ShapeAnalysis
 from OCC.BRep import BRep_Builder, BRep_Tool
-from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_Sewing
+from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace, \
+    BRepBuilderAPI_MakeSolid, BRepBuilderAPI_MakeWire
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepGProp import brepgprop
 from OCC.GProp import GProp_GProps
+from OCC.Geom import Geom_Plane
 from OCC.GeomAdaptor import GeomAdaptor_Surface
 from OCC.GeomLib import GeomLib_IsPlanarSurface
 from OCC.IFSelect import IFSelect_ItemsByEntity
 from OCC.Interface import Interface_Static
 from OCC.STEPControl import STEPControl_Reader
-from OCC.ShapeFix import ShapeFix_Shape, ShapeFix_Solid
+from OCC.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
 from OCC.ShapeUpgrade import ShapeUpgrade_ShapeDivideClosed, \
-    ShapeUpgrade_SplitSurface, ShapeUpgrade_UnifySameDomain
+    ShapeUpgrade_ShellSewing, ShapeUpgrade_SplitSurface, \
+    ShapeUpgrade_UnifySameDomain
 from OCC.StepRepr import StepRepr_RepresentationItem
 from OCC.TColStd import TColStd_HSequenceOfReal
 from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
@@ -189,11 +192,22 @@ def _build_solid(compound, divide_closed):
                 w = ShapeAnalysis.shapeanalysis_OuterWire(f)
                 # Fix the wire because they are usually degenerate edges in
                 # the planar end caps.
-                fix = ShapeFix_Shape(w)
-                fix.Perform()
-                w = ShapeTools.to_wire(fix.Shape())
+                builder = BRepBuilderAPI_MakeWire()
+                for e in ShapeTools.get_edges(w):
+                    if ShapeTools.shape_length(e) > 1.0e-7:
+                        builder.Add(e)
+                w = builder.Wire()
+                fix = ShapeFix_Wire()
+                fix.Load(w)
+                geom_pln = Geom_Plane(is_pln.Plan())
+                fix.SetSurface(geom_pln.GetHandle())
+                fix.FixReorder()
+                fix.FixConnected()
+                fix.FixEdgeCurves()
+                fix.FixDegenerated()
+                w = fix.WireAPIMake()
                 # Build the planar face.
-                fnew = BRepBuilderAPI_MakeFace(is_pln.Plan(), w, True).Face()
+                fnew = BRepBuilderAPI_MakeFace(w, True).Face()
                 planar_faces.append(fnew)
             else:
                 non_planar_faces.append(f)
@@ -234,40 +248,28 @@ def _build_solid(compound, divide_closed):
     builder.MakeShell(shell)
     for f in non_planar_faces + planar_faces:
         builder.Add(shell, f)
+    solid = BRepBuilderAPI_MakeSolid(shell).Solid()
 
-    # Sew shape.
-    sew = BRepBuilderAPI_Sewing(1.0e-7)
-    sew.Load(shell)
-    sew.Perform()
-    sewn_shape = sew.SewedShape()
-
-    if sewn_shape.ShapeType() == TopAbs_FACE:
-        face = sewn_shape
-        sewn_shape = TopoDS_Shell()
-        builder = BRep_Builder()
-        builder.MakeShell(sewn_shape)
-        builder.Add(sewn_shape, face)
+    # Sew the shells of the solid.
+    sew = ShapeUpgrade_ShellSewing()
+    shape = sew.ApplySewing(solid)
 
     # Attempt to unify planar domains.
-    unify_shp = ShapeUpgrade_UnifySameDomain(sewn_shape, False, False, False)
+    unify_shp = ShapeUpgrade_UnifySameDomain(shape, False, False, False)
     try:
         unify_shp.UnifyFaces()
         shape = unify_shp.Shape()
     except RuntimeError:
-        shape = sewn_shape
-
-    # Make solid.
-    shell = ShapeTools.get_shells(shape)[0]
-    solid = ShapeFix_Solid().SolidFromShell(shell)
+        print('...failed to unify faces on solid.')
 
     # Split closed faces of the solid to make OCC more robust.
     if divide_closed:
-        divide = ShapeUpgrade_ShapeDivideClosed(solid)
+        divide = ShapeUpgrade_ShapeDivideClosed(shape)
         divide.Perform()
-        solid = divide.Result()
+        shape = divide.Result()
 
     # Make sure it's a solid.
-    solid = ShapeTools.to_solid(solid)
+    solid = ShapeTools.to_solid(shape)
 
     # Check the solid and attempt to fix.
     check_shp = BRepCheck_Analyzer(solid, True)
