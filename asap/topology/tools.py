@@ -746,7 +746,14 @@ class ShapeTools(object):
         shape = ShapeTools.to_shape(shape)
         pref = CheckGeom.to_point(pref)
         if not isinstance(shape, (TopoDS_Face, TopoDS_Shell)):
-            return None
+            # Try getting a face or shell from the shape.
+            shapes = ShapeTools.get_shells(shape)
+            if not shapes:
+                shapes = ShapeTools.get_faces(shape)
+                if not shapes:
+                    return None
+            # TODO Pick face/shell with largest area
+            shape = shapes[0]
         if not CheckGeom.is_point(pref):
             return None
 
