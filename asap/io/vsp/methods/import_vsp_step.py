@@ -5,7 +5,7 @@ import json
 import OCC.ShapeAnalysis as ShapeAnalysis
 from OCC.BRep import BRep_Builder, BRep_Tool
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace, \
-    BRepBuilderAPI_MakeSolid, BRepBuilderAPI_MakeWire
+    BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepGProp import brepgprop
 from OCC.GProp import GProp_GProps
@@ -17,7 +17,7 @@ from OCC.Interface import Interface_Static
 from OCC.STEPControl import STEPControl_Reader
 from OCC.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
 from OCC.ShapeUpgrade import ShapeUpgrade_ShapeDivideClosed, \
-    ShapeUpgrade_ShellSewing, ShapeUpgrade_SplitSurface, \
+    ShapeUpgrade_SplitSurface, \
     ShapeUpgrade_UnifySameDomain
 from OCC.StepRepr import StepRepr_RepresentationItem
 from OCC.TColStd import TColStd_HSequenceOfReal
@@ -248,28 +248,41 @@ def _build_solid(compound, divide_closed):
     builder.MakeShell(shell)
     for f in non_planar_faces + planar_faces:
         builder.Add(shell, f)
-    solid = BRepBuilderAPI_MakeSolid(shell).Solid()
 
-    # Sew the shells of the solid.
-    sew = ShapeUpgrade_ShellSewing()
-    shape = sew.ApplySewing(solid)
+    # Sew shape.
+    sew = BRepBuilderAPI_Sewing(1.0e-7)
+    sew.Load(shell)
+    sew.Perform()
+    sewn_shape = sew.SewedShape()
+
+    if sewn_shape.ShapeType() == TopAbs_FACE:
+        face = sewn_shape
+        sewn_shape = TopoDS_Shell()
+        builder = BRep_Builder()
+        builder.MakeShell(sewn_shape)
+        builder.Add(sewn_shape, face)
 
     # Attempt to unify planar domains.
-    unify_shp = ShapeUpgrade_UnifySameDomain(shape, False, False, False)
+    unify_shp = ShapeUpgrade_UnifySameDomain(sewn_shape, False, False, False)
     try:
         unify_shp.UnifyFaces()
         shape = unify_shp.Shape()
     except RuntimeError:
         print('...failed to unify faces on solid.')
+        shape = sewn_shape
+
+    # Make solid.
+    shell = ShapeTools.get_shells(shape)[0]
+    solid = ShapeFix_Solid().SolidFromShell(shell)
 
     # Split closed faces of the solid to make OCC more robust.
     if divide_closed:
-        divide = ShapeUpgrade_ShapeDivideClosed(shape)
+        divide = ShapeUpgrade_ShapeDivideClosed(solid)
         divide.Perform()
-        shape = divide.Result()
+        solid = divide.Result()
 
     # Make sure it's a solid.
-    solid = ShapeTools.to_solid(shape)
+    solid = ShapeTools.to_solid(solid)
 
     # Check the solid and attempt to fix.
     check_shp = BRepCheck_Analyzer(solid, True)
