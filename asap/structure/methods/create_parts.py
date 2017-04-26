@@ -324,7 +324,7 @@ def create_floor_by_sref(name, fuselage, surface_shape, build):
     return floor
 
 
-def create_skin_from_body(name, body):
+def create_skin_from_body(name, body, copy=True):
     """
     Create skin from outer shell of body.
     """
@@ -332,13 +332,15 @@ def create_skin_from_body(name, body):
         return None
 
     outer_shell = body.shell
+    if copy:
+        outer_shell = ShapeTools.copy_shape(outer_shell)
     skin = Skin(name, outer_shell)
     skin.set_shape(outer_shell)
 
     return skin
 
 
-def create_skin_from_solid(name, solid):
+def create_skin_from_solid(name, solid, copy=True):
     """
     Create skin from outer shell of solid. 
     """
@@ -347,6 +349,8 @@ def create_skin_from_solid(name, solid):
         return None
 
     outer_shell = ShapeTools.outer_shell(solid)
+    if copy:
+        outer_shell = ShapeTools.copy_shape(outer_shell)
     skin = Skin(name, outer_shell)
     skin.set_shape(outer_shell)
 

@@ -352,28 +352,30 @@ class CreateSkin(object):
     """
 
     @staticmethod
-    def from_solid(name, solid):
+    def from_solid(name, solid, copy=True):
         """
         Create skin from the outer shell of a solid.
         
         :param name: 
         :param solid:
+        :param copy:
          
         :return: 
         """
-        return create_skin_from_solid(name, solid)
+        return create_skin_from_solid(name, solid, copy)
 
     @staticmethod
-    def from_body(name, body):
+    def from_body(name, body, copy=True):
         """
         Create skin from the outer shell of a body.
 
         :param name:
         :param body:
+        :param copy:
 
         :return:
         """
-        return create_skin_from_body(name, body)
+        return create_skin_from_body(name, body, copy)
 
 
 class CreatePart(object):

@@ -5,7 +5,7 @@ from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
     BRepAlgoAPI_Fuse, BRepAlgoAPI_Section
-from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge, \
+from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy, BRepBuilderAPI_MakeEdge, \
     BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakeVertex, \
     BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing
 from OCC.BRepCheck import BRepCheck_Analyzer
@@ -1445,3 +1445,18 @@ class ShapeTools(object):
         bbox = BBox()
         bbox.add_shape(shape)
         return bbox
+
+    @staticmethod
+    def copy_shape(shape, copy_geom=True):
+        """
+        Copy a shape.
+        
+        :param shape: 
+        :param copy_geom: 
+         
+        :return: 
+        """
+        copy = BRepBuilderAPI_Copy(shape, copy_geom)
+        if not copy.IsDone():
+            return None
+        return copy.Shape()

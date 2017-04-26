@@ -9,12 +9,15 @@ from asap.topology import ShapeTools
 Settings.set_units('in')
 
 # Import model
-fn = './models/GT_supersonic_delta_split.stp'
+fn = './models/GT_supersonic_delta_split_nomerge.stp'
 ImportVSP.step_file(fn)
 
 # Get components.
 wing = ImportVSP.get_body('WING')
 fuselage = ImportVSP.get_body('FUSELAGE')
+
+skin = CreatePart.skin.from_body('skin', wing)
+print(ShapeTools.get_tolerance(skin))
 
 bodies = ImportVSP.get_bodies()
 for name in bodies:
@@ -145,11 +148,16 @@ Viewer.show()
 
 # Create skin. For now this replaces the center rib with wing skin since
 # they overlap. Not ideal...but fix later or define center rib differently.
-skin = CreatePart.skin.from_body('skin', wing)
+# skin = CreatePart.skin.from_body('skin', wing)
+print('valid before fuse', ShapeTools.is_valid(skin),
+      ShapeTools.get_tolerance(skin, 1))
 skin.fuse(*wing_parts)
 skin.set_transparency(0.5)
 print(skin.fix())
 print(ShapeTools.is_valid(skin))
+
+for part in AssemblyData.get_parts():
+    print(part.name, ShapeTools.get_tolerance(part))
 
 Viewer.add_items(*AssemblyData.get_parts())
 Viewer.show()
