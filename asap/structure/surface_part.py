@@ -22,8 +22,8 @@ class SurfacePart(Part):
     Base class for surface-based parts.
     """
 
-    def __init__(self, name, surface_shape):
-        super(SurfacePart, self).__init__(name)
+    def __init__(self, label, surface_shape):
+        super(SurfacePart, self).__init__(label)
         self._surface_shape = ShapeTools.to_shape(surface_shape)
         self._fshapes = set()
         self._sref = None
@@ -95,10 +95,12 @@ class SurfacePart(Part):
         if not self._surface_shape or self._surface_shape.IsNull():
             return False
 
-        # Only set sref if surface_shape is a face or a shell with one face.
-        try:
-            face = ShapeTools.get_faces(self._surface_shape)[0]
-        except IndexError:
+        # Use largest face of surface shape.
+        faces = ShapeTools.get_faces(self._surface_shape)
+        if not faces:
+            return False
+        face = ShapeTools.largest_face(faces)
+        if not face:
             return False
 
         # Convert to ASAP surface.
@@ -111,7 +113,7 @@ class SurfacePart(Part):
 
     def form(self, *bodies):
         """
-        Form frame boundary with a body.
+        Form part with bodies.
 
         :param bodies:
 
@@ -129,7 +131,7 @@ class SurfacePart(Part):
 
     def build(self, unify=False):
         """
-        Build the frame shape.
+        Build the part shape.
 
         :param bool unify:
 
@@ -228,27 +230,27 @@ class SurfacePart(Part):
         """
         return get_shared_nodes(self, other_part)
 
-    def add_stiffener(self, name, stiffener):
+    def add_stiffener(self, label, stiffener):
         """
         Add a stiffener to the surface part.
         
-        :param name:
+        :param label:
         :param stiffener: 
         
         :return: 
         """
-        stiffener = add_stiffener_to_surface_part(self, stiffener, name)
+        stiffener = add_stiffener_to_surface_part(self, stiffener, label)
         if not stiffener:
             return None
-        self._subparts[stiffener.name] = stiffener
+        self._subparts[stiffener.label] = stiffener
         return stiffener
 
-    def get_stiffener(self, name):
+    def get_stiffener(self, label):
         """
         Get stiffener.
         
-        :param name:
+        :param label:
          
         :return: 
         """
-        return self.get_subpart(name)
+        return self.get_subpart(label)

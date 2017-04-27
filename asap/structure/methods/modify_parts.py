@@ -122,7 +122,7 @@ def unify_surface_part(part, edges=True, faces=True, concat_bsplines=False):
     return True
 
 
-def add_stiffener_to_surface_part(surface_part, stiffener, name):
+def add_stiffener_to_surface_part(surface_part, stiffener, label):
     """
     Add a stiffener to a surface part. 
     """
@@ -142,7 +142,7 @@ def add_stiffener_to_surface_part(surface_part, stiffener, name):
             curve_shape = wires[0]
         else:
             curve_shape = ShapeTools.make_compound(wires)
-        stiffener = Stiffener(name, curve_shape)
+        stiffener = Stiffener(label, curve_shape)
 
     # Split the parts.
     surface_part.split(stiffener)

@@ -6,5 +6,5 @@ class Frame(FuselagePart):
     Frame.
     """
 
-    def __init__(self, name, fuselage, surface_shape):
-        super(Frame, self).__init__(name, fuselage, surface_shape)
+    def __init__(self, name, surface_shape):
+        super(Frame, self).__init__(name, surface_shape)

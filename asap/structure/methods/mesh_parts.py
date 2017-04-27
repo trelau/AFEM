@@ -7,7 +7,7 @@ def mesh_surface_part(part, maxh, quad_dominated=True):
     """
     Mesh a surface part.
     """
-    print('Meshing part: ', part.name)
+    print('Meshing part: ', part.label)
     for f in part.faces:
         MeshShape.perform(f, maxh, quad_dominated=quad_dominated)
     return True

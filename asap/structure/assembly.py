@@ -6,8 +6,8 @@ class Assembly(object):
     Structural assembly.
     """
 
-    def __init__(self, name, parent):
-        self._name = name
+    def __init__(self, label, parent):
+        self._label = label
         self._parent = parent
         self._children = set()
         self._parts = set()
@@ -16,8 +16,8 @@ class Assembly(object):
         self._metadata = {}
 
     @property
-    def name(self):
-        return self._name
+    def label(self):
+        return self._label
 
     @property
     def parent(self):
@@ -87,16 +87,16 @@ class Assembly(object):
         part_set = set(parts)
         self._parts.update(part_set)
 
-    def get_part(self, name):
+    def get_part(self, label):
         """
         Get a part in the assembly by name.
 
-        :param name: Name of part.
+        :param label: Part label.
 
         :return: Part or *None* if part is not found.
         """
         for part in self.parts:
-            if part.name == name:
+            if part.label == label:
                 return part
         return None
 
@@ -179,28 +179,28 @@ class AssemblyData(object):
             return cls.get_active()
 
     @classmethod
-    def create_assy(cls, name, parent=None, active=True, *parts):
+    def create_assy(cls, label, parent=None, active=True, *parts):
         """
         Create an assembly.
 
-        :param name:
+        :param label:
         :param parent:
         :param active:
         :param parts:
 
         :return:
         """
-        if name in cls._all:
+        if label in cls._all:
             return None
         if parent is None:
             parent = cls._master
         else:
             parent = cls.get_assy(parent)
-        assy = Assembly(name, parent)
+        assy = Assembly(label, parent)
         if active:
             cls._active = assy
         assy.add_parts(*parts)
-        cls._all[name] = assy
+        cls._all[label] = assy
         return assy
 
     @classmethod

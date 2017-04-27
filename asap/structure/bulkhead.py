@@ -6,5 +6,5 @@ class Bulkhead(FuselagePart):
     Bulkhead.
     """
 
-    def __init__(self, name, fuselage, surface_shape):
-        super(Bulkhead, self).__init__(name, fuselage, surface_shape)
+    def __init__(self, label, surface_shape):
+        super(Bulkhead, self).__init__(label, surface_shape)

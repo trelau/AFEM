@@ -157,7 +157,7 @@ print(skin.fix())
 print(ShapeTools.is_valid(skin))
 
 for part in AssemblyData.get_parts():
-    print(part.name, ShapeTools.get_tolerance(part))
+    print(part.label, ShapeTools.get_tolerance(part))
 
 Viewer.add_items(*AssemblyData.get_parts())
 Viewer.show()
@@ -174,7 +174,7 @@ from OCC.IGESControl import IGESControl_Writer, IGESControl_Controller_Init
 IGESControl_Controller_Init()
 iges = IGESControl_Writer('IN', 1)
 for part in AssemblyData.get_parts():
-    print(part.name, part, part.ShapeType())
+    print(part.label, part, part.ShapeType())
     try:
         print(iges.AddShape(part))
     except RuntimeError:

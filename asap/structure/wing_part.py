@@ -10,9 +10,8 @@ class WingPart(SurfacePart):
     Base class for wing parts.
     """
 
-    def __init__(self, name, wing, surface_shape):
-        super(WingPart, self).__init__(name, surface_shape)
-        self._wing = wing
+    def __init__(self, label, surface_shape):
+        super(WingPart, self).__init__(label, surface_shape)
         self._cref = None
 
     @property
@@ -130,7 +129,7 @@ class WingPart(SurfacePart):
 
     def cut_hole(self, dx, r):
         """
-        Cut a circular hole in the part.
+        Cut a circular hole in the part (in development).
 
         :param dx:
         :param r:

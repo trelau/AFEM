@@ -752,8 +752,10 @@ class ShapeTools(object):
                 shapes = ShapeTools.get_faces(shape)
                 if not shapes:
                     return None
-            # TODO Pick face/shell with largest area
-            shape = shapes[0]
+            try:
+                shape = ShapeTools.sort_by_mass(shapes)[-1]
+            except IndexError:
+                return None
         if not CheckGeom.is_point(pref):
             return None
 
@@ -1363,14 +1365,8 @@ class ShapeTools(object):
         
         :return: 
         """
-        shape = ShapeTools.to_shape(shape)
-        if not shape:
-            return None
-
-        props = GProp_GProps()
-        brepgprop.LinearProperties(shape, props)
-        # Mass is length for edges.
-        return props.Mass()
+        # Mass is length for edges/wires.
+        return ShapeTools.shape_volume(shape)
 
     @staticmethod
     def shape_area(shape):
@@ -1381,8 +1377,46 @@ class ShapeTools(object):
 
         :return: 
         """
-        # Mass is area for faces.
-        return ShapeTools.shape_length(shape)
+        # Mass is area for faces/shells.
+        return ShapeTools.shape_volume(shape)
+
+    @staticmethod
+    def shape_volume(shape):
+        """
+        Calculate the volume of the shape.
+
+        :param shape: 
+
+        :return: 
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        props = GProp_GProps()
+        brepgprop.LinearProperties(shape, props)
+        return props.Mass()
+
+    @staticmethod
+    def sort_by_mass(shapes):
+        """
+        Sort shapes by mass.
+
+        :param shapes:
+
+        :return: 
+        """
+        if len(shapes) == 1:
+            return shapes
+        shape_data = []
+        for shape in shapes:
+            mass = ShapeTools.shape_volume(shape)
+            if mass:
+                shape_data.append((mass, shape))
+        if not shape_data:
+            return []
+        shape_data.sort(key=lambda tup: tup[0])
+        return [data[1] for data in shape_data]
 
     @staticmethod
     def longest_wire(wires):
@@ -1393,17 +1427,10 @@ class ShapeTools(object):
          
         :return: 
         """
-        wire_data = []
-        for w in wires:
-            wi = ShapeTools.to_wire(w)
-            if wi:
-                length = ShapeTools.shape_length(wi)
-                wire_data.append((length, wi))
-        if not wire_data:
+        try:
+            return ShapeTools.sort_by_mass(wires)[-1]
+        except IndexError:
             return None
-        # Sort by length.
-        wire_data.sort(key=lambda tup: tup[0])
-        return wire_data[-1][1]
 
     @staticmethod
     def shortest_wire(wires):
@@ -1414,17 +1441,38 @@ class ShapeTools(object):
 
         :return: 
         """
-        wire_data = []
-        for w in wires:
-            wi = ShapeTools.to_wire(w)
-            if wi:
-                length = ShapeTools.shape_length(wi)
-                wire_data.append((length, wi))
-        if not wire_data:
+        try:
+            return ShapeTools.sort_by_mass(wires)[0]
+        except IndexError:
             return None
-        # Sort by length.
-        wire_data.sort(key=lambda tup: tup[0])
-        return wire_data[0][1]
+
+    @staticmethod
+    def largest_face(faces):
+        """
+        Get the largest face.
+        
+        :param faces:
+         
+        :return: 
+        """
+        try:
+            return ShapeTools.sort_by_mass(faces)[-1]
+        except IndexError:
+            return None
+
+    @staticmethod
+    def smallest_face(faces):
+        """
+        Get the smallest face.
+
+        :param faces:
+
+        :return: 
+        """
+        try:
+            return ShapeTools.sort_by_mass(faces)[0]
+        except IndexError:
+            return None
 
     @staticmethod
     def bounding_box(shape):
