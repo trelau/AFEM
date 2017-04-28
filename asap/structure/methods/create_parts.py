@@ -333,7 +333,7 @@ def create_skin_from_body(label, body, copy=True):
 
     outer_shell = body.shell
     if copy:
-        outer_shell = ShapeTools.copy_shape(outer_shell)
+        outer_shell = ShapeTools.copy_shape(outer_shell, False)
     skin = Skin(label, outer_shell)
     skin.set_shape(outer_shell)
 
@@ -350,7 +350,7 @@ def create_skin_from_solid(label, solid, copy=True):
 
     outer_shell = ShapeTools.outer_shell(solid)
     if copy:
-        outer_shell = ShapeTools.copy_shape(outer_shell)
+        outer_shell = ShapeTools.copy_shape(outer_shell, False)
     skin = Skin(label, outer_shell)
     skin.set_shape(outer_shell)
 

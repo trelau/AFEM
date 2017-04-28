@@ -352,7 +352,7 @@ class CreateSkin(object):
     """
 
     @staticmethod
-    def from_solid(label, solid, copy=True):
+    def from_solid(label, solid, copy=False):
         """
         Create skin from the outer shell of a solid.
         
@@ -365,7 +365,7 @@ class CreateSkin(object):
         return create_skin_from_solid(label, solid, copy)
 
     @staticmethod
-    def from_body(label, body, copy=True):
+    def from_body(label, body, copy=False):
         """
         Create skin from the outer shell of a body.
 
