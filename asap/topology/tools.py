@@ -12,13 +12,18 @@ from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepGProp import brepgprop, brepgprop_SurfaceProperties
 from OCC.BRepMesh import BRepMesh_IncrementalMesh
+from OCC.BRepOffset import BRepOffset_Pipe, BRepOffset_RectoVerso, \
+    BRepOffset_Skin
+from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset, \
+    BRepOffsetAPI_MakeOffsetShape
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GProp import GProp_GProps
 from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
-from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BSplineSurface, \
-    GeomAbs_BezierCurve, GeomAbs_BezierSurface, GeomAbs_Line, GeomAbs_Plane
+from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_BSplineCurve, \
+    GeomAbs_BSplineSurface, GeomAbs_BezierCurve, GeomAbs_BezierSurface, \
+    GeomAbs_Intersection, GeomAbs_Line, GeomAbs_Plane, GeomAbs_Tangent
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds, \
     ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
@@ -263,7 +268,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                shape.ShapeType() == TopAbs_COMPSOLID):
+                    shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -1508,3 +1513,79 @@ class ShapeTools(object):
         if not copy.IsDone():
             return None
         return copy.Shape()
+
+    @staticmethod
+    def offset_wire(spine, distance, altitude=0., join=GeomAbs_Arc,
+                    is_open=False):
+        """
+        Offset wire in a planar face.
+        
+        :param spine: 
+        :param distance: 
+        :param altitude: 
+        :param join: 
+        :param is_open: 
+        
+        :return: 
+        """
+        spine = ShapeTools.to_shape(spine)
+        if not isinstance(spine, (TopoDS_Wire, TopoDS_Face)):
+            return None
+
+        if join < GeomAbs_Arc:
+            join = GeomAbs_Arc
+        if join > GeomAbs_Intersection:
+            join = GeomAbs_Intersection
+        if join not in [GeomAbs_Arc, GeomAbs_Tangent, GeomAbs_Intersection]:
+            return None
+
+        offset = BRepOffsetAPI_MakeOffset(spine, join, is_open)
+        offset.Perform(distance, altitude)
+        if not offset.IsDone():
+            return None
+
+        return ShapeTools.to_shape(offset.Shape())
+
+    @staticmethod
+    def offset_shape(shape, distance, tol, mode=BRepOffset_Skin,
+                     intersection=False, self_intersect=False,
+                     join=GeomAbs_Arc):
+        """
+        Offset a shape to build a shell.
+        
+        :param shape: 
+        :param distance: 
+        :param tol: 
+        :param mode: 
+        :param intersection: 
+        :param self_intersect: 
+        :param join: 
+        
+        :return: 
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        if join < GeomAbs_Arc:
+            join = GeomAbs_Arc
+        if join > GeomAbs_Intersection:
+            join = GeomAbs_Intersection
+        if join not in [GeomAbs_Arc, GeomAbs_Tangent, GeomAbs_Intersection]:
+            return None
+
+        if mode < BRepOffset_Skin:
+            mode = BRepOffset_Skin
+        if mode > BRepOffset_RectoVerso:
+            mode = BRepOffset_RectoVerso
+        if mode not in [BRepOffset_Skin, BRepOffset_Pipe,
+                        BRepOffset_RectoVerso]:
+            return None
+
+        offset = BRepOffsetAPI_MakeOffsetShape(shape, distance, tol, mode,
+                                               intersection, self_intersect,
+                                               join)
+        if not offset.IsDone():
+            return None
+
+        return ShapeTools.to_shape(offset.Shape())
