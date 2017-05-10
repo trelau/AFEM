@@ -1,7 +1,7 @@
 from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_COMMON, BOPAlgo_CUT, \
     BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_SECTION
 from OCC.BRep import BRep_Builder, BRep_Tool
-from OCC.BRepAdaptor import BRepAdaptor_Curve
+from OCC.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_Surface
 from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
     BRepAlgoAPI_Fuse, BRepAlgoAPI_Section
@@ -10,12 +10,14 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy, BRepBuilderAPI_MakeEdge, \
     BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d
+from OCC.BRepExtrema import BRepExtrema_DistShapeShape, BRepExtrema_IsInFace, \
+    BRepExtrema_IsOnEdge
 from OCC.BRepGProp import brepgprop, brepgprop_SurfaceProperties
 from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepOffset import BRepOffset_Pipe, BRepOffset_RectoVerso, \
     BRepOffset_Skin
 from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset, \
-    BRepOffsetAPI_MakeOffsetShape
+    BRepOffsetAPI_MakeOffsetShape, BRepOffsetAPI_MakePipeShell
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
@@ -268,7 +270,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                    shape.ShapeType() == TopAbs_COMPSOLID):
+                shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -1589,3 +1591,95 @@ class ShapeTools(object):
             return None
 
         return ShapeTools.to_shape(offset.Shape())
+
+    @staticmethod
+    def make_pipe_shell(spine, profile, spine_support,
+                        with_contact=False, with_correction=False):
+        """
+        Create a shell by sweeping a profile along a spine with a normal set
+        by a shape.
+        
+        :param spine: 
+        :param profile: 
+        :param spine_support:
+        :param with_contact:
+        :param with_correction:
+         
+        :return: 
+        """
+        spine = ShapeTools.to_wire(spine)
+        profile = ShapeTools.to_wire(profile)
+        spine_support = ShapeTools.to_shape(spine_support)
+        if not spine or not profile or not spine_support:
+            return None
+
+        builder = BRepOffsetAPI_MakePipeShell(spine)
+        builder.SetMode(spine_support)
+        builder.Add(profile, with_contact, with_correction)
+        if not builder.IsReady():
+            return None
+        builder.Build()
+        if not builder.IsDone():
+            return None
+        return ShapeTools.to_shape(builder.Shape())
+
+    @staticmethod
+    def shape_normal_vector(pnt, shape):
+        """
+        Calculate the normal of a shape at a point.
+        
+        :param pnt: 
+        :param shape: 
+        
+        :return: 
+        """
+        pnt = CheckGeom.to_point(pnt)
+        shape = ShapeTools.to_shape(shape)
+        if not pnt or not shape:
+            return None, None
+
+        v = ShapeTools.to_vertex(pnt)
+        dist = BRepExtrema_DistShapeShape(shape, v)
+        if not dist.IsDone():
+            return None, None
+
+        if dist.SupportTypeShape1(1) == BRepExtrema_IsInFace:
+            # noinspection PyTupleAssignmentBalance
+            u, v = dist.ParOnFaceS1(1)
+            f = dist.SupportOnShape1(1)
+            f = ShapeTools.to_face(f)
+            adp_srf = BRepAdaptor_Surface(f)
+            p = CreateGeom.point()
+            adp_srf.D0(u, v, p)
+            vu = adp_srf.DN(u, v, 1, 0)
+            vv = adp_srf.DN(u, v, 0, 1)
+            vn = vu.Crossed(vv)
+            vn.Normalize()
+            vn = CheckGeom.to_vector(vn)
+            return p, vn
+        elif dist.SupportTypeShape1(1) == BRepExtrema_IsOnEdge:
+            # TODO What if normal is on edge?
+            pass
+        return None, None
+
+    @staticmethod
+    def shape_normal_profile(pnt, shape, height):
+        """
+        Create a profile normal to the shape at a point.
+        
+        :param pnt: 
+        :param shape: 
+        :param height: 
+        
+        :return: 
+        """
+        p0, vn = ShapeTools.shape_normal_vector(pnt, shape)
+        if not p0 or not vn:
+            return None
+
+        vn.Scale(height)
+        p1 = CreateGeom.copy_geom(p0)
+        p1.Translate(vn)
+        e = BRepBuilderAPI_MakeEdge(p0, p1).Edge()
+        w = BRepBuilderAPI_MakeWire(e).Wire()
+        return w

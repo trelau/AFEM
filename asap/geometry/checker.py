@@ -1,5 +1,5 @@
 from OCC.Geom import Geom_Curve, Geom_Surface
-from OCC.gp import gp_Pnt
+from OCC.gp import gp_Pnt, gp_Vec
 from numpy import ndarray
 
 from .axes import Axis3
@@ -79,7 +79,7 @@ class CheckGeom(object):
         if isinstance(geom, Point):
             return geom
         elif CheckGeom.is_point_like(geom):
-            return Point(*geom)
+            return Point(geom[0], geom[1], geom[2])
         elif isinstance(geom, gp_Pnt):
             return Point(geom.XYZ())
         return None
@@ -122,9 +122,11 @@ class CheckGeom(object):
         if isinstance(geom, Vector):
             return geom
         elif isinstance(geom, (tuple, list, ndarray)):
-            return Vector(*geom)
+            return Vector(geom[0], geom[1], geom[2])
         elif isinstance(geom, Direction):
             return Vector(geom)
+        elif isinstance(geom, gp_Vec):
+            return Vector(geom.XYZ())
         return None
 
     @staticmethod
@@ -152,7 +154,7 @@ class CheckGeom(object):
         if isinstance(geom, Direction):
             return geom
         elif isinstance(geom, (tuple, list, ndarray)):
-            return Direction(*geom)
+            return Direction(geom[0], geom[1], geom[2])
         elif isinstance(geom, Vector):
             return Direction(geom)
         return None
