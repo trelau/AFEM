@@ -8,7 +8,7 @@ from asap.topology import ShapeTools
 
 # Import wing solid from STEP file
 step_read = StepImport()
-step_read.read('./models/boeing_737_wing_grabcad.step')
+step_read.read(r'../models/boeing_737_wing_grabcad.step')
 shape = step_read.shape
 solids = ShapeTools.get_solids(shape)
 # There should only be one solid that is the wing

@@ -257,10 +257,10 @@ def build_wingbox(wing, params):
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
     # Uncomment this to export STEP file.
-    from asap.io import StepExport
-    step = StepExport()
-    step.transfer(shape_to_mesh)
-    step.write('wingbox.step')
+    # from asap.io import StepExport
+    # step = StepExport()
+    # step.transfer(shape_to_mesh)
+    # step.write('wingbox.step')
 
     return AssemblyData.get_active()
 
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     start = time.time()
 
     # Import model
-    fname = r'.\models\777-200LR_mod_vsp350_sref.stp'
+    fname = r'..\models\777-200LR.stp'
     ImportVSP.step_file(fname)
     wing_in = ImportVSP.get_body('Wing')
 

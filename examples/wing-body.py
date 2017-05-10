@@ -14,7 +14,7 @@ from asap.topology import ShapeTools
 Settings.set_units('in')
 
 # Import model
-fn = './models/777-200LR_mod_vsp350_sref.stp'
+fn = r'../models/777-200LR.stp'
 ImportVSP.step_file(fn)
 
 # Get components.
