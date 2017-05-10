@@ -42,6 +42,7 @@ from OCC.TopoDS import TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge, \
     TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex, \
     TopoDS_Wire, topods_CompSolid, topods_Compound, topods_Edge, topods_Face, \
     topods_Shell, topods_Solid, topods_Vertex, topods_Wire
+from OCC.gp import gp_Pnt
 
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
@@ -140,6 +141,9 @@ class ShapeTools(object):
         """
         if isinstance(shape, TopoDS_Vertex):
             return shape
+
+        if isinstance(shape, gp_Pnt):
+            return BRepBuilderAPI_MakeVertex(shape).Vertex()
 
         if CheckGeom.is_point(shape):
             return BRepBuilderAPI_MakeVertex(shape).Vertex()
@@ -270,7 +274,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                shape.ShapeType() == TopAbs_COMPSOLID):
+                    shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -1593,14 +1597,14 @@ class ShapeTools(object):
         return ShapeTools.to_shape(offset.Shape())
 
     @staticmethod
-    def make_pipe_shell(spine, profile, spine_support,
+    def make_pipe_shell(spine, profiles, spine_support,
                         with_contact=False, with_correction=False):
         """
-        Create a shell by sweeping a profile along a spine with a normal set
+        Create a shell by sweeping profile(s) along a spine with a normal set
         by a shape.
         
         :param spine: 
-        :param profile: 
+        :param profiles: 
         :param spine_support:
         :param with_contact:
         :param with_correction:
@@ -1608,14 +1612,17 @@ class ShapeTools(object):
         :return: 
         """
         spine = ShapeTools.to_wire(spine)
-        profile = ShapeTools.to_wire(profile)
         spine_support = ShapeTools.to_shape(spine_support)
-        if not spine or not profile or not spine_support:
+        if not spine or not spine_support:
             return None
 
         builder = BRepOffsetAPI_MakePipeShell(spine)
         builder.SetMode(spine_support)
-        builder.Add(profile, with_contact, with_correction)
+        for profile in profiles:
+            profile = ShapeTools.to_shape(profile)
+            if not profile:
+                continue
+            builder.Add(profile, with_contact, with_correction)
         if not builder.IsReady():
             return None
         builder.Build()
