@@ -154,6 +154,23 @@ class Part(TopoDS_Shape, ViewableItem):
         except KeyError:
             return None
 
+    def add_subpart(self, label, subpart):
+        """
+        Add a subpart to the part.
+        
+        :param label: 
+        :param subpart:
+         
+        :return: 
+        """
+        if not isinstance(subpart, Part):
+            return False
+        try:
+            self._subparts[label] = subpart
+            return True
+        except KeyError:
+            return False
+
     def get_subpart(self, label):
         """
         Get a sub-part.
@@ -361,3 +378,15 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_sref:
             return False
         return ProjectGeom.invert(pnt, self.sref)
+
+    def distance(self, other):
+        """
+        Find the minimum distance between the part and other shape.
+        
+        :param other: Other part or shape.
+        
+        :return: The minimum distance and the points of minimum distance on 
+            each shape (dmin, p1, p2).
+        :rtype: tuple
+        """
+        return ShapeTools.min_distance(self, other)

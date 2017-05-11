@@ -10,6 +10,7 @@ from ..frame import Frame
 from ..rib import Rib
 from ..skin import Skin
 from ..spar import Spar
+from ..stiffeners import Stiffener1D
 from ..surface_part import SurfacePart
 from ...geometry import CheckGeom, CreateGeom, IntersectGeom
 from ...oml import CheckOML
@@ -583,3 +584,30 @@ def create_wing_parts_along_curve(etype, label, wing, curve, geom1, geom2,
 
     # TODO Create stringer
     # def create_stringer_from_section()
+
+
+def add_stiffener1d_to_surface_part(surface_part, stiffener, label):
+    """
+    Add a 1-D stiffener to a surface part. 
+    """
+    # If stiffener is already a Stiffener part, split the two parts.
+    # Otherwise, find the intersection and create the stiffener.
+    if not isinstance(stiffener, Stiffener1D):
+        shape = ShapeTools.to_shape(stiffener)
+        if not shape:
+            return None
+        edges = ShapeTools.bsection(surface_part, shape, 'edge')
+        if not edges:
+            return None
+        wires = ShapeTools.connect_edges(edges)
+        if not wires:
+            return None
+        if len(wires) == 1:
+            curve_shape = wires[0]
+        else:
+            curve_shape = ShapeTools.make_compound(wires)
+        stiffener = Stiffener1D(label, curve_shape)
+
+    # Split the parts.
+    surface_part.split(stiffener)
+    return stiffener

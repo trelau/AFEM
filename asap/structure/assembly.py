@@ -220,6 +220,21 @@ class AssemblyData(object):
         return True
 
     @classmethod
+    def get_part(cls, label, assy=None):
+        """
+        Get a part from the assembly.
+        
+        :param label: 
+        :param assy:
+         
+        :return: 
+        """
+        assy = cls.get_assy(assy)
+        if not isinstance(assy, Assembly):
+            return None
+        return assy.get_part(label)
+
+    @classmethod
     def get_parts(cls, assy=None, include_subassy=True):
         """
         Get parts from assembly.

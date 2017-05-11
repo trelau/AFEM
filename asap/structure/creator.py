@@ -1,10 +1,12 @@
-from .methods.create_parts import create_bulkhead_by_sref, create_curve_part, \
-    create_curve_part_by_section, create_floor_by_sref, create_frame_by_sref, \
-    create_frames_at_shapes, create_frames_between_planes, \
-    create_skin_from_body, create_skin_from_solid, create_surface_part, \
-    create_wing_part_between_geom, create_wing_part_by_params, \
-    create_wing_part_by_points, create_wing_part_by_sref, \
-    create_wing_parts_along_curve, create_wing_parts_between_planes
+from .methods.create_parts import add_stiffener1d_to_surface_part, \
+    create_bulkhead_by_sref, create_curve_part, create_curve_part_by_section, \
+    create_floor_by_sref, create_frame_by_sref, create_frames_at_shapes, \
+    create_frames_between_planes, create_skin_from_body, \
+    create_skin_from_solid, create_surface_part, \
+    create_wing_part_between_geom, \
+    create_wing_part_by_params, create_wing_part_by_points, \
+    create_wing_part_by_sref, create_wing_parts_along_curve, \
+    create_wing_parts_between_planes
 
 
 class CreateSpar(object):
@@ -421,3 +423,20 @@ class CreatePart(object):
         :return: :class:`.SurfacePart`
         """
         return create_surface_part(label, surface_shape, bodies)
+
+    @staticmethod
+    def add_stiffener1d(part, label, stiffener):
+        """
+        Add a 1-D stiffener to the surface part.
+
+        :param part:
+        :param label:
+        :param stiffener: 
+
+        :return: 
+        """
+        stiffener = add_stiffener1d_to_surface_part(part, stiffener, label)
+        if not stiffener:
+            return None
+        part.add_subpart(stiffener.label, stiffener)
+        return stiffener

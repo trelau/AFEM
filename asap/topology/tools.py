@@ -1,7 +1,8 @@
 from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_COMMON, BOPAlgo_CUT, \
     BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_SECTION
 from OCC.BRep import BRep_Builder, BRep_Tool
-from OCC.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_Surface, BRepAdaptor_CompCurve
+from OCC.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve, \
+    BRepAdaptor_Surface
 from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
     BRepAlgoAPI_Fuse, BRepAlgoAPI_Section
@@ -274,7 +275,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                    shape.ShapeType() == TopAbs_COMPSOLID):
+                shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -1747,3 +1748,28 @@ class ShapeTools(object):
         e = BRepBuilderAPI_MakeEdge(p0, p1).Edge()
         w = BRepBuilderAPI_MakeWire(e).Wire()
         return w
+
+    @staticmethod
+    def min_distance(shape1, shape2):
+        """
+        Find the minimum distance between two shapes.
+        
+        :param shape1: 
+        :param shape2: 
+        :return: 
+        """
+        shape1 = ShapeTools.to_shape(shape1)
+        shape2 = ShapeTools.to_shape(shape2)
+        if not shape1 or not shape2:
+            return None, None, None
+
+        dist = BRepExtrema_DistShapeShape(shape1, shape2)
+        if not dist.IsDone():
+            return None, None, None
+
+        dmin = dist.Value()
+        p1 = dist.PointOnShape1(1)
+        p2 = dist.PointOnShape2(1)
+        p1 = CheckGeom.to_point(p1)
+        p2 = CheckGeom.to_point(p2)
+        return dmin, p1, p2
