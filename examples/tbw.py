@@ -73,7 +73,7 @@ rc_spar = CreatePart.spar.between_geom('fc spar', wing, xz_plane,
 root_rib = CreatePart.rib.by_points('root rib', wing, fc_spar.p2, rc_spar.p2)
 
 # Strut rib where strut intersects.
-p0 = strut.eval(0.5, 1.)
+p0 = strut.ceval(0.5, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'xz')
 strut_rib = CreatePart.rib.by_sref('kink rib', wing, pln)
 
@@ -81,15 +81,15 @@ strut_rib = CreatePart.rib.by_sref('kink rib', wing, pln)
 tip_rib = CreatePart.rib.by_parameters('tip rib', wing, 0.15, 0.99, 0.70, 0.99)
 
 # Inboard front spar
-u = strut_rib.local_to_global(0.15)
-p2 = strut_rib.eval(u)
+u = strut_rib.local_to_global_u(0.15)
+p2 = strut_rib.ceval(u)
 pln = ShapeTools.plane_from_section(root_rib, fc_spar, p2)
 inbd_fspar = CreatePart.spar.by_points('inbd front spar', wing, root_rib.p1,
                                        p2, pln)
 
 # Inboard rear spar
-u = strut_rib.local_to_global(0.70)
-p2 = strut_rib.eval(u)
+u = strut_rib.local_to_global_u(0.70)
+p2 = strut_rib.ceval(u)
 pln = ShapeTools.plane_from_section(root_rib, rc_spar, p2)
 inbd_rspar = CreatePart.spar.by_points('inbd rear spar', wing, root_rib.p2,
                                        p2, pln)
@@ -105,7 +105,7 @@ outbd_rspar = CreatePart.spar.by_points('outbd rear spar', wing,
                                         inbd_rspar.p2, tip_rib.p2, pln)
 
 # Jury rib where strut intersects.
-p0 = jury.eval(0.5, 1.)
+p0 = jury.ceval(0.5, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'xz')
 jury_rib = CreatePart.rib.between_geom('jury rib', wing, inbd_fspar.sref,
                                        inbd_rspar.sref, pln)
@@ -285,11 +285,11 @@ all_parts.append(shape)
 # GEAR ------------------------------------------------------------------------
 AssemblyData.create_assy('gear assy')
 
-p0 = gear.eval(0.15, 1.)
+p0 = gear.ceval(0.15, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'yz')
 spar1 = CreatePart.spar.by_sref('gear spar 1', gear, pln)
 
-p0 = gear.eval(0.70, 1.)
+p0 = gear.ceval(0.70, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'yz')
 spar2 = CreatePart.spar.by_sref('gear spar 2', gear, pln)
 

@@ -12,15 +12,6 @@ class WingPart(SurfacePart):
     def __init__(self, label, shape, cref=None, sref=None):
         super(WingPart, self).__init__(label, shape, cref, sref)
 
-    def eval(self, u):
-        """
-        Evaluate point on reference curve.
-
-        :param u:
-        :return:
-        """
-        return self.ceval(u)
-
     def discard(self, shape=None, tol=None):
         """
         Discard faces of the part that are inside the solid or use automated

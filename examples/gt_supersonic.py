@@ -44,23 +44,23 @@ outbd_tip_rib = CreatePart.rib.by_sref('outbd tip rib', wing, pln)
 
 # Outbd front spar
 p1 = outbd_rib.p1
-u = outbd_tip_rib.local_to_global(0.15)
-p2 = outbd_tip_rib.eval(u)
+u = outbd_tip_rib.local_to_global_u(0.15)
+p2 = outbd_tip_rib.ceval(u)
 outbd_fspar = CreatePart.spar.by_points('outbd front spar', wing,
                                         p1, p2)
 
 # Outbd rear spar
 p1 = outbd_rib.p2
-u = outbd_tip_rib.local_to_global(0.80)
-p2 = outbd_tip_rib.eval(u)
+u = outbd_tip_rib.local_to_global_u(0.80)
+p2 = outbd_tip_rib.ceval(u)
 outbd_rspar = CreatePart.spar.by_points('outbd rear spar', wing,
                                         p1, p2)
 
 # Outbd mid spar
-u = outbd_rib.local_to_global(0.5)
-p1 = outbd_rib.eval(u)
-u = outbd_tip_rib.local_to_global(0.5)
-p2 = outbd_tip_rib.eval(u)
+u = outbd_rib.local_to_global_u(0.5)
+p1 = outbd_rib.ceval(u)
+u = outbd_tip_rib.local_to_global_u(0.5)
+p2 = outbd_tip_rib.ceval(u)
 outbd_mspar = CreatePart.spar.by_points('outbd mid spar', wing,
                                         p1, p2)
 
@@ -92,8 +92,8 @@ center_rib = CreatePart.rib.by_parameters('center rib', wing, 0., 0.,
                                           1., 0., pln)
 
 # Front inbd spar
-u = center_rib.local_to_global(0.05)
-p1 = center_rib.eval(u)
+u = center_rib.local_to_global_u(0.05)
+p1 = center_rib.ceval(u)
 p2 = outbd_rib.p1
 pln = ShapeTools.plane_from_section(outbd_rib, outbd_fspar, p1)
 inbd_fspar = CreatePart.spar.by_points('inbd front spar', wing, p1, p2, pln)

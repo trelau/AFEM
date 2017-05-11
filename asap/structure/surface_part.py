@@ -9,7 +9,7 @@ from .methods.modify_parts import add_stiffener_to_surface_part, \
     discard_faces_by_distance, discard_faces_by_solid, unify_surface_part
 from .methods.sew_parts import sew_surface_parts
 from .part import Part
-from .stiffener import Stiffener
+from .stiffeners import Stiffener1D
 from ..fem import MeshData
 from ..fem.elements import Elm2D
 from ..topology import ShapeTools
@@ -20,20 +20,9 @@ class SurfacePart(Part):
     Base class for surface-based parts.
     """
 
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(SurfacePart, self).__init__(label, shape, cref, sref)
-
-    @property
-    def faces(self):
-        return ShapeTools.get_faces(self)
-
-    @property
-    def edges(self):
-        return ShapeTools.get_edges(self)
-
-    @property
-    def nfaces(self):
-        return len(self.faces)
+    def __init__(self, label, shape, cref=None, sref=None, add_to_assy=True):
+        super(SurfacePart, self).__init__(label, shape, cref, sref,
+                                          add_to_assy)
 
     @property
     def reshapes(self):
@@ -41,7 +30,7 @@ class SurfacePart(Part):
 
     @property
     def stiffeners(self):
-        return [part for part in self.subparts if isinstance(part, Stiffener)]
+        return [part for part in self.subparts if isinstance(part, Stiffener1D)]
 
     @property
     def elements(self):

@@ -43,23 +43,23 @@ pln = CreateGeom.plane_by_axes(p0, 'xz')
 tip_rib = CreatePart.rib.by_sref('tip rib', wing, pln)
 
 # Rear spar
-u = root_rib.local_to_global(0.70)
-p1 = root_rib.eval(u)
-u = tip_rib.local_to_global(0.70)
-p2 = tip_rib.eval(u)
+u = root_rib.local_to_global_u(0.70)
+p1 = root_rib.ceval(u)
+u = tip_rib.local_to_global_u(0.70)
+p2 = tip_rib.ceval(u)
 rspar = CreatePart.spar.by_points('rear spar', wing, p1, p2)
 
 # Front inboard spar
-u = root_rib.local_to_global(0.15)
-p1 = root_rib.eval(u)
+u = root_rib.local_to_global_u(0.15)
+p1 = root_rib.ceval(u)
 v = wing.vknots[1]
 p2 = wing.eval(0.15, v)
 inbd_fspar = CreatePart.spar.by_points('inbd front spar', wing, p1, p2)
 
 # Front outboard spar
 p1 = inbd_fspar.p2
-u = tip_rib.local_to_global(0.15)
-p2 = tip_rib.eval(u)
+u = tip_rib.local_to_global_u(0.15)
+p2 = tip_rib.ceval(u)
 outbd_fspar = CreatePart.spar.by_points('outbd front spar', wing, p1, p2)
 
 # Kink rib

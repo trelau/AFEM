@@ -7,7 +7,7 @@ from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.ShapeUpgrade import ShapeUpgrade_UnifySameDomain
 from OCC.TopAbs import TopAbs_IN
 
-from ..stiffener import Stiffener
+from ..stiffeners import Stiffener1D
 from ...config import Settings
 from ...geometry import CreateGeom
 from ...topology import ShapeTools
@@ -128,7 +128,7 @@ def add_stiffener_to_surface_part(surface_part, stiffener, label):
     """
     # If stiffener is already a Stiffener part, split the two parts.
     # Otherwise, find the intersection and create the stiffener.
-    if not isinstance(stiffener, Stiffener):
+    if not isinstance(stiffener, Stiffener1D):
         shape = ShapeTools.to_shape(stiffener)
         if not shape:
             return None
@@ -142,7 +142,7 @@ def add_stiffener_to_surface_part(surface_part, stiffener, label):
             curve_shape = wires[0]
         else:
             curve_shape = ShapeTools.make_compound(wires)
-        stiffener = Stiffener(label, curve_shape)
+        stiffener = Stiffener1D(label, curve_shape)
 
     # Split the parts.
     surface_part.split(stiffener)

@@ -33,7 +33,7 @@ class Part(TopoDS_Shape, ViewableItem):
         # Set attributes
         self._label = label
         shape = ShapeTools.to_shape(shape)
-        # TODO Raise error if not a shape.
+        assert isinstance(shape, TopoDS_Shape), "Invalid shape used in Part."
         self.set_shape(shape)
         self.set_cref(cref)
         self.set_sref(sref)
@@ -104,6 +104,22 @@ class Part(TopoDS_Shape, ViewableItem):
             return self._cref.eval(self._cref.u2)
         except AttributeError:
             return None
+
+    @property
+    def edges(self):
+        return ShapeTools.get_edges(self)
+
+    @property
+    def nedges(self):
+        return len(self.edges)
+
+    @property
+    def faces(self):
+        return ShapeTools.get_faces(self)
+
+    @property
+    def nfaces(self):
+        return len(self.faces)
 
     def nullify(self):
         """
@@ -236,7 +252,7 @@ class Part(TopoDS_Shape, ViewableItem):
         self._sref = sref
         return True
 
-    def local_to_global(self, u):
+    def local_to_global_u(self, u):
         """
         Convert local parameter from 0 <= u <= 1 to u1 <= u <= u2.
 
