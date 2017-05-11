@@ -282,7 +282,7 @@ class Part(TopoDS_Shape, ViewableItem):
         except AttributeError:
             return None
 
-    def ceval(self, u):
+    def eval_cref(self, u):
         """
         Evaluate point on reference curve.
 
@@ -294,7 +294,7 @@ class Part(TopoDS_Shape, ViewableItem):
         except AttributeError:
             return None
 
-    def seval(self, u, v):
+    def eval_sref(self, u, v):
         """
         Evaluate point on reference surface.
 
