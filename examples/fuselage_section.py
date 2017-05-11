@@ -61,7 +61,6 @@ for frame in frames:
     shape = ShapeTools.make_prism(shape, [0, -floor_beam_height, 0])
     name = ' '.join(['floor beam', str(i)])
     beam = CreatePart.surface_part(name, shape)
-    beam.set_shape(shape)
     beam.cut(rev_cylinder)
     # Post
     name = ' '.join(['left floor post', str(i)])

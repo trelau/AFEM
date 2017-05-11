@@ -6,5 +6,5 @@ class Skin(SurfacePart):
     Skin part.
     """
 
-    def __init__(self, name, surface_shape):
-        super(Skin, self).__init__(name, surface_shape)
+    def __init__(self, name, shape, cref=None, sref=None):
+        super(Skin, self).__init__(name, shape, cref, sref)

@@ -221,7 +221,6 @@ def build_wingbox(wing, params):
 
     # SKIN --------------------------------------------------------------------
     skin = CreatePart.surface_part('wing skin', wing.shell)
-    skin.set_shape(wing.shell)
 
     # Join the wing skin and internal structure
     skin.fuse(*internal_parts)

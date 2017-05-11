@@ -6,5 +6,5 @@ class Floor(FuselagePart):
     Floor.
     """
 
-    def __init__(self, label, surface_shape):
-        super(Floor, self).__init__(label, surface_shape)
+    def __init__(self, label, shape, cref=None, sref=None):
+        super(Floor, self).__init__(label, shape, cref, sref)

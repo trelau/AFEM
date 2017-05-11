@@ -2,9 +2,7 @@ from OCC.SMESH import SMESH_Mesh
 from OCC.TopAbs import TopAbs_COMPSOLID, TopAbs_SOLID
 from OCC.TopoDS import TopoDS_Shape
 
-from .methods.build_parts import build_surface_part
 from .methods.explore_parts import get_shared_edges, get_shared_nodes
-from .methods.form_parts import form_with_solid
 from .methods.fuse_parts import fuse_surface_part
 from .methods.merge_parts import merge_surface_part
 from .methods.modify_parts import add_stiffener_to_surface_part, \
@@ -22,20 +20,8 @@ class SurfacePart(Part):
     Base class for surface-based parts.
     """
 
-    def __init__(self, label, surface_shape):
-        super(SurfacePart, self).__init__(label)
-        self._surface_shape = ShapeTools.to_shape(surface_shape)
-        self._fshapes = set()
-        self._sref = None
-        self._set_sref()
-
-    @property
-    def surface_shape(self):
-        return self._surface_shape
-
-    @property
-    def fshapes(self):
-        return list(self._fshapes)
+    def __init__(self, label, shape, cref=None, sref=None):
+        super(SurfacePart, self).__init__(label, shape, cref, sref)
 
     @property
     def faces(self):
@@ -48,10 +34,6 @@ class SurfacePart(Part):
     @property
     def nfaces(self):
         return len(self.faces)
-
-    @property
-    def sref(self):
-        return self._sref
 
     @property
     def reshapes(self):
@@ -87,57 +69,6 @@ class SurfacePart(Part):
             for n in e.nodes:
                 node_set.add(n)
         return node_set
-
-    def _set_sref(self):
-        """
-        Set part reference surface is available.
-        """
-        if not self._surface_shape or self._surface_shape.IsNull():
-            return False
-
-        # Use largest face of surface shape.
-        faces = ShapeTools.get_faces(self._surface_shape)
-        if not faces:
-            return False
-        face = ShapeTools.largest_face(faces)
-        if not face:
-            return False
-
-        # Convert to ASAP surface.
-        sref = ShapeTools.surface_of_face(face)
-        if not sref:
-            return False
-
-        self._sref = sref
-        return True
-
-    def form(self, *bodies):
-        """
-        Form part with bodies.
-
-        :param bodies:
-
-        :return:
-        """
-        status = {}
-        for body in bodies:
-            shape = form_with_solid(self._surface_shape, body)
-            if not shape:
-                status[body] = False
-            else:
-                self._fshapes.add(shape)
-                status[body] = True
-        return status
-
-    def build(self, unify=False):
-        """
-        Build the part shape.
-
-        :param bool unify:
-
-        :return:
-        """
-        return build_surface_part(self, unify)
 
     def fuse(self, *other_parts):
         """

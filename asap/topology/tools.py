@@ -1,7 +1,7 @@
 from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_COMMON, BOPAlgo_CUT, \
     BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_SECTION
 from OCC.BRep import BRep_Builder, BRep_Tool
-from OCC.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_Surface
+from OCC.BRepAdaptor import BRepAdaptor_Curve, BRepAdaptor_Surface, BRepAdaptor_CompCurve
 from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
     BRepAlgoAPI_Fuse, BRepAlgoAPI_Section
@@ -522,8 +522,12 @@ class ShapeTools(object):
 
         :return:
         """
-        crv_data = _brep_tool.Curve(edge)
-        adp_crv = GeomAdaptor_Curve(crv_data[0])
+        edge = ShapeTools.to_edge(edge)
+        if not edge:
+            return None
+        # crv_data = _brep_tool.Curve(edge)
+        # adp_crv = GeomAdaptor_Curve(crv_data[0])
+        adp_crv = BRepAdaptor_Curve(edge)
         if adp_crv.GetType() == GeomAbs_Line:
             gp_lin = adp_crv.Line()
             crv = Line(gp_lin)
@@ -533,6 +537,43 @@ class ShapeTools(object):
             crv = create_nurbs_curve_from_occ(crv)
             return crv
         return None
+
+    @staticmethod
+    def curve_of_wire(wire):
+        """
+        Get the curve of the wire.
+        
+        :return: 
+        """
+        wire = ShapeTools.to_wire(wire)
+        if not wire:
+            return None
+        adp_crv = BRepAdaptor_CompCurve(wire)
+        if adp_crv.GetType() == GeomAbs_Line:
+            gp_lin = adp_crv.Line()
+            crv = Line(gp_lin)
+            return crv
+        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
+            crv = adp_crv.BSpline().GetObject()
+            crv = create_nurbs_curve_from_occ(crv)
+            return crv
+        return None
+
+    @staticmethod
+    def curve_of_shape(shape):
+        """
+        Get the curve of the shape if possible.
+        
+        :param shape: 
+        :return: 
+        """
+        shape = ShapeTools.to_shape(shape)
+        if isinstance(shape, TopoDS_Edge):
+            return ShapeTools.curve_of_edge(shape)
+        elif isinstance(shape, TopoDS_Wire):
+            return ShapeTools.curve_of_wire(shape)
+        else:
+            return None
 
     @staticmethod
     def surface_of_face(face):
@@ -554,6 +595,22 @@ class ShapeTools(object):
             return create_nurbs_surface_from_occ(occ_srf)
 
         return None
+
+    @staticmethod
+    def surface_of_shape(shape):
+        """
+        Get the surface of the largest face in the shape.
+        
+        :param shape: 
+        :return: 
+        """
+        faces = ShapeTools.get_faces(shape)
+        if not faces:
+            return None
+        f = ShapeTools.largest_face(faces)
+        if not f:
+            return None
+        return ShapeTools.surface_of_face(f)
 
     @staticmethod
     def sew_faces(faces, tol=None):

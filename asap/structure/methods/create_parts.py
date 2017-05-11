@@ -1,3 +1,4 @@
+from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_FUSE
 from OCC.BRep import BRep_Tool
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakeWire
 from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset
@@ -18,15 +19,92 @@ from ...utils import pairwise
 _brep_tool = BRep_Tool()
 
 
+def _form_with_solid(shape, solid):
+    """
+    Form common shapes.
+    """
+    # Perform BOP Common and get the resulting faces.
+    faces = ShapeTools.bcommon(shape, solid, 'face')
+    if not faces:
+        faces = _hack_form_planar(shape, solid)
+    if not faces:
+        return None
+
+    # Put all faces in a compound
+    compound = ShapeTools.make_compound(faces)
+    return compound
+
+
+def _hack_form_planar(shape, solid):
+    """
+    Hopefully a temporary hack for a failing BOP with a planar shape.
+    """
+    edges = ShapeTools.bsection(shape, solid, 'edge')
+    if not edges:
+        return []
+
+    wires = ShapeTools.connect_edges(edges)
+    if not wires:
+        return []
+
+    faces = []
+    for w in wires:
+        if not w.Closed():
+            continue
+        builder = BRepBuilderAPI_MakeFace(w, True)
+        if builder.IsDone():
+            faces.append(builder.Face())
+    return faces
+
+
+def _build_surface_part(surface_shape, bodies):
+    """
+    Build surface part shape.
+    """
+    # Find common shapes.
+    shapes = []
+    for body in bodies:
+        shape = _form_with_solid(surface_shape, body)
+        if not shape:
+            continue
+        shapes.append(shape)
+    if len(shapes) == 0:
+        return None
+
+    # Fuse shapes.
+    if len(shapes) > 1:
+        # Use BOP Fuse algorithm to fuse together all common shapes.
+        bop = BOPAlgo_BOP()
+        bop.SetOperation(BOPAlgo_FUSE)
+        bop.AddArgument(shapes[0])
+        for shape in shapes[1:]:
+            bop.AddTool(shape)
+        bop.Perform()
+        if bop.ErrorStatus() != 0:
+            return None
+        shape = bop.Shape()
+    else:
+        shape = shapes[0]
+
+    return shape
+
+
 def create_curve_part(label, curve_shape):
     """
     Create a curve part.
     """
-    shape = ShapeTools.to_shape(curve_shape)
-    if not shape:
+    cref = None
+    if CheckGeom.is_curve_like(curve_shape):
+        cref = curve_shape
+
+    curve_shape = ShapeTools.to_shape(curve_shape)
+    if not curve_shape:
         return None
 
-    return CurvePart(label, shape)
+    if not cref:
+        cref = ShapeTools.curve_of_shape(curve_shape)
+
+    return CurvePart(label, curve_shape, cref)
 
 
 def create_curve_part_by_section(label, shape1, shape2):
@@ -49,36 +127,51 @@ def create_curve_part_by_section(label, shape1, shape2):
 
     # Create shape for curve part.
     if len(wires) == 1:
-        shape = wires[0]
+        wire = wires[0]
     else:
-        shape = ShapeTools.make_compound(wires)
+        wire = ShapeTools.longest_wire(wires)
 
-    return CurvePart(label, shape)
+    return create_curve_part(label, wire)
 
 
-def create_surface_part(label, surface_shape, *bodies):
+def create_surface_part(label, surface_shape, bodies=()):
     """
     Create a surface part.
     """
+    sref = None
+    if CheckGeom.is_surface_like(surface_shape):
+        sref = surface_shape
+
     surface_shape = ShapeTools.to_shape(surface_shape)
     if not surface_shape:
         return None
 
-    part = SurfacePart(label, surface_shape)
+    if not sref:
+        sref = ShapeTools.surface_of_shape(surface_shape)
 
-    for b in bodies:
-        part.form(b)
+    # Return shape is no bodies are provided.
+    if not bodies:
+        return SurfacePart(label, surface_shape, sref=sref)
 
-    return part
+    # Build part shape.
+    shape = _build_surface_part(surface_shape, bodies)
+    if not shape:
+        return None
+
+    return SurfacePart(label, shape, sref=sref)
 
 
 def create_wing_part_by_params(etype, label, wing, u1, v1, u2, v2,
-                               surface_shape, build):
+                               surface_shape, bodies=()):
     """
-    Create a spar by parameters.
+    Create a wing part by parameters.
     """
     if not CheckOML.is_wing(wing):
         return None
+
+    sref = None
+    if CheckGeom.is_surface_like(surface_shape):
+        sref = surface_shape
 
     # If the reference surface is None, use a plane normal to the wing
     # reference surface at (u1, v1). If it is surface-like, convert it to a
@@ -86,36 +179,38 @@ def create_wing_part_by_params(etype, label, wing, u1, v1, u2, v2,
     surface_shape = ShapeTools.to_shape(surface_shape)
     if surface_shape is None:
         pln = wing.extract_plane((u1, v1), (u2, v2))
+        sref = pln
         if not pln:
             return None
         surface_shape = ShapeTools.to_face(pln)
     if not surface_shape:
         return None
 
+    # Build reference surface.
+    if not sref:
+        sref = ShapeTools.surface_of_shape(surface_shape)
+
+    # Build reference curve.
+    cref = wing.extract_curve((u1, v1), (u2, v2), surface_shape)
+
+    # Build part shape.
+    shape = _build_surface_part(surface_shape, [wing] + list(bodies))
+    if not shape:
+        return None
+
     # Create the wing part.
     if etype in ['spar']:
-        wing_part = Spar(label, surface_shape)
+        wing_part = Spar(label, shape, cref, sref)
     else:
-        wing_part = Rib(label, surface_shape)
-
-    # Set reference curve.
-    cref = wing.extract_curve((u1, v1), (u2, v2), surface_shape)
-    if cref:
-        wing_part.set_cref(cref)
-
-    # Form with wing.
-    wing_part.form(wing)
-
-    if build:
-        wing_part.build()
+        wing_part = Rib(label, shape, cref, sref)
 
     return wing_part
 
 
 def create_wing_part_by_points(etype, label, wing, p1, p2, surface_shape,
-                               build):
+                               bodies=()):
     """
-    Create a spar between points.
+    Create a wing part between points.
     """
     if not CheckOML.is_wing(wing):
         return None
@@ -131,15 +226,19 @@ def create_wing_part_by_points(etype, label, wing, p1, p2, surface_shape,
         return None
 
     return create_wing_part_by_params(etype, label, wing, u1, v1, u2, v2,
-                                      surface_shape, build)
+                                      surface_shape, bodies)
 
 
-def create_wing_part_by_sref(etype, label, wing, surface_shape, build):
+def create_wing_part_by_sref(etype, label, wing, surface_shape, bodies=()):
     """
     Create wing part by reference surface.
     """
     if not CheckOML.is_wing(wing):
         return None
+
+    sref = None
+    if CheckGeom.is_surface_like(surface_shape):
+        sref = surface_shape
 
     surface_shape = ShapeTools.to_shape(surface_shape)
     if not surface_shape:
@@ -156,12 +255,12 @@ def create_wing_part_by_sref(etype, label, wing, surface_shape, build):
     if not wires:
         return None
 
-    # Use only one wire and concatenate and create reference curve.
+    # Use only one wire and create reference curve.
     w = ShapeTools.longest_wire(wires)
     e = ShapeTools.concatenate_wire(w)
     cref = ShapeTools.curve_of_edge(e)
 
-    # Orient the cref such that its first point is closest to the corner of
+    # Orient cref such that its first point is closest to the corner of
     # the wing.
     umin, vmin = wing.sref.u1, wing.sref.v1
     p0 = wing.eval(umin, vmin)
@@ -172,22 +271,26 @@ def create_wing_part_by_sref(etype, label, wing, surface_shape, build):
     if d2 < d1:
         cref.reverse()
 
+    # Build reference surface.
+    if not sref:
+        sref = ShapeTools.surface_of_shape(surface_shape)
+
+    # Build part shape.
+    shape = _build_surface_part(surface_shape, [wing] + list(bodies))
+    if not shape:
+        return None
+
     # Create the wing part.
     if etype in ['spar']:
-        wing_part = Spar(label, surface_shape)
+        wing_part = Spar(label, shape, cref, sref)
     else:
-        wing_part = Rib(label, surface_shape)
-    wing_part.set_cref(cref)
-    wing_part.form(wing)
-
-    if build:
-        wing_part.build()
+        wing_part = Rib(label, shape, cref, sref)
 
     return wing_part
 
 
 def create_wing_part_between_geom(etype, label, wing, geom1, geom2,
-                                  surface_shape, build):
+                                  surface_shape, bodies=()):
     """
     Create a wing part between geometry.
     """
@@ -227,18 +330,22 @@ def create_wing_part_between_geom(etype, label, wing, geom1, geom2,
     p2 = ci.point(1)
 
     return create_wing_part_by_points(etype, label, wing, p1, p2,
-                                      surface_shape, build)
+                                      surface_shape, bodies)
 
 
 def create_frame_by_sref(label, fuselage, surface_shape, h):
     """
     Create a frame using a reference shape.
     """
-    surface_shape = ShapeTools.to_face(surface_shape)
-    if not surface_shape:
+    if not CheckOML.is_fuselage(fuselage):
         return None
 
-    if not CheckOML.is_fuselage(fuselage):
+    sref = None
+    if CheckGeom.is_surface_like(surface_shape):
+        sref = surface_shape
+
+    surface_shape = ShapeTools.to_shape(surface_shape)
+    if not surface_shape:
         return None
 
     # Find initial face using BOP Common.
@@ -246,7 +353,7 @@ def create_frame_by_sref(label, fuselage, surface_shape, h):
     if not faces:
         return None
 
-    outer_face = faces[0]
+    outer_face = ShapeTools.largest_face(faces)
     offset = BRepOffsetAPI_MakeOffset()
     outer_wire = ShapeTools.outer_wire(outer_face)
     offset.AddWire(outer_wire)
@@ -270,58 +377,72 @@ def create_frame_by_sref(label, fuselage, surface_shape, h):
     if not shape:
         return None
 
-    # Create the frame.
-    frame = Frame(label, surface_shape)
+    # Build reference surface.
+    if not sref:
+        sref = ShapeTools.surface_of_shape(surface_shape)
 
-    # Set Frame shape.
-    frame.set_shape(shape)
+    # Build reference curve.
+    # TODO Build reference curve of frame using outer wire.
+    cref = ShapeTools.curve_of_wire(outer_wire)
+
+    # Create the frame.
+    frame = Frame(label, shape, cref, sref)
+
     return frame
 
 
-def create_bulkhead_by_sref(label, fuselage, surface_shape, build):
+def create_bulkhead_by_sref(label, fuselage, surface_shape, bodies=()):
     """
     Create a bulkhead using a reference shape.
     """
     if not CheckOML.is_fuselage(fuselage):
         return None
 
-    surface_shape = ShapeTools.to_face(surface_shape)
+    sref = None
+    if CheckGeom.is_surface_like(surface_shape):
+        sref = surface_shape
+
+    surface_shape = ShapeTools.to_shape(surface_shape)
     if not surface_shape:
         return None
 
+    # Build part shape.
+    shape = _build_surface_part(surface_shape, [fuselage] + list(bodies))
+    if not shape:
+        return None
+
+    if not sref:
+        sref = ShapeTools.surface_of_shape(surface_shape)
+
     # Create bulkhead.
-    bulkhead = Bulkhead(label, surface_shape)
-
-    # Form with fuselage.
-    bulkhead.form(fuselage)
-
-    if build:
-        bulkhead.build()
-
-    return bulkhead
+    return Bulkhead(label, shape, sref=sref)
 
 
-def create_floor_by_sref(label, fuselage, surface_shape, build):
+def create_floor_by_sref(label, fuselage, surface_shape, bodies=()):
     """
     Create a floor using a reference shape.
     """
     if not CheckOML.is_fuselage(fuselage):
         return None
 
+    sref = None
+    if CheckGeom.is_surface_like(surface_shape):
+        sref = surface_shape
+
     surface_shape = ShapeTools.to_face(surface_shape)
     if not surface_shape:
         return None
 
-    # Create bulkhead.
-    floor = Floor(label, surface_shape)
+    # Build part shape.
+    shape = _build_surface_part(surface_shape, [fuselage] + list(bodies))
+    if not shape:
+        return None
 
-    # Form with fuselage.
-    floor.form(fuselage)
+    if not sref:
+        sref = ShapeTools.surface_of_shape(surface_shape)
 
-    if build:
-        floor.build()
-
-    return floor
+    # Create floor.
+    return Floor(label, shape, sref=sref)
 
 
 def create_skin_from_body(label, body, copy=True):
@@ -335,7 +456,6 @@ def create_skin_from_body(label, body, copy=True):
     if copy:
         outer_shell = ShapeTools.copy_shape(outer_shell, False)
     skin = Skin(label, outer_shell)
-    skin.set_shape(outer_shell)
 
     return skin
 
@@ -352,7 +472,6 @@ def create_skin_from_solid(label, solid, copy=True):
     if copy:
         outer_shell = ShapeTools.copy_shape(outer_shell, False)
     skin = Skin(label, outer_shell)
-    skin.set_shape(outer_shell)
 
     return skin
 
@@ -425,7 +544,7 @@ def create_wing_parts_between_planes(etype, label, wing, planes, geom1, geom2,
     for pln in plns:
         rlabel = ' '.join([label, str(indx)])
         part = create_wing_part_between_geom(etype, rlabel, wing, geom1,
-                                             geom2, pln, True)
+                                             geom2, pln)
         if not part:
             continue
         parts.append(part)
@@ -452,7 +571,7 @@ def create_wing_parts_along_curve(etype, label, wing, curve, geom1, geom2,
     for pln in plns:
         rlabel = ' '.join([label, str(indx)])
         part = create_wing_part_between_geom(etype, rlabel, wing, geom1,
-                                             geom2, pln, True)
+                                             geom2, pln)
         if not part:
             continue
         parts.append(part)
@@ -460,4 +579,7 @@ def create_wing_parts_along_curve(etype, label, wing, curve, geom1, geom2,
 
     return parts
 
-# TODO Create wing parts between shapes.
+    # TODO Create wing parts between shapes.
+
+    # TODO Create stringer
+    # def create_stringer_from_section()

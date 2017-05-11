@@ -1,3 +1,4 @@
+from OCC.Geom import Geom_Curve, Geom_Surface
 from OCC.TopoDS import TopoDS_Shape
 
 from .assembly import AssemblyData
@@ -9,15 +10,22 @@ from ..topology import ShapeTools
 
 class Part(TopoDS_Shape, ViewableItem):
     """
-    Base class for all parts.
+    Part base.
     """
     _indx = 1
     _all = {}
 
-    def __init__(self, label, add_to_assy=True):
+    def __init__(self, label, shape, cref=None, sref=None,
+                 add_to_assy=True):
         super(Part, self).__init__()
         ViewableItem.__init__(self)
         self._label = label
+        shape = ShapeTools.to_shape(shape)
+        # TODO Raise error if not a shape.
+        self.set_shape(shape)
+        self._cref, self._sref = None, None
+        self.set_cref(cref)
+        self.set_sref(sref)
         self._metadata = {}
         self._subparts = {}
         self._id = Part._indx
@@ -59,6 +67,36 @@ class Part(TopoDS_Shape, ViewableItem):
     @property
     def subparts(self):
         return self._subparts.values()
+
+    @property
+    def cref(self):
+        return self._cref
+
+    @property
+    def sref(self):
+        return self._sref
+
+    @property
+    def has_cref(self):
+        return isinstance(self._cref, Geom_Curve)
+
+    @property
+    def has_sref(self):
+        return isinstance(self._sref, Geom_Surface)
+
+    @property
+    def p1(self):
+        try:
+            return self._cref.eval(self._cref.u1)
+        except AttributeError:
+            return None
+
+    @property
+    def p2(self):
+        try:
+            return self._cref.eval(self._cref.u2)
+        except AttributeError:
+            return None
 
     def nullify(self):
         """
@@ -164,3 +202,54 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: 
         """
         return split_part(self, splitter, split_both)
+
+    def set_cref(self, cref):
+        """
+        Set the part reference curve.
+
+        :param cref:
+
+        :return: 
+        """
+        if not isinstance(cref, Geom_Curve):
+            return False
+        self._cref = cref
+        return True
+
+    def set_sref(self, sref):
+        """
+        Set the part reference surface.
+        
+        :param sref:
+         
+        :return: 
+        """
+        if not isinstance(sref, Geom_Surface):
+            return False
+        self._sref = sref
+        return True
+
+    def ceval(self, u):
+        """
+        Evaluate point on reference curve.
+
+        :param u:
+        :return:
+        """
+        try:
+            return self._cref.eval(u)
+        except AttributeError:
+            return None
+
+    def seval(self, u, v):
+        """
+        Evaluate point on reference surface.
+
+        :param u:
+        :param v:
+        :return:
+        """
+        try:
+            return self._sref.eval(u, v)
+        except AttributeError:
+            return None

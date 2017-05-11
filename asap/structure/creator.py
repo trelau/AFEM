@@ -14,7 +14,7 @@ class CreateSpar(object):
 
     @staticmethod
     def by_parameters(label, wing, u1, v1, u2, v2, surface_shape=None,
-                      build=True):
+                      bodies=()):
         """
         Create a spar by wing parameters.
 
@@ -25,15 +25,15 @@ class CreateSpar(object):
         :param u2:
         :param v2:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
         return create_wing_part_by_params('spar', label, wing, u1, v1, u2, v2,
-                                          surface_shape, build)
+                                          surface_shape, bodies)
 
     @staticmethod
-    def by_points(label, wing, p1, p2, surface_shape=None, build=True):
+    def by_points(label, wing, p1, p2, surface_shape=None, bodies=()):
         """
         Create a spar by points.
 
@@ -42,30 +42,30 @@ class CreateSpar(object):
         :param p1:
         :param p2:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
         return create_wing_part_by_points('spar', label, wing, p1, p2,
-                                          surface_shape, build)
+                                          surface_shape, bodies)
 
     @staticmethod
-    def by_sref(label, wing, surface_shape, build=True):
+    def by_sref(label, wing, surface_shape, bodies=()):
         """
         Create a spar using a reference shape.
 
         :param label:
         :param wing:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
         return create_wing_part_by_sref('spar', label, wing, surface_shape,
-                                        build)
+                                        bodies)
 
     @staticmethod
-    def between_geom(label, wing, geom1, geom2, surface_shape, build=True):
+    def between_geom(label, wing, geom1, geom2, surface_shape, bodies=()):
         """
         Create a spar between geometry.
 
@@ -74,12 +74,12 @@ class CreateSpar(object):
         :param geom1:
         :param geom2:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
         return create_wing_part_between_geom('spar', label, wing, geom1, geom2,
-                                             surface_shape, build)
+                                             surface_shape, bodies)
 
     @staticmethod
     def between_planes(label, wing, planes, geom1, geom2, maxd=None,
@@ -136,7 +136,7 @@ class CreateRib(object):
 
     @staticmethod
     def by_parameters(label, wing, u1, v1, u2, v2, surface_shape=None,
-                      build=True):
+                      bodies=()):
         """
         Create a rib by wing parameters.
 
@@ -147,15 +147,15 @@ class CreateRib(object):
         :param u2:
         :param v2:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
         return create_wing_part_by_params('rib', label, wing, u1, v1, u2, v2,
-                                          surface_shape, build)
+                                          surface_shape, bodies)
 
     @staticmethod
-    def by_points(label, wing, p1, p2, surface_shape=None, build=True):
+    def by_points(label, wing, p1, p2, surface_shape=None, bodies=()):
         """
         Create a rib by points.
 
@@ -164,31 +164,31 @@ class CreateRib(object):
         :param p1:
         :param p2:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
         return create_wing_part_by_points('rib', label, wing, p1, p2,
                                           surface_shape,
-                                          build)
+                                          bodies)
 
     @staticmethod
-    def by_sref(label, wing, surface_shape, build=True):
+    def by_sref(label, wing, surface_shape, bodies=()):
         """
         Create a rib using a reference shape.
 
         :param label:
         :param wing:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
         return create_wing_part_by_sref('rib', label, wing, surface_shape,
-                                        build)
+                                        bodies)
 
     @staticmethod
-    def between_geom(label, wing, geom1, geom2, surface_shape, build=True):
+    def between_geom(label, wing, geom1, geom2, surface_shape, bodies=()):
         """
         Create a rib between geometry.
 
@@ -197,12 +197,12 @@ class CreateRib(object):
         :param geom1:
         :param geom2:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
         return create_wing_part_between_geom('rib', label, wing, geom1, geom2,
-                                             surface_shape, build)
+                                             surface_shape, bodies)
 
     @staticmethod
     def between_planes(label, wing, planes, geom1, geom2, maxd=None,
@@ -258,18 +258,18 @@ class CreateBulkhead(object):
     """
 
     @staticmethod
-    def by_sref(label, fuselage, surface_shape, build=True):
+    def by_sref(label, fuselage, surface_shape, bodies=()):
         """
         Create a bulkhead by reference shape.
 
         :param label:
         :param fuselage:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
-        return create_bulkhead_by_sref(label, fuselage, surface_shape, build)
+        return create_bulkhead_by_sref(label, fuselage, surface_shape, bodies)
 
 
 class CreateFloor(object):
@@ -278,18 +278,18 @@ class CreateFloor(object):
     """
 
     @staticmethod
-    def by_sref(label, fuselage, surface_shape, build=True):
+    def by_sref(label, fuselage, surface_shape, bodies=()):
         """
         Create a floor by reference shape.
 
         :param label:
         :param fuselage:
         :param surface_shape:
-        :param build:
+        :param bodies:
 
         :return:
         """
-        return create_floor_by_sref(label, fuselage, surface_shape, build)
+        return create_floor_by_sref(label, fuselage, surface_shape, bodies)
 
 
 class CreateFrame(object):
@@ -409,7 +409,7 @@ class CreatePart(object):
         return None
 
     @staticmethod
-    def surface_part(label, surface_shape, *bodies):
+    def surface_part(label, surface_shape, bodies=()):
         """
         Create a surface part.
 
@@ -420,4 +420,4 @@ class CreatePart(object):
         :return: Surface part or *None* if method fails.
         :return: :class:`.SurfacePart`
         """
-        return create_surface_part(label, surface_shape, *bodies)
+        return create_surface_part(label, surface_shape, bodies)

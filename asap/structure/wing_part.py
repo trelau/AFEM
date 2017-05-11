@@ -1,7 +1,7 @@
 from .methods.cut_parts import cut_wing_part_with_circle
 from .methods.modify_parts import discard_wing_part_faces
 from .surface_part import SurfacePart
-from ..geometry import CheckGeom, CreateGeom, ProjectGeom
+from ..geometry import CreateGeom, ProjectGeom
 from ..topology import ShapeTools
 
 
@@ -10,40 +10,8 @@ class WingPart(SurfacePart):
     Base class for wing parts.
     """
 
-    def __init__(self, label, surface_shape):
-        super(WingPart, self).__init__(label, surface_shape)
-        self._cref = None
-
-    @property
-    def cref(self):
-        return self._cref
-
-    @property
-    def p1(self):
-        try:
-            return self._cref.eval(self._cref.u1)
-        except AttributeError:
-            return None
-
-    @property
-    def p2(self):
-        try:
-            return self._cref.eval(self._cref.u2)
-        except AttributeError:
-            return None
-
-    def set_cref(self, cref):
-        """
-        Set reference curve of frame.
-
-        :param cref:
-
-        :return:
-        """
-        if CheckGeom.is_curve_like(cref):
-            self._cref = cref
-            return True
-        return False
+    def __init__(self, label, shape, cref=None, sref=None):
+        super(WingPart, self).__init__(label, shape, cref, sref)
 
     def local_to_global(self, u):
         """
