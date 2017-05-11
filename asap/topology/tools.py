@@ -18,7 +18,8 @@ from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepOffset import BRepOffset_Pipe, BRepOffset_RectoVerso, \
     BRepOffset_Skin
 from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset, \
-    BRepOffsetAPI_MakeOffsetShape, BRepOffsetAPI_MakePipeShell
+    BRepOffsetAPI_MakeOffsetShape, BRepOffsetAPI_MakePipeShell, \
+    BRepOffsetAPI_NormalProjection
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
@@ -1773,3 +1774,26 @@ class ShapeTools(object):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
         return dmin, p1, p2
+
+    @staticmethod
+    def normal_projection(basis_shape, to_project):
+        """
+        Perform the normal projection of a shape.
+        
+        :param basis_shape: 
+        :param to_project: 
+        :return: 
+        """
+        basis_shape = ShapeTools.to_shape(basis_shape)
+        to_project = ShapeTools.to_shape(to_project)
+        if not basis_shape or not to_project:
+            return []
+
+        proj = BRepOffsetAPI_NormalProjection(basis_shape)
+        proj.Add(to_project)
+        proj.Build()
+        if not proj.IsDone():
+            return []
+
+        shape = proj.Shape()
+        return ShapeTools.get_wires(shape)
