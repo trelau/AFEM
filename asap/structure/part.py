@@ -4,6 +4,7 @@ from OCC.TopoDS import TopoDS_Shape
 from .assembly import AssemblyData
 from .methods.cut_parts import cut_part
 from .methods.split_parts import split_part
+from ..geometry import ProjectGeom
 from ..graphics.viewer import ViewableItem
 from ..topology import ShapeTools
 
@@ -17,21 +18,27 @@ class Part(TopoDS_Shape, ViewableItem):
 
     def __init__(self, label, shape, cref=None, sref=None,
                  add_to_assy=True):
+        # Initialize
         super(Part, self).__init__()
         ViewableItem.__init__(self)
+        self._cref, self._sref = None, None
+        self._metadata = {}
+        self._subparts = {}
+
+        # Set ID
+        self._id = Part._indx
+        Part._all[self._id] = self
+        Part._indx += 1
+
+        # Set attributes
         self._label = label
         shape = ShapeTools.to_shape(shape)
         # TODO Raise error if not a shape.
         self.set_shape(shape)
-        self._cref, self._sref = None, None
         self.set_cref(cref)
         self.set_sref(sref)
-        self._metadata = {}
-        self._subparts = {}
-        self._id = Part._indx
-        Part._all[self._id] = self
-        Part._indx += 1
-        # Store in active assembly.
+
+        # Store in active assembly
         if add_to_assy:
             AssemblyData.add_parts(None, self)
         print('Creating part: ', label)
@@ -229,6 +236,19 @@ class Part(TopoDS_Shape, ViewableItem):
         self._sref = sref
         return True
 
+    def local_to_global(self, u):
+        """
+        Convert local parameter from 0 <= u <= 1 to u1 <= u <= u2.
+
+        :param u:
+
+        :return:
+        """
+        try:
+            return self._cref.local_to_global_param(u)
+        except AttributeError:
+            return None
+
     def ceval(self, u):
         """
         Evaluate point on reference curve.
@@ -253,3 +273,51 @@ class Part(TopoDS_Shape, ViewableItem):
             return self._sref.eval(u, v)
         except AttributeError:
             return None
+
+    def distribute_points(self, dx, s1=None, s2=None, u1=None, u2=None,
+                          shape1=None, shape2=None):
+        """
+        Create evenly distributed points along the reference curve.
+
+        :param dx:
+        :param float s1:
+        :param float s2:
+        :param float u1:
+        :param float u2:
+        :param shape1:
+        :param shape2:
+
+        :return:
+        """
+        if not self.has_cref:
+            return []
+
+        if isinstance(dx, int):
+            npts = dx
+            dx = None
+        else:
+            npts = None
+        return ShapeTools.points_along_shape(self.cref, dx, npts, u1, u2,
+                                             s1, s2, shape1, shape2)
+
+    def project_points(self, pnts):
+        """
+        Project points to reference curve.
+        """
+        if not self.has_cref:
+            return False
+        for p in pnts:
+            ProjectGeom.point_to_geom(p, self.cref, True)
+        return True
+
+    def invert(self, pnt):
+        """
+        Invert the point on the reference curve.
+
+        :param pnt:
+
+        :return:
+        """
+        if not self.has_cref:
+            return False
+        return ProjectGeom.invert(pnt, self.cref)

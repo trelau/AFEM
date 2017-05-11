@@ -1,8 +1,7 @@
 from .methods.cut_parts import cut_wing_part_with_circle
 from .methods.modify_parts import discard_wing_part_faces
 from .surface_part import SurfacePart
-from ..geometry import CreateGeom, ProjectGeom
-from ..topology import ShapeTools
+from ..geometry import CreateGeom
 
 
 class WingPart(SurfacePart):
@@ -13,19 +12,6 @@ class WingPart(SurfacePart):
     def __init__(self, label, shape, cref=None, sref=None):
         super(WingPart, self).__init__(label, shape, cref, sref)
 
-    def local_to_global(self, u):
-        """
-        Convert local parameter from 0 <= u <= 1 to u1 <= u <= u2.
-
-        :param u:
-
-        :return:
-        """
-        try:
-            return self._cref.local_to_global_param(u)
-        except AttributeError:
-            return None
-
     def eval(self, u):
         """
         Evaluate point on reference curve.
@@ -33,50 +19,7 @@ class WingPart(SurfacePart):
         :param u:
         :return:
         """
-        try:
-            return self._cref.eval(u)
-        except AttributeError:
-            return None
-
-    def distribute_points(self, dx, s1=None, s2=None, u1=None, u2=None,
-                          shape1=None, shape2=None):
-        """
-        Create evenly distributed points along the reference curve.
-
-        :param dx:
-        :param float s1:
-        :param float s2:
-        :param float u1:
-        :param float u2:
-        :param shape1:
-        :param shape2:
-
-        :return:
-        """
-        if isinstance(dx, int):
-            npts = dx
-            dx = None
-        else:
-            npts = None
-        return ShapeTools.points_along_shape(self.cref, dx, npts, u1, u2,
-                                             s1, s2, shape1, shape2)
-
-    def project_points(self, pnts):
-        """
-        Project points to reference curve.
-        """
-        for p in pnts:
-            ProjectGeom.point_to_geom(p, self.cref, True)
-
-    def invert(self, pnt):
-        """
-        Invert the point on the reference curve.
-
-        :param pnt:
-
-        :return:
-        """
-        return ProjectGeom.invert(pnt, self.cref)
+        return self.ceval(u)
 
     def discard(self, shape=None, tol=None):
         """
