@@ -13,3 +13,7 @@ class CurvePart(Part):
     @property
     def reshapes(self):
         return self.edges
+
+    @property
+    def length(self):
+        return ShapeTools.shape_length(self)

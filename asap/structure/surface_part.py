@@ -29,6 +29,10 @@ class SurfacePart(Part):
         return self.faces
 
     @property
+    def area(self):
+        return ShapeTools.shape_area(self)
+
+    @property
     def stiffeners(self):
         return [part for part in self.subparts if isinstance(part, Stiffener1D)]
 
