@@ -68,13 +68,13 @@ outbd_mspar = CreatePart.spar.by_points('outbd mid spar', wing,
 p0 = outbd_rspar.p1
 vnorm = outbd_rspar.cref.deriv(0., 1)
 ref_pln = CreateGeom.plane_by_normal(p0, vnorm)
-u2 = outbd_rib.invert(outbd_mspar.p1)
+u2 = outbd_rib.invert_cref(outbd_mspar.p1)
 ribs = CreatePart.rib.along_curve('outbd rib', wing, outbd_rib.cref,
                                   outbd_fspar.sref, outbd_rib.sref, 24.,
                                   s1=24., s2=-12., ref_pln=ref_pln, u2=u2)
 
 indx = len(ribs) + 1
-u2 = outbd_rib.invert(outbd_mspar.p1)
+u2 = outbd_rib.invert_cref(outbd_mspar.p1)
 ribs += CreatePart.rib.along_curve('outbd rib', wing, outbd_rib.cref,
                                    outbd_fspar.sref, outbd_rib.sref, 24.,
                                    s1=12, s2=-12., ref_pln=ref_pln, u1=u2,
@@ -100,28 +100,28 @@ inbd_fspar = CreatePart.spar.by_points('inbd front spar', wing, p1, p2, pln)
 
 # Inbd rear spar
 p1 = outbd_rib.p2
-center_rib.project_points([p1])
+center_rib.points_to_cref([p1])
 p2 = outbd_rib.p2
 pln = ShapeTools.plane_from_section(outbd_rib, outbd_rspar, p1)
 inbd_rspar = CreatePart.spar.by_points('inbd rear spar', wing, p1, p2, pln)
 
 # Inbd mid spar at outbd front spar intersection.
 p1 = outbd_rib.p1
-center_rib.project_points([p1])
+center_rib.points_to_cref([p1])
 p2 = outbd_rib.p2
 pln = ShapeTools.plane_from_section(outbd_rib, outbd_fspar, p1)
 inbd_mspar1 = CreatePart.spar.by_points('inbd mid spar 1', wing, p1, p2, pln)
 
 # Inbd mid spar at outbd mid spar intersection.
 p1 = outbd_mspar.p1
-center_rib.project_points([p1])
+center_rib.points_to_cref([p1])
 p2 = outbd_mspar.p1
 pln = ShapeTools.plane_from_section(outbd_rib, outbd_mspar, p1)
 inbd_mspar2 = CreatePart.spar.by_points('inbd mid spar 2', wing, p1, p2, pln)
 
 # Inbd forward spars
-u1 = center_rib.invert(inbd_fspar.p1)
-u2 = center_rib.invert(inbd_mspar1.p1)
+u1 = center_rib.invert_cref(inbd_fspar.p1)
+u2 = center_rib.invert_cref(inbd_mspar1.p1)
 spars = CreatePart.spar.along_curve('inbd fwd spar', wing, center_rib.cref,
                                     center_rib.sref, inbd_fspar.sref, 72,
                                     s1=72, s2=-72, u1=u1, u2=u2)
@@ -132,7 +132,7 @@ i = 1
 for spar in spars:
     p1 = spar.p2
     p2 = spar.p2
-    inbd_rspar.project_points([p2])
+    inbd_rspar.points_to_cref([p2])
     pln = ShapeTools.plane_from_section(inbd_fspar, spar, p2)
     name = ' '.join(['inbd rib', str(i)])
     CreatePart.spar.by_points(name, wing, p1, p2, pln)

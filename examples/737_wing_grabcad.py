@@ -65,12 +65,12 @@ outbd_fspar = CreatePart.spar.by_points('outbd front spar', wing, p1, p2)
 # Kink rib
 p1 = inbd_fspar.p2
 p2 = inbd_fspar.p2
-rspar.project_points([p2])
+rspar.points_to_cref([p2])
 pln = ShapeTools.plane_from_section(inbd_fspar, outbd_fspar, p2)
 kink_rib = CreatePart.rib.by_points('kink rib', wing, p1, p2, pln)
 
 # Inboard ribs
-u2 = rspar.invert(kink_rib.p2)
+u2 = rspar.invert_cref(kink_rib.p2)
 CreatePart.rib.along_curve('inbd rib', wing, rspar.cref,
                            inbd_fspar.sref, rspar.sref, 24., s1=12,
                            s2=-24, u2=u2)

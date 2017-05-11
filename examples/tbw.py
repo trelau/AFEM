@@ -111,7 +111,7 @@ jury_rib = CreatePart.rib.between_geom('jury rib', wing, inbd_fspar.sref,
                                        inbd_rspar.sref, pln)
 
 # Inboard ribs.
-u2 = inbd_rspar.invert(jury_rib.p2)
+u2 = inbd_rspar.invert_cref(jury_rib.p2)
 inbd_ribs = CreatePart.rib.along_curve('inbd rib', wing, inbd_rspar.cref,
                                        inbd_fspar.sref, inbd_rspar.sref,
                                        30., u2=u2, s1=18., s2=-30.)

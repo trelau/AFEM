@@ -290,10 +290,10 @@ class Part(TopoDS_Shape, ViewableItem):
         except AttributeError:
             return None
 
-    def distribute_points(self, dx, s1=None, s2=None, u1=None, u2=None,
-                          shape1=None, shape2=None):
+    def spaced_points(self, dx, s1=None, s2=None, u1=None, u2=None,
+                      shape1=None, shape2=None):
         """
-        Create evenly distributed points along the reference curve.
+        Create points along the reference curve.
 
         :param dx:
         :param float s1:
@@ -316,17 +316,29 @@ class Part(TopoDS_Shape, ViewableItem):
         return ShapeTools.points_along_shape(self.cref, dx, npts, u1, u2,
                                              s1, s2, shape1, shape2)
 
-    def project_points(self, pnts):
+    def points_to_cref(self, pnts):
         """
         Project points to reference curve.
         """
         if not self.has_cref:
             return False
+
         for p in pnts:
             ProjectGeom.point_to_geom(p, self.cref, True)
         return True
 
-    def invert(self, pnt):
+    def points_to_sref(self, pnts):
+        """
+        Project points to reference surface.
+        """
+        if not self.has_sref:
+            return False
+
+        for p in pnts:
+            ProjectGeom.point_to_geom(p, self.sref, True)
+        return True
+
+    def invert_cref(self, pnt):
         """
         Invert the point on the reference curve.
 
@@ -337,3 +349,15 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_cref:
             return False
         return ProjectGeom.invert(pnt, self.cref)
+
+    def invert_sref(self, pnt):
+        """
+        Invert the point on the reference surface.
+
+        :param pnt:
+
+        :return:
+        """
+        if not self.has_sref:
+            return False
+        return ProjectGeom.invert(pnt, self.sref)

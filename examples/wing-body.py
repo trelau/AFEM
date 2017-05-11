@@ -171,14 +171,14 @@ inbd_ribs = CreatePart.rib.between_planes('rib', wing, plns, fspar.sref,
                                           rspar.sref, 30.)
 
 # Outboard ribs
-u1 = rspar.invert(kink_rib.p2)
+u1 = rspar.invert_cref(kink_rib.p2)
 outbd_ribs = CreatePart.rib.along_curve('outbd rib', wing, rspar.cref,
                                         fspar.sref, rspar.sref, 30., u1=u1,
                                         s1=30., s2=-30.)
 
 # Rib along kink rib to front spar.
-u1 = fspar.invert(kink_rib.p1)
-u2 = fspar.invert(outbd_ribs[0].p1)
+u1 = fspar.invert_cref(kink_rib.p1)
+u2 = fspar.invert_cref(outbd_ribs[0].p1)
 kink_ribs = CreatePart.rib.along_curve('kink rib', wing, fspar.cref,
                                        fspar.sref, kink_rib.sref, maxd=30.,
                                        npts=1, u1=u1, u2=u2, s1=30., s2=-30.)

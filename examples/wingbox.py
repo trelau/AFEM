@@ -76,9 +76,9 @@ def build_wingbox(wing, params):
     tip = CreatePart.rib.by_points('tip rib', wing, p1, p2)
 
     # Generate points along rear spar and project to front spar to define ribs.
-    prear = rspar.distribute_points(rib_spacing, rib_spacing, -rib_spacing)
+    prear = rspar.spaced_points(rib_spacing, rib_spacing, -rib_spacing)
     pfront = [p.copy() for p in prear]
-    fspar.project_points(pfront)
+    fspar.points_to_cref(pfront)
     i = 1
     ribs = []
     for pf, pr in zip(pfront, prear):
@@ -121,10 +121,10 @@ def build_wingbox(wing, params):
     root_ribs = []
     if mspar:
         # Fwd of mid spar
-        u2 = root.invert(mspar.p1)
-        prib = root.distribute_points(3, u2=u2)[1:-1]
+        u2 = root.invert_cref(mspar.p1)
+        prib = root.spaced_points(3, u2=u2)[1:-1]
         pfront = [p.copy() for p in prib]
-        fspar.project_points(pfront)
+        fspar.points_to_cref(pfront)
         for pf, pr in zip(pfront, prib):
             if pf.is_equal(pr):
                 continue
@@ -137,11 +137,11 @@ def build_wingbox(wing, params):
             i += 1
 
         # Aft of mid spar
-        u1 = root.invert(mspar.p1)
-        u2 = root.invert(rspar.p1)
-        prib = root.distribute_points(3, u1=u1, u2=u2)[1:-1]
+        u1 = root.invert_cref(mspar.p1)
+        u2 = root.invert_cref(rspar.p1)
+        prib = root.spaced_points(3, u1=u1, u2=u2)[1:-1]
         pfront = [p.copy() for p in prib]
-        fspar.project_points(pfront)
+        fspar.points_to_cref(pfront)
         for pf, pr in zip(pfront, prib):
             if pf.is_equal(pr):
                 continue
