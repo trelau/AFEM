@@ -204,7 +204,7 @@ def build_wingbox(wing, params):
             pnts = ShapeTools.points_along_edge(edge, 3)
             p1 = rib.p2
             p2 = p1.copy()
-            aspar.project_points([p2])
+            aspar.points_to_cref([p2])
             sref = CreateGeom.fit_plane([p2] + pnts)
             if not sref:
                 continue
