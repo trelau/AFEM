@@ -1,12 +1,11 @@
-from .methods.create_parts import add_stiffener1d_to_surface_part, \
-    create_bulkhead_by_sref, create_curve_part, create_curve_part_by_section, \
-    create_floor_by_sref, create_frame_by_sref, create_frames_at_shapes, \
-    create_frames_between_planes, create_skin_from_body, \
-    create_skin_from_solid, create_surface_part, \
-    create_wing_part_between_geom, \
-    create_wing_part_by_params, create_wing_part_by_points, \
-    create_wing_part_by_sref, create_wing_parts_along_curve, \
-    create_wing_parts_between_planes
+from .methods.create_parts import create_bulkhead_by_sref, create_curve_part, \
+    create_curve_part_by_section, create_floor_by_sref, create_frame_by_sref, \
+    create_frames_at_shapes, create_frames_between_planes, \
+    create_skin_from_body, create_skin_from_solid, create_stiffener1d, \
+    create_stiffener2d_by_section, create_surface_part, \
+    create_wing_part_between_geom, create_wing_part_by_params, \
+    create_wing_part_by_points, create_wing_part_by_sref, \
+    create_wing_parts_along_curve, create_wing_parts_between_planes
 
 
 class CreateSpar(object):
@@ -380,6 +379,27 @@ class CreateSkin(object):
         return create_skin_from_body(label, body, copy)
 
 
+class CreateStiffener2D(object):
+    """
+    Stiffener2D creation.
+    """
+
+    @staticmethod
+    def by_section(label, part, spine_shape, h, runout_angle=30.):
+        """
+        Create a 2-D stiffener on a surface part by intersection.
+        
+        :param label: 
+        :param part: 
+        :param spine_shape: 
+        :param h: 
+        :param runout_angle: 
+        :return: 
+        """
+        return create_stiffener2d_by_section(label, part, spine_shape, h,
+                                             runout_angle)
+
+
 class CreatePart(object):
     """
     Part creator.
@@ -390,6 +410,7 @@ class CreatePart(object):
     floor = CreateFloor()
     frame = CreateFrame()
     skin = CreateSkin()
+    stiffener2d = CreateStiffener2D()
 
     @staticmethod
     def curve_part(label, curve_shape=None, shape1=None, shape2=None):
@@ -425,9 +446,9 @@ class CreatePart(object):
         return create_surface_part(label, surface_shape, bodies)
 
     @staticmethod
-    def add_stiffener1d(part, label, stiffener):
+    def create_stiffener1d(part, label, stiffener):
         """
-        Add a 1-D stiffener to the surface part.
+        Create a 1-D stiffener on the surface part.
 
         :param part:
         :param label:
@@ -435,8 +456,4 @@ class CreatePart(object):
 
         :return: 
         """
-        stiffener = add_stiffener1d_to_surface_part(part, stiffener, label)
-        if not stiffener:
-            return None
-        part.add_subpart(stiffener.label, stiffener)
-        return stiffener
+        return create_stiffener1d(part, stiffener, label)

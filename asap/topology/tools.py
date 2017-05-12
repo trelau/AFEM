@@ -276,7 +276,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                shape.ShapeType() == TopAbs_COMPSOLID):
+                    shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -664,7 +664,7 @@ class ShapeTools(object):
         return ShapeTools.to_shape(unify.Shape())
 
     @staticmethod
-    def bfuse(shape1, shape2, rtype=None):
+    def bfuse(shape1, shape2, rtype=''):
         """
         Perform BOP Fuse operation between two shapes.
 
@@ -680,8 +680,10 @@ class ShapeTools(object):
         bop = BRepAlgoAPI_Fuse(shape1, shape2)
         if bop.ErrorStatus() != 0:
             return []
-        shape = bop.Shape()
+        if rtype.lower() in ['b', 'builder']:
+            return bop
 
+        shape = bop.Shape()
         if not rtype:
             return shape
 
@@ -699,7 +701,7 @@ class ShapeTools(object):
         return []
 
     @staticmethod
-    def bcommon(shape1, shape2, rtype=None):
+    def bcommon(shape1, shape2, rtype=''):
         """
         Perform BOP Common operation between two shapes.
 
@@ -715,8 +717,10 @@ class ShapeTools(object):
         bop = BRepAlgoAPI_Common(shape1, shape2)
         if bop.ErrorStatus() != 0:
             return []
-        shape = bop.Shape()
+        if rtype.lower() in ['b', 'builder']:
+            return bop
 
+        shape = bop.Shape()
         if not rtype:
             return shape
 
@@ -734,7 +738,7 @@ class ShapeTools(object):
         return []
 
     @staticmethod
-    def bsection(shape1, shape2, rtype=None):
+    def bsection(shape1, shape2, rtype=''):
         """
         Perform BOP Section operation between two shapes.
 
@@ -750,8 +754,10 @@ class ShapeTools(object):
         bop = BRepAlgoAPI_Section(shape1, shape2)
         if bop.ErrorStatus() != 0:
             return []
-        shape = bop.Shape()
+        if rtype.lower() in ['b', 'builder']:
+            return bop
 
+        shape = bop.Shape()
         if not rtype:
             return shape
 
@@ -769,7 +775,7 @@ class ShapeTools(object):
         return []
 
     @staticmethod
-    def bcut(shape1, shape2, rtype=None):
+    def bcut(shape1, shape2, rtype=''):
         """
         Perform BOP Cut operation between two shapes.
 
@@ -785,8 +791,10 @@ class ShapeTools(object):
         bop = BRepAlgoAPI_Cut(shape1, shape2)
         if bop.ErrorStatus() != 0:
             return []
-        shape = bop.Shape()
+        if rtype.lower() in ['b', 'builder']:
+            return bop
 
+        shape = bop.Shape()
         if not rtype:
             return shape
 
@@ -1017,8 +1025,15 @@ class ShapeTools(object):
         if not edge:
             return []
 
+        # Calculate number of points.
         adp_crv = BRepAdaptor_Curve(edge)
-        pac = GCPnts_UniformAbscissa(adp_crv, dx, Settings.gtol)
+        arc_len = GCPnts_AbscissaPoint.Length(adp_crv,
+                                              adp_crv.FirstParameter(),
+                                              adp_crv.LastParameter(),
+                                              Settings.gtol)
+        nb_pts = int(arc_len / dx) + 1
+
+        pac = GCPnts_UniformAbscissa(adp_crv, nb_pts, Settings.gtol)
         if not pac.IsDone():
             return []
 

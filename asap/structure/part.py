@@ -3,6 +3,7 @@ from OCC.TopoDS import TopoDS_Shape
 
 from .assembly import AssemblyData
 from .methods.cut_parts import cut_part
+from .methods.reshape_parts import reshape_parts
 from .methods.split_parts import split_part
 from ..geometry import ProjectGeom
 from ..graphics.viewer import ViewableItem
@@ -218,6 +219,15 @@ class Part(TopoDS_Shape, ViewableItem):
         if not new_shape:
             return False
         return self.set_shape(new_shape)
+
+    def reshape(self, tool):
+        """
+        Reshape the part with a tool.
+        
+        :param tool: 
+        :return: 
+        """
+        return reshape_parts(tool, [self])
 
     def cut(self, cutter):
         """
