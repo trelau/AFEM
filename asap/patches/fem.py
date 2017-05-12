@@ -1,8 +1,8 @@
 from OCC.SMESH import SMESH_Mesh
 from OCC.TopoDS import TopoDS_Edge, TopoDS_Face
 
-from .elements import Elm1D, Elm2D
-from .meshes import MeshData
+from ..fem.elements import Elm1D, Elm2D
+from ..fem.meshes import MeshData
 
 
 def _elements_on_edge(self):

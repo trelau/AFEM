@@ -1,6 +1,6 @@
 from OCC.Geom import Geom_Curve, Geom_Surface
 
-from .points import Point
+from ..geometry.points import Point
 
 
 def _u1(self):
