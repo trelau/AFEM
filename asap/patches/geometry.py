@@ -101,7 +101,7 @@ def _to_face(self, u1, u2, v1, v2):
 
 def _length(self):
     """
-    Curve arc  length.
+    Curve arc length.
     """
     return GCPnts_AbscissaPoint.Length(GeomAdaptor_Curve(self.GetHandle()),
                                        Settings.gtol)
@@ -141,7 +141,7 @@ def _project_pnt_to_geom(self, pnt):
     return ProjectGeom.point_to_geom(pnt, self, True)
 
 
-def _abscissa_point(self, dx, u0=None):
+def _abscissa_point(self, dx, u0=None, is_local=False):
     """
     Evaluate point on curve.
     """
@@ -152,6 +152,9 @@ def _abscissa_point(self, dx, u0=None):
         u0 = adp_crv.FirstParameter()
     elif u0 > adp_crv.LastParameter():
         u0 = adp_crv.LastParameter()
+    # Multiply dx by length if is_local=True
+    if is_local:
+        dx = dx * _length(self)
     tool = GCPnts_AbscissaPoint(adp_crv, dx, u0)
     if not tool.IsDone():
         return None

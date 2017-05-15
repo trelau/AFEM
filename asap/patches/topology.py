@@ -357,7 +357,7 @@ def _point_to_shape(self, pnt):
     return pnt
 
 
-def _edge_abscissa_point(self, dx, u0=None):
+def _edge_abscissa_point(self, dx, u0=None, is_local=False):
     """
     Evaluate point on edge from other.
     """
@@ -368,6 +368,9 @@ def _edge_abscissa_point(self, dx, u0=None):
         u0 = adp_crv.FirstParameter()
     elif u0 > adp_crv.LastParameter():
         u0 = adp_crv.LastParameter()
+    # Multiply dx by length if is_local=True
+    if is_local:
+        dx = dx * _mass(self)
     tool = GCPnts_AbscissaPoint(adp_crv, dx, u0)
     if not tool.IsDone():
         return None
@@ -377,7 +380,7 @@ def _edge_abscissa_point(self, dx, u0=None):
     return p
 
 
-def _wire_abscissa_point(self, dx, u0=None):
+def _wire_abscissa_point(self, dx, u0=None, is_local=False):
     """
     Evaluate point on wire from other.
     """
@@ -388,6 +391,9 @@ def _wire_abscissa_point(self, dx, u0=None):
         u0 = adp_crv.FirstParameter()
     elif u0 > adp_crv.LastParameter():
         u0 = adp_crv.LastParameter()
+    # Multiply dx by length if is_local=True
+    if is_local:
+        dx = dx * _mass(self)
     tool = GCPnts_AbscissaPoint(adp_crv, dx, u0)
     if not tool.IsDone():
         return None
