@@ -43,10 +43,8 @@ pln = CreateGeom.plane_by_axes(p0, 'xz')
 tip_rib = CreatePart.rib.by_sref('tip rib', wing, pln)
 
 # Rear spar
-u = root_rib.local_to_global_u(0.70)
-p1 = root_rib.eval_cref(u)
-u = tip_rib.local_to_global_u(0.70)
-p2 = tip_rib.eval_cref(u)
+p1 = root_rib.eval_dx(0.7, is_local=True)
+p2 = tip_rib.eval_dx(0.7, is_local=True)
 rspar = CreatePart.spar.by_points('rear spar', wing, p1, p2)
 
 # Front inboard spar

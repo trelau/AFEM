@@ -317,6 +317,21 @@ class Part(TopoDS_Shape, ViewableItem):
         except AttributeError:
             return None
 
+    def eval_dx(self, dx, u0=None, is_local=False):
+        """
+        Evaluate point on reference curve at a distance from a parameter.
+
+        :param float dx:
+        :param u0:
+        :param bool is_local:
+        
+        :return:
+        """
+        try:
+            return self._cref.eval_dx(dx, u0, is_local)
+        except AttributeError:
+            return None
+
     def spaced_points(self, dx, s1=None, s2=None, u1=None, u2=None,
                       shape1=None, shape2=None):
         """
