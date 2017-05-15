@@ -61,3 +61,6 @@ def _elements_on_face(self):
 
 TopoDS_Edge.elements = property(_elements_on_edge)
 TopoDS_Face.elements = property(_elements_on_face)
+
+
+# TODO Assign hypotheses

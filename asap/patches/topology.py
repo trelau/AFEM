@@ -1,20 +1,25 @@
-from OCC.BRep import BRep_Tool_IsClosed, BRep_Tool_Parameter, BRep_Tool_Pnt
+from OCC.BRep import BRep_Tool_Curve, BRep_Tool_IsClosed, \
+    BRep_Tool_Parameter, BRep_Tool_Pnt, BRep_Tool_Surface
 from OCC.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve, \
     BRepAdaptor_Surface
+from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeWire
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d_OuterShell
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace
-from OCC.BRepTools import breptools_OuterWire
+from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
+from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge
 from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
     TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE
 from OCC.TopoDS import TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell, \
-    TopoDS_Solid, TopoDS_Vertex, TopoDS_Wire
+    TopoDS_Solid, TopoDS_Vertex, TopoDS_Wire, topods_Edge
 
+from ..geometry.checker import CheckGeom
 from ..geometry.points import Point
 from ..topology import ShapeTools
 
 _analysis_edge = ShapeAnalysis_Edge()
+from OCC.ShapeAnalysis import shapeanalysis_FindBounds
 
 
 def _to_shape(self):
@@ -204,10 +209,55 @@ def _edge_p2(self):
     return _vertex_pnt(v2)
 
 
+def _edge_to_wire(self):
+    return BRepBuilderAPI_MakeWire(self).Wire()
+
+
+def _wire_v1(self):
+    """
+    First vertex of wire.
+    """
+    v1, v2 = TopoDS_Vertex(), TopoDS_Vertex()
+    shapeanalysis_FindBounds(self, v1, v2)
+    return v1
+
+
+def _wire_v2(self):
+    """
+    Last vertex of wire.
+    """
+    v1, v2 = TopoDS_Vertex(), TopoDS_Vertex()
+    shapeanalysis_FindBounds(self, v1, v2)
+    return v2
+
+
+def _wire_p1(self):
+    """
+    First point of wire.
+    """
+    v1 = _wire_v1(self)
+    return _vertex_pnt(v1)
+
+
+def _wire_p2(self):
+    """
+    Last point of wire.
+    """
+    v2 = _wire_v2(self)
+    return _vertex_pnt(v2)
+
+
 def _ordered_edges(self):
     """
     List of wire edges from wire explorer.
     """
+    exp = BRepTools_WireExplorer(self)
+    edges = []
+    while exp.More():
+        ei = topods_Edge(exp.Current())
+        edges.append(ei)
+        exp.Next()
+    return edges
 
 
 def _outer_wire(self):
@@ -249,6 +299,88 @@ def _distance(self, other):
     return ShapeTools.min_distance(self, other)[0]
 
 
+def _edge_adaptor(self):
+    return BRepAdaptor_Curve(self)
+
+
+def _wire_adaptor(self):
+    return BRepAdaptor_CompCurve(self)
+
+
+def _face_adaptor(self):
+    return BRepAdaptor_Surface(self)
+
+
+def _curve_of_edge(self):
+    """
+    Untrimmed curve of edge.
+    """
+    crv_data = BRep_Tool_Curve(self)[0]
+    return crv_data.GetObject()
+
+
+def _surface_of_face(self):
+    """
+    Untrimmed surface of face.
+    """
+    hndl_srf = BRep_Tool_Surface(self)
+    return hndl_srf.GetObject()
+
+
+def _point_to_shape(self, pnt):
+    """
+    Project a point to a shape.
+    """
+    pnt = CheckGeom.to_point(pnt)
+    if not pnt:
+        return None
+    dmin, p1, p2 = ShapeTools.min_distance(self, pnt)
+    if None in [dmin, p1, p2]:
+        return None
+    pnt.set_xyz(p1.xyz)
+    return pnt
+
+
+def _edge_abscissa_point(self, dx, u0=None):
+    """
+    Evaluate point on edge from other.
+    """
+    adp_crv = _edge_adaptor(self)
+    if u0 is None:
+        u0 = adp_crv.FirstParameter()
+    elif u0 < adp_crv.FirstParameter():
+        u0 = adp_crv.FirstParameter()
+    elif u0 > adp_crv.LastParameter():
+        u0 = adp_crv.LastParameter()
+    tool = GCPnts_AbscissaPoint(adp_crv, dx, u0)
+    if not tool.IsDone():
+        return None
+    u = tool.Parameter()
+    p = Point()
+    adp_crv.D0(u, p)
+    return p
+
+
+def _wire_abscissa_point(self, dx, u0=None):
+    """
+    Evaluate point on wire from other.
+    """
+    adp_crv = _wire_adaptor(self)
+    if u0 is None:
+        u0 = adp_crv.FirstParameter()
+    elif u0 < adp_crv.FirstParameter():
+        u0 = adp_crv.FirstParameter()
+    elif u0 > adp_crv.LastParameter():
+        u0 = adp_crv.LastParameter()
+    tool = GCPnts_AbscissaPoint(adp_crv, dx, u0)
+    if not tool.IsDone():
+        return None
+    u = tool.Parameter()
+    p = Point()
+    adp_crv.D0(u, p)
+    return p
+
+
 TopoDS_Shape.shape = property(_to_shape)
 TopoDS_Shape.is_closed = property(_is_closed)
 TopoDS_Shape.is_valid = property(_is_valid)
@@ -273,7 +405,10 @@ TopoDS_Shape.fuse = _fuse
 TopoDS_Shape.common = _common
 TopoDS_Shape.section = _section
 TopoDS_Shape.cut = _cut
+
+TopoDS_Shape.mass = property(_mass)
 TopoDS_Shape.distance = _distance
+TopoDS_Shape.project = _point_to_shape
 
 TopoDS_Vertex.pnt = property(_vertex_pnt)
 
@@ -285,14 +420,27 @@ TopoDS_Edge.u2 = property(_edge_u2)
 TopoDS_Edge.p1 = property(_edge_p1)
 TopoDS_Edge.p2 = property(_edge_p2)
 TopoDS_Edge.length = property(_mass)
+TopoDS_Edge.adaptor = property(_edge_adaptor)
+TopoDS_Edge.curve = property(_curve_of_edge)
+TopoDS_Edge.wire = property(_edge_to_wire)
+TopoDS_Edge.eval_dx = _edge_abscissa_point
 
+TopoDS_Wire.v1 = property(_wire_v1)
+TopoDS_Wire.v2 = property(_wire_v2)
+TopoDS_Wire.p1 = property(_wire_p1)
+TopoDS_Wire.p2 = property(_wire_p2)
 TopoDS_Wire.eval = _wire_eval
 TopoDS_Wire.length = property(_mass)
+TopoDS_Wire.adaptor = property(_wire_adaptor)
+TopoDS_Wire.ordered_edges = property(_ordered_edges)
+TopoDS_Wire.eval_dx = _wire_abscissa_point
 
 TopoDS_Face.eval = _face_eval
 TopoDS_Face.outer_wire = property(_outer_wire)
 TopoDS_Face.make_halfspace = _make_halfspace
 TopoDS_Face.area = property(_mass)
+TopoDS_Face.adaptor = property(_face_adaptor)
+TopoDS_Face.surface = property(_surface_of_face)
 
 TopoDS_Shell.make_halfspace = _make_halfspace
 TopoDS_Face.area = property(_mass)
