@@ -1725,7 +1725,6 @@ class ShapeTools(object):
             return None, None
 
         if dist.SupportTypeShape1(1) == BRepExtrema_IsInFace:
-            # noinspection PyTupleAssignmentBalance
             u, v = dist.ParOnFaceS1(1)
             f = dist.SupportOnShape1(1)
             f = ShapeTools.to_face(f)
@@ -1812,3 +1811,26 @@ class ShapeTools(object):
 
         shape = proj.Shape()
         return ShapeTools.get_wires(shape)
+
+    @staticmethod
+    def adjacent_faces(edge, shape):
+        """
+        Get all the faces of the shape that are adjacent to the edge.
+        
+        :param edge: 
+        :param shape:
+         
+        :return: 
+        """
+        edge = ShapeTools.to_edge(edge)
+        shape = ShapeTools.to_shape(shape)
+        if not edge or not shape:
+            return []
+
+        adj_faces = []
+        for face in ShapeTools.get_faces(shape):
+            for e in ShapeTools.get_edges(face):
+                if edge.IsSame(e):
+                    adj_faces.append(face)
+                    break
+        return adj_faces
