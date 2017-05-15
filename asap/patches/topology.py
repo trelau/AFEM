@@ -247,6 +247,22 @@ def _wire_p2(self):
     return _vertex_pnt(v2)
 
 
+def _wire_u1(self):
+    """
+    First parameter of wire.
+    """
+    adp = _wire_adaptor(self)
+    return adp.FirstParameter()
+
+
+def _wire_u2(self):
+    """
+    Last parameter of wire.
+    """
+    adp = _wire_adaptor(self)
+    return adp.LastParameter()
+
+
 def _ordered_edges(self):
     """
     List of wire edges from wire explorer.
@@ -429,6 +445,8 @@ TopoDS_Wire.v1 = property(_wire_v1)
 TopoDS_Wire.v2 = property(_wire_v2)
 TopoDS_Wire.p1 = property(_wire_p1)
 TopoDS_Wire.p2 = property(_wire_p2)
+TopoDS_Wire.u1 = property(_wire_u1)
+TopoDS_Wire.u2 = property(_wire_u2)
 TopoDS_Wire.eval = _wire_eval
 TopoDS_Wire.length = property(_mass)
 TopoDS_Wire.adaptor = property(_wire_adaptor)
