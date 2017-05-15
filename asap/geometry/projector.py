@@ -15,6 +15,7 @@ class ProjectGeom(object):
         """
         if proj.success and update:
             point.set_xyz(proj.nearest_point.xyz)
+            return point
         return proj
 
     @staticmethod
