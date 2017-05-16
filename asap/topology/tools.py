@@ -23,6 +23,7 @@ from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset, \
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
+from OCC.GEOMAlgo import GEOMAlgo_Splitter
 from OCC.GProp import GProp_GProps
 from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_BSplineCurve, \
@@ -31,6 +32,7 @@ from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_BSplineCurve, \
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds, \
     ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
+from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.ShapeFix import ShapeFix_Shape
 from OCC.ShapeUpgrade import ShapeUpgrade_ShapeDivideClosed, \
     ShapeUpgrade_ShapeDivideContinuity, ShapeUpgrade_UnifySameDomain
@@ -276,7 +278,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                    shape.ShapeType() == TopAbs_COMPSOLID):
+                shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -510,7 +512,8 @@ class ShapeTools(object):
         builder = BRep_Builder()
         builder.MakeCompound(compound)
         for shape in shapes:
-            if not isinstance(shape, TopoDS_Shape):
+            shape = ShapeTools.to_shape(shape)
+            if not shape:
                 continue
             builder.Add(compound, shape)
         return compound
@@ -1834,3 +1837,61 @@ class ShapeTools(object):
                     adj_faces.append(face)
                     break
         return adj_faces
+
+    @staticmethod
+    def split_wire(wire, splitter):
+        """
+        Split a wire with a shape and update.
+        
+        :param wire: 
+        :param splitter: 
+        
+        :return: 
+        """
+        wire = ShapeTools.to_wire(wire)
+        splitter = ShapeTools.to_shape(splitter)
+        if not wire or not splitter:
+            return None
+
+        # Split algorithm
+        bop = GEOMAlgo_Splitter()
+        bop.AddArgument(wire)
+        bop.AddTool(splitter)
+        bop.Perform()
+        if bop.ErrorStatus() != 0:
+            return None
+
+        # Replace edges in wire.
+        reshape = ShapeBuild_ReShape()
+        performed = False
+        for old_edge in ShapeTools.get_edges(wire):
+            # Check deleted.
+            if bop.IsDeleted(old_edge):
+                reshape.Remove(old_edge)
+                performed = True
+                break
+
+            # Check modified
+            modified = bop.Modified(old_edge)
+            if modified.IsEmpty():
+                continue
+
+            # Put modified edges into compound.
+            new_edges = []
+            while not modified.IsEmpty():
+                shape = modified.First()
+                new_edges.append(shape)
+                modified.RemoveFirst()
+            if not new_edges:
+                continue
+
+            # Replace old edge with new.
+            new_edges = ShapeTools.make_compound(new_edges)
+            reshape.Replace(old_edge, new_edges)
+            performed = True
+
+        # Apply substitution.
+        if not performed:
+            return wire
+        new_wire = reshape.Apply(wire)
+        return ShapeTools.to_wire(new_wire)

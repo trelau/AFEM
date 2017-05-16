@@ -15,6 +15,7 @@ from ..rib import Rib
 from ..skin import Skin
 from ..spar import Spar
 from ..stiffeners import Stiffener1D, Stiffener2D
+from ..stringer import Stringer
 from ..surface_part import SurfacePart
 from ...geometry import CheckGeom, CreateGeom, IntersectGeom
 from ...oml import CheckOML
@@ -633,7 +634,7 @@ def create_stiffener1d(surface_part, stiffener, label):
     return stiffener
 
 
-def create_stiffener2d_by_section(label, surface_part, surface_shape, h,
+def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
                                   runout_angle):
     """
     Create a 2-D stiffener on a surface part by intersection. 
@@ -641,7 +642,7 @@ def create_stiffener2d_by_section(label, surface_part, surface_shape, h,
     if not isinstance(surface_part, SurfacePart):
         return None
 
-    if h <= 0. or runout_angle <= 0:
+    if h <= 0. or runout_angle < 0:
         return None
 
     sref = None
@@ -660,18 +661,20 @@ def create_stiffener2d_by_section(label, surface_part, surface_shape, h,
     if not wires:
         return None
     if len(wires) == 1:
-        spine = wires[0]
+        spine0 = wires[0]
     else:
-        spine = ShapeTools.longest_wire(wires)
+        spine0 = ShapeTools.longest_wire(wires)
+    if not spine0:
+        return None
 
     # Build reference curve from spine.
-    cref = ShapeTools.curve_of_wire(spine)
+    cref = ShapeTools.curve_of_wire(spine0)
 
     # Calculate dx along spine to get proper run-out angle
     dx = h / tan(radians(runout_angle))
 
     # Find points at dx from each end.
-    adp_crv = BRepAdaptor_CompCurve(spine)
+    adp_crv = BRepAdaptor_CompCurve(spine0)
     abs_pnt = GCPnts_AbscissaPoint(adp_crv, dx, adp_crv.FirstParameter())
     u = abs_pnt.Parameter()
     p1 = adp_crv.Value(u)
@@ -679,28 +682,66 @@ def create_stiffener2d_by_section(label, surface_part, surface_shape, h,
     u = abs_pnt.Parameter()
     p2 = adp_crv.Value(u)
 
-    # Create profiles
+    # Create profiles normal to surface part.
     profile1 = ShapeTools.shape_normal_profile(p1, surface_part, h)
     profile2 = ShapeTools.shape_normal_profile(p2, surface_part, h)
     if not profile1 or not profile2:
         return None
 
-    # Make pipe shell
-    shape = ShapeTools.make_pipe_shell(spine, [profile1, profile2],
-                                       surface_shape, True)
+    # Create new spine between the profiles.
+    splitter = ShapeTools.make_compound([p1, p2])
+    spine1 = ShapeTools.split_wire(spine0, splitter)
+    if not spine1:
+        return None
+    # Create new spine omitting first and last edges.
+    ordered_edges = spine1.ordered_edges
+    if len(ordered_edges) < 3:
+        return None
+    try:
+        spine1 = ShapeTools.connect_edges(ordered_edges[1:-1])[0]
+    except IndexError:
+        return None
+
+    # Create main shape.
+    shape1 = ShapeTools.make_pipe_shell(spine1, [profile1, profile2],
+                                        surface_part, True)
+    if not shape1:
+        return None
+
+    # TODO Handle case if there is an edge in the surface part between the
+    # profile and end of spine. Should just remove all edges up to a point.
+    # Then be sure to use those when creating spines for run-outs.
+
+    # Run-out 1
+    spine2 = ShapeTools.to_wire(ordered_edges[0])
+    shape2 = ShapeTools.make_pipe_shell(spine2, [spine0.v1, profile1],
+                                        surface_part, True)
+
+    # Run-out 2
+    spine3 = ShapeTools.to_wire(ordered_edges[-1])
+    shape3 = ShapeTools.make_pipe_shell(spine3, [profile2, spine0.v2],
+                                        surface_part, True)
+    if not shape2 or not shape3:
+        return None
+
+    # Fuse together shapes.
+    shape = ShapeTools.bop_algo([shape1], [shape2, shape3])
     if not shape:
         return None
 
     if not sref:
         sref = ShapeTools.surface_of_shape(shape)
 
-    # TODO Trim shape with runout angles.
+    # Create stringer.
+    if etype in ['stringer']:
+        part = Stringer(label, shape, cref, sref)
+        return part
 
-    # Create stiffener.
+    # Create stiffener
     stiffener = Stiffener2D(label, shape, cref, sref)
 
-    # Fuse the surface part and the stiffener.
-    surface_part.fuse(stiffener)
+    # TODO Fuse the surface part and the stiffener?
+    # surface_part.fuse(stiffener)
     # bop = ShapeTools.bfuse(surface_part, stiffener, 'builder')
     # if not bop.IsDone():
     #     return None
@@ -711,6 +752,6 @@ def create_stiffener2d_by_section(label, surface_part, surface_shape, h,
 
     # Add as subpart.
     # surface_part.add_subpart(stiffener.label, stiffener)
-    # TODO How to handle stiffener 2-d as subpart.
+    # TODO How to handle stiffener 2-d as subpart?
 
     return stiffener

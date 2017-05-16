@@ -39,6 +39,8 @@ class CheckGeom(object):
         """
         if isinstance(geom, Point):
             return True
+        if isinstance(geom, gp_Pnt):
+            return True
         if isinstance(geom, (tuple, list, ndarray)):
             return len(geom) == 3
         return False
@@ -78,10 +80,10 @@ class CheckGeom(object):
         """
         if isinstance(geom, Point):
             return geom
-        elif CheckGeom.is_point_like(geom):
-            return Point(geom[0], geom[1], geom[2])
         elif isinstance(geom, gp_Pnt):
             return Point(geom.XYZ())
+        elif CheckGeom.is_point_like(geom):
+            return Point(geom[0], geom[1], geom[2])
         return None
 
     @staticmethod

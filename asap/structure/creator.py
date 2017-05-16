@@ -379,6 +379,27 @@ class CreateSkin(object):
         return create_skin_from_body(label, body, copy)
 
 
+class CreateStringer(object):
+    """
+    Stringer creation.
+    """
+
+    @staticmethod
+    def by_section(label, part, spine_shape, h, runout_angle=30.):
+        """
+        Create a stringer on a surface part by intersection.
+
+        :param label: 
+        :param part: 
+        :param spine_shape: 
+        :param h: 
+        :param runout_angle: 
+        :return: 
+        """
+        return create_stiffener2d_by_section('stringer', label, part,
+                                             spine_shape, h, runout_angle)
+
+
 class CreateStiffener2D(object):
     """
     Stiffener2D creation.
@@ -396,8 +417,8 @@ class CreateStiffener2D(object):
         :param runout_angle: 
         :return: 
         """
-        return create_stiffener2d_by_section(label, part, spine_shape, h,
-                                             runout_angle)
+        return create_stiffener2d_by_section('stiffener', label, part,
+                                             spine_shape, h, runout_angle)
 
 
 class CreatePart(object):
@@ -410,6 +431,7 @@ class CreatePart(object):
     floor = CreateFloor()
     frame = CreateFrame()
     skin = CreateSkin()
+    stringer = CreateStringer()
     stiffener2d = CreateStiffener2D()
 
     @staticmethod
