@@ -2,7 +2,8 @@ from .methods.create_parts import create_bulkhead_by_sref, create_curve_part, \
     create_curve_part_by_section, create_floor_by_sref, create_frame_by_sref, \
     create_frames_at_shapes, create_frames_between_planes, \
     create_skin_from_body, create_skin_from_solid, create_stiffener1d, \
-    create_stiffener2d_by_section, create_surface_part, \
+    create_stiffener2d_by_section, create_stiffener2d_by_sections, \
+    create_stiffener2d_by_wire, create_surface_part, \
     create_wing_part_between_geom, create_wing_part_by_params, \
     create_wing_part_by_points, create_wing_part_by_sref, \
     create_wing_parts_along_curve, create_wing_parts_between_planes
@@ -385,6 +386,21 @@ class CreateStringer(object):
     """
 
     @staticmethod
+    def by_wire(label, part, wire_like, h, runout_angle=30.):
+        """
+        Create a stringer on a surface part by a wire.
+
+        :param label: 
+        :param part: 
+        :param wire_like: 
+        :param h: 
+        :param runout_angle: 
+        :return: 
+        """
+        return create_stiffener2d_by_wire('stringer', label, part,
+                                          wire_like, h, runout_angle)
+
+    @staticmethod
     def by_section(label, part, spine_shape, h, runout_angle=30.):
         """
         Create a stringer on a surface part by intersection.
@@ -399,11 +415,41 @@ class CreateStringer(object):
         return create_stiffener2d_by_section('stringer', label, part,
                                              spine_shape, h, runout_angle)
 
+    @staticmethod
+    def by_sections(label, part, spine_shape, h, runout_angle=30.):
+        """
+        Create a stringer on a surface part by all intersections.
+
+        :param label: 
+        :param part: 
+        :param spine_shape: 
+        :param h: 
+        :param runout_angle: 
+        :return: 
+        """
+        return create_stiffener2d_by_sections('stringer', label, part,
+                                              spine_shape, h, runout_angle)
+
 
 class CreateStiffener2D(object):
     """
     Stiffener2D creation.
     """
+
+    @staticmethod
+    def by_wire(label, part, wire_like, h, runout_angle=30.):
+        """
+        Create a 2-D stiffener on a surface part by a wire.
+
+        :param label: 
+        :param part: 
+        :param wire_like: 
+        :param h: 
+        :param runout_angle: 
+        :return: 
+        """
+        return create_stiffener2d_by_wire('stiffener', label, part,
+                                          wire_like, h, runout_angle)
 
     @staticmethod
     def by_section(label, part, spine_shape, h, runout_angle=30.):
@@ -419,6 +465,21 @@ class CreateStiffener2D(object):
         """
         return create_stiffener2d_by_section('stiffener', label, part,
                                              spine_shape, h, runout_angle)
+
+    @staticmethod
+    def by_sections(label, part, spine_shape, h, runout_angle=30.):
+        """
+        Create a 2-D stiffener on a surface part by all intersections.
+
+        :param label: 
+        :param part: 
+        :param spine_shape: 
+        :param h: 
+        :param runout_angle: 
+        :return: 
+        """
+        return create_stiffener2d_by_sections('stiffener', label, part,
+                                              spine_shape, h, runout_angle)
 
 
 class CreatePart(object):

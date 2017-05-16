@@ -401,7 +401,7 @@ def create_bulkhead_by_sref(label, fuselage, surface_shape, bodies=()):
     """
     Create a bulkhead using a reference shape.
     """
-    if not CheckOML.is_fuselage(fuselage):
+    if not ShapeTools.is_solid(fuselage):
         return None
 
     sref = None
@@ -634,41 +634,21 @@ def create_stiffener1d(surface_part, stiffener, label):
     return stiffener
 
 
-def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
-                                  runout_angle):
+def create_stiffener2d_by_wire(etype, label, surface_part, wire, h,
+                               runout_angle, sref=None):
     """
-    Create a 2-D stiffener on a surface part by intersection. 
+    Create a 2-D stiffener on a surface part by a wire. 
     """
-    if not isinstance(surface_part, SurfacePart):
-        return None
+    cref = None
+    if CheckGeom.is_curve_like(wire):
+        cref = wire
 
-    if h <= 0. or runout_angle < 0:
-        return None
-
-    sref = None
-    if CheckGeom.is_surface_like(surface_shape):
-        sref = surface_shape
-
-    surface_shape = ShapeTools.to_shape(surface_shape)
-    if not surface_shape:
-        return None
-
-    # Build spine
-    edges = ShapeTools.bsection(surface_part, surface_shape, 'edge')
-    if not edges:
-        return None
-    wires = ShapeTools.connect_edges(edges)
-    if not wires:
-        return None
-    if len(wires) == 1:
-        spine0 = wires[0]
-    else:
-        spine0 = ShapeTools.longest_wire(wires)
-    if not spine0:
-        return None
+    # Create spine.
+    spine0 = ShapeTools.to_wire(wire)
 
     # Build reference curve from spine.
-    cref = ShapeTools.curve_of_wire(spine0)
+    if not cref:
+        cref = ShapeTools.curve_of_wire(spine0)
 
     # Calculate dx along spine to get proper run-out angle
     dx = h / tan(radians(runout_angle))
@@ -729,9 +709,6 @@ def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
     if not shape:
         return None
 
-    if not sref:
-        sref = ShapeTools.surface_of_shape(shape)
-
     # Create stringer.
     if etype in ['stringer']:
         part = Stringer(label, shape, cref, sref)
@@ -755,3 +732,83 @@ def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
     # TODO How to handle stiffener 2-d as subpart?
 
     return stiffener
+
+
+def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
+                                  runout_angle):
+    """
+    Create a 2-D stiffener on a surface part by intersection. 
+    """
+    if not isinstance(surface_part, SurfacePart):
+        return None
+
+    if h <= 0. or runout_angle < 0:
+        return None
+
+    sref = None
+    if CheckGeom.is_surface_like(surface_shape):
+        sref = surface_shape
+
+    surface_shape = ShapeTools.to_shape(surface_shape)
+    if not surface_shape:
+        return None
+
+    # Build spine
+    edges = ShapeTools.bsection(surface_part, surface_shape, 'edge')
+    if not edges:
+        return None
+    wires = ShapeTools.connect_edges(edges)
+    if not wires:
+        return None
+    if len(wires) == 1:
+        spine0 = wires[0]
+    else:
+        spine0 = ShapeTools.longest_wire(wires)
+    if not spine0:
+        return None
+
+    stiffener = create_stiffener2d_by_wire(etype, label, surface_part, spine0,
+                                           h, runout_angle, sref)
+    if not stiffener:
+        return None
+
+    return stiffener
+
+
+def create_stiffener2d_by_sections(etype, label, surface_part,
+                                   surface_shape, h, runout_angle):
+    """
+    Create a 2-D stiffener on a surface part by all intersections. 
+    """
+    if not isinstance(surface_part, SurfacePart):
+        return None
+
+    if h <= 0. or runout_angle < 0:
+        return None
+
+    sref = None
+    if CheckGeom.is_surface_like(surface_shape):
+        sref = surface_shape
+
+    surface_shape = ShapeTools.to_shape(surface_shape)
+    if not surface_shape:
+        return None
+
+    # Build spine
+    edges = ShapeTools.bsection(surface_part, surface_shape, 'edge')
+    if not edges:
+        return None
+    wires = ShapeTools.connect_edges(edges)
+    if not wires:
+        return None
+
+    # Create stiffener for all wires.
+    stiffeners = []
+    for wire in wires:
+        stiffener = create_stiffener2d_by_wire(etype, label, surface_part,
+                                               wire, h, runout_angle, sref)
+        if not stiffener:
+            continue
+        stiffeners.append(stiffener)
+
+    return stiffeners
