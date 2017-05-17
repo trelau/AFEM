@@ -6,7 +6,8 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeWire
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d_OuterShell
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace
-from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
+from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire, \
+    breptools_Write
 from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge
 from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
@@ -403,6 +404,13 @@ def _wire_abscissa_point(self, dx, u0=None, is_local=False):
     return p
 
 
+def _write_brep(self, fout='shape.brep'):
+    """
+    Write shape to BREP file.
+    """
+    breptools_Write(self, fout)
+
+
 TopoDS_Shape.shape = property(_to_shape)
 TopoDS_Shape.is_closed = property(_is_closed)
 TopoDS_Shape.is_valid = property(_is_valid)
@@ -431,6 +439,8 @@ TopoDS_Shape.cut = _cut
 TopoDS_Shape.mass = property(_mass)
 TopoDS_Shape.distance = _distance
 TopoDS_Shape.project = _point_to_shape
+
+TopoDS_Shape.write = _write_brep
 
 TopoDS_Vertex.pnt = property(_vertex_pnt)
 
