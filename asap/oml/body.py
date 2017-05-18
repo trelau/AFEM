@@ -147,7 +147,7 @@ class Body(TopoDS_Solid, ViewableItem):
         """
         return self._bop(body, inplace, 'cut')
 
-    def section(self, body, rtype=None):
+    def section(self, body, rtype=''):
         """
         Find intersection between the bodies.
 

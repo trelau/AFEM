@@ -735,7 +735,7 @@ def create_stiffener2d_by_wire(etype, label, surface_part, wire, h,
 
 
 def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
-                                  runout_angle):
+                                  runout_angle, cut_part=False):
     """
     Create a 2-D stiffener on a surface part by intersection. 
     """
@@ -754,9 +754,24 @@ def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
         return None
 
     # Build spine
-    edges = ShapeTools.bsection(surface_part, surface_shape, 'edge')
-    if not edges:
+    # edges = ShapeTools.bsection(surface_part, surface_shape, 'edge')
+    # if not edges:
+    #     return None
+    bop = ShapeTools.bcut(surface_part, surface_shape, 'builder')
+    if bop.ErrorStatus() != 0:
+        print('here 1')
         return None
+
+    list_of_edges = bop.SectionEdges()
+    if list_of_edges.IsEmpty():
+        print('here 2')
+        return None
+
+    edges = []
+    while not list_of_edges.IsEmpty():
+        edges.append(list_of_edges.First())
+        list_of_edges.RemoveFirst()
+
     wires = ShapeTools.connect_edges(edges)
     if not wires:
         return None
@@ -771,6 +786,10 @@ def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
                                            h, runout_angle, sref)
     if not stiffener:
         return None
+
+    # TODO Reshape surface part after stringer cut?
+    if cut_part:
+        surface_part.reshape(bop)
 
     return stiffener
 
