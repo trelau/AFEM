@@ -73,7 +73,7 @@ rc_spar = CreatePart.spar.between_geom('fc spar', wing, xz_plane,
 root_rib = CreatePart.rib.by_points('root rib', wing, fc_spar.p2, rc_spar.p2)
 
 # Strut rib where strut intersects.
-p0 = strut.eval_cref(0.5, 1.)
+p0 = strut.eval(0.5, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'xz')
 strut_rib = CreatePart.rib.by_sref('kink rib', wing, pln)
 
@@ -105,7 +105,7 @@ outbd_rspar = CreatePart.spar.by_points('outbd rear spar', wing,
                                         inbd_rspar.p2, tip_rib.p2, pln)
 
 # Jury rib where strut intersects.
-p0 = jury.eval_cref(0.5, 1.)
+p0 = jury.eval(0.5, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'xz')
 jury_rib = CreatePart.rib.between_geom('jury rib', wing, inbd_fspar.sref,
                                        inbd_rspar.sref, pln)
@@ -285,11 +285,11 @@ all_parts.append(shape)
 # GEAR ------------------------------------------------------------------------
 AssemblyData.create_assy('gear assy')
 
-p0 = gear.eval_cref(0.15, 1.)
+p0 = gear.eval(0.15, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'yz')
 spar1 = CreatePart.spar.by_sref('gear spar 1', gear, pln)
 
-p0 = gear.eval_cref(0.70, 1.)
+p0 = gear.eval(0.70, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'yz')
 spar2 = CreatePart.spar.by_sref('gear spar 2', gear, pln)
 

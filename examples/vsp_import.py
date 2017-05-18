@@ -1,5 +1,5 @@
 from asap.graphics import Viewer
-from asap.io import ImportVSP
+from asap.io import ImportVSP, StepExport
 from asap.topology import ShapeTools
 
 fn = r'..\models\777-200LR.stp'
@@ -20,3 +20,9 @@ for name in bodies:
     Viewer.add_items(b)
 print()
 Viewer.show()
+
+# Export translated VSP model to a STEP file.
+compound = ShapeTools.make_compound(bodies.values())
+step = StepExport(units='inch')
+step.transfer(compound)
+step.write('vsp2asap.stp')
