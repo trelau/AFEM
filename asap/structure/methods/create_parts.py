@@ -739,8 +739,8 @@ def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
     """
     Create a 2-D stiffener on a surface part by intersection. 
     """
-    if not isinstance(surface_part, SurfacePart):
-        return None
+    # if not isinstance(surface_part, SurfacePart):
+    #     return None
 
     if h <= 0. or runout_angle < 0:
         return None
@@ -799,8 +799,8 @@ def create_stiffener2d_by_sections(etype, label, surface_part,
     """
     Create a 2-D stiffener on a surface part by all intersections. 
     """
-    if not isinstance(surface_part, SurfacePart):
-        return None
+    # if not isinstance(surface_part, SurfacePart):
+    #     return []
 
     if h <= 0. or runout_angle < 0:
         return None
@@ -811,15 +811,15 @@ def create_stiffener2d_by_sections(etype, label, surface_part,
 
     surface_shape = ShapeTools.to_shape(surface_shape)
     if not surface_shape:
-        return None
+        return []
 
     # Build spine
     edges = ShapeTools.bsection(surface_part, surface_shape, 'edge')
     if not edges:
-        return None
+        return []
     wires = ShapeTools.connect_edges(edges)
     if not wires:
-        return None
+        return []
 
     # Create stiffener for all wires.
     stiffeners = []

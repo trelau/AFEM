@@ -8,8 +8,14 @@ from asap.structure import AssemblyData, CreatePart, PartTools
 
 # Inputs
 fname = r'..\models\N2A_nosplit.stp'
+# Length of flight deck from nose.
 fd_length = 10. * 12.
-cabin_length = 100. * 12.
+# Cabin length as absolute value (> 1) or percent root chord ( < 1)
+cabin_length = 0.7
+# Cabin width
+cabin_width = 50. * 12.
+# Bay width
+bay_width = 8. * 12.
 
 # Import model
 ImportVSP.step_file(fname)
@@ -23,22 +29,48 @@ for name in ImportVSP.get_bodies():
     body.set_color(0.5, 0.5, 0.5)
     Viewer.add_items(body)
 
+# Construction geometry
+root_chord = wing.isocurve(v=0.)
+
 # Centerbody structure
 sref = CreateGeom.plane_by_axes([fd_length, 0, 0], 'yz')
 fd_bh = CreatePart.bulkhead.by_sref('flight deck bulkhead', wing, sref)
 
-sref = CreateGeom.plane_by_axes([fd_length + cabin_length, 0, 0], 'yz')
+# Rear cabin bulkhead
+if cabin_length < 1:
+    p0 = root_chord.eval_dx(cabin_length, root_chord.u1, True)
+    sref = CreateGeom.plane_by_axes(p0, 'yz')
+else:
+    p0 = CreateGeom.point_by_xyz(fd_length + cabin_length, 0, 0)
+    sref = CreateGeom.plane_by_axes(p0, 'yz')
 rear_cabin_bh = CreatePart.bulkhead.by_sref('rear cabin bulkhead', wing, sref)
+
+# Cabin side-of-body
+p0 = CreateGeom.point_by_xyz(p0.x, cabin_width / 2., 0.)
+sref = CreateGeom.plane_by_axes(p0, 'xz')
+cb_sob = CreatePart.rib.by_sref('centerbody sob', wing, sref)
+
+# Cabin bay wall
+p0 = CreateGeom.point_by_xyz(p0.x, cabin_width / 4., 0.)
+sref = CreateGeom.plane_by_axes(p0, 'xz')
+cb_wall = CreatePart.rib.by_sref('centerbody wall', wing, sref)
+
+
+
+
+
+
+
 
 # Outboard wing structure
 
 # Root rib
 outbd_root_rib = CreatePart.rib.by_parameters('outbd root rib', wing,
-                                              0.15, 0.5, 0.65, 0.5)
+                                              0.15, 0.5, 0.70, 0.5)
 
 # Tip rib
 tip_rib = CreatePart.rib.by_parameters('tip rib', wing,
-                                       0.15, 0.995, 0.65, 0.995)
+                                       0.15, 0.995, 0.70, 0.995)
 
 # Outbd front spar
 outbd_fspar = CreatePart.spar.by_points('outbd front spar', wing,
@@ -49,9 +81,9 @@ outbd_rspar = CreatePart.spar.by_points('outbd rear spar', wing,
                                         outbd_root_rib.p2, tip_rib.p2)
 
 # Outbd ribs
-outbd_ribs = CreatePart.rib.along_curve('outbd rib', wing, outbd_rspar.cref,
-                                        outbd_fspar.sref, outbd_rspar.sref,
-                                        72., s1=30., s2=-30.)
+# outbd_ribs = CreatePart.rib.along_curve('outbd rib', wing, outbd_rspar.cref,
+#                                         outbd_fspar.sref, outbd_rspar.sref,
+#                                         72., s1=30., s2=-30.)
 
 internal_parts = AssemblyData.get_parts()
 
@@ -61,26 +93,26 @@ PartTools.discard_faces(internal_parts)
 Viewer.add_items(*internal_parts)
 
 Viewer.show(False)
-
-# MESH --------------------------------------------------------------------
-# Initialize
-shape_to_mesh = AssemblyData.prepare_shape_to_mesh()
-MeshData.create_mesh('N2A mesh', shape_to_mesh)
-
-# Use a single global hypothesis based on local length.
-MeshData.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
-MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshData.add_hypothesis('netgen hypo')
-MeshData.add_hypothesis('netgen algo')
-
-# Compute the mesh
-mesh_start = time.time()
-print('Computing mesh...')
-status = MeshData.compute_mesh()
-if not status:
-    print('Failed to compute mesh')
-else:
-    print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
-
-Viewer.add_meshes(MeshData.get_active())
-Viewer.show()
+#
+# # MESH --------------------------------------------------------------------
+# # Initialize
+# shape_to_mesh = AssemblyData.prepare_shape_to_mesh()
+# MeshData.create_mesh('N2A mesh', shape_to_mesh)
+#
+# # Use a single global hypothesis based on local length.
+# MeshData.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
+# MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
+# MeshData.add_hypothesis('netgen hypo')
+# MeshData.add_hypothesis('netgen algo')
+#
+# # Compute the mesh
+# mesh_start = time.time()
+# print('Computing mesh...')
+# status = MeshData.compute_mesh()
+# if not status:
+#     print('Failed to compute mesh')
+# else:
+#     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
+#
+# Viewer.add_meshes(MeshData.get_active())
+# Viewer.show()
