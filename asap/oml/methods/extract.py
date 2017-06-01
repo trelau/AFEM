@@ -92,10 +92,7 @@ def extract_wing_ref_curve(wing, uv1, uv2, surface_shape):
     wires_obj = hwires.GetObject()
     for i in range(1, wires_obj.Length() + 1):
         wire = topods_Wire(wires_obj.Value(i))
-        edge = ShapeTools.concatenate_wire(wire)
-        adp_crv = BRepAdaptor_Curve(edge)
-        occ_crv = adp_crv.BSpline().GetObject()
-        crv = create_nurbs_curve_from_occ(occ_crv)
+        crv = ShapeTools.curve_of_wire(wire)
         if not crv:
             continue
         crvs.append(crv)

@@ -1,7 +1,7 @@
 from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_COMMON, BOPAlgo_CUT, \
     BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_SECTION
 from OCC.BRep import BRep_Builder, BRep_Tool
-from OCC.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve, \
+from OCC.BRepAdaptor import BRepAdaptor_Curve, \
     BRepAdaptor_Surface
 from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
@@ -26,10 +26,11 @@ from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 from OCC.GProp import GProp_GProps
 from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
-from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_BSplineCurve, \
-    GeomAbs_BSplineSurface, GeomAbs_BezierCurve, GeomAbs_BezierSurface, \
+from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_BSplineSurface, \
+    GeomAbs_BezierSurface, \
     GeomAbs_Intersection, GeomAbs_Line, GeomAbs_Plane, GeomAbs_Tangent
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
+from OCC.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds, \
     ShapeAnalysis_FreeBounds_ConnectEdgesToWires, ShapeAnalysis_ShapeTolerance
 from OCC.ShapeBuild import ShapeBuild_ReShape
@@ -554,16 +555,27 @@ class ShapeTools(object):
         wire = ShapeTools.to_wire(wire)
         if not wire:
             return None
-        adp_crv = BRepAdaptor_CompCurve(wire)
-        if adp_crv.GetType() == GeomAbs_Line:
-            gp_lin = adp_crv.Line()
-            crv = Line(gp_lin)
-            return crv
+        geom_convert = GeomConvert_CompCurveToBSplineCurve()
+        exp = ShapeTools.wire_explorer(wire)
+        while exp.More():
+            e = topods_Edge(exp.Current())
+            exp.Next()
+            adp_crv = BRepAdaptor_Curve(e)
+            tol = ShapeTools.get_tolerance(e, 1)
+            geom_convert.Add(adp_crv.BSpline(), tol)
+        occ_crv = geom_convert.BSplineCurve().GetObject()
+        crv = create_nurbs_curve_from_occ(occ_crv)
+        return crv
+        # adp_crv = BRepAdaptor_CompCurve(wire)
+        # if adp_crv.GetType() == GeomAbs_Line:
+        #     gp_lin = adp_crv.Line()
+        #     crv = Line(gp_lin)
+        #     return crv
         # elif adp_crv.GetType() in [GeomAbs_BezierCurve,
         # GeomAbs_BSplineCurve]:
-        crv = adp_crv.BSpline().GetObject()
-        crv = create_nurbs_curve_from_occ(crv)
-        return crv
+        #     crv = adp_crv.BSpline().GetObject()
+        #     crv = create_nurbs_curve_from_occ(crv)
+        #     return crv
         # return None
 
     @staticmethod
