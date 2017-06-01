@@ -96,7 +96,11 @@ def extract_wing_ref_curve(wing, uv1, uv2, surface_shape):
         adp_crv = BRepAdaptor_Curve(edge)
         occ_crv = adp_crv.BSpline().GetObject()
         crv = create_nurbs_curve_from_occ(occ_crv)
+        if not crv:
+            continue
         crvs.append(crv)
+    if not crvs:
+        return None
 
     if len(crvs) == 1:
         crv = crvs[0]

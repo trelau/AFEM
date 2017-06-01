@@ -537,11 +537,12 @@ class ShapeTools(object):
             gp_lin = adp_crv.Line()
             crv = Line(gp_lin)
             return crv
-        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
-            crv = adp_crv.BSpline().GetObject()
-            crv = create_nurbs_curve_from_occ(crv)
-            return crv
-        return None
+        # elif adp_crv.GetType() in [GeomAbs_BezierCurve,
+        # GeomAbs_BSplineCurve]:
+        crv = adp_crv.BSpline().GetObject()
+        crv = create_nurbs_curve_from_occ(crv)
+        return crv
+        # return None
 
     @staticmethod
     def curve_of_wire(wire):
@@ -558,11 +559,12 @@ class ShapeTools(object):
             gp_lin = adp_crv.Line()
             crv = Line(gp_lin)
             return crv
-        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
-            crv = adp_crv.BSpline().GetObject()
-            crv = create_nurbs_curve_from_occ(crv)
-            return crv
-        return None
+        # elif adp_crv.GetType() in [GeomAbs_BezierCurve,
+        # GeomAbs_BSplineCurve]:
+        crv = adp_crv.BSpline().GetObject()
+        crv = create_nurbs_curve_from_occ(crv)
+        return crv
+        # return None
 
     @staticmethod
     def curve_of_shape(shape):
