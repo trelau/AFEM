@@ -5,6 +5,7 @@ from asap.geometry import CreateGeom
 from asap.graphics import Viewer
 from asap.io import ImportVSP
 from asap.structure import AssemblyData, CreatePart, PartTools
+from asap.topology import ShapeTools
 
 # Inputs
 fname = r'..\models\N2A_nosplit.stp'
@@ -34,7 +35,7 @@ root_chord = wing.isocurve(v=0.)
 
 # Centerbody structure
 sref = CreateGeom.plane_by_axes([fd_length, 0, 0], 'yz')
-fd_bh = CreatePart.bulkhead.by_sref('flight deck bulkhead', wing, sref)
+fd_bh = CreatePart.spar.by_sref('flight deck bulkhead', wing, sref)
 
 # Rear cabin bulkhead
 if cabin_length < 1:
@@ -43,7 +44,7 @@ if cabin_length < 1:
 else:
     p0 = CreateGeom.point_by_xyz(fd_length + cabin_length, 0, 0)
     sref = CreateGeom.plane_by_axes(p0, 'yz')
-rear_cabin_bh = CreatePart.bulkhead.by_sref('rear cabin bulkhead', wing, sref)
+rear_cabin_bh = CreatePart.spar.by_sref('rear cabin bulkhead', wing, sref)
 
 # Cabin side-of-body
 p0 = CreateGeom.point_by_xyz(p0.x, cabin_width / 2., 0.)
@@ -55,7 +56,15 @@ p0 = CreateGeom.point_by_xyz(p0.x, cabin_width / 4., 0.)
 sref = CreateGeom.plane_by_axes(p0, 'xz')
 cb_wall = CreatePart.rib.by_sref('centerbody wall', wing, sref)
 
+# Front spar segments
+p1 = fd_bh.eval_dx(0.75, is_local=True)
+p2 = cb_wall.eval_dx(0.05, is_local=True)
+cb_fspar1 = CreatePart.spar.by_points('cb fspar 1', wing, p1, p2)
 
+p2 = cb_sob.eval_dx(0.05, is_local=True)
+sref = ShapeTools.plane_from_section(cb_wall, cb_fspar1, p2)
+cb_fspar2 = CreatePart.spar.by_points('cb fspar 2', wing, cb_fspar1.p2, p2,
+                                      sref)
 
 
 
