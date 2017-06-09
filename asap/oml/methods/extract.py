@@ -1,5 +1,4 @@
 from OCC.BRep import BRep_Tool
-from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Section
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace
 from OCC.ShapeAnalysis import ShapeAnalysis_FreeBounds_ConnectEdgesToWires
@@ -10,8 +9,6 @@ from OCC.TopTools import Handle_TopTools_HSequenceOfShape, \
 from OCC.TopoDS import topods_Edge, topods_Wire
 
 from ...geometry import CheckGeom, CreateGeom, ProjectGeom
-from ...geometry.methods.create import create_nurbs_curve_from_occ
-from ...geometry.methods.distance import curve_nearest_point
 from ...topology import ShapeTools
 
 _brep_tool = BRep_Tool()
@@ -88,22 +85,21 @@ def extract_wing_ref_curve(wing, uv1, uv2, surface_shape):
     hwires = Handle_TopTools_HSequenceOfShape()
     ShapeAnalysis_FreeBounds_ConnectEdgesToWires(edges.GetHandle(),
                                                  max(tol), False, hwires)
-    crvs = []
+    # Find the nearest wire if necessary.
     wires_obj = hwires.GetObject()
+    wires = []
     for i in range(1, wires_obj.Length() + 1):
         wire = topods_Wire(wires_obj.Value(i))
-        crv = ShapeTools.curve_of_wire(wire)
-        if not crv:
-            continue
-        crvs.append(crv)
-    if not crvs:
+        wires.append(wire)
+    if not wires:
         return None
-
-    if len(crvs) == 1:
-        crv = crvs[0]
+    if len(wires) == 1:
+        wire = wires[0]
     else:
-        # Find curve nearest p1.
-        crv = curve_nearest_point(p1, crvs)
+        wire = ShapeTools.nearest_shape(p1, wires)
+
+    # Get curve of wire.
+    crv = ShapeTools.curve_of_wire(wire)
 
     # Segment curve between p1 and p2 and reverse if necessary.
     u1 = ProjectGeom.invert(p1, crv)

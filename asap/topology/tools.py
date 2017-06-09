@@ -1909,3 +1909,30 @@ class ShapeTools(object):
             return wire
         new_wire = reshape.Apply(wire)
         return ShapeTools.to_wire(new_wire)
+
+    @staticmethod
+    def nearest_shape(shape, others):
+        """
+        Find the nearest shape to a given shape.
+
+        :param shape:
+        :param others:
+        :return:
+        """
+        if not others:
+            return None
+        if len(others) == 1:
+            return others[0]
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        smin = others[0]
+        dmin = ShapeTools.min_distance(shape, smin)
+        for s in others[1:]:
+            di = ShapeTools.min_distance(shape, s)
+            if di < dmin:
+                dmin = di
+                smin = s
+        return smin
+
