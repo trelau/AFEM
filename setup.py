@@ -3,7 +3,7 @@
 from setuptools import find_packages, setup
 
 kwds = {'name': 'asap',
-        'version': '0.0.1',
+        'version': '0.0.2',
         'packages': find_packages('.'),
         'package_dir': {'asap': 'asap'},
         'author': 'Laughlin Research, LLC',

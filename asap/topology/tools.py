@@ -1,3 +1,4 @@
+from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve
 from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_COMMON, BOPAlgo_CUT, \
     BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_SECTION
 from OCC.BRep import BRep_Builder, BRep_Tool
@@ -562,8 +563,14 @@ class ShapeTools(object):
             exp.Next()
             adp_crv = BRepAdaptor_Curve(e)
             tol = ShapeTools.get_tolerance(e, 1)
+            # TODO Handle curves other than BSpline
+            if adp_crv.GetType() not in [GeomAbs_BSplineCurve,
+                                         GeomAbs_BezierCurve]:
+                continue
             geom_convert.Add(adp_crv.BSpline(), tol)
         occ_crv = geom_convert.BSplineCurve().GetObject()
+        if not occ_crv:
+            return None
         crv = create_nurbs_curve_from_occ(occ_crv)
         return crv
         # adp_crv = BRepAdaptor_CompCurve(wire)

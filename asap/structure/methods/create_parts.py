@@ -387,9 +387,9 @@ def create_frame_by_sref(label, fuselage, surface_shape, h):
     if not sref:
         sref = ShapeTools.surface_of_shape(surface_shape)
 
-    # Build reference curve.
     # TODO Build reference curve of frame using outer wire.
-    cref = ShapeTools.curve_of_wire(outer_wire)
+    # cref = ShapeTools.curve_of_wire(outer_wire)
+    cref = None
 
     # Create the frame.
     frame = Frame(label, shape, cref, sref)
