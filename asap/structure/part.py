@@ -41,7 +41,6 @@ class Part(TopoDS_Shape, ViewableItem):
         # Add to assembly
         assy = AssemblyData.get_assy(assy)
         if assy:
-            print('Adding part to assy: ', assy.label)
             AssemblyData.add_parts(assy, self)
         print('Creating part: ', label)
 
