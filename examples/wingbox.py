@@ -78,7 +78,8 @@ def build_wingbox(wing, params):
     # Generate points along rear spar and project to front spar to define ribs.
     prear = rspar.spaced_points(rib_spacing, rib_spacing, -rib_spacing)
     pfront = [p.copy() for p in prear]
-    fspar.points_to_cref(pfront)
+    rspar_norm = rspar.sref.norm(0, 0)
+    fspar.points_to_cref(pfront, rspar_norm)
     i = 1
     ribs = []
     for pf, pr in zip(pfront, prear):
@@ -124,7 +125,7 @@ def build_wingbox(wing, params):
         u2 = root.invert_cref(mspar.p1)
         prib = root.spaced_points(3, u2=u2)[1:-1]
         pfront = [p.copy() for p in prib]
-        fspar.points_to_cref(pfront)
+        fspar.points_to_cref(pfront, rspar_norm)
         for pf, pr in zip(pfront, prib):
             if pf.is_equal(pr):
                 continue
@@ -141,7 +142,7 @@ def build_wingbox(wing, params):
         u2 = root.invert_cref(rspar.p1)
         prib = root.spaced_points(3, u1=u1, u2=u2)[1:-1]
         pfront = [p.copy() for p in prib]
-        fspar.points_to_cref(pfront)
+        fspar.points_to_cref(pfront, rspar_norm)
         for pf, pr in zip(pfront, prib):
             if pf.is_equal(pr):
                 continue
@@ -152,6 +153,14 @@ def build_wingbox(wing, params):
             ribs.append(rib)
             root_ribs.append(rib)
             i += 1
+
+    # Rib at intersection of rear spar and root rib. Use intersection and
+    # projected point to define a plane.
+    p2 = rspar.p1
+    p1 = p2.copy()
+    fspar.point_to_cref(p1, rspar_norm)
+    sref = ShapeTools.plane_from_section(root, rspar, p1)
+    CreatePart.rib.by_points('corner rib', wing, p1, p2, sref)
 
     # Construction geom for center structure.
     root_chord = wing.extract_curve((0, 0), (1, 0))
@@ -234,6 +243,9 @@ def build_wingbox(wing, params):
 
     # Viewing
     skin.set_transparency(0.5)
+
+    Viewer.add_items(*AssemblyData.get_parts())
+    Viewer.show()
 
     # MESH --------------------------------------------------------------------
     # Initialize
