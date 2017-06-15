@@ -95,7 +95,7 @@ def _build_surface_part(surface_shape, bodies):
     return shape
 
 
-def create_curve_part(label, curve_shape):
+def create_curve_part(label, curve_shape, assy=None):
     """
     Create a curve part.
     """
@@ -110,10 +110,10 @@ def create_curve_part(label, curve_shape):
     if not cref:
         cref = ShapeTools.curve_of_shape(curve_shape)
 
-    return CurvePart(label, curve_shape, cref)
+    return CurvePart(label, curve_shape, cref, assy)
 
 
-def create_curve_part_by_section(label, shape1, shape2):
+def create_curve_part_by_section(label, shape1, shape2, assy=None):
     """
     Create a curve part from the section between two shapes. 
     """
@@ -137,10 +137,10 @@ def create_curve_part_by_section(label, shape1, shape2):
     else:
         wire = ShapeTools.longest_wire(wires)
 
-    return create_curve_part(label, wire)
+    return create_curve_part(label, wire, assy)
 
 
-def create_surface_part(label, surface_shape, bodies=()):
+def create_surface_part(label, surface_shape, bodies=(), assy=None):
     """
     Create a surface part.
     """
@@ -157,18 +157,18 @@ def create_surface_part(label, surface_shape, bodies=()):
 
     # Return shape is no bodies are provided.
     if not bodies:
-        return SurfacePart(label, surface_shape, sref=sref)
+        return SurfacePart(label, surface_shape, sref=sref, assy=assy)
 
     # Build part shape.
     shape = _build_surface_part(surface_shape, bodies)
     if not shape:
         return None
 
-    return SurfacePart(label, shape, sref=sref)
+    return SurfacePart(label, shape, sref=sref, assy=assy)
 
 
 def create_wing_part_by_params(etype, label, wing, u1, v1, u2, v2,
-                               surface_shape, bodies=()):
+                               surface_shape, bodies=(), assy=None):
     """
     Create a wing part by parameters.
     """
@@ -206,15 +206,15 @@ def create_wing_part_by_params(etype, label, wing, u1, v1, u2, v2,
 
     # Create the wing part.
     if etype in ['spar']:
-        wing_part = Spar(label, shape, cref, sref)
+        wing_part = Spar(label, shape, cref, sref, assy)
     else:
-        wing_part = Rib(label, shape, cref, sref)
+        wing_part = Rib(label, shape, cref, sref, assy)
 
     return wing_part
 
 
 def create_wing_part_by_points(etype, label, wing, p1, p2, surface_shape,
-                               bodies=()):
+                               bodies=(), assy=None):
     """
     Create a wing part between points.
     """
@@ -232,10 +232,11 @@ def create_wing_part_by_points(etype, label, wing, p1, p2, surface_shape,
         return None
 
     return create_wing_part_by_params(etype, label, wing, u1, v1, u2, v2,
-                                      surface_shape, bodies)
+                                      surface_shape, bodies, assy)
 
 
-def create_wing_part_by_sref(etype, label, wing, surface_shape, bodies=()):
+def create_wing_part_by_sref(etype, label, wing, surface_shape, bodies=(),
+                             assy=None):
     """
     Create wing part by reference surface.
     """
@@ -288,15 +289,15 @@ def create_wing_part_by_sref(etype, label, wing, surface_shape, bodies=()):
 
     # Create the wing part.
     if etype in ['spar']:
-        wing_part = Spar(label, shape, cref, sref)
+        wing_part = Spar(label, shape, cref, sref, assy)
     else:
-        wing_part = Rib(label, shape, cref, sref)
+        wing_part = Rib(label, shape, cref, sref, assy)
 
     return wing_part
 
 
 def create_wing_part_between_geom(etype, label, wing, geom1, geom2,
-                                  surface_shape, bodies=()):
+                                  surface_shape, bodies=(), assy=None):
     """
     Create a wing part between geometry.
     """
@@ -336,10 +337,10 @@ def create_wing_part_between_geom(etype, label, wing, geom1, geom2,
     p2 = ci.point(1)
 
     return create_wing_part_by_points(etype, label, wing, p1, p2,
-                                      surface_shape, bodies)
+                                      surface_shape, bodies, assy)
 
 
-def create_frame_by_sref(label, fuselage, surface_shape, h):
+def create_frame_by_sref(label, fuselage, surface_shape, h, assy=None):
     """
     Create a frame using a reference shape.
     """
@@ -392,12 +393,13 @@ def create_frame_by_sref(label, fuselage, surface_shape, h):
     cref = None
 
     # Create the frame.
-    frame = Frame(label, shape, cref, sref)
+    frame = Frame(label, shape, cref, sref, assy)
 
     return frame
 
 
-def create_bulkhead_by_sref(label, fuselage, surface_shape, bodies=()):
+def create_bulkhead_by_sref(label, fuselage, surface_shape, bodies=(),
+                            assy=None):
     """
     Create a bulkhead using a reference shape.
     """
@@ -421,10 +423,10 @@ def create_bulkhead_by_sref(label, fuselage, surface_shape, bodies=()):
         sref = ShapeTools.surface_of_shape(surface_shape)
 
     # Create bulkhead.
-    return Bulkhead(label, shape, sref=sref)
+    return Bulkhead(label, shape, sref=sref, assy=assy)
 
 
-def create_floor_by_sref(label, fuselage, surface_shape, bodies=()):
+def create_floor_by_sref(label, fuselage, surface_shape, bodies=(), assy=None):
     """
     Create a floor using a reference shape.
     """
@@ -448,10 +450,10 @@ def create_floor_by_sref(label, fuselage, surface_shape, bodies=()):
         sref = ShapeTools.surface_of_shape(surface_shape)
 
     # Create floor.
-    return Floor(label, shape, sref=sref)
+    return Floor(label, shape, sref=sref, assy=None)
 
 
-def create_skin_from_body(label, body, copy=True):
+def create_skin_from_body(label, body, copy=True, assy=None):
     """
     Create skin from outer shell of body.
     """
@@ -461,12 +463,12 @@ def create_skin_from_body(label, body, copy=True):
     outer_shell = body.shell
     if copy:
         outer_shell = ShapeTools.copy_shape(outer_shell, False)
-    skin = Skin(label, outer_shell)
+    skin = Skin(label, outer_shell, assy=assy)
 
     return skin
 
 
-def create_skin_from_solid(label, solid, copy=True):
+def create_skin_from_solid(label, solid, copy=True, assy=None):
     """
     Create skin from outer shell of solid. 
     """
@@ -477,13 +479,13 @@ def create_skin_from_solid(label, solid, copy=True):
     outer_shell = ShapeTools.outer_shell(solid)
     if copy:
         outer_shell = ShapeTools.copy_shape(outer_shell, False)
-    skin = Skin(label, outer_shell)
+    skin = Skin(label, outer_shell, assy=assy)
 
     return skin
 
 
 def create_frames_between_planes(label, fuselage, planes, h, maxd=None,
-                                 nplns=None, indx=1):
+                                 nplns=None, indx=1, assy=None):
     """
     Create frames evenly spaced between planes.
     """
@@ -501,7 +503,7 @@ def create_frames_between_planes(label, fuselage, planes, h, maxd=None,
     frames = []
     for pln in plns:
         flabel = ' '.join([label, str(indx)])
-        frame = create_frame_by_sref(flabel, fuselage, pln, h)
+        frame = create_frame_by_sref(flabel, fuselage, pln, h, assy)
         if not frame:
             continue
         frames.append(frame)
@@ -510,7 +512,7 @@ def create_frames_between_planes(label, fuselage, planes, h, maxd=None,
     return frames
 
 
-def create_frames_at_shapes(label, fuselage, shapes, h, indx=1):
+def create_frames_at_shapes(label, fuselage, shapes, h, indx=1, assy=None):
     """
     Create frames at shapes.
     """
@@ -521,7 +523,7 @@ def create_frames_at_shapes(label, fuselage, shapes, h, indx=1):
     for shape in shapes:
         shape = ShapeTools.to_shape(shape)
         flabel = ' '.join([label, str(indx)])
-        frame = create_frame_by_sref(flabel, fuselage, shape, h)
+        frame = create_frame_by_sref(flabel, fuselage, shape, h, assy)
         if not frame:
             continue
         frames.append(frame)
@@ -531,7 +533,7 @@ def create_frames_at_shapes(label, fuselage, shapes, h, indx=1):
 
 
 def create_wing_parts_between_planes(etype, label, wing, planes, geom1, geom2,
-                                     maxd=None, nplns=None, indx=1):
+                                     maxd=None, nplns=None, indx=1, assy=None):
     """
     Create wing part evenly spaced between planes.
     """
@@ -550,7 +552,7 @@ def create_wing_parts_between_planes(etype, label, wing, planes, geom1, geom2,
     for pln in plns:
         rlabel = ' '.join([label, str(indx)])
         part = create_wing_part_between_geom(etype, rlabel, wing, geom1,
-                                             geom2, pln)
+                                             geom2, pln, assy=assy)
         if not part:
             continue
         parts.append(part)
@@ -561,7 +563,8 @@ def create_wing_parts_between_planes(etype, label, wing, planes, geom1, geom2,
 
 def create_wing_parts_along_curve(etype, label, wing, curve, geom1, geom2,
                                   maxd=None, npts=None, ref_pln=None,
-                                  u1=None, u2=None, s1=None, s2=None, indx=1):
+                                  u1=None, u2=None, s1=None, s2=None,
+                                  indx=1, assy=None):
     """
     Create wing parts along a curve.
     """
@@ -577,7 +580,7 @@ def create_wing_parts_along_curve(etype, label, wing, curve, geom1, geom2,
     for pln in plns:
         rlabel = ' '.join([label, str(indx)])
         part = create_wing_part_between_geom(etype, rlabel, wing, geom1,
-                                             geom2, pln)
+                                             geom2, pln, assy=assy)
         if not part:
             continue
         parts.append(part)
@@ -635,7 +638,7 @@ def create_stiffener1d(surface_part, stiffener, label):
 
 
 def create_stiffener2d_by_wire(etype, label, surface_part, wire, h,
-                               runout_angle, sref=None):
+                               runout_angle, sref=None, assy=None):
     """
     Create a 2-D stiffener on a surface part by a wire. 
     """
@@ -711,7 +714,7 @@ def create_stiffener2d_by_wire(etype, label, surface_part, wire, h,
 
     # Create stringer.
     if etype in ['stringer']:
-        part = Stringer(label, shape, cref, sref)
+        part = Stringer(label, shape, cref, sref, assy)
         return part
 
     # Create stiffener
@@ -735,7 +738,7 @@ def create_stiffener2d_by_wire(etype, label, surface_part, wire, h,
 
 
 def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
-                                  runout_angle, cut_part=False):
+                                  runout_angle, cut_part=False, assy=None):
     """
     Create a 2-D stiffener on a surface part by intersection. 
     """
@@ -783,7 +786,7 @@ def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
         return None
 
     stiffener = create_stiffener2d_by_wire(etype, label, surface_part, spine0,
-                                           h, runout_angle, sref)
+                                           h, runout_angle, sref, assy)
     if not stiffener:
         return None
 
@@ -795,7 +798,7 @@ def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
 
 
 def create_stiffener2d_by_sections(etype, label, surface_part,
-                                   surface_shape, h, runout_angle):
+                                   surface_shape, h, runout_angle, assy=None):
     """
     Create a 2-D stiffener on a surface part by all intersections. 
     """
@@ -825,7 +828,8 @@ def create_stiffener2d_by_sections(etype, label, surface_part,
     stiffeners = []
     for wire in wires:
         stiffener = create_stiffener2d_by_wire(etype, label, surface_part,
-                                               wire, h, runout_angle, sref)
+                                               wire, h, runout_angle, sref,
+                                               assy)
         if not stiffener:
             continue
         stiffeners.append(stiffener)

@@ -171,6 +171,8 @@ class AssemblyData(object):
         :return: Assembly or active assembly if name does not exist.
         :rtype: :class:`.Assembly`
         """
+        if assy is False:
+            return None
         if isinstance(assy, Assembly):
             return assy
         try:

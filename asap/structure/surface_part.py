@@ -19,9 +19,8 @@ class SurfacePart(Part):
     Base class for surface-based parts.
     """
 
-    def __init__(self, label, shape, cref=None, sref=None, add_to_assy=True):
-        super(SurfacePart, self).__init__(label, shape, cref, sref,
-                                          add_to_assy)
+    def __init__(self, label, shape, cref=None, sref=None, assy=None):
+        super(SurfacePart, self).__init__(label, shape, cref, sref, assy)
 
     @property
     def reshapes(self):

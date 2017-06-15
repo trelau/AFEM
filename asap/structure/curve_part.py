@@ -7,8 +7,8 @@ class CurvePart(Part):
     Base class for curve-based parts.
     """
 
-    def __init__(self, label, shape, cref=None, add_to_assy=True):
-        super(CurvePart, self).__init__(label, shape, cref, None, add_to_assy)
+    def __init__(self, label, shape, cref=None, assy=None):
+        super(CurvePart, self).__init__(label, shape, cref, None, assy)
 
     @property
     def reshapes(self):

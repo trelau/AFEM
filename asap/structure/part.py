@@ -17,8 +17,7 @@ class Part(TopoDS_Shape, ViewableItem):
     _indx = 1
     _all = {}
 
-    def __init__(self, label, shape, cref=None, sref=None,
-                 add_to_assy=True):
+    def __init__(self, label, shape, cref=None, sref=None, assy=None):
         # Initialize
         super(Part, self).__init__()
         ViewableItem.__init__(self)
@@ -39,9 +38,11 @@ class Part(TopoDS_Shape, ViewableItem):
         self.set_cref(cref)
         self.set_sref(sref)
 
-        # Store in active assembly
-        if add_to_assy:
-            AssemblyData.add_parts(None, self)
+        # Add to assembly
+        assy = AssemblyData.get_assy(assy)
+        if assy:
+            print('Adding part to assy: ', assy.label)
+            AssemblyData.add_parts(assy, self)
         print('Creating part: ', label)
 
     @property

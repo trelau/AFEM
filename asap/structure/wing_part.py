@@ -9,8 +9,8 @@ class WingPart(SurfacePart):
     Base class for wing parts.
     """
 
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(WingPart, self).__init__(label, shape, cref, sref)
+    def __init__(self, label, shape, cref=None, sref=None, assy=None):
+        super(WingPart, self).__init__(label, shape, cref, sref, assy)
 
     def discard(self, shape=None, tol=None):
         """

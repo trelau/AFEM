@@ -16,7 +16,7 @@ class CreateSpar(object):
 
     @staticmethod
     def by_parameters(label, wing, u1, v1, u2, v2, surface_shape=None,
-                      bodies=()):
+                      bodies=(), assy=None):
         """
         Create a spar by wing parameters.
 
@@ -28,14 +28,16 @@ class CreateSpar(object):
         :param v2:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
         return create_wing_part_by_params('spar', label, wing, u1, v1, u2, v2,
-                                          surface_shape, bodies)
+                                          surface_shape, bodies, assy)
 
     @staticmethod
-    def by_points(label, wing, p1, p2, surface_shape=None, bodies=()):
+    def by_points(label, wing, p1, p2, surface_shape=None, bodies=(),
+                  assy=None):
         """
         Create a spar by points.
 
@@ -45,14 +47,15 @@ class CreateSpar(object):
         :param p2:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
         return create_wing_part_by_points('spar', label, wing, p1, p2,
-                                          surface_shape, bodies)
+                                          surface_shape, bodies, assy)
 
     @staticmethod
-    def by_sref(label, wing, surface_shape, bodies=()):
+    def by_sref(label, wing, surface_shape, bodies=(), assy=None):
         """
         Create a spar using a reference shape.
 
@@ -60,14 +63,16 @@ class CreateSpar(object):
         :param wing:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
         return create_wing_part_by_sref('spar', label, wing, surface_shape,
-                                        bodies)
+                                        bodies, assy)
 
     @staticmethod
-    def between_geom(label, wing, geom1, geom2, surface_shape, bodies=()):
+    def between_geom(label, wing, geom1, geom2, surface_shape, bodies=(),
+                     assy=None):
         """
         Create a spar between geometry.
 
@@ -77,15 +82,16 @@ class CreateSpar(object):
         :param geom2:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
         return create_wing_part_between_geom('spar', label, wing, geom1, geom2,
-                                             surface_shape, bodies)
+                                             surface_shape, bodies, assy)
 
     @staticmethod
     def between_planes(label, wing, planes, geom1, geom2, maxd=None,
-                       nplns=None, indx=1):
+                       nplns=None, indx=1, assy=None):
         """
         Create spars evenly spaced between planes
 
@@ -97,16 +103,18 @@ class CreateSpar(object):
         :param maxd:
         :param nplns:
         :param indx:
+        :param assy:
 
         :return:
         """
         return create_wing_parts_between_planes('spar', label, wing, planes,
                                                 geom1, geom2, maxd, nplns,
-                                                indx)
+                                                indx, assy)
 
     @staticmethod
     def along_curve(label, wing, curve, geom1, geom2, maxd=None, npts=None,
-                    ref_pln=None, u1=None, u2=None, s1=None, s2=None, indx=1):
+                    ref_pln=None, u1=None, u2=None, s1=None, s2=None, indx=1,
+                    assy=None):
         """
         Create spars along a curve.
 
@@ -123,12 +131,13 @@ class CreateSpar(object):
         :param s1:
         :param s2:
         :param indx:
+        :param assy:
 
         :return:
         """
         return create_wing_parts_along_curve('spar', label, wing, curve, geom1,
                                              geom2, maxd, npts, ref_pln, u1,
-                                             u2, s1, s2, indx)
+                                             u2, s1, s2, indx, assy)
 
 
 class CreateRib(object):
@@ -138,7 +147,7 @@ class CreateRib(object):
 
     @staticmethod
     def by_parameters(label, wing, u1, v1, u2, v2, surface_shape=None,
-                      bodies=()):
+                      bodies=(), assy=None):
         """
         Create a rib by wing parameters.
 
@@ -150,14 +159,16 @@ class CreateRib(object):
         :param v2:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
         return create_wing_part_by_params('rib', label, wing, u1, v1, u2, v2,
-                                          surface_shape, bodies)
+                                          surface_shape, bodies, assy)
 
     @staticmethod
-    def by_points(label, wing, p1, p2, surface_shape=None, bodies=()):
+    def by_points(label, wing, p1, p2, surface_shape=None, bodies=(),
+                  assy=None):
         """
         Create a rib by points.
 
@@ -167,15 +178,16 @@ class CreateRib(object):
         :param p2:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
         return create_wing_part_by_points('rib', label, wing, p1, p2,
                                           surface_shape,
-                                          bodies)
+                                          bodies, assy)
 
     @staticmethod
-    def by_sref(label, wing, surface_shape, bodies=()):
+    def by_sref(label, wing, surface_shape, bodies=(), assy=None):
         """
         Create a rib using a reference shape.
 
@@ -183,14 +195,16 @@ class CreateRib(object):
         :param wing:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
         return create_wing_part_by_sref('rib', label, wing, surface_shape,
-                                        bodies)
+                                        bodies, assy)
 
     @staticmethod
-    def between_geom(label, wing, geom1, geom2, surface_shape, bodies=()):
+    def between_geom(label, wing, geom1, geom2, surface_shape, bodies=(),
+                     assy=None):
         """
         Create a rib between geometry.
 
@@ -200,15 +214,16 @@ class CreateRib(object):
         :param geom2:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
         return create_wing_part_between_geom('rib', label, wing, geom1, geom2,
-                                             surface_shape, bodies)
+                                             surface_shape, bodies, assy)
 
     @staticmethod
     def between_planes(label, wing, planes, geom1, geom2, maxd=None,
-                       nplns=None, indx=1):
+                       nplns=None, indx=1, assy=None):
         """
         Create ribs evenly spaced between planes
 
@@ -220,16 +235,18 @@ class CreateRib(object):
         :param maxd:
         :param nplns:
         :param indx:
+        :param assy:
 
         :return:
         """
         return create_wing_parts_between_planes('rib', label, wing, planes,
                                                 geom1, geom2, maxd, nplns,
-                                                indx)
+                                                indx, assy)
 
     @staticmethod
     def along_curve(label, wing, curve, geom1, geom2, maxd=None, npts=None,
-                    ref_pln=None, u1=None, u2=None, s1=None, s2=None, indx=1):
+                    ref_pln=None, u1=None, u2=None, s1=None, s2=None, indx=1,
+                    assy=None):
         """
         Create ribs along a curve.
 
@@ -246,12 +263,13 @@ class CreateRib(object):
         :param s1:
         :param s2:
         :param indx:
+        :param assy
 
         :return:
         """
         return create_wing_parts_along_curve('rib', label, wing, curve, geom1,
                                              geom2, maxd, npts, ref_pln, u1,
-                                             u2, s1, s2, indx)
+                                             u2, s1, s2, indx, assy)
 
 
 class CreateBulkhead(object):
@@ -260,7 +278,7 @@ class CreateBulkhead(object):
     """
 
     @staticmethod
-    def by_sref(label, fuselage, surface_shape, bodies=()):
+    def by_sref(label, fuselage, surface_shape, bodies=(), assy=None):
         """
         Create a bulkhead by reference shape.
 
@@ -268,10 +286,12 @@ class CreateBulkhead(object):
         :param fuselage:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
-        return create_bulkhead_by_sref(label, fuselage, surface_shape, bodies)
+        return create_bulkhead_by_sref(label, fuselage, surface_shape,
+                                       bodies, assy)
 
 
 class CreateFloor(object):
@@ -280,7 +300,7 @@ class CreateFloor(object):
     """
 
     @staticmethod
-    def by_sref(label, fuselage, surface_shape, bodies=()):
+    def by_sref(label, fuselage, surface_shape, bodies=(), assy=None):
         """
         Create a floor by reference shape.
 
@@ -288,10 +308,12 @@ class CreateFloor(object):
         :param fuselage:
         :param surface_shape:
         :param bodies:
+        :param assy:
 
         :return:
         """
-        return create_floor_by_sref(label, fuselage, surface_shape, bodies)
+        return create_floor_by_sref(label, fuselage, surface_shape, bodies,
+                                    assy)
 
 
 class CreateFrame(object):
@@ -300,7 +322,7 @@ class CreateFrame(object):
     """
 
     @staticmethod
-    def by_sref(label, fuselage, surface_shape, height):
+    def by_sref(label, fuselage, surface_shape, height, assy=None):
         """
         Create a frame by reference shape.
 
@@ -308,14 +330,16 @@ class CreateFrame(object):
         :param fuselage:
         :param surface_shape:
         :param height:
+        :param assy:
 
         :return:
         """
-        return create_frame_by_sref(label, fuselage, surface_shape, height)
+        return create_frame_by_sref(label, fuselage, surface_shape, height,
+                                    assy)
 
     @staticmethod
     def between_planes(label, fuselage, planes, height, maxd=None, nplns=None,
-                       indx=1):
+                       indx=1, assy=None):
         """
         Create frames between planes.
 
@@ -326,14 +350,15 @@ class CreateFrame(object):
         :param maxd:
         :param nplns:
         :param indx:
+        :param assy:
 
         :return:
         """
         return create_frames_between_planes(label, fuselage, planes, height,
-                                            maxd, nplns, indx)
+                                            maxd, nplns, indx, assy)
 
     @staticmethod
-    def at_shapes(label, fuselage, shapes, height, indx=1):
+    def at_shapes(label, fuselage, shapes, height, indx=1, assy=None):
         """
         Create frames at shapes.
 
@@ -342,10 +367,12 @@ class CreateFrame(object):
         :param shapes:
         :param height:
         :param indx:
+        :param assy:
 
         :return:
         """
-        return create_frames_at_shapes(label, fuselage, shapes, height, indx)
+        return create_frames_at_shapes(label, fuselage, shapes, height,
+                                       indx, assy)
 
 
 class CreateSkin(object):
@@ -354,30 +381,32 @@ class CreateSkin(object):
     """
 
     @staticmethod
-    def from_solid(label, solid, copy=False):
+    def from_solid(label, solid, copy=False, assy=None):
         """
         Create skin from the outer shell of a solid.
         
         :param label: 
         :param solid:
         :param copy:
+        :param assy:
          
         :return: 
         """
-        return create_skin_from_solid(label, solid, copy)
+        return create_skin_from_solid(label, solid, copy, assy)
 
     @staticmethod
-    def from_body(label, body, copy=False):
+    def from_body(label, body, copy=False, assy=None):
         """
         Create skin from the outer shell of a body.
 
         :param label:
         :param body:
         :param copy:
+        :param assy:
 
         :return:
         """
-        return create_skin_from_body(label, body, copy)
+        return create_skin_from_body(label, body, copy, assy)
 
 
 class CreateStringer(object):
@@ -386,7 +415,7 @@ class CreateStringer(object):
     """
 
     @staticmethod
-    def by_wire(label, part, wire_like, h, runout_angle=30.):
+    def by_wire(label, part, wire_like, h, runout_angle=30., assy=None):
         """
         Create a stringer on a surface part by a wire.
 
@@ -394,14 +423,17 @@ class CreateStringer(object):
         :param part: 
         :param wire_like: 
         :param h: 
-        :param runout_angle: 
+        :param runout_angle:
+        :param assy:
+
         :return: 
         """
         return create_stiffener2d_by_wire('stringer', label, part,
-                                          wire_like, h, runout_angle)
+                                          wire_like, h, runout_angle,
+                                          assy=assy)
 
     @staticmethod
-    def by_section(label, part, spine_shape, h, runout_angle=30.):
+    def by_section(label, part, spine_shape, h, runout_angle=30., assy=None):
         """
         Create a stringer on a surface part by intersection.
 
@@ -409,14 +441,17 @@ class CreateStringer(object):
         :param part: 
         :param spine_shape: 
         :param h: 
-        :param runout_angle: 
+        :param runout_angle:
+        :param assy:
+
         :return: 
         """
         return create_stiffener2d_by_section('stringer', label, part,
-                                             spine_shape, h, runout_angle)
+                                             spine_shape, h, runout_angle,
+                                             assy=assy)
 
     @staticmethod
-    def by_sections(label, part, spine_shape, h, runout_angle=30.):
+    def by_sections(label, part, spine_shape, h, runout_angle=30., assy=None):
         """
         Create a stringer on a surface part by all intersections.
 
@@ -424,11 +459,14 @@ class CreateStringer(object):
         :param part: 
         :param spine_shape: 
         :param h: 
-        :param runout_angle: 
+        :param runout_angle:
+        :param assy:
+
         :return: 
         """
         return create_stiffener2d_by_sections('stringer', label, part,
-                                              spine_shape, h, runout_angle)
+                                              spine_shape, h, runout_angle,
+                                              assy=assy)
 
 
 class CreateStiffener2D(object):
@@ -496,7 +534,8 @@ class CreatePart(object):
     stiffener2d = CreateStiffener2D()
 
     @staticmethod
-    def curve_part(label, curve_shape=None, shape1=None, shape2=None):
+    def curve_part(label, curve_shape=None, shape1=None, shape2=None,
+                   assy=None):
         """
         Create a curve part.
         
@@ -504,29 +543,31 @@ class CreatePart(object):
         :param curve_shape: Curve or shape for part.
         :param shape1:
         :param shape2:
+        :param assy:
         
         :return: Curve part of *None* if method fails.
         :rtype: :class:`.CurvePart`
         """
         if curve_shape:
-            return create_curve_part(label, curve_shape)
+            return create_curve_part(label, curve_shape, assy)
         if shape1 and shape2:
-            return create_curve_part_by_section(label, shape1, shape2)
+            return create_curve_part_by_section(label, shape1, shape2, assy)
         return None
 
     @staticmethod
-    def surface_part(label, surface_shape, bodies=()):
+    def surface_part(label, surface_shape, bodies=(), assy=None):
         """
         Create a surface part.
 
         :param str label: Part label.
         :param surface_like surface_shape: Part reference shape.
         :param bodies:
+        :param assy:
 
         :return: Surface part or *None* if method fails.
         :return: :class:`.SurfacePart`
         """
-        return create_surface_part(label, surface_shape, bodies)
+        return create_surface_part(label, surface_shape, bodies, assy)
 
     @staticmethod
     def create_stiffener1d(part, label, stiffener):
