@@ -94,19 +94,19 @@ def build_wingbox(wing, params):
     # Build a mid spar.
     mspar = None
     if mid_spar_rib > 0:
-        u = root.local_to_global_u(0.4)
-        p1 = root.eval_cref(u)
+        u1 = root.cref.u1
+        u2 = root.invert_cref(rspar.p1)
+        dx = root.cref.arc_length(u1, u2)
+        p1 = root.eval_dx(dx / 2.)
         rib = ribs[mid_spar_rib - 1]
-        u = rib.local_to_global_u(0.5)
-        p2 = rib.eval_cref(u)
+        p2 = rib.eval_dx(0.5, is_local=True)
         mspar = CreatePart.spar.by_points('mid spar', wing, p1, p2)
 
     # Aux spar.
     aspar = None
     if build_aux_spar:
         p1 = root.p2
-        u = rspar.local_to_global_u(0.25)
-        p2 = rspar.eval_cref(u)
+        p2 = rspar.eval_dx(0.25, is_local=True)
         # Find nearest rib point and set equal to aux spar.
         pnts = [rib.p2 for rib in ribs]
         p2 = CreateGeom.nearest_point(p2, pnts)
