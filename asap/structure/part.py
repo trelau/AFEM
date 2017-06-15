@@ -358,7 +358,17 @@ class Part(TopoDS_Shape, ViewableItem):
         return ShapeTools.points_along_shape(self.cref, dx, npts, u1, u2,
                                              s1, s2, shape1, shape2)
 
-    def points_to_cref(self, pnts):
+    def point_to_cref(self, pnt, direction=None):
+        """
+        Project a point to reference curve.
+        """
+        if not self.has_cref:
+            return False
+
+        ProjectGeom.point_to_geom(pnt, self.cref, True, direction)
+        return True
+
+    def points_to_cref(self, pnts, direction=None):
         """
         Project points to reference curve.
         """
@@ -366,10 +376,20 @@ class Part(TopoDS_Shape, ViewableItem):
             return False
 
         for p in pnts:
-            ProjectGeom.point_to_geom(p, self.cref, True)
+            ProjectGeom.point_to_geom(p, self.cref, True, direction)
         return True
 
-    def points_to_sref(self, pnts):
+    def point_to_sref(self, pnt, direction=None):
+        """
+        Project a point to reference surface.
+        """
+        if not self.has_sref:
+            return False
+
+        ProjectGeom.point_to_geom(pnt, self.sref, True, direction)
+        return True
+
+    def points_to_sref(self, pnts, direction=None):
         """
         Project points to reference surface.
         """
@@ -377,7 +397,7 @@ class Part(TopoDS_Shape, ViewableItem):
             return False
 
         for p in pnts:
-            ProjectGeom.point_to_geom(p, self.sref, True)
+            ProjectGeom.point_to_geom(p, self.sref, True, direction)
         return True
 
     def invert_cref(self, pnt):
