@@ -19,7 +19,7 @@ class ProjectGeom(object):
         return proj
 
     @staticmethod
-    def point_to_geom(point, geom, update=False):
+    def point_to_geom(point, geom, update=False, direction=None):
         """
         Project a point to a curve or surface.
 
@@ -31,6 +31,9 @@ class ProjectGeom(object):
             nearest point will be used to update the point location and a
             boolean will be returned indicating a successful *True* or
             unsuccessful *False* projection.
+        :param direction: Direction for point projection. Normal projection
+            by default.
+        :type direction: :class:`.Direction`
 
         :return: Projection object depending on *geom* type.
         """
@@ -38,12 +41,12 @@ class ProjectGeom(object):
 
         # Project point to curve.
         if CheckGeom.is_curve_like(geom):
-            proj = ProjectPointToCurve(point, geom)
+            proj = ProjectPointToCurve(point, geom, direction)
             return ProjectGeom._update(point, proj, update)
 
         # Project point to surface.
         if CheckGeom.is_surface_like(geom):
-            proj = ProjectPointToSurface(point, geom)
+            proj = ProjectPointToSurface(point, geom, direction)
             return ProjectGeom._update(point, proj, update)
 
         # # Project point to plane.
@@ -215,16 +218,18 @@ class ProjectPointToCurve(PointProjector):
     Project a point to a curve.
     """
 
-    def __init__(self, point, curve):
+    def __init__(self, point, curve, direction=None):
         super(ProjectPointToCurve, self).__init__()
+        point = CheckGeom.to_point(point)
+        direction = CheckGeom.to_direction(direction)
         if CheckGeom.is_point(point) and CheckGeom.is_curve_like(curve):
-            self._perform(point, curve)
+            self._perform(point, curve, direction)
 
-    def _perform(self, point, curve):
+    def _perform(self, point, curve, direction):
         """
         Perform the projection.
         """
-        results = project_point_to_curve(point, curve)
+        results = project_point_to_curve(point, curve, direction)
         self._results = results
 
 
@@ -233,17 +238,18 @@ class ProjectPointToSurface(PointProjector):
     Project a point to a surface.
     """
 
-    def __init__(self, point, surface):
+    def __init__(self, point, surface, direction=None):
         super(ProjectPointToSurface, self).__init__()
         point = CheckGeom.to_point(point)
+        direction = CheckGeom.to_direction(direction)
         if CheckGeom.is_point(point) and CheckGeom.is_surface_like(surface):
-            self._perform(point, surface)
+            self._perform(point, surface, direction)
 
-    def _perform(self, point, surface):
+    def _perform(self, point, surface, direction):
         """
         Perform the point to surface projection.
         """
-        results = project_point_to_surface(point, surface)
+        results = project_point_to_surface(point, surface, direction)
         self._results = results
 
 
