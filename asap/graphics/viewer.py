@@ -64,7 +64,7 @@ class Viewer(object):
         cls._entities = []
 
     @classmethod
-    def show(cls, clear=True):
+    def show(cls, clear=True, view='iso'):
         """
         Show the viewer.
         """
@@ -76,6 +76,22 @@ class Viewer(object):
             disp.DisplayShape(entity, color=color, transparency=transparency)
         for mesh in cls._meshes:
             display_smesh(disp, mesh)
+
+        view = view.lower()
+        if view in ['i', 'iso', 'isometric']:
+            disp.View_Iso()
+        elif view in ['t', 'top']:
+            disp.View_Top()
+        elif view in ['b', 'bottom']:
+            disp.View_Bottom()
+        elif view in ['l', 'left']:
+            disp.View_Left()
+        elif view in ['r', 'right']:
+            disp.View_Right()
+        elif view in ['f', 'front']:
+            disp.View_Front()
+        elif view in ['rear']:
+            disp.View_Rear()
 
         disp.FitAll()
         disp.Repaint()
