@@ -436,6 +436,7 @@ TopoDS_Shape.common = _common
 TopoDS_Shape.section = _section
 TopoDS_Shape.cut = _cut
 
+# TODO Add TopoDS_Shape.cg
 TopoDS_Shape.mass = property(_mass)
 TopoDS_Shape.distance = _distance
 TopoDS_Shape.project = _point_to_shape

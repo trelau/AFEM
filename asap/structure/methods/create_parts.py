@@ -512,7 +512,8 @@ def create_frames_between_planes(label, fuselage, planes, h, maxd=None,
     return frames
 
 
-def create_frames_at_shapes(label, fuselage, shapes, h, indx=1, assy=None):
+def create_frames_at_shapes(label, fuselage, surface_shapes, h, indx=1,
+                            assy=None):
     """
     Create frames at shapes.
     """
@@ -520,7 +521,7 @@ def create_frames_at_shapes(label, fuselage, shapes, h, indx=1, assy=None):
         return []
 
     frames = []
-    for shape in shapes:
+    for shape in surface_shapes:
         shape = ShapeTools.to_shape(shape)
         flabel = ' '.join([label, str(indx)])
         frame = create_frame_by_sref(flabel, fuselage, shape, h, assy)
