@@ -312,6 +312,10 @@ def _mass(self):
     return ShapeTools.shape_volume(self)
 
 
+def _cg(self):
+    return ShapeTools.center_of_mass(self)
+
+
 def _distance(self, other):
     return ShapeTools.min_distance(self, other)[0]
 
@@ -436,8 +440,8 @@ TopoDS_Shape.common = _common
 TopoDS_Shape.section = _section
 TopoDS_Shape.cut = _cut
 
-# TODO Add TopoDS_Shape.cg
 TopoDS_Shape.mass = property(_mass)
+TopoDS_Shape.cg = property(_cg)
 TopoDS_Shape.distance = _distance
 TopoDS_Shape.project = _point_to_shape
 
