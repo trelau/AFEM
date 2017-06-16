@@ -9,9 +9,6 @@ from .methods.create_parts import create_bulkhead_by_sref, create_curve_part, \
     create_wing_parts_along_curve, create_wing_parts_between_planes
 
 
-# TODO Check to see if parts are created at planes for between planes method.
-
-
 class CreateSpar(object):
     """
     Spar creator.
