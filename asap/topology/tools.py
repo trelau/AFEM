@@ -1089,7 +1089,7 @@ class ShapeTools(object):
         props = GProp_GProps()
         brepgprop_SurfaceProperties(shape, props, Settings.gtol)
         cg = props.CentreOfMass()
-        return CreateGeom.point_by_xyz(cg.Y(), cg.Y(), cg.Z())
+        return CreateGeom.point_by_xyz(cg.X(), cg.Y(), cg.Z())
 
     @staticmethod
     def box_from_plane(pln, width, height, depth):
