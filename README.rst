@@ -8,7 +8,7 @@ Installation
 ============
 ASAP is currently developed for Python 3.5. Anaconda Python is recommended
 for package management and since pre-built binaries are available for the
-ASAP prerequisites using the Anaconda cloud (only for Windows 64-bit).
+ASAP prerequisites using the Anaconda cloud (only for Windows 32- and 64-bit).
 
 
 Prerequisites
