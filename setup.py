@@ -3,7 +3,7 @@
 from setuptools import find_packages, setup
 
 kwds = {'name': 'asap',
-        'version': '0.0.5',
+        'version': '0.1.0',
         'packages': find_packages('.'),
         'package_dir': {'asap': 'asap'},
         'author': 'Laughlin Research, LLC',
@@ -11,6 +11,7 @@ kwds = {'name': 'asap',
         'maintainer': 'Laughlin Research, LLC',
         'maintainer_email': 'trevor@laughlinresearch.com',
         'description': 'Aerospace Structural Analysis Program',
-        'license': 'Proprietary'}
+        'license': 'Proprietary',
+        'install_requires': ['numpy', 'scipy']}
 
 setup(**kwds)
