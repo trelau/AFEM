@@ -247,6 +247,27 @@ def build_wingbox(wing, params):
     Viewer.add_items(*AssemblyData.get_parts())
     Viewer.show()
 
+    # VOLUMES -----------------------------------------------------------------
+    # Demonstrate creating volumes from shapes (i.e., parts). Do not use the
+    # intersect option since shapes should be topologically connected already.
+
+    # Volume using front spar, rear spar, root rib, tip rib, and upper and
+    # lower skins. This should produce a single solid since no internal ribs
+    #  are provided.
+    shape = ShapeTools.make_volume([rspar, fspar, root, tip, skin])
+    Viewer.add_entity(shape, transparency=0.5)
+    Viewer.show()
+
+    # Volumes using all parts. This generates multiple solids.
+    shape = ShapeTools.make_volume(AssemblyData.get_parts())
+    for solid in ShapeTools.get_solids(shape):
+        Viewer.add_entity(solid, color='random')
+    Viewer.show()
+
+    # Calculate volume.
+    print('Volume is ', ShapeTools.shape_volume(shape))
+    # You can also use TopoDS_Shape.volume property (i.e., shape.volume).
+
     # MESH --------------------------------------------------------------------
     # Initialize
     shape_to_mesh = AssemblyData.prepare_shape_to_mesh()
