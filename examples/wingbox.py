@@ -251,22 +251,39 @@ def build_wingbox(wing, params):
     # Demonstrate creating volumes from shapes (i.e., parts). Do not use the
     # intersect option since shapes should be topologically connected already.
 
-    # Volume using front spar, rear spar, root rib, tip rib, and upper and
-    # lower skins. This should produce a single solid since no internal ribs
-    #  are provided.
-    shape = ShapeTools.make_volume([rspar, fspar, root, tip, skin])
-    Viewer.add_entity(shape, transparency=0.5)
-    Viewer.show()
-
     # Volumes using all parts. This generates multiple solids.
     shape = ShapeTools.make_volume(AssemblyData.get_parts())
     for solid in ShapeTools.get_solids(shape):
         Viewer.add_entity(solid, color='random')
     Viewer.show()
 
+    # Volume using front spar, rear spar, root rib, tip rib, and upper and
+    # lower skins. This should produce a single solid since no internal ribs
+    #  are provided.
+    shape = ShapeTools.make_volume([rspar, fspar, root, tip, skin])
     # Calculate volume.
     print('Volume is ', ShapeTools.shape_volume(shape))
     # You can also use TopoDS_Shape.volume property (i.e., shape.volume).
+
+    Viewer.add_entity(shape, transparency=0.5)
+    Viewer.show()
+
+    # Cut the volume with an infinite plane (use a large box for robustness).
+    p0 = wing.eval(0.5, 0.1)
+    pln = CreateGeom.plane_by_axes(p0, 'xy')
+    face = ShapeTools.face_from_plane(pln, -1e6, 1e6, -1e6, 1e6)
+    cut_space = ShapeTools.make_prism(face, [0, 0, 500])
+    new_shape = ShapeTools.bcut(shape, cut_space)
+
+    # Calculate cg of cut shape.
+    cg = ShapeTools.center_of_mass(new_shape)
+    print('Centroid of cut shape is ', cg)
+    print('Volume of cut shape is ', ShapeTools.shape_volume(new_shape))
+    # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
+
+    Viewer.add_entity(new_shape, transparency=0.5)
+    Viewer.add_items(cg)
+    Viewer.show()
 
     # MESH --------------------------------------------------------------------
     # Initialize
