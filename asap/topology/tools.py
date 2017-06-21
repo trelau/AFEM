@@ -1,6 +1,5 @@
-from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve
 from OCC.BOPAlgo import BOPAlgo_BOP, BOPAlgo_COMMON, BOPAlgo_CUT, \
-    BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_SECTION
+    BOPAlgo_CUT21, BOPAlgo_FUSE, BOPAlgo_MakerVolume, BOPAlgo_SECTION
 from OCC.BRep import BRep_Builder, BRep_Tool
 from OCC.BRepAdaptor import BRepAdaptor_Curve, \
     BRepAdaptor_Surface
@@ -27,8 +26,8 @@ from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 from OCC.GProp import GProp_GProps
 from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
-from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_BSplineSurface, \
-    GeomAbs_BezierSurface, \
+from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_BSplineCurve, \
+    GeomAbs_BSplineSurface, GeomAbs_BezierCurve, GeomAbs_BezierSurface, \
     GeomAbs_Intersection, GeomAbs_Line, GeomAbs_Plane, GeomAbs_Tangent
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.GeomConvert import GeomConvert_CompCurveToBSplineCurve
@@ -1943,3 +1942,30 @@ class ShapeTools(object):
                 smin = s
         return smin
 
+    @staticmethod
+    def make_volume(shapes, intersect=False):
+        """
+        Make volume(s) from a list of shapes.
+
+        :param list shapes: List of shapes to create volume(s).
+        :param bool intersect: Option to first intersect the shapes.
+
+        :return: Volume(s) created from list of shapes. If a single volume
+            is created, a solid will be returned. If more than one
+            volume was created, a compound will be returned containing all
+            the solids. If nothing is created *None* will be returned.
+        :rtype: TopoDS_Shape or None
+        """
+        bop = BOPAlgo_MakerVolume()
+        for shape in shapes:
+            shape = ShapeTools.to_shape(shape)
+            if not shape:
+                continue
+            bop.AddArgument(shape)
+        bop.SetIntersect(intersect)
+        bop.Perform()
+
+        if bop.ErrorStatus() != 0:
+            return None
+
+        return bop.Shape()
