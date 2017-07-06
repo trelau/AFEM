@@ -309,7 +309,7 @@ def _make_halfspace(self, pref):
 
 
 def _mass(self):
-    return ShapeTools.shape_volume(self)
+    return ShapeTools.shape_mass(self)
 
 
 def _cg(self):

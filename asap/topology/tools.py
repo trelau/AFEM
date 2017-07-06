@@ -13,7 +13,7 @@ from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepExtrema import BRepExtrema_DistShapeShape, BRepExtrema_IsInFace, \
     BRepExtrema_IsOnEdge
-from OCC.BRepGProp import brepgprop, brepgprop_SurfaceProperties
+from OCC.BRepGProp import brepgprop
 from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepOffset import BRepOffset_Pipe, BRepOffset_RectoVerso, \
     BRepOffset_Skin
@@ -279,7 +279,7 @@ class ShapeTools(object):
             return shape
 
         if (ShapeTools.is_shape(shape) and
-                shape.ShapeType() == TopAbs_COMPSOLID):
+                    shape.ShapeType() == TopAbs_COMPSOLID):
             return topods_CompSolid(shape)
 
         return None
@@ -1073,6 +1073,80 @@ class ShapeTools(object):
         return pnts
 
     @staticmethod
+    def linear_properties(shape):
+        """
+        Calculate linear properties of a shape.
+
+        :param shape:
+
+        :return:
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        props = GProp_GProps()
+        brepgprop.LinearProperties(shape, props)
+        return props
+
+    @staticmethod
+    def surface_properties(shape):
+        """
+        Calculate surface properties of a shape.
+
+        :param shape:
+
+        :return:
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        props = GProp_GProps()
+        brepgprop.SurfaceProperties(shape, props, Settings.gtol)
+        return props
+
+    @staticmethod
+    def volume_properties(shape):
+        """
+        Calculate volume properties of a shape.
+
+        :param shape:
+
+        :return:
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        props = GProp_GProps()
+        brepgprop.VolumeProperties(shape, props)
+        return props
+
+    @staticmethod
+    def shape_mass(shape):
+        """
+        Calculate the mass of a shape.
+
+        :param shape:
+
+        :return:
+        """
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        shape_type = shape.ShapeType()
+        if shape_type >= TopAbs_WIRE:
+            props = ShapeTools.linear_properties(shape)
+        elif TopAbs_SHELL <= shape_type <= TopAbs_FACE:
+            props = ShapeTools.surface_properties(shape)
+        else:
+            props = ShapeTools.volume_properties(shape)
+
+        return props.Mass()
+
+    @staticmethod
     def center_of_mass(shape):
         """
         Calculate center of mass of shape.
@@ -1085,8 +1159,14 @@ class ShapeTools(object):
         if not shape:
             return None
 
-        props = GProp_GProps()
-        brepgprop_SurfaceProperties(shape, props, Settings.gtol)
+        shape_type = shape.ShapeType()
+        if shape_type >= TopAbs_WIRE:
+            props = ShapeTools.linear_properties(shape)
+        elif TopAbs_SHELL <= shape_type <= TopAbs_FACE:
+            props = ShapeTools.surface_properties(shape)
+        else:
+            props = ShapeTools.volume_properties(shape)
+
         cg = props.CentreOfMass()
         return CreateGeom.point_by_xyz(cg.X(), cg.Y(), cg.Z())
 
@@ -1473,8 +1553,12 @@ class ShapeTools(object):
         
         :return: 
         """
-        # Mass is length for edges/wires.
-        return ShapeTools.shape_volume(shape)
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        props = ShapeTools.linear_properties(shape)
+        return props.Mass()
 
     @staticmethod
     def shape_area(shape):
@@ -1485,8 +1569,12 @@ class ShapeTools(object):
 
         :return: 
         """
-        # Mass is area for faces/shells.
-        return ShapeTools.shape_volume(shape)
+        shape = ShapeTools.to_shape(shape)
+        if not shape:
+            return None
+
+        props = ShapeTools.surface_properties(shape)
+        return props.Mass()
 
     @staticmethod
     def shape_volume(shape):
@@ -1501,8 +1589,7 @@ class ShapeTools(object):
         if not shape:
             return None
 
-        props = GProp_GProps()
-        brepgprop.LinearProperties(shape, props)
+        props = ShapeTools.volume_properties(shape)
         return props.Mass()
 
     @staticmethod
@@ -1518,7 +1605,7 @@ class ShapeTools(object):
             return shapes
         shape_data = []
         for shape in shapes:
-            mass = ShapeTools.shape_volume(shape)
+            mass = ShapeTools.shape_mass(shape)
             if mass:
                 shape_data.append((mass, shape))
         if not shape_data:
@@ -1969,3 +2056,33 @@ class ShapeTools(object):
             return None
 
         return bop.Shape()
+
+    @staticmethod
+    def surface_center_of_mass(shape):
+        """
+        Calculate the surface center of mass of a shape.
+
+        :param shape:
+
+        :return:
+        """
+        props = ShapeTools.surface_properties(shape)
+        if not props:
+            return None
+
+        return props.CentreOfMass()
+
+    @staticmethod
+    def linear_center_of_mass(shape):
+        """
+        Calculate the linear center of mass of a shape.
+
+        :param shape:
+
+        :return:
+        """
+        props = ShapeTools.linear_properties(shape)
+        if not props:
+            return None
+
+        return props.CentreOfMass()
