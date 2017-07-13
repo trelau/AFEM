@@ -129,6 +129,21 @@ class Viewer(object):
         cls._entities.append([entity, color, transparency])
 
     @classmethod
+    def add(cls, *items):
+        """
+        Add items to the viewer.
+
+        :param items:
+
+        :return:
+        """
+        for item in items:
+            if isinstance(item, ViewableItem):
+                cls.add_items(item)
+            else:
+                cls.add_entity(item)
+
+    @classmethod
     def add_meshes(cls, *meshes):
         """
         Add meshes to the viewer.
