@@ -5,6 +5,7 @@ from OCC.TopoDS import TopoDS_Shape
 from numpy.random import rand
 
 from .methods.display_mesh import display_smesh
+from ..fem.meshes import Mesh
 
 
 class ViewableItem(object):
@@ -103,6 +104,8 @@ class Viewer(object):
         for item in items:
             if isinstance(item, (ViewableItem, TopoDS_Shape, Geom_Geometry)):
                 cls._items.append(item)
+            elif isinstance(item, Mesh):
+                cls.add_meshes(item)
 
     @classmethod
     def add_meshes(cls, *meshes):
