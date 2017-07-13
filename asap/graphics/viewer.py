@@ -114,3 +114,39 @@ class Viewer(object):
         """
         for mesh in meshes:
             cls._meshes.append(mesh)
+
+    @classmethod
+    def capture(cls, filename='capture.png', clear=True, view='iso'):
+        """
+        Capture a screenshot from the viewer.
+        """
+        disp, start_display, _, _ = init_display()
+        for item in cls._items:
+            disp.DisplayShape(item, color=item.color,
+                              transparency=item.transparency)
+        for mesh in cls._meshes:
+            display_smesh(disp, mesh)
+
+        view = view.lower()
+        if view in ['i', 'iso', 'isometric']:
+            disp.View_Iso()
+        elif view in ['t', 'top']:
+            disp.View_Top()
+        elif view in ['b', 'bottom']:
+            disp.View_Bottom()
+        elif view in ['l', 'left']:
+            disp.View_Left()
+        elif view in ['r', 'right']:
+            disp.View_Right()
+        elif view in ['f', 'front']:
+            disp.View_Front()
+        elif view in ['rear']:
+            disp.View_Rear()
+
+        disp.FitAll()
+        disp.Repaint()
+
+        disp.View.Dump(filename)
+
+        if clear:
+            cls.clear()
