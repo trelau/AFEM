@@ -36,7 +36,7 @@ for name in ImportVSP.get_bodies():
     body = ImportVSP.get_body(name)
     body.set_color(0.5, 0.5, 0.5)
     body.set_transparency(0.5)
-    Viewer.add_items(body)
+    Viewer.add(body)
 
 all_parts = []
 
@@ -144,7 +144,7 @@ wskin.discard(wing.sref)
 # shells (upper and lower skin).
 wskin.fix()
 
-# Viewer.add_items(*AssemblyData.get_parts())
+# Viewer.add(*AssemblyData.get_parts())
 all_parts += AssemblyData.get_parts()
 
 # HTAIL -----------------------------------------------------------------------
@@ -172,7 +172,7 @@ skin.fuse(*internal_parts)
 skin.discard(htail.sref)
 skin.fix()
 
-# Viewer.add_items(*AssemblyData.get_parts())
+# Viewer.add(*AssemblyData.get_parts())
 all_parts += AssemblyData.get_parts()
 
 # VTAIL -----------------------------------------------------------------------
@@ -205,7 +205,7 @@ skin.fuse(*internal_parts)
 skin.discard(vtail.sref)
 skin.fix()
 
-# Viewer.add_items(*AssemblyData.get_parts())
+# Viewer.add(*AssemblyData.get_parts())
 all_parts += AssemblyData.get_parts()
 
 # FUSELAGE --------------------------------------------------------------------
@@ -256,7 +256,7 @@ frames = CreatePart.frame.between_planes('frame', fuselage, plns, 3.5, 24.)
 
 PartTools.fuse_parts(AssemblyData.get_parts())
 
-# Viewer.add_items(*AssemblyData.get_parts())
+# Viewer.add(*AssemblyData.get_parts())
 all_parts += AssemblyData.get_parts()
 
 # MIRROR ----------------------------------------------------------------------
@@ -305,27 +305,27 @@ PartTools.fuse_wing_parts(internal_parts)
 skin = CreatePart.skin.from_body('gear skin', gear)
 skin.fuse(*internal_parts)
 
-# Viewer.add_items(*AssemblyData.get_parts())
+# Viewer.add(*AssemblyData.get_parts())
 all_parts += AssemblyData.get_parts()
 
 # STRUTS ----------------------------------------------------------------------
 crv = strut.extract_curve((0.5, 0.), (0.5, 1.))
-Viewer.add_entity(crv)
+Viewer.add(crv)
 
 crv = jury.extract_curve((0.5, 0.), (0.5, 1.))
-Viewer.add_entity(crv)
+Viewer.add(crv)
 
 crv = other_strut.extract_curve((0.5, 0.), (0.5, 1.))
-Viewer.add_entity(crv)
+Viewer.add(crv)
 
 crv = other_jury.extract_curve((0.5, 0.), (0.5, 1.))
-Viewer.add_entity(crv)
+Viewer.add(crv)
 
 # VIEW ------------------------------------------------------------------------
 compound = ShapeTools.make_compound(all_parts)
 faces = ShapeTools.get_faces(compound)
 for f in faces:
-    Viewer.add_entity(f, 'random')
+    Viewer.add(f, 'random')
 Viewer.show(False)
 
 # MESH ------------------------------------------------------------------------

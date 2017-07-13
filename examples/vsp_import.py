@@ -17,7 +17,7 @@ for name in bodies:
     print('\nBody name:', name)
     print('    Average tolerance:', ShapeTools.get_tolerance(b))
     print('    Maximum tolerance:', ShapeTools.get_tolerance(b, 1))
-    Viewer.add_items(b)
+    Viewer.add(b)
 print()
 Viewer.show()
 

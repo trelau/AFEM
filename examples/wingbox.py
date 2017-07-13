@@ -244,7 +244,7 @@ def build_wingbox(wing, params):
     # Viewing
     skin.set_transparency(0.5)
 
-    Viewer.add_items(*AssemblyData.get_parts())
+    Viewer.add(*AssemblyData.get_parts())
     Viewer.show()
 
     # VOLUMES -----------------------------------------------------------------
@@ -254,7 +254,7 @@ def build_wingbox(wing, params):
     # Volumes using all parts. This generates multiple solids.
     shape1 = ShapeTools.make_volume(AssemblyData.get_parts())
     for solid in ShapeTools.get_solids(shape1):
-        Viewer.add_entity(solid, color='random')
+        Viewer.add(solid, color='random')
     Viewer.show()
 
     # Volume using front spar, rear spar, root rib, tip rib, and upper and
@@ -265,7 +265,7 @@ def build_wingbox(wing, params):
     print('Volume is ', ShapeTools.shape_volume(shape2))
     # You can also use TopoDS_Shape.volume property (i.e., shape.volume).
 
-    Viewer.add_entity(shape2, transparency=0.5)
+    Viewer.add(shape2, transparency=0.5)
     Viewer.show()
 
     # Create a semi-infinite box to cut volume with.
@@ -284,8 +284,8 @@ def build_wingbox(wing, params):
     # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
 
     for solid in ShapeTools.get_solids(new_shape):
-        Viewer.add_entity(solid, color='random', transparency=0.5)
-    Viewer.add_items(cg)
+        Viewer.add(solid, color='random', transparency=0.5)
+    Viewer.add(cg)
     Viewer.show()
 
     # Cut the volume with an infinite plane (use a large box for robustness).
@@ -297,8 +297,8 @@ def build_wingbox(wing, params):
     print('Volume of cut shape is ', ShapeTools.shape_volume(new_shape))
     # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
 
-    Viewer.add_entity(new_shape, transparency=0.5)
-    Viewer.add_items(cg)
+    Viewer.add(new_shape, transparency=0.5)
+    Viewer.add(cg)
     Viewer.show()
 
     # MESH --------------------------------------------------------------------
@@ -343,6 +343,6 @@ if __name__ == '__main__':
 
     print('Complete in ', time.time() - start, ' seconds.')
 
-    Viewer.add_items(*assy.parts)
+    Viewer.add(*assy.parts)
     Viewer.add_meshes(MeshData.get_active())
     Viewer.show()

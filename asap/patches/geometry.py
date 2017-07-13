@@ -3,6 +3,8 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge, \
 from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.Geom import Geom_Curve, Geom_Geometry, Geom_Surface
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
+from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
+from OCC.Standard import Standard_Transient
 from OCC.gp import gp_Pnt
 from numpy import array, float64
 
@@ -164,7 +166,26 @@ def _abscissa_point(self, dx, u0=None, is_local=False):
     return p
 
 
-Geom_Geometry.handle = property(_get_handle)
+def _set_color(self, r, g, b):
+    """
+    Set color of shape.
+    """
+    self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
+
+
+def _set_transparency(self, transparency):
+    """
+    Set transparency of shape.
+    """
+    self.transparency = transparency
+
+
+Standard_Transient.handle = property(_get_handle)
+
+Geom_Geometry.color = None
+Geom_Geometry.set_color = _set_color
+Geom_Geometry.transparency = 0.
+Geom_Geometry.set_transparency = _set_transparency
 
 Geom_Curve.u1 = property(_u1)
 Geom_Curve.u2 = property(_u2)

@@ -24,7 +24,7 @@ for name in bodies:
     body = bodies[name]
     body.set_transparency(0.5)
     body.set_color(0.5, 0.5, 0.5)
-    Viewer.add_items(body)
+    Viewer.add(body)
 
 # OUTBOARD WING ---------------------------------------------------------------
 # Get spanwise parameter of reference surface at section 2. If that small
@@ -143,7 +143,7 @@ wing_parts = AssemblyData.get_parts()
 PartTools.fuse_wing_parts(wing_parts)
 PartTools.discard_faces(wing_parts)
 
-Viewer.add_items(*AssemblyData.get_parts())
+Viewer.add(*AssemblyData.get_parts())
 Viewer.show()
 
 # Create skin. For now this replaces the center rib with wing skin since
@@ -159,7 +159,7 @@ print(ShapeTools.is_valid(skin))
 for part in AssemblyData.get_parts():
     print(part.label, ShapeTools.get_tolerance(part))
 
-Viewer.add_items(*AssemblyData.get_parts())
+Viewer.add(*AssemblyData.get_parts())
 Viewer.show()
 
 step = StepExport()

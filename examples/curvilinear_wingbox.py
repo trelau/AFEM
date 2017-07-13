@@ -266,8 +266,8 @@ def build_wingbox(wing, params):
         basis_shape = ShapeTools.make_prism(geom_circle, [0, 0, 500])
         name = ' '.join(['Stringer', str(indx)])
         # print(name, shell, basis_shape, height)
-        # Viewer.add_entity(shell)
-        # Viewer.add_entity(basis_shape)
+        # Viewer.add(shell)
+        # Viewer.add(basis_shape)
         # Viewer.show()
         stringers = CreatePart.stringer.by_sections(name, shell,
                                                     basis_shape,
@@ -294,5 +294,5 @@ if __name__ == '__main__':
 
     print('Complete in ', time.time() - start, ' seconds.')
 
-    Viewer.add_items(*assy.parts)
+    Viewer.add(*assy.parts)
     Viewer.show()

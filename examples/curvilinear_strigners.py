@@ -52,7 +52,7 @@ for i in range(22, 31):
         print(stringer, ShapeTools.is_valid(stringer))
         if not ShapeTools.is_valid(stringer):
             stringer.fix()
-        Viewer.add_items(stringer)
+        Viewer.add(stringer)
 
-Viewer.add_items(skin)
+Viewer.add(skin)
 Viewer.show()

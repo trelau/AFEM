@@ -223,7 +223,7 @@ print('complete', time.time() - start)
 
 # Viewing
 for part in wing_parts + fuselage_parts:
-    Viewer.add_items(part)
+    Viewer.add(part)
 Viewer.show(False)
 
 # Mesh

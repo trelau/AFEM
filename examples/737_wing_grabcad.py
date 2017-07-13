@@ -119,7 +119,7 @@ skin.discard(hs)
 
 # View geometry
 skin.set_transparency(0.5)
-Viewer.add_items(*AssemblyData.get_parts())
+Viewer.add(*AssemblyData.get_parts())
 Viewer.show(False)
 
 # Mesh

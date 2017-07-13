@@ -87,7 +87,7 @@ main_floor.cut(pln2)
 # Fuse all parts together.
 PartTools.split_parts(AssemblyData.get_parts())
 
-Viewer.add_items(*AssemblyData.get_parts())
+Viewer.add(*AssemblyData.get_parts())
 Viewer.show(False)
 
 # Mesh

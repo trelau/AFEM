@@ -28,7 +28,7 @@ for name in ImportVSP.get_bodies():
     body = ImportVSP.get_body(name)
     body.set_transparency(0.5)
     body.set_color(0.5, 0.5, 0.5)
-    Viewer.add_items(body)
+    Viewer.add(body)
 
 # Construction geometry
 root_chord = wing.isocurve(v=0.)
@@ -99,7 +99,7 @@ internal_parts = AssemblyData.get_parts()
 PartTools.fuse_wing_parts(internal_parts)
 PartTools.discard_faces(internal_parts)
 
-Viewer.add_items(*internal_parts)
+Viewer.add(*internal_parts)
 
 Viewer.show(False)
 #

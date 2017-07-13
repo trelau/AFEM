@@ -9,6 +9,7 @@ from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire, \
     breptools_Write
 from OCC.GCPnts import GCPnts_AbscissaPoint
+from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge
 from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
     TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE
@@ -415,6 +416,20 @@ def _write_brep(self, fout='shape.brep'):
     breptools_Write(self, fout)
 
 
+def _set_color(self, r, g, b):
+    """
+    Set color of shape.
+    """
+    self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
+
+
+def _set_transparency(self, transparency):
+    """
+    Set transparency of shape.
+    """
+    self.transparency = transparency
+
+
 TopoDS_Shape.shape = property(_to_shape)
 TopoDS_Shape.is_closed = property(_is_closed)
 TopoDS_Shape.is_valid = property(_is_valid)
@@ -426,6 +441,11 @@ TopoDS_Shape.is_shell = property(_is_shell)
 TopoDS_Shape.is_solid = property(_is_solid)
 TopoDS_Shape.is_compsolid = property(_is_compsolid)
 TopoDS_Shape.is_compound = property(_is_compound)
+
+TopoDS_Shape.color = None
+TopoDS_Shape.set_color = _set_color
+TopoDS_Shape.transparency = 0.
+TopoDS_Shape.set_transparency = _set_transparency
 
 TopoDS_Shape.vertices = property(_get_vertices)
 TopoDS_Shape.edges = property(_get_edges)

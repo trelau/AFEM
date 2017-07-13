@@ -44,7 +44,7 @@ for p in pnts:
     stringer = CreatePart.stringer.by_section('stringer', skin, pln, height)
     # Some stringers needs fixed to resolve topology.
     stringer.fix()
-    Viewer.add_items(stringer)
+    Viewer.add(stringer)
 
-Viewer.add_items(skin)
+Viewer.add(skin)
 Viewer.show()
