@@ -254,7 +254,7 @@ def build_wingbox(wing, params):
     # Volumes using all parts. This generates multiple solids.
     shape1 = ShapeTools.make_volume(AssemblyData.get_parts())
     for solid in ShapeTools.get_solids(shape1):
-        Viewer.add(solid, color='random')
+        Viewer.add(solid)
     Viewer.show()
 
     # Volume using front spar, rear spar, root rib, tip rib, and upper and
@@ -265,7 +265,7 @@ def build_wingbox(wing, params):
     print('Volume is ', ShapeTools.shape_volume(shape2))
     # You can also use TopoDS_Shape.volume property (i.e., shape.volume).
 
-    Viewer.add(shape2, transparency=0.5)
+    Viewer.add(shape2)
     Viewer.show()
 
     # Create a semi-infinite box to cut volume with.
@@ -284,7 +284,7 @@ def build_wingbox(wing, params):
     # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
 
     for solid in ShapeTools.get_solids(new_shape):
-        Viewer.add(solid, color='random', transparency=0.5)
+        Viewer.add(solid)
     Viewer.add(cg)
     Viewer.show()
 
@@ -297,7 +297,7 @@ def build_wingbox(wing, params):
     print('Volume of cut shape is ', ShapeTools.shape_volume(new_shape))
     # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
 
-    Viewer.add(new_shape, transparency=0.5)
+    Viewer.add(new_shape)
     Viewer.add(cg)
     Viewer.show()
 
