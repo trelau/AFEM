@@ -1,4 +1,7 @@
 recursive-include examples *.py
 graft examples/models
-include LICENSE.rst
+include README.md
+include LICENSE.md
+include AUTHORS.md
+include requirements.txt
 include .gitignore
