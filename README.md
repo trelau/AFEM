@@ -12,13 +12,10 @@ ASAP prerequisites using the Anaconda cloud (only for Windows 32- and 64-bit).
 # Prerequisites
 ASAP relies on a number of LGPL licensed open-source tools, including:
 
-    * [OpenCASCADE Community Edition](https://github.com/tpaviot/oce/releases/tag/OCE-0.18.1)
-
-    * [pythonocc-core](https://github.com/trelau/pythonocc-core/releases/tag/0.18.2)
-
-    * [Netgen](https://github.com/trelau/netgen/releases/tag/6.3)
-
-    * [SMESH](https://github.com/trelau/smesh/releases/tag/7.7.2)
+* [OpenCASCADE Community Edition](https://github.com/tpaviot/oce/releases/tag/OCE-0.18.1)
+* [pythonocc-core](https://github.com/trelau/pythonocc-core/releases/tag/0.18.2)
+* [Netgen](https://github.com/trelau/netgen/releases/tag/6.3)
+* [SMESH](https://github.com/trelau/smesh/releases/tag/7.7.2)
 
 Pre-built binaries for these tools are available through the Anaconda cloud
 for Python 3.5 Windows 32- and 64-bit. It is recommended that a designated
