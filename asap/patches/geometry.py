@@ -170,6 +170,12 @@ def _set_color(self, r, g, b):
     """
     Set color of shape.
     """
+    if r > 1.:
+        r /= 255.
+    if g > 1.:
+        g /= 255.
+    if b > 1.:
+        b /= 255.
     self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
 
 

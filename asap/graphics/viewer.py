@@ -25,6 +25,12 @@ class ViewableItem(object):
         :param float g: Green.
         :param float b: Blue.
         """
+        if r > 1.:
+            r /= 255.
+        if g > 1.:
+            g /= 255.
+        if b > 1.:
+            b /= 255.
         self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
 
     def set_transparency(self, transparency):
