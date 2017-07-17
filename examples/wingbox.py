@@ -344,5 +344,10 @@ if __name__ == '__main__':
     print('Complete in ', time.time() - start, ' seconds.')
 
     Viewer.add(*assy.parts)
+
+    xz_pln = CreateGeom.plane_by_axes(axes='xz')
+    for part in assy.parts:
+        part.set_mirror(xz_pln)
+
     Viewer.add_meshes(MeshData.get_active())
     Viewer.show()

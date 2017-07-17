@@ -1,7 +1,9 @@
+from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCC.Display.SimpleGui import init_display
 from OCC.Geom import Geom_Geometry
 from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
 from OCC.TopoDS import TopoDS_Shape
+from OCC.gce import gce_MakeMirror
 from numpy.random import rand
 
 from .methods.display_mesh import display_smesh
@@ -16,6 +18,7 @@ class ViewableItem(object):
         r, g, b = rand(1, 3)[0]
         self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
         self.transparency = 0.
+        self.mirror = None
 
     def set_color(self, r, g, b):
         """
@@ -45,6 +48,28 @@ class ViewableItem(object):
             transparency = 1.
         self.transparency = transparency
 
+    def set_mirror(self, pln):
+        """
+        Set a plane to mirror the item.
+
+        :param pln:
+        """
+        self.mirror = pln
+
+    def get_mirrored(self):
+        """
+        Get the mirrored item.
+
+        :return:
+        """
+        if not self.mirror:
+            return None
+        trsf = gce_MakeMirror(self.mirror.Pln()).Value()
+        builder = BRepBuilderAPI_Transform(self, trsf, True)
+        if not builder.IsDone():
+            return None
+        return builder.Shape()
+
 
 class Viewer(object):
     """
@@ -71,6 +96,10 @@ class Viewer(object):
         for item in cls._items:
             disp.DisplayShape(item, color=item.color,
                               transparency=item.transparency)
+            if item.mirror:
+                mirrored = item.get_mirrored()
+                disp.DisplayShape(mirrored, color=item.color,
+                                  transparency=item.transparency)
         for mesh in cls._meshes:
             display_smesh(disp, mesh)
 

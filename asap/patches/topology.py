@@ -2,7 +2,8 @@ from OCC.BRep import BRep_Tool_Curve, BRep_Tool_IsClosed, \
     BRep_Tool_Parameter, BRep_Tool_Pnt, BRep_Tool_Surface
 from OCC.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve, \
     BRepAdaptor_Surface
-from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeWire
+from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeWire, \
+    BRepBuilderAPI_Transform
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import brepclass3d_OuterShell
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace
@@ -15,6 +16,7 @@ from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
     TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE
 from OCC.TopoDS import TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell, \
     TopoDS_Solid, TopoDS_Vertex, TopoDS_Wire, topods_Edge
+from OCC.gce import gce_MakeMirror
 
 from ..geometry.checker import CheckGeom
 from ..geometry.points import Point
@@ -436,6 +438,20 @@ def _set_transparency(self, transparency):
     self.transparency = transparency
 
 
+def _set_mirror(self, pln):
+    self.mirror = pln
+
+
+def _get_mirrored(self):
+    if not self.mirror:
+        return None
+    trsf = gce_MakeMirror(self.mirror.Pln()).Value()
+    builder = BRepBuilderAPI_Transform(self, trsf, True)
+    if not builder.IsDone():
+        return None
+    return builder.Shape()
+
+
 TopoDS_Shape.shape = property(_to_shape)
 TopoDS_Shape.is_closed = property(_is_closed)
 TopoDS_Shape.is_valid = property(_is_valid)
@@ -452,6 +468,9 @@ TopoDS_Shape.color = None
 TopoDS_Shape.set_color = _set_color
 TopoDS_Shape.transparency = 0.
 TopoDS_Shape.set_transparency = _set_transparency
+TopoDS_Shape.mirror = None
+TopoDS_Shape.set_mirror = _set_mirror
+TopoDS_Shape.get_mirrored = _get_mirrored
 
 TopoDS_Shape.vertices = property(_get_vertices)
 TopoDS_Shape.edges = property(_get_edges)

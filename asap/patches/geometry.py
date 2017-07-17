@@ -1,10 +1,11 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge, \
-    BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakeWire
+    BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakeWire, BRepBuilderAPI_Transform
 from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.Geom import Geom_Curve, Geom_Geometry, Geom_Surface
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
 from OCC.Standard import Standard_Transient
+from OCC.gce import gce_MakeMirror
 from OCC.gp import gp_Pnt
 from numpy import array, float64
 
@@ -186,12 +187,29 @@ def _set_transparency(self, transparency):
     self.transparency = transparency
 
 
+def _set_mirror(self, pln):
+    self.mirror = pln
+
+
+def _get_mirrored(self):
+    if not self.mirror:
+        return None
+    trsf = gce_MakeMirror(self.mirror.Pln()).Value()
+    builder = BRepBuilderAPI_Transform(self, trsf, True)
+    if not builder.IsDone():
+        return None
+    return builder.Shape()
+
+
 Standard_Transient.handle = property(_get_handle)
 
 Geom_Geometry.color = None
 Geom_Geometry.set_color = _set_color
 Geom_Geometry.transparency = 0.
 Geom_Geometry.set_transparency = _set_transparency
+Geom_Geometry.mirror = None
+Geom_Geometry.set_mirror = _set_mirror
+Geom_Geometry.get_mirrored = _get_mirrored
 
 Geom_Curve.u1 = property(_u1)
 Geom_Curve.u2 = property(_u2)
