@@ -1,11 +1,11 @@
 import time
 
-from asap.fem import MeshData
-from asap.geometry import CreateGeom
-from asap.graphics import Viewer
-from asap.io import ImportVSP
-from asap.structure import AssemblyData, CreatePart, PartTools
-from asap.topology import ShapeTools
+from afem.fem import MeshData
+from afem.geometry import CreateGeom
+from afem.graphics import Viewer
+from afem.io import ImportVSP
+from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.topology import ShapeTools
 
 # Inputs
 fname = r'..\models\N2A_nosplit.stp'

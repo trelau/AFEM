@@ -2,12 +2,12 @@ from __future__ import print_function
 
 import time
 
-from asap.config import Settings
-from asap.geometry import CreateGeom, ProjectGeom
-from asap.graphics import Viewer
-from asap.io import ImportVSP
-from asap.structure import AssemblyData, CreatePart, PartTools
-from asap.topology import ShapeTools
+from afem.config import Settings
+from afem.geometry import CreateGeom, ProjectGeom
+from afem.graphics import Viewer
+from afem.io import ImportVSP
+from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.topology import ShapeTools
 
 
 def build_wingbox(wing, params):

@@ -1,6 +1,6 @@
-from asap.graphics import Viewer
-from asap.io import ImportVSP, StepExport
-from asap.topology import ShapeTools
+from afem.graphics import Viewer
+from afem.io import ImportVSP, StepExport
+from afem.topology import ShapeTools
 
 fn = r'..\models\777-200LR.stp'
 # fn = r'..\models\TBW_SUGAR.stp'
@@ -25,4 +25,4 @@ Viewer.show()
 compound = ShapeTools.make_compound(bodies.values())
 step = StepExport(units='inch')
 step.transfer(compound)
-step.write('vsp2asap.stp')
+step.write('vsp2afem.stp')

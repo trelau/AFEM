@@ -1,10 +1,10 @@
-from asap.fem import MeshData
-from asap.geometry import CreateGeom, ProjectGeom
-from asap.graphics import Viewer
-from asap.io import StepImport
-from asap.oml.wing import Wing
-from asap.structure import AssemblyData, CreatePart, PartTools
-from asap.topology import ShapeTools
+from afem.fem import MeshData
+from afem.geometry import CreateGeom, ProjectGeom
+from afem.graphics import Viewer
+from afem.io import StepImport
+from afem.oml.wing import Wing
+from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.topology import ShapeTools
 
 # Import wing solid from STEP file
 step_read = StepImport()

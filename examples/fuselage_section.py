@@ -1,11 +1,11 @@
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeCylinder
 
-from asap.geometry import CreateGeom
-from asap.graphics import Viewer
-from asap.oml.fuselage import Fuselage
-from asap.structure import CreatePart, PartTools, AssemblyData
-from asap.topology import ShapeTools
-from asap.fem import MeshData
+from afem.geometry import CreateGeom
+from afem.graphics import Viewer
+from afem.oml.fuselage import Fuselage
+from afem.structure import CreatePart, PartTools, AssemblyData
+from afem.topology import ShapeTools
+from afem.fem import MeshData
 
 # Inputs
 diameter = 244

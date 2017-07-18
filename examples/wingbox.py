@@ -2,13 +2,13 @@ from __future__ import print_function
 
 import time
 
-from asap.config import Settings
-from asap.fem import MeshData
-from asap.geometry import CreateGeom, ProjectGeom
-from asap.graphics import Viewer
-from asap.io import ImportVSP
-from asap.structure import AssemblyData, CreatePart, PartTools
-from asap.topology import ShapeTools
+from afem.config import Settings
+from afem.fem import MeshData
+from afem.geometry import CreateGeom, ProjectGeom
+from afem.graphics import Viewer
+from afem.io import ImportVSP
+from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.topology import ShapeTools
 
 
 def build_wingbox(wing, params):
@@ -322,7 +322,7 @@ def build_wingbox(wing, params):
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
     # Uncomment this to export STEP file.
-    # from asap.io import StepExport
+    # from afem.io import StepExport
     # step = StepExport()
     # step.transfer(shape_to_mesh)
     # step.write('wingbox.step')

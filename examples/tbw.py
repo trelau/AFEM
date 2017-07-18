@@ -7,12 +7,12 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCC.Bnd import Bnd_Box
 from OCC.gce import gce_MakeMirror
 
-from asap.fem import MeshData
-from asap.geometry import CreateGeom
-from asap.graphics import Viewer
-from asap.io import ImportVSP
-from asap.structure import AssemblyData, CreatePart, PartTools
-from asap.topology import ShapeTools
+from afem.fem import MeshData
+from afem.geometry import CreateGeom
+from afem.graphics import Viewer
+from afem.io import ImportVSP
+from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.topology import ShapeTools
 
 # Import model
 fname = r'..\models\TBW_SUGAR.stp'

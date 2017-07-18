@@ -1,9 +1,9 @@
-from asap.config import Settings
-from asap.geometry import CreateGeom
-from asap.graphics import Viewer
-from asap.io import ImportVSP, StepExport
-from asap.structure import AssemblyData, CreatePart, PartTools
-from asap.topology import ShapeTools
+from afem.config import Settings
+from afem.geometry import CreateGeom
+from afem.graphics import Viewer
+from afem.io import ImportVSP, StepExport
+from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.topology import ShapeTools
 
 # Set units to inch.
 Settings.set_units('in')
@@ -182,7 +182,7 @@ for part in AssemblyData.get_parts():
 print(iges.Write('gt_supersonic_dela.igs'))
 
 # Try STL export.
-from asap.io import StlExport
+from afem.io import StlExport
 from OCC.BRepMesh import BRepMesh_IncrementalMesh
 
 # Increase tessellation.
