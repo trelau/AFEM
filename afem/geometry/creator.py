@@ -1,3 +1,4 @@
+from OCC.gp import gp_Quaternion, gp_Trsf
 from .checker import CheckGeom
 from .curves import Line
 from .methods.create import create_crv_by_approx_pnts, \
@@ -12,6 +13,7 @@ from .methods.create import create_crv_by_approx_pnts, \
 from .points import Point, Point2D
 from .surfaces import Plane
 from .vectors import Direction, Vector
+from math import radians
 
 
 class CreateGeom(object):
@@ -233,6 +235,37 @@ class CreateGeom(object):
         :return:
         """
         return create_planes_between_planes(pln1, pln2, maxd, nplns, s1, s2)
+
+    @staticmethod
+    def plane_by_orientation(origin=(0., 0., 0.), axes='xz',
+                             alpha=0., beta=0., gamma=0.):
+        """
+        Create a plane by orientation angles.
+
+        :param origin:
+        :param axes:
+        :param alpha:
+        :param beta:
+        :param gamma:
+
+        :return:
+        """
+        pln = CreateGeom.plane_by_axes((0., 0., 0.), axes)
+        if not pln:
+            return None
+
+        # Build a quaternion for rotation angles
+        r = gp_Quaternion()
+        r.SetEulerAngles(2, radians(alpha), radians(beta), radians(gamma))
+
+        # Build transformation matrix and rotate about global origin and
+        # translate to desired plane origin.
+        tf = gp_Trsf()
+        v = CreateGeom.vector(origin)
+        tf.SetTransformation(r, v)
+        pln.Transform(tf)
+
+        return pln
 
     @staticmethod
     def line_by_vector(origin, v):
