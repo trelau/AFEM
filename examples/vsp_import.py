@@ -8,6 +8,9 @@ fn = r'..\models\777-200LR.stp'
 # fn = r'..\models\HWB.stp'
 # fn = r'..\models\N2A_nosplit.stp'
 # fn = r'..\models\manta2.stp'
+# fn = r'..\models\transport_vsp313.stp'
+# fn = r'..\models\777-200LR_vsp311.stp'
+# fn = r'..\models\777-200LR_vsp313.stp'
 
 ImportVSP.step_file(fn)
 
