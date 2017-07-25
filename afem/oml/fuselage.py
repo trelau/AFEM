@@ -1,5 +1,7 @@
 from .body import Body
 
+__all__ = ["Fuselage"]
+
 
 class Fuselage(Body):
     """

@@ -1,6 +1,8 @@
 from .part import Part
 from ..topology import ShapeTools
 
+__all__ = ["CurvePart"]
+
 
 class CurvePart(Part):
     """

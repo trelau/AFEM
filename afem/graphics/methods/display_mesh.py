@@ -3,6 +3,8 @@ from OCC.MeshVS import MeshVS_BP_Mesh, MeshVS_DA_DisplayNodes, \
 from OCC.Quantity import Quantity_Color
 from OCC.SMESH import SMESH_MeshVSLink
 
+__all__ = []
+
 
 def display_smesh(display, mesh):
     """

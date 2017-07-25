@@ -5,6 +5,8 @@ from .reshape_parts import reshape_parts
 from ...geometry import IntersectGeom
 from ...topology import ShapeTools
 
+__all__ = []
+
 
 def fuse_surface_part(main_part, *other_parts):
     """

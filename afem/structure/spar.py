@@ -1,5 +1,7 @@
 from .wing_part import WingPart
 
+__all__ = ["Spar"]
+
 
 class Spar(WingPart):
     """

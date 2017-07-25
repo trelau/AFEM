@@ -28,6 +28,8 @@ units_dict = {'i': 'IN',
               'millimeter': 'MM',
               'millimeters': 'MM'}
 
+__all__ = ["Settings"]
+
 
 class Settings(object):
     """

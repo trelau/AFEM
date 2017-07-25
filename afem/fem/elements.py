@@ -2,6 +2,8 @@ from OCC.SMDS import SMDS_MeshElement
 
 from .nodes import Node
 
+__all__ = ["Element", "Elm0D", "Elm1D", "Elm2D"]
+
 
 class Element(object):
     """

@@ -3,6 +3,8 @@ from numpy import mean
 
 from ...topology import ShapeTools
 
+__all__ = []
+
 
 def sew_surface_parts(parts):
     """

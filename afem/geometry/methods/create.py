@@ -33,6 +33,8 @@ from ...utils.tcol import to_np_from_tcolgp_array1_pnt, \
     to_tcolstd_array1_integer, to_tcolstd_array1_real, \
     to_tcolstd_array2_real
 
+__all__ = []
+
 _occ_continuity = {'C0': GeomAbs_C0,
                    'G1': GeomAbs_G1,
                    'C1': GeomAbs_C1,

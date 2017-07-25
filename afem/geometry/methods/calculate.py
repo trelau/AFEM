@@ -5,6 +5,8 @@ from OCC.GProp import GProp_GProps
 
 from ...config import Settings
 
+__all__ = []
+
 
 def curve_length(curve, u1, u2):
     """

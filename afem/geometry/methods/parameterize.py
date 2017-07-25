@@ -4,6 +4,8 @@ import OCC.BSplCLib as CLib
 from numpy import array, diff, float64, sqrt, sum, zeros
 from numpy.linalg import norm
 
+__all__ = []
+
 
 def uniform(n, a=0., b=1.):
     """

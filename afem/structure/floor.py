@@ -1,5 +1,7 @@
 from .fuselage_part import FuselagePart
 
+__all__ = ["Floor"]
+
 
 class Floor(FuselagePart):
     """

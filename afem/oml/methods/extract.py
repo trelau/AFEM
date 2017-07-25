@@ -11,6 +11,8 @@ from OCC.TopoDS import topods_Edge, topods_Wire
 from ...geometry import CheckGeom, CreateGeom, ProjectGeom
 from ...topology import ShapeTools
 
+__all__ = []
+
 _brep_tool = BRep_Tool()
 
 

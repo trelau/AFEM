@@ -2,6 +2,8 @@ from .body import Body
 from .fuselage import Fuselage
 from .wing import Wing
 
+__all__ = ["CheckOML"]
+
 
 class CheckOML(object):
     """

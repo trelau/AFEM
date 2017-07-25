@@ -1,5 +1,7 @@
 from OCC.gp import gp_Ax1, gp_Ax3
 
+__all__ = ["Axis1", "Axis3"]
+
 
 class Axis1(gp_Ax1):
     """

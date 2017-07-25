@@ -57,6 +57,8 @@ from ..geometry.methods.create import create_nurbs_curve_from_occ, \
     create_nurbs_surface_from_occ
 from ..geometry.surfaces import Plane
 
+__all__ = ["ShapeTools"]
+
 _brep_tool = BRep_Tool()
 
 

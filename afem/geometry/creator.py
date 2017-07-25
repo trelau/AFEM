@@ -1,4 +1,7 @@
+from math import radians
+
 from OCC.gp import gp_Quaternion, gp_Trsf
+
 from .checker import CheckGeom
 from .curves import Line
 from .methods.create import create_crv_by_approx_pnts, \
@@ -13,7 +16,8 @@ from .methods.create import create_crv_by_approx_pnts, \
 from .points import Point, Point2D
 from .surfaces import Plane
 from .vectors import Direction, Vector
-from math import radians
+
+__all__ = ["CreateGeom"]
 
 
 class CreateGeom(object):

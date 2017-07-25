@@ -7,6 +7,10 @@ from OCC.StdMeshers import StdMeshers_Adaptive1D, StdMeshers_Deflection1D, \
 
 _mesh_gen = SMESH_Gen_get()
 
+__all__ = ["Regular1D", "MaxLength1D", "LocalLength1D", "NumberOfSegments1D",
+           "Adaptive1D", "Deflection1D", "NetgenHypothesis", "NetgenSimple2D",
+           "NetgenAlgo2D", "NetgenAlgoOnly2D", "HypothesisData"]
+
 
 class Hypothesis(object):
     """

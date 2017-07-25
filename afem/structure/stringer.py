@@ -1,5 +1,7 @@
 from .surface_part import SurfacePart
 
+__all__ = ["Stringer"]
+
 
 class Stringer(SurfacePart):
     """

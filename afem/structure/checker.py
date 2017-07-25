@@ -4,6 +4,8 @@ from .spar import Spar
 from .surface_part import SurfacePart
 from .wing_part import WingPart
 
+__all__ = ["CheckPart"]
+
 
 class CheckPart(object):
     """

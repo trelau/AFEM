@@ -1,5 +1,7 @@
 from .fuselage_part import FuselagePart
 
+__all__ = ["Bulkhead"]
+
 
 class Bulkhead(FuselagePart):
     """

@@ -1,9 +1,11 @@
 from OCC.gp import gp_Pnt, gp_Pnt2d, gp_XYZ
-from numpy import array, float64, add, subtract
+from numpy import add, array, float64, subtract
 
 from .geom import Geometry
 from ..config import Settings
 from ..utils.misc import is_array_like
+
+__all__ = ["Point", "Point2D"]
 
 
 class Point(gp_Pnt, Geometry):

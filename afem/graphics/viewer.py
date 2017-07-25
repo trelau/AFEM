@@ -8,6 +8,8 @@ from numpy.random import rand
 
 from .methods.display_mesh import display_smesh
 
+__all__ = ["Viewer", "ViewableItem"]
+
 
 class ViewableItem(object):
     """

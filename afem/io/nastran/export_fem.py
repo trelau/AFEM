@@ -1,3 +1,6 @@
+__all__ = ["export_bdf"]
+
+
 def export_bdf(assy, fn):
     """
     Export assembly of parts to Nastran bulk data format (only nodes and

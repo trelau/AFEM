@@ -3,6 +3,8 @@ from OCC.TopoDS import TopoDS_Solid
 from ..graphics.viewer import ViewableItem
 from ..topology import ShapeTools
 
+__all__ = ["Body"]
+
 
 class Body(TopoDS_Solid, ViewableItem):
     """

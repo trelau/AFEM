@@ -22,6 +22,8 @@ from ...oml import CheckOML
 from ...topology import ShapeTools
 from ...utils import pairwise
 
+__all__ = []
+
 _brep_tool = BRep_Tool()
 
 

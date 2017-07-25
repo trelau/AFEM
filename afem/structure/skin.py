@@ -1,5 +1,7 @@
 from .surface_part import SurfacePart
 
+__all__ = ["Skin"]
+
 
 class Skin(SurfacePart):
     """

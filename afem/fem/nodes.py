@@ -1,6 +1,8 @@
 from OCC.SMDS import SMDS_MeshNode
 from numpy import array, float64
 
+__all__ = ["Node"]
+
 
 class Node(object):
     """

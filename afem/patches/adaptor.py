@@ -4,6 +4,8 @@ from OCC.GCPnts import GCPnts_AbscissaPoint
 from ..config import Settings
 from ..geometry.points import Point
 
+__all__ = []
+
 
 def _u1(self):
     """

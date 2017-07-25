@@ -9,6 +9,8 @@ from ..geometry import ProjectGeom
 from ..graphics.viewer import ViewableItem
 from ..topology import ShapeTools
 
+__all__ = ["Part"]
+
 
 class Part(TopoDS_Shape, ViewableItem):
     """

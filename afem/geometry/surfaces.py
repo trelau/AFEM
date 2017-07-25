@@ -14,6 +14,8 @@ from ..utils.tcol import to_np_from_tcolgp_array2_pnt, \
     to_np_from_tcolstd_array1_integer, to_np_from_tcolstd_array1_real, \
     to_np_from_tcolstd_array2_real
 
+__all__ = ["Plane", "NurbsSurface"]
+
 
 class Plane(Geom_Plane, Geometry):
     """

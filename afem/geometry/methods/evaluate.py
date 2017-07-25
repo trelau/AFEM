@@ -1,5 +1,7 @@
 from numpy import array, floor
 
+__all__ = []
+
 
 def find_span(n, p, u, uk):
     """

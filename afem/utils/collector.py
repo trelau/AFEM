@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+__all__ = ["Collector"]
+
 
 class Collector(defaultdict):
     def __init__(self):

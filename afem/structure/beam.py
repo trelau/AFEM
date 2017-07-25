@@ -1,5 +1,7 @@
 from .curve_part import CurvePart
 
+__all__ = ["Beam"]
+
 
 class Beam(CurvePart):
     """

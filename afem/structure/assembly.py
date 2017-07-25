@@ -1,5 +1,7 @@
 from ..topology import ShapeTools
 
+__all__ = ["Assembly", "AssemblyData"]
+
 
 class Assembly(object):
     """

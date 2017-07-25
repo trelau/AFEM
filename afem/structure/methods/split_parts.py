@@ -2,6 +2,8 @@ from OCC.GEOMAlgo import GEOMAlgo_Splitter
 
 from .reshape_parts import reshape_parts
 
+__all__ = []
+
 
 def split_part(part, splitter, split_both=True):
     """

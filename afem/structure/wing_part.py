@@ -3,6 +3,8 @@ from .methods.modify_parts import discard_wing_part_faces
 from .surface_part import SurfacePart
 from ..geometry import CreateGeom
 
+__all__ = ["WingPart"]
+
 
 class WingPart(SurfacePart):
     """

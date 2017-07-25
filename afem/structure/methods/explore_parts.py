@@ -1,5 +1,7 @@
 from itertools import product
 
+__all__ = []
+
 
 def get_shared_edges(part1, part2):
     """

@@ -1,8 +1,10 @@
 from OCC.gp import gp_Dir, gp_Vec
-from numpy import array, float64, add, subtract
+from numpy import add, array, float64, subtract
 from numpy.linalg import norm
 
 from .geom import Geometry
+
+__all__ = ["Direction", "Vector"]
 
 
 class Direction(gp_Dir, Geometry):

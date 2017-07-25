@@ -33,6 +33,8 @@ from ....oml.fuselage import Fuselage
 from ....oml.wing import Wing
 from ....topology import ShapeTools
 
+__all__ = []
+
 
 def import_vsp_step(fname, divide_closed):
     """

@@ -3,6 +3,8 @@ from OCC.BRepAdaptor import BRepAdaptor_Surface
 from .tools import ShapeTools
 from ..geometry.methods.create import create_nurbs_surface_from_occ
 
+__all__ = ["ShapeAdaptorSurface"]
+
 
 class ShapeAdaptorSurface(object):
     """

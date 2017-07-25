@@ -1,3 +1,6 @@
+__all__ = ["Material", "Isotropic", "MaterialData"]
+
+
 class Material(object):
     """
     Base class for materials.

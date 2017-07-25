@@ -1,5 +1,7 @@
 from .surface_part import SurfacePart
 
+__all__ = ["FuselagePart"]
+
 
 class FuselagePart(SurfacePart):
     """

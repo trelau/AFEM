@@ -3,6 +3,8 @@ from OCC.Bnd import Bnd_Box
 
 from .checker import CheckGeom
 
+__all__ = ["BBox"]
+
 
 class BBox(Bnd_Box):
     """

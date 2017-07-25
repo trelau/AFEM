@@ -6,6 +6,8 @@ from OCC.STEPControl import STEPControl_AsIs, STEPControl_Reader, \
 from ...config import Settings, units_dict
 from ...topology import ShapeTools
 
+__all__ = ["StepExport", "StepImport"]
+
 
 class StepExport(STEPControl_Writer):
     """

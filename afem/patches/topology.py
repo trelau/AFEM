@@ -11,7 +11,7 @@ from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire, \
     breptools_Write
 from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
-from OCC.ShapeAnalysis import ShapeAnalysis_Edge
+from OCC.ShapeAnalysis import ShapeAnalysis_Edge, shapeanalysis_FindBounds
 from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
     TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE
 from OCC.TopoDS import TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell, \
@@ -23,7 +23,8 @@ from ..geometry.points import Point
 from ..topology import ShapeTools
 
 _analysis_edge = ShapeAnalysis_Edge()
-from OCC.ShapeAnalysis import shapeanalysis_FindBounds
+
+__all__ = []
 
 
 def _to_shape(self):

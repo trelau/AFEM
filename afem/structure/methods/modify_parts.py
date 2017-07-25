@@ -11,6 +11,8 @@ from ...config import Settings
 from ...geometry import CreateGeom
 from ...topology import ShapeTools
 
+__all__ = []
+
 
 def discard_faces_by_distance(part, shape, dmin=None):
     """

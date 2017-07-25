@@ -7,6 +7,14 @@ from numpy import array as np_array, zeros
 
 from .misc import is_array_like
 
+__all__ = ["to_tcolstd_array2_real", "to_tcolstd_array1_real",
+           "to_tcolstd_array1_integer", "to_tcolgp_harray1_pnt",
+           "to_tcolgp_array2_pnt", "to_tcolgp_array1_pnt2d",
+           "to_tcolgp_array1_pnt", "to_np_from_tcolstd_array2_real",
+           "to_np_from_tcolstd_array1_real",
+           "to_np_from_tcolstd_array1_integer",
+           "to_np_from_tcolgp_array2_pnt", "to_np_from_tcolgp_array1_pnt"]
+
 
 def _to_gp_pnt(p):
     """
@@ -244,8 +252,8 @@ def to_np_from_tcolgp_array1_pnt(tcol_array):
     n = tcol_array.Length()
     array = zeros((n, 3), dtype=float)
     for i in range(n):
-            p = tcol_array.Value(i + 1)
-            array[i, :] = p.X(), p.Y(), p.Z()
+        p = tcol_array.Value(i + 1)
+        array[i, :] = p.X(), p.Y(), p.Z()
     return array
 
 

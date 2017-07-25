@@ -1,5 +1,7 @@
 from .methods.import_vsp_step import import_vsp_step
 
+__all__ = ["ImportVSP"]
+
 
 class ImportVSP(object):
     """

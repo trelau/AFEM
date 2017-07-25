@@ -8,6 +8,8 @@ from OCC.GeomAdaptor import GeomAdaptor_Curve
 
 from .create import create_line_from_occ, create_nurbs_curve_from_occ
 
+__all__ = []
+
 
 def project_point_to_curve(point, curve, direction=None):
     """

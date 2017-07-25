@@ -13,6 +13,8 @@ from ..fem import MeshData
 from ..fem.elements import Elm2D
 from ..topology import ShapeTools
 
+__all__ = ["SurfacePart"]
+
 
 class SurfacePart(Part):
     """

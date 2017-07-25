@@ -1,6 +1,8 @@
 from OCC.Extrema import Extrema_ExtPC
 from numpy import sqrt
 
+__all__ = []
+
 
 def distance_point_to_curve(point, curve):
     """

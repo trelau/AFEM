@@ -1,10 +1,12 @@
 from OCC.SMESH import SMESH_Gen_get
 
 from .hypotheses import HypothesisData
-from ..topology import ShapeTools
 from .nodes import Node
+from ..topology import ShapeTools
 
 _mesh_gen = SMESH_Gen_get()
+
+__all__ = ["Mesh", "SubMesh", "MeshData"]
 
 
 class Mesh(object):

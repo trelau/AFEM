@@ -5,6 +5,8 @@ from .methods.fuse_parts import fuse_surface_parts, fuse_wing_parts
 from .methods.sew_parts import sew_surface_parts
 from .methods.split_parts import split_parts
 
+__all__ = ["PartTools"]
+
 
 class PartTools(object):
     """

@@ -3,6 +3,8 @@ from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.TopTools import TopTools_IndexedMapOfShape
 from OCC.TopoDS import TopoDS_Compound
 
+__all__ = []
+
 
 def reshape_parts(tool, parts):
     """

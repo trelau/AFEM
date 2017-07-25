@@ -1,3 +1,6 @@
+__all__ = ["Property", "Shell", "PropertyData"]
+
+
 class Property(object):
     """
     Base class for properties.

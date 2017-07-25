@@ -1,6 +1,8 @@
 from .curve_part import CurvePart
 from .surface_part import SurfacePart
 
+__all__ = ["Stiffener1D", "Stiffener2D"]
+
 
 class Stiffener1D(CurvePart):
     """

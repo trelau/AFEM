@@ -12,6 +12,8 @@ from .reshape_parts import reshape_parts
 from ...geometry import CreateGeom
 from ...topology import ShapeTools
 
+__all__ = []
+
 
 def cut_wing_part_with_circle(part, dx, r):
     """

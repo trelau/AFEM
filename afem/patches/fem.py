@@ -4,6 +4,8 @@ from OCC.TopoDS import TopoDS_Edge, TopoDS_Face
 from ..fem.elements import Elm1D, Elm2D
 from ..fem.meshes import MeshData
 
+__all__ = []
+
 
 def _elements_on_edge(self):
     """

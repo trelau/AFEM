@@ -1,6 +1,9 @@
 from .checker import CheckGeom
-from .methods.project import project_curve_to_surface, \
-    project_point_to_curve, project_point_to_surface, project_curve_to_plane
+from .methods.project import project_curve_to_plane, project_curve_to_surface, \
+    project_point_to_curve, project_point_to_surface
+
+__all__ = ["ProjectGeom", "ProjectPointToCurve", "ProjectPointToSurface",
+           "ProjectCurveToPlane", "ProjectCurveToSurface"]
 
 
 class ProjectGeom(object):

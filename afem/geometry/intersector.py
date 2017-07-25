@@ -7,6 +7,9 @@ from .methods.intersect import intersect_curve_curve, \
     intersect_curve_surface, intersect_surface_surface
 from ..config import Settings
 
+__all__ = ["IntersectGeom", "IntersectCurveCurve", "IntersectCurveSurface",
+           "IntersectSurfaceSurface"]
+
 
 class IntersectGeom(object):
     """

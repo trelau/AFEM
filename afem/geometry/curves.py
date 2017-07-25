@@ -10,9 +10,11 @@ from .methods.geom_utils import global_to_local_param, homogenize_array1d, \
     local_to_global_param
 from .methods.parameterize import reparameterize_knots
 from .points import Point, Point2D
+from .vectors import Vector
 from ..utils.tcol import to_np_from_tcolgp_array1_pnt, \
     to_np_from_tcolstd_array1_integer, to_np_from_tcolstd_array1_real
-from .vectors import Vector
+
+__all__ = ["Line", "NurbsCurve", "NurbsCurve2D"]
 
 
 class Line(Geom_Line, Geometry):

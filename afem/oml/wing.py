@@ -3,6 +3,8 @@ from .methods.extract import extract_wing_plane, extract_wing_ref_curve
 from ..geometry import CheckGeom, CreateGeom, ProjectGeom
 from ..topology.adaptors import ShapeAdaptorSurface
 
+__all__ = ["Wing"]
+
 
 class Wing(Body):
     """

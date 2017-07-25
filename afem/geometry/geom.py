@@ -1,5 +1,7 @@
 from ..graphics.viewer import ViewableItem
 
+__all__ = ["Geometry"]
+
 
 class Geometry(ViewableItem):
     """

@@ -1,5 +1,7 @@
 from OCC.StlAPI import StlAPI_Writer
 
+__all__ = ["StlExport"]
+
 
 class StlExport(StlAPI_Writer):
     """

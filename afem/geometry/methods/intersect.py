@@ -13,6 +13,8 @@ from ..curves import Line
 from ..points import Point
 from ...config import Settings
 
+__all__ = []
+
 
 def intersect_curve_curve(curve1, curve2, itol=None):
     """

@@ -1,5 +1,7 @@
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Fuse
 
+__all__ = []
+
 
 def merge_surface_part(part, other, unify=False):
     """

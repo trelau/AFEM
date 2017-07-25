@@ -9,6 +9,8 @@ from .points import Point, Point2D
 from .surfaces import NurbsSurface, Plane
 from .vectors import Direction, Vector
 
+__all__ = ["CheckGeom"]
+
 
 class CheckGeom(object):
     """
