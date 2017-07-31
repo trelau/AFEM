@@ -570,11 +570,7 @@ class CreatedPoints(object):
 
 class GeomBuilder(object):
     """
-    Base class for building geometry.
-
-    :var bool success:
-    :var Geometry geom: Created geometry.
-    :var list geoms: List of created geometries if applicable.
+    Base class for geometry builder.
     """
 
     def __init__(self):
@@ -586,6 +582,12 @@ class GeomBuilder(object):
 
     @property
     def success(self):
+        """
+        Check if builder was successful.
+
+        :return: *True* if successful, *False* if not.
+        :rtype: bool
+        """
         if not self._performed:
             self.build()
         return self._success
@@ -912,7 +914,9 @@ class SurfaceByData(GeomBuilder):
     """
     Create a surface from data.
     """
-    pass
+
+    def __init__(self):
+        super(SurfaceByData, self).__init__()
 
 
 class SurfaceByInterp(GeomBuilder):
