@@ -1,4 +1,4 @@
-from OCC.BRep import BRep_Tool_Parameter, BRep_Tool_Surface
+from OCC.BRep import BRep_Builder, BRep_Tool, BRep_Tool_Parameter
 from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
@@ -18,11 +18,22 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 
 from .check import CheckShape
-from .create import CompoundByShapes
 from ..geometry.curves import Line
 from ..geometry.methods.create import (create_nurbs_curve_from_occ,
                                        create_nurbs_surface_from_occ)
 from ..geometry.surfaces import Plane
+
+
+def _make_compound(shapes):
+    """
+    Make a compound from a list of shapes.
+    """
+    cp = TopoDS_Compound()
+    builder = BRep_Builder()
+    builder.MakeCompound(cp)
+    for shape in shapes:
+        builder.Add(cp, shape)
+    return cp
 
 
 class ExploreShape(object):
@@ -39,7 +50,7 @@ class ExploreShape(object):
         """
         if isinstance(shape, TopoDS_Vertex):
             if as_compound:
-                return CompoundByShapes([shape]).compound
+                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_VERTEX)
@@ -50,7 +61,7 @@ class ExploreShape(object):
             vertices.append(vertex)
             exp.Next()
         if as_compound:
-            return CompoundByShapes(vertices).compound
+            return _make_compound(vertices)
         return vertices
 
     @staticmethod
@@ -66,7 +77,7 @@ class ExploreShape(object):
         """
         if isinstance(shape, TopoDS_Edge):
             if as_compound:
-                return CompoundByShapes([shape]).compound
+                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_EDGE)
@@ -86,7 +97,7 @@ class ExploreShape(object):
                 edges.append(edge)
             exp.Next()
         if as_compound:
-            return CompoundByShapes(edges).compound
+            return _make_compound(edges)
         return edges
 
     @staticmethod
@@ -98,7 +109,7 @@ class ExploreShape(object):
         """
         if isinstance(shape, TopoDS_Wire):
             if as_compound:
-                return CompoundByShapes([shape]).compound
+                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_WIRE)
@@ -109,7 +120,7 @@ class ExploreShape(object):
             wires.append(wire)
             exp.Next()
         if as_compound:
-            return CompoundByShapes(wires).compound
+            return _make_compound(wires)
         return wires
 
     @staticmethod
@@ -121,7 +132,7 @@ class ExploreShape(object):
         """
         if isinstance(shape, TopoDS_Face):
             if as_compound:
-                return CompoundByShapes([shape]).compound
+                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_FACE)
@@ -132,7 +143,7 @@ class ExploreShape(object):
             faces.append(face)
             exp.Next()
         if as_compound:
-            return CompoundByShapes(faces).compound
+            return _make_compound(faces)
         return faces
 
     @staticmethod
@@ -144,7 +155,7 @@ class ExploreShape(object):
         """
         if isinstance(shape, TopoDS_Shell):
             if as_compound:
-                return CompoundByShapes([shape]).compound
+                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_SHELL)
@@ -155,7 +166,7 @@ class ExploreShape(object):
             shells.append(shell)
             exp.Next()
         if as_compound:
-            return CompoundByShapes(shells).compound
+            return _make_compound(shells)
         return shells
 
     @staticmethod
@@ -167,7 +178,7 @@ class ExploreShape(object):
         """
         if isinstance(shape, TopoDS_Solid):
             if as_compound:
-                return CompoundByShapes([shape]).compound
+                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_SOLID)
@@ -178,7 +189,7 @@ class ExploreShape(object):
             solids.append(solid)
             exp.Next()
         if as_compound:
-            return CompoundByShapes(solids).compound
+            return _make_compound(solids)
         return solids
 
     @staticmethod
@@ -190,7 +201,7 @@ class ExploreShape(object):
         """
         if isinstance(shape, TopoDS_Compound):
             if as_compound:
-                return CompoundByShapes([shape]).compound
+                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_COMPOUND)
@@ -201,7 +212,7 @@ class ExploreShape(object):
             compounds.append(compound)
             exp.Next()
         if as_compound:
-            return CompoundByShapes(compounds).compound
+            return _make_compound(compounds)
         return compounds
 
     @staticmethod
@@ -315,7 +326,7 @@ class ExploreShape(object):
         if not face:
             return None
 
-        hsrf = BRep_Tool_Surface(face)
+        hsrf = BRep_Tool.Surface(face)
         adp_srf = GeomAdaptor_Surface(hsrf)
         if adp_srf.GetType() == GeomAbs_Plane:
             gp_pln = adp_srf.Plane()
@@ -476,14 +487,14 @@ class ExploreShape(object):
         if not faces:
             return []
 
-        compound = CompoundByShapes(faces).compound
+        compound = _make_compound(faces)
         tol = ExploreShape.get_tolerance(compound, 1)
         fb_tool = ShapeAnalysis_FreeBounds(compound, tol)
         closed_edges = ExploreShape.get_edges(fb_tool.GetClosedWires())
         open_edges = ExploreShape.get_edges(fb_tool.GetOpenWires())
         edges = closed_edges + open_edges
         if as_compound:
-            return CompoundByShapes(edges).compound
+            return _make_compound(edges)
         return edges
 
 
