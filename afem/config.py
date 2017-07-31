@@ -44,7 +44,7 @@ class Settings(object):
     :var float mtol: Mesh tolerance (default=0.005).
     :var float part_tol: Part tolerance (default=0.005).
     :var float part_angle: Part angle limit in degrees (default=30.0).
-    var bool warnings: Option to print warning messages (default=*False*).
+    :var bool warnings: Option to print warning messages (default=*False*).
     """
     # Class variables for settings.
     gtol = 1.0e-7

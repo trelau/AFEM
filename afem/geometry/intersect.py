@@ -1,14 +1,14 @@
 from numpy import float64, inf, zeros
 from scipy.spatial import KDTree
 
-from .checker import CheckGeom
+from .check import CheckGeom
 from .methods.distance import curve_nearest_point
 from .methods.intersect import intersect_curve_curve, \
     intersect_curve_surface, intersect_surface_surface
 from ..config import Settings
 
 __all__ = ["IntersectGeom", "IntersectCurveCurve", "IntersectCurveSurface",
-           "IntersectSurfaceSurface"]
+           "IntersectSurfaceSurface", "IntersectError"]
 
 
 class IntersectGeom(object):

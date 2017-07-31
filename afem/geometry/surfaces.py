@@ -1,29 +1,29 @@
-from OCC.Geom import Geom_BSplineSurface, Geom_Plane
+from OCC.Geom import Geom_BSplineSurface, Geom_Plane, Geom_Surface
 from OCC.GeomAdaptor import GeomAdaptor_Surface
-from OCC.TColStd import TColStd_Array1OfInteger, TColStd_Array1OfReal, \
-    TColStd_Array2OfReal
+from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
+                         TColStd_Array2OfReal)
 from OCC.TColgp import TColgp_Array2OfPnt
 
-from .geom import Geometry
-from .methods.geom_utils import global_to_local_param, homogenize_array2d, \
-    local_to_global_param
+from .base import Geometry
 from .methods.parameterize import reparameterize_knots
 from .points import Point
+from .utils import (global_to_local_param, homogenize_array2d,
+                    local_to_global_param)
 from .vectors import Vector
-from ..utils.tcol import to_np_from_tcolgp_array2_pnt, \
-    to_np_from_tcolstd_array1_integer, to_np_from_tcolstd_array1_real, \
-    to_np_from_tcolstd_array2_real
+from ..occ.utils import (to_np_from_tcolgp_array2_pnt,
+                         to_np_from_tcolstd_array1_integer,
+                         to_np_from_tcolstd_array1_real,
+                         to_np_from_tcolstd_array2_real)
 
-__all__ = ["Plane", "NurbsSurface"]
+__all__ = ["Surface", "Plane", "NurbsSurface"]
 
 
-class Plane(Geom_Plane, Geometry):
+class Surface(Geom_Surface, Geometry):
     """
-    Plane.
+    Base class for surfaces.
     """
 
-    def __init__(self, *args):
-        super(Plane, self).__init__(*args)
+    def __init__(self):
         Geometry.__init__(self)
 
     @property
@@ -76,23 +76,53 @@ class Plane(Geom_Plane, Geometry):
         vn = Vector(du.Crossed(dv).XYZ())
         return vn
 
+    def __call__(self, u, v, nu=0, nv=0):
+        """
+        Evaluate surface or its derivative
 
-class NurbsSurface(Geom_BSplineSurface, Geometry):
+        :param float u: Parameter in u-direction.
+        :param float v: Parameter in v-direction.
+        :param int nu: derivative order in u-direction
+        :param int nv: derivative order in v-direction
+
+        :return: Point on surface or derivative
+        :rtype: :class:`.Point` or Vector
+        """
+        if (nu + nv) < 1:
+            return self.eval(u, v)
+        else:
+            return self.deriv(u, v, nu, nv)
+
+    def eval_params(self, uprms, vprms):
+        """
+        Evaluate the surface at multiple parameters.
+
+        :param uprms:
+        :param vprms:
+
+        :return:
+        """
+        return [self.eval(u, v) for u, v in zip(uprms, vprms)]
+
+
+class Plane(Geom_Plane, Surface):
+    """
+    Plane.
+    """
+
+    def __init__(self, *args):
+        super(Plane, self).__init__(*args)
+        Surface.__init__(self)
+
+
+class NurbsSurface(Geom_BSplineSurface, Surface):
     """
     NURBS surface.
     """
 
     def __init__(self, *args):
         super(NurbsSurface, self).__init__(*args)
-        Geometry.__init__(self)
-
-    @property
-    def handle(self):
-        return self.GetHandle()
-
-    @property
-    def adaptor(self):
-        return GeomAdaptor_Surface(self.GetHandle())
+        Surface.__init__(self)
 
     @property
     def u1(self):
@@ -248,76 +278,6 @@ class NurbsSurface(Geom_BSplineSurface, Geometry):
             return global_to_local_param(self.u1, self.u2, *args)
         else:
             return global_to_local_param(self.v1, self.v2, *args)
-
-    def eval(self, u, v):
-        """
-        Evaluate surface at parameters.
-
-        :param float u: Parameter in u-direction.
-        :param float v: Parameter in v-direction.
-
-        :return: Point on surface.
-        :rtype: :class:`.Point` or ndarray
-        """
-        p = Point()
-        self.D0(u, v, p)
-        return p
-
-    def __call__(self, u, v, nu=0, nv=0):
-        """
-        Evaluate surface or its derivative
-
-        :param float u: Parameter in u-direction.
-        :param float v: Parameter in v-direction.
-        :param int nu: derivative order in u-direction
-        :param int nv: derivative order in v-direction
-
-        :return: Point on surface or derivative
-        :rtype: :class:`.Point` or Vector
-        """
-        if (nu + nv) < 1:
-            return self.eval(u, v)
-        else:
-            return self.deriv(u, v, nu, nv)
-
-    def eval_params(self, uprms, vprms):
-        """
-        Evaluate the surface at multiple parameters.
-
-        :param uprms:
-        :param vprms:
-
-        :return:
-        """
-        return [self.eval(u, v) for u, v in zip(uprms, vprms)]
-
-    def deriv(self, u, v, nu, nv):
-        """
-        Calculate the surface derivative.
-
-        :param u:
-        :param v:
-        :param nu:
-        :param nv:
-
-        :return:
-        """
-        v = Vector(self.DN(u, v, nu, nv).XYZ())
-        return v
-
-    def norm(self, u, v):
-        """
-        Calculate the surface normal.
-
-        :param u:
-        :param v:
-
-        :return:
-        """
-        du = self.deriv(u, v, 1, 0)
-        dv = self.deriv(u, v, 0, 1)
-        vn = Vector(du.Crossed(dv).XYZ())
-        return vn
 
     def segment(self, u1, u2, v1, v2):
         """

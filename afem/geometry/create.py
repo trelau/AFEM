@@ -1,8 +1,9 @@
 from math import radians
 
+from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.gp import gp_Quaternion, gp_Trsf
 
-from .checker import CheckGeom
+from .check import CheckGeom
 from .curves import Line
 from .methods.create import create_crv_by_approx_pnts, \
     create_crv_by_interp_pnts, create_isocurve, create_line_from_occ, \
@@ -17,7 +18,15 @@ from .points import Point, Point2D
 from .surfaces import Plane
 from .vectors import Direction, Vector
 
-__all__ = ["CreateGeom"]
+__all__ = ["CreateGeom", "CreatedPoints", "PointByXYZ", "PointByArray",
+           "PointFromParameter",
+           "PointFromOther", "PointsAlongCurve", "DirectionByXYZ",
+           "DirectionByArray", "VectorByXYZ", "VectorByArray",
+           "VectorByPoints", "LineByVector", "LineByPoints", "CurveByData",
+           "CurveByInterp", "CurveByFit", "CurveByPoints", "CurveByUIso",
+           "CurveByVIso", "PlaneByNormal", "PlaneByAxes", "PlaneByPoints",
+           "PlaneByFit", "PlanesAlongCurve", "PlanesBetweenPlanes",
+           "SurfaceByData", "SurfaceByInterp", "SurfaceByFit"]
 
 
 class CreateGeom(object):
@@ -557,3 +566,364 @@ class CreatedPoints(object):
     @property
     def zip_results(self):
         return zip(self._pnts, self._params)
+
+
+class GeomBuilder(object):
+    """
+    Base class for building geometry.
+
+    :var bool success:
+    :var Geometry geom: Created geometry.
+    :var list geoms: List of created geometries if applicable.
+    """
+
+    def __init__(self):
+        self._success = False
+        self._performed = False
+        self._geom = None
+        self._geoms = []
+        self._results = {}
+
+    @property
+    def success(self):
+        if not self._performed:
+            self.build()
+        return self._success
+
+    @property
+    def geom(self):
+        if not self._performed:
+            self.build()
+        return self._geom
+
+    @property
+    def geoms(self):
+        if not self._performed:
+            self.build()
+        return self._geoms
+
+    def _get_results(self, key):
+        if not self._performed:
+            self.build()
+        try:
+            return self._results[key]
+        except KeyError:
+            return None
+
+    def build(self):
+        """
+        Build geometry. Should be overridden.
+
+        :return: None.
+        :rtype: None
+        """
+        pass
+
+
+class PointByXYZ(GeomBuilder):
+    """
+    Create a point by x, y, and z location.
+
+    :param float x:
+    :param float y:
+    :param float z:
+    """
+
+    def __init__(self, x=0., y=0., z=0.):
+        super(PointByXYZ, self).__init__()
+        self._x = x
+        self._y = y
+        self._z = z
+
+    def build(self):
+        self._performed = True
+        self._geom = Point(self._x, self._y, self._z)
+        self._success = isinstance(self._geom, Point)
+
+    @property
+    def point(self):
+        return self.geom
+
+
+class PointByArray(PointByXYZ):
+    """
+    Create a point from an array-like object.
+
+    :param array_like xyz:
+    """
+
+    def __init__(self, xyz=(0., 0., 0.)):
+        assert len(xyz) == 3, "Invalid array size in PointByArray"
+        x, y, z = xyz
+        super(PointByArray, self).__init__(x, y, z)
+
+
+class PointFromParameter(GeomBuilder):
+    """
+    Create a point along a curve at a specified distance from a parameter.
+    """
+
+    def __init__(self, c, ds, u0, tol=1.0e-7):
+        super(PointFromParameter, self).__init__()
+        assert CheckGeom.is_curve_like(c), ("Invalid curve in "
+                                            "PointFromParameter")
+        self._c = c
+        self._ds = ds
+        self._u0 = u0
+        self._tol = tol
+
+    def build(self):
+        ap = GCPnts_AbscissaPoint(self._tol, self._c.adapter, self._ds,
+                                  self._u0)
+        if not ap.IsDone():
+            self._success = False
+            return None
+
+        u = ap.Parameter()
+        self._results['u'] = u
+        self._geom = self._c.eval(u)
+        return None
+
+    @property
+    def point(self):
+        return self._geom
+
+    @property
+    def parameter(self):
+        return self._get_results('u')
+
+
+class PointFromOther(GeomBuilder):
+    """
+    Create a point along a curve at a specified distance from another point.
+    """
+    pass
+
+
+class PointsAlongCurve(GeomBuilder):
+    """
+    Create points along a curve.
+    """
+    pass
+
+
+class DirectionByXYZ(GeomBuilder):
+    """
+    Create a direction by x, y, and z components.
+
+    :param float x:
+    :param float y:
+    :param float z:
+    """
+
+    def __init__(self, x=0., y=0., z=0.):
+        super(DirectionByXYZ, self).__init__()
+        self._x = float(x)
+        self._y = float(y)
+        self._z = float(z)
+
+    def build(self):
+        self._performed = True
+        self._geom = Direction(self._x, self._y, self._z)
+        self._success = True
+
+    @property
+    def direction(self):
+        return self.geom
+
+
+class DirectionByArray(DirectionByXYZ):
+    """
+    Create a direction from an array-like object.
+
+    :param xyz:
+    """
+
+    def __init__(self, xyz=(0., 0., 0.)):
+        assert len(xyz) == 3, "Invalid array size in DirectionByArray"
+        x, y, z = xyz
+        super(DirectionByArray, self).__init__(x, y, z)
+
+
+class DirectionByPoints(GeomBuilder):
+    """
+    Create a direction between two points.
+    """
+    pass
+
+
+class VectorByXYZ(GeomBuilder):
+    """
+    Create a vector by x, y, and z components.
+    """
+    pass
+
+
+class VectorByArray(GeomBuilder):
+    """
+    Create a vector from array-like object.
+    """
+    pass
+
+
+class VectorByPoints(GeomBuilder):
+    """
+    Create a vector between two points.
+    """
+    pass
+
+
+class LineByVector(GeomBuilder):
+    """
+    Create a line by an origin and a vector.
+
+    :param p:
+    :param v:
+    """
+
+    def __init__(self, p, v):
+        super(LineByVector, self).__init__()
+        self._p = CheckGeom.to_point(p)
+        self._d = CheckGeom.to_direction(v)
+        assert isinstance(self._p, Point), "Invalid point in LineByVector"
+        assert isinstance(self._d, Direction), "Invalid vector in LineByVector"
+
+    def build(self):
+        self._performed = True
+        self._geom = Line(self._p, self._d)
+        self._success = True
+
+    @property
+    def line(self):
+        return self.geom
+
+
+class LineByPoints(GeomBuilder):
+    """
+    Create a line through two points.
+
+    :param p1:
+    :param p2:
+    """
+
+    def __init__(self, p1, p2):
+        super(LineByPoints, self).__init__()
+        self._p1 = CheckGeom.to_point(p1)
+        self._p2 = CheckGeom.to_point(p2)
+        assert isinstance(self._p1, Point), "Invalid point in LineByPoints"
+        assert isinstance(self._p2, Point), "Invalid point in LineByPoints"
+
+    def build(self):
+        self._performed = True
+        v = DirectionByArray(self._p1 - self._p2)
+        self._geom = Line(self._p1, v)
+        self._success = True
+
+    @property
+    def line(self):
+        return self.geom
+
+
+class CurveByData(GeomBuilder):
+    """
+    Create a curve by data.
+    """
+    pass
+
+
+class CurveByInterp(GeomBuilder):
+    """
+    Create a curve by interpolating points.
+    """
+    pass
+
+
+class CurveByFit(GeomBuilder):
+    """
+    Create a curve by fitting points.
+    """
+    pass
+
+
+class CurveByPoints(GeomBuilder):
+    """
+    Create a curve between two points.
+    """
+    pass
+
+
+class CurveByUIso(GeomBuilder):
+    """
+    Create an isocurve.
+    """
+    pass
+
+
+class CurveByVIso(GeomBuilder):
+    """
+    Create an isocurve.
+    """
+    pass
+
+
+class PlaneByNormal(GeomBuilder):
+    """
+    Create a plane by an origin and a normal vector.
+    """
+    pass
+
+
+class PlaneByAxes(GeomBuilder):
+    """
+    Create a plane by an origin and basic axes.
+    """
+    pass
+
+
+class PlaneByPoints(GeomBuilder):
+    """
+    Create a plane by three points.
+    """
+    pass
+
+
+class PlaneByFit(GeomBuilder):
+    """
+    Create a plane by fitting points.
+    """
+    pass
+
+
+class PlanesAlongCurve(GeomBuilder):
+    """
+    Create planes along a curve.
+    """
+    pass
+
+
+class PlanesBetweenPlanes(GeomBuilder):
+    """
+    Create planes between two other planes.
+    """
+    pass
+
+
+class SurfaceByData(GeomBuilder):
+    """
+    Create a surface from data.
+    """
+    pass
+
+
+class SurfaceByInterp(GeomBuilder):
+    """
+    Create a surface by interpolating curves.
+    """
+    pass
+
+
+class SurfaceByFit(GeomBuilder):
+    """
+    Create a surface by fitting curves.
+    """
+    pass

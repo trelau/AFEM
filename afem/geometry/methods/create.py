@@ -18,8 +18,13 @@ from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
 
+from ..utils import dehomogenize_array2d, homogenize_array1d
+from ...occ.utils import to_np_from_tcolgp_array1_pnt, \
+    to_np_from_tcolstd_array1_real, to_tcolgp_array1_pnt, \
+    to_tcolgp_array1_pnt2d, to_tcolgp_array2_pnt, to_tcolgp_harray1_pnt, \
+    to_tcolstd_array1_integer, to_tcolstd_array1_real, \
+    to_tcolstd_array2_real
 from .evaluate import basis_funs, find_span
-from .geom_utils import dehomogenize_array2d, homogenize_array1d
 from .parameterize import centripetal, chord_length, uniform
 from ..axes import Axis3
 from ..curves import Line, NurbsCurve, NurbsCurve2D
@@ -27,11 +32,6 @@ from ..points import Point
 from ..surfaces import NurbsSurface, Plane
 from ..vectors import Direction
 from ...config import Settings
-from ...utils.tcol import to_np_from_tcolgp_array1_pnt, \
-    to_np_from_tcolstd_array1_real, to_tcolgp_array1_pnt, \
-    to_tcolgp_array1_pnt2d, to_tcolgp_array2_pnt, to_tcolgp_harray1_pnt, \
-    to_tcolstd_array1_integer, to_tcolstd_array1_real, \
-    to_tcolstd_array2_real
 
 __all__ = []
 

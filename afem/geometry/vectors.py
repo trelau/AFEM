@@ -2,7 +2,7 @@ from OCC.gp import gp_Dir, gp_Vec
 from numpy import add, array, float64, subtract
 from numpy.linalg import norm
 
-from .geom import Geometry
+from .base import Geometry
 
 __all__ = ["Direction", "Vector"]
 

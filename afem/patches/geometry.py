@@ -11,7 +11,7 @@ from numpy import array, float64
 
 from ..config import Settings
 from ..geometry.points import Point
-from ..geometry.projector import ProjectGeom
+from ..geometry.project import ProjectGeom
 
 __all__ = []
 

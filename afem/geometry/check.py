@@ -4,7 +4,7 @@ from numpy import ndarray
 
 from .axes import Axis3
 from .curves import Line, NurbsCurve, NurbsCurve2D
-from .geom import Geometry
+from .base import Geometry
 from .points import Point, Point2D
 from .surfaces import NurbsSurface, Plane
 from .vectors import Direction, Vector

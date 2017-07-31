@@ -1,7 +1,7 @@
 from OCC.BRepBndLib import brepbndlib_Add
 from OCC.Bnd import Bnd_Box
 
-from .checker import CheckGeom
+from .check import CheckGeom
 
 __all__ = ["BBox"]
 

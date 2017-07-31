@@ -1,29 +1,29 @@
-from OCC.Geom import Geom_BSplineCurve, Geom_Line
+from OCC.Geom import Geom_BSplineCurve, Geom_Curve, Geom_Line
 from OCC.Geom2d import Geom2d_BSplineCurve
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.TColStd import TColStd_Array1OfInteger, TColStd_Array1OfReal
 from OCC.TColgp import TColgp_Array1OfPnt
 
-from .geom import Geometry
+from .base import Geometry
 from .methods.calculate import curve_length
-from .methods.geom_utils import global_to_local_param, homogenize_array1d, \
-    local_to_global_param
 from .methods.parameterize import reparameterize_knots
 from .points import Point, Point2D
+from .utils import (global_to_local_param, homogenize_array1d,
+                    local_to_global_param)
 from .vectors import Vector
-from ..utils.tcol import to_np_from_tcolgp_array1_pnt, \
-    to_np_from_tcolstd_array1_integer, to_np_from_tcolstd_array1_real
+from ..occ.utils import (to_np_from_tcolgp_array1_pnt,
+                         to_np_from_tcolstd_array1_integer,
+                         to_np_from_tcolstd_array1_real)
 
-__all__ = ["Line", "NurbsCurve", "NurbsCurve2D"]
+__all__ = ["Curve", "Line", "NurbsCurve", "NurbsCurve2D"]
 
 
-class Line(Geom_Line, Geometry):
+class Curve(Geom_Curve, Geometry):
     """
-    Line.
+    Base class for curves.
     """
 
-    def __init__(self, *args):
-        super(Line, self).__init__(*args)
+    def __init__(self):
         Geometry.__init__(self)
 
     @property
@@ -105,30 +105,24 @@ class Line(Geom_Line, Geometry):
         return curve_length(self, u1, u2)
 
 
-class NurbsCurve(Geom_BSplineCurve, Geometry):
+class Line(Geom_Line, Curve):
+    """
+    Line.
+    """
+
+    def __init__(self, *args):
+        super(Line, self).__init__(*args)
+        Curve.__init__(self)
+
+
+class NurbsCurve(Geom_BSplineCurve, Curve):
     """
     NURBS curve.
     """
 
     def __init__(self, *args):
         super(NurbsCurve, self).__init__(*args)
-        Geometry.__init__(self)
-
-    @property
-    def handle(self):
-        return self.GetHandle()
-
-    @property
-    def adaptor(self):
-        return GeomAdaptor_Curve(self.GetHandle())
-
-    @property
-    def u1(self):
-        return self.FirstParameter()
-
-    @property
-    def u2(self):
-        return self.LastParameter()
+        Curve.__init__(self)
 
     @property
     def p(self):
@@ -174,14 +168,6 @@ class NurbsCurve(Geom_BSplineCurve, Geometry):
         return homogenize_array1d(self.cp, self.w)
 
     @property
-    def is_closed(self):
-        return self.IsClosed()
-
-    @property
-    def is_periodic(self):
-        return self.IsPeriodic()
-
-    @property
     def length(self):
         return self.arc_length(self.u1, self.u2)
 
@@ -224,58 +210,6 @@ class NurbsCurve(Geom_BSplineCurve, Geometry):
         :return: Local parameter(s).
         """
         return global_to_local_param(self.u1, self.u2, *args)
-
-    def eval(self, u):
-        """
-        Evaluate curve at parameter.
-
-        :param float u: Curve parameter.
-
-        :return: Point on curve.
-        :rtype: :class:`.Point` or ndarray
-        """
-        p = Point()
-        self.D0(u, p)
-        return p
-
-    def deriv(self, u, d=1):
-        """
-        Evaluate the derivative at parameter.
-
-        :param u:
-        :param d:
-
-        :return:
-        """
-        return Vector(self.DN(u, d).XYZ())
-
-    def reverse(self):
-        """
-        Reverse the direction of the curve.
-
-        :return:
-        """
-        self.Reverse()
-
-    def reversed_u(self, u):
-        """
-        Calculate the parameter on the reversed curve.
-
-        :param u:
-        :return:
-        """
-        return self.ReversedParameter(u)
-
-    def arc_length(self, u1, u2):
-        """
-        Calculate the curve length between the parameter.
-
-        :param u1:
-        :param u2:
-
-        :return:
-        """
-        return curve_length(self, u1, u2)
 
     def segment(self, u1, u2):
         """

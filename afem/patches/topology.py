@@ -18,7 +18,7 @@ from OCC.TopoDS import TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell, \
     TopoDS_Solid, TopoDS_Vertex, TopoDS_Wire, topods_Edge
 from OCC.gce import gce_MakeMirror
 
-from ..geometry.checker import CheckGeom
+from ..geometry.check import CheckGeom
 from ..geometry.points import Point
 from ..topology import ShapeTools
 

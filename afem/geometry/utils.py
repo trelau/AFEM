@@ -4,7 +4,7 @@ import OCC.BSplCLib as CLib
 from OCC.TColStd import TColStd_Array1OfReal
 from numpy import hstack, zeros
 
-from ...utils.tcol import to_np_from_tcolstd_array1_real
+from ..occ.utils import to_np_from_tcolstd_array1_real
 
 __all__ = []
 
@@ -85,6 +85,7 @@ def build_knot_vector_from_occ(tcol_knots, tcol_mult, p, is_periodic):
     """
     Build knot sequence from OCC data.
     """
+    # TODO Figure out where used and make local
     n = CLib.bsplclib_KnotSequenceLength(tcol_mult, p, is_periodic)
     tcol_knots_seq = TColStd_Array1OfReal(1, n)
     CLib.bsplclib_KnotSequence(tcol_knots, tcol_mult, p, is_periodic,
