@@ -40,7 +40,37 @@ class Geometry(ViewableItem):
 
 class Point(gp_Pnt, Geometry):
     """
-    Point.
+    A 3-D Cartesian point. Supports NumPy array methods.
+
+    For more information see gp_Pnt_.
+
+    .. _gp_Pnt: https://www.opencascade.com/doc/occt-7.1.0/refman/html/classgp___pnt.html
+
+    Usage:
+
+    >>> from afem.geometry import Point
+    >>> Point()
+    Point(0.0, 0.0, 0.0)
+    >>> Point(1., 2., 3.)
+    Point(1.0, 2.0, 3.0)
+    >>> from numpy import array
+    >>> array(Point(1., 2., 3.))
+    array([ 1.,  2.,  3.])
+    >>> p1 = Point(1., 2., 3)
+    >>> p2 = Point(4., 5., 6.)
+    >>> p1[0]
+    1.0
+    >>> p1[1]
+    2.0
+    >>> p1[2]
+    3.0
+    >>> p1 + p2
+    array([ 5.,  7.,  9.])
+    >>> p2 - p1
+    array([ 3.,  3.,  3.])
+    >>> array([p1, p2])
+    array([[ 1.,  2.,  3.],
+           [ 4.,  5.,  6.]])
     """
 
     def __init__(self, *args):
@@ -76,10 +106,21 @@ class Point(gp_Pnt, Geometry):
 
     @property
     def xyz(self):
+        """
+        :return: The point location.
+        :rtype: numpy.ndarray
+        """
         return array([self.X(), self.Y(), self.Z()], dtype=float64)
 
     @property
     def x(self):
+        """
+        The point x-location.
+
+        :getter: Returns the x-location.
+        :setter: Sets the x-location.
+        :type: float
+        """
         return self.X()
 
     @x.setter
@@ -88,6 +129,13 @@ class Point(gp_Pnt, Geometry):
 
     @property
     def y(self):
+        """
+        The point y-location.
+
+        :getter: Returns the y-location.
+        :setter: Sets the y-location.
+        :type: float
+        """
         return self.Y()
 
     @y.setter
@@ -96,6 +144,13 @@ class Point(gp_Pnt, Geometry):
 
     @property
     def z(self):
+        """
+        The point z-location.
+
+        :getter: Returns the z-location.
+        :setter: Sets the z-location.
+        :type: float
+        """
         return self.Z()
 
     @z.setter
@@ -106,7 +161,8 @@ class Point(gp_Pnt, Geometry):
         """
         Return a new copy of the point.
 
-        :return:
+        :return: New point.
+        :rtype: afem.geometry.entities.Point
         """
         return Point(*self.xyz)
 
@@ -134,8 +190,7 @@ class Point(gp_Pnt, Geometry):
         """
         Compute the distance between two points.
 
-        :param other: The other point.
-        :type other: point_like
+        :param point_like other: The other point.
 
         :return: Distance to the other point.
         :rtype: float
@@ -151,8 +206,7 @@ class Point(gp_Pnt, Geometry):
         """
         Check for coincident points.
 
-        :param other: The other point.
-        :type other: point_like
+        :param point_like other: The other point.
         :param float tol: Tolerance for coincidence.
 
         :return: *True* if coincident, *False* if not.
@@ -171,11 +225,13 @@ class Point(gp_Pnt, Geometry):
         """
         Translate the point along the vector.
 
-        :param v:
+        :param afem.geometry.entities.Vector v: The translation vector.
 
-        :return:
+        :return: *True* if translated, *False* if not.
+        :rtype: bool
         """
         self.Translate(v)
+        return True
 
 
 class Point2D(gp_Pnt2d, Geometry):
@@ -1191,3 +1247,9 @@ class BBox(Bnd_Box):
         if self.is_void or box.IsVoid():
             return None
         return self.Distance(box)
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()

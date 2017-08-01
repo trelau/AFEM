@@ -55,6 +55,25 @@ _occ_parm_type = {'u': Approx_IsoParametric,
                   'chord length': Approx_ChordLength}
 
 
+def _create_nurbs_curve_from_occ(crv):
+    """
+    Create a NURBS curve from an OCC curve.
+    """
+    # Gather OCC data.
+    tcol_poles = TColgp_Array1OfPnt(1, crv.NbPoles())
+    crv.Poles(tcol_poles)
+    tcol_weights = TColStd_Array1OfReal(1, crv.NbPoles())
+    crv.Weights(tcol_weights)
+    tcol_knots = TColStd_Array1OfReal(1, crv.NbKnots())
+    crv.Knots(tcol_knots)
+    tcol_mult = TColStd_Array1OfInteger(1, crv.NbKnots())
+    crv.Multiplicities(tcol_mult)
+    p = crv.Degree()
+    is_periodic = crv.IsPeriodic()
+    return NurbsCurve(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
+                      is_periodic)
+
+
 class CreateGeom(object):
     """
     Geometry creator.
@@ -1737,25 +1756,6 @@ class SurfaceByFit(GeomBuilder):
     Create a surface by fitting curves.
     """
     pass
-
-
-def _create_nurbs_curve_from_occ(crv):
-    """
-    Create a NURBS curve from an OCC curve.
-    """
-    # Gather OCC data.
-    tcol_poles = TColgp_Array1OfPnt(1, crv.NbPoles())
-    crv.Poles(tcol_poles)
-    tcol_weights = TColStd_Array1OfReal(1, crv.NbPoles())
-    crv.Weights(tcol_weights)
-    tcol_knots = TColStd_Array1OfReal(1, crv.NbKnots())
-    crv.Knots(tcol_knots)
-    tcol_mult = TColStd_Array1OfInteger(1, crv.NbKnots())
-    crv.Multiplicities(tcol_mult)
-    p = crv.Degree()
-    is_periodic = crv.IsPeriodic()
-    return NurbsCurve(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
-                      is_periodic)
 
 
 if __name__ == "__main__":
