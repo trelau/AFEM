@@ -10,7 +10,7 @@ from OCC.gp import gp_Pnt
 from numpy import array, float64
 
 from ..config import Settings
-from ..geometry.points import Point
+from afem.geometry.entities import Point
 from ..geometry.project import ProjectGeom
 
 __all__ = []

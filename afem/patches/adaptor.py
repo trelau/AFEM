@@ -2,7 +2,7 @@ from OCC.Adaptor3d import Adaptor3d_Curve, Adaptor3d_Surface
 from OCC.GCPnts import GCPnts_AbscissaPoint
 
 from ..config import Settings
-from ..geometry.points import Point
+from afem.geometry.entities import Point
 
 __all__ = []
 

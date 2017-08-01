@@ -2,12 +2,7 @@ from OCC.Geom import Geom_Curve, Geom_Surface
 from OCC.gp import gp_Pnt, gp_Vec
 from numpy import ndarray
 
-from .axes import Axis3
-from .curves import Line, NurbsCurve, NurbsCurve2D
-from .base import Geometry
-from .points import Point, Point2D
-from .surfaces import NurbsSurface, Plane
-from .vectors import Direction, Vector
+from afem.geometry.entities import *
 
 __all__ = ["CheckGeom"]
 

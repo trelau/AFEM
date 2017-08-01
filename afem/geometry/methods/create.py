@@ -26,11 +26,7 @@ from ...occ.utils import to_np_from_tcolgp_array1_pnt, \
     to_tcolstd_array2_real
 from .evaluate import basis_funs, find_span
 from .parameterize import centripetal, chord_length, uniform
-from ..axes import Axis3
-from ..curves import Line, NurbsCurve, NurbsCurve2D
-from ..points import Point
-from ..surfaces import NurbsSurface, Plane
-from ..vectors import Direction
+from afem.geometry.entities import *
 from ...config import Settings
 
 __all__ = []

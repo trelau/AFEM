@@ -7,66 +7,67 @@ imported by::
 
 Entities
 --------
+.. py:currentmodule:: afem.geometry.entities
 
 Geometry
 ~~~~~~~~
-.. autoclass:: afem.geometry.base.Geometry
+.. autoclass:: Geometry
 
 Point
 ~~~~~
-.. autoclass:: afem.geometry.points.Point
+.. autoclass:: Point
 
 Point2D
 ~~~~~~~
-.. autoclass:: afem.geometry.points.Point2D
+.. autoclass:: Point2D
 
 Direction
 ~~~~~~~~~
-.. autoclass:: afem.geometry.vectors.Direction
+.. autoclass:: Direction
 
 Vector
 ~~~~~~
-.. autoclass:: afem.geometry.vectors.Vector
+.. autoclass:: Vector
 
 Axis1
 ~~~~~
-.. autoclass:: afem.geometry.axes.Axis1
+.. autoclass:: Axis1
 
 Axis3
 ~~~~~
-.. autoclass:: afem.geometry.axes.Axis3
+.. autoclass:: Axis3
 
 Curve
 ~~~~~
-.. autoclass:: afem.geometry.curves.Curve
+.. autoclass:: Curve
 
 Line
 ~~~~
-.. autoclass:: afem.geometry.curves.Line
+.. autoclass:: Line
 
 NurbsCurve
 ~~~~~~~~~~
-.. autoclass:: afem.geometry.curves.NurbsCurve
+.. autoclass:: NurbsCurve
 
 NurbsCurve2D
 ~~~~~~~~~~~~
-.. autoclass:: afem.geometry.curves.NurbsCurve2D
+.. autoclass:: NurbsCurve2D
 
 Surface
 ~~~~~~~
-.. autoclass:: afem.geometry.surfaces.Surface
+.. autoclass:: Surface
 
 Plane
 ~~~~~
-.. autoclass:: afem.geometry.surfaces.Plane
+.. autoclass:: Plane
 
 NurbsSurface
 ~~~~~~~~~~~~
-.. autoclass:: afem.geometry.surfaces.NurbsSurface
+.. autoclass:: NurbsSurface
 
 Bounding Box
 ~~~~~~~~~~~~
-.. autoclass:: afem.geometry.bbox.BBox
+.. autoclass:: BBox
 
 Create
 ------
@@ -96,13 +97,13 @@ PointFromParameter
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: PointFromParameter
 
-PointFromOther
-~~~~~~~~~~~~~~
-.. autoclass:: PointFromOther
+PointsAlongCurveByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PointsAlongCurveByNumber
 
-PointsAlongCurve
-~~~~~~~~~~~~~~~~
-.. autoclass:: PointsAlongCurve
+PointsAlongCurveByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PointsAlongCurveByDistance
 
 DirectionByXYZ
 ~~~~~~~~~~~~~~
@@ -136,21 +137,21 @@ LineByPoints
 ~~~~~~~~~~~~
 .. autoclass:: LineByPoints
 
-CurveByData
-~~~~~~~~~~~
-.. autoclass:: CurveByData
+NurbsCurveByData
+~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsCurveByData
 
-CurveByInterp
-~~~~~~~~~~~~~
-.. autoclass:: CurveByInterp
+NurbsCurveByInterp
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsCurveByInterp
 
-CurveByFit
-~~~~~~~~~~
-.. autoclass:: CurveByFit
+NurbsCurveByApprox
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsCurveByApprox
 
-CurveByPoints
-~~~~~~~~~~~~~
-.. autoclass:: CurveByPoints
+NurbsCurveByPoints
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsCurveByPoints
 
 CurveByUIso
 ~~~~~~~~~~~

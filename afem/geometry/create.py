@@ -1,11 +1,21 @@
-from math import radians
+from math import ceil, radians
 
-from OCC.GCPnts import GCPnts_AbscissaPoint
+from OCC.Approx import (Approx_Centripetal, Approx_ChordLength,
+                        Approx_IsoParametric)
+from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
+from OCC.Geom import Geom_Curve
+from OCC.GeomAPI import GeomAPI_Interpolate, GeomAPI_PointsToBSpline
+from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_C0, GeomAbs_C1,
+                         GeomAbs_C2, GeomAbs_C3, GeomAbs_G1, GeomAbs_G2,
+                         GeomAbs_Line)
+from OCC.GeomAdaptor import GeomAdaptor_Curve
+from OCC.TColStd import TColStd_Array1OfInteger, TColStd_Array1OfReal
+from OCC.TColgp import TColgp_Array1OfPnt
 from OCC.gp import gp_Quaternion, gp_Trsf
 
-from .check import CheckGeom
-from .curves import Line
-from .methods.create import create_crv_by_approx_pnts, \
+from afem.geometry.check import CheckGeom
+from afem.geometry.entities import *
+from afem.geometry.methods.create import create_crv_by_approx_pnts, \
     create_crv_by_interp_pnts, create_isocurve, create_line_from_occ, \
     create_nurbs_curve, create_nurbs_curve_from_occ, \
     create_nurbs_curve_from_occ2d, create_nurbs_surface, \
@@ -14,19 +24,35 @@ from .methods.create import create_crv_by_approx_pnts, \
     create_planes_along_curve, create_planes_between_planes, \
     create_point_from_other, create_points_along_curve, \
     create_srf_by_approx_crvs, create_srf_by_interp_crvs
-from .points import Point, Point2D
-from .surfaces import Plane
-from .vectors import Direction, Vector
+from afem.occ.utils import (to_tcolgp_array1_pnt, to_tcolgp_harray1_pnt,
+                            to_tcolstd_array1_integer, to_tcolstd_array1_real)
 
 __all__ = ["CreateGeom", "CreatedPoints", "PointByXYZ", "PointByArray",
-           "PointFromParameter",
-           "PointFromOther", "PointsAlongCurve", "DirectionByXYZ",
+           "PointsAlongCurveByNumber",
+           "PointFromParameter", "PointsAlongCurveByDistance",
+           "DirectionByXYZ", "DirectionByPoints",
            "DirectionByArray", "VectorByXYZ", "VectorByArray",
-           "VectorByPoints", "LineByVector", "LineByPoints", "CurveByData",
-           "CurveByInterp", "CurveByFit", "CurveByPoints", "CurveByUIso",
+           "VectorByPoints", "LineByVector", "LineByPoints",
+           "NurbsCurveByData",
+           "NurbsCurveByInterp", "NurbsCurveByApprox", "NurbsCurveByPoints",
+           "CurveByUIso",
            "CurveByVIso", "PlaneByNormal", "PlaneByAxes", "PlaneByPoints",
            "PlaneByFit", "PlanesAlongCurve", "PlanesBetweenPlanes",
            "SurfaceByData", "SurfaceByInterp", "SurfaceByFit"]
+
+_occ_continuity = {'C0': GeomAbs_C0,
+                   'G1': GeomAbs_G1,
+                   'C1': GeomAbs_C1,
+                   'G2': GeomAbs_G2,
+                   'C2': GeomAbs_C2,
+                   'C3': GeomAbs_C3}
+
+_occ_parm_type = {'u': Approx_IsoParametric,
+                  'uniform': Approx_IsoParametric,
+                  'centripetal': Approx_Centripetal,
+                  'c': Approx_ChordLength,
+                  'chord': Approx_ChordLength,
+                  'chord length': Approx_ChordLength}
 
 
 class CreateGeom(object):
@@ -576,14 +602,12 @@ class GeomBuilder(object):
     def __init__(self):
         self._success = False
         self._performed = False
-        self._geom = None
-        self._geoms = []
         self._results = {}
 
     @property
     def success(self):
         """
-        Check if builder was successful.
+        Status of builder.
 
         :return: *True* if successful, *False* if not.
         :rtype: bool
@@ -592,17 +616,8 @@ class GeomBuilder(object):
             self.build()
         return self._success
 
-    @property
-    def geom(self):
-        if not self._performed:
-            self.build()
-        return self._geom
-
-    @property
-    def geoms(self):
-        if not self._performed:
-            self.build()
-        return self._geoms
+    def _set_results(self, key, value):
+        self._results[key] = value
 
     def _get_results(self, key):
         if not self._performed:
@@ -614,7 +629,7 @@ class GeomBuilder(object):
 
     def build(self):
         """
-        Build geometry. Should be overridden.
+        Build geometry. Should be overridden in subclasses.
 
         :return: None.
         :rtype: None
@@ -626,32 +641,50 @@ class PointByXYZ(GeomBuilder):
     """
     Create a point by x, y, and z location.
 
-    :param float x:
-    :param float y:
-    :param float z:
+    :param float x: x-location.
+    :param float y: y-location.
+    :param float z: z-location.
+
+    Usage:
+
+    >>> from afem.geometry import PointByXYZ
+    >>> PointByXYZ(1., 2., 3.).point
+    Point(1.0, 2.0, 3.0)
     """
 
     def __init__(self, x=0., y=0., z=0.):
         super(PointByXYZ, self).__init__()
-        self._x = x
-        self._y = y
-        self._z = z
+        self._x = float(x)
+        self._y = float(y)
+        self._z = float(z)
 
     def build(self):
         self._performed = True
-        self._geom = Point(self._x, self._y, self._z)
-        self._success = isinstance(self._geom, Point)
+
+        p = Point(self._x, self._y, self._z)
+        self._set_results('p', p)
+        self._success = isinstance(p, Point)
 
     @property
     def point(self):
-        return self.geom
+        """
+        :return: The created point.
+        :rtype: afem.geometry.entities.Point
+        """
+        return self._get_results('p')
 
 
 class PointByArray(PointByXYZ):
     """
     Create a point from an array-like object.
 
-    :param array_like xyz:
+    :param array_like xyz: Array-like object describing point location.
+
+    Usage:
+
+    >>> from afem.geometry import PointByArray
+    >>> PointByArray([1., 2., 3.]).point
+    Point(1.0, 2.0, 3.0)
     """
 
     def __init__(self, xyz=(0., 0., 0.)):
@@ -663,59 +696,339 @@ class PointByArray(PointByXYZ):
 class PointFromParameter(GeomBuilder):
     """
     Create a point along a curve at a specified distance from a parameter.
+
+    :param curve_like c: The curve.
+    :param float u0: The initial parameter.
+    :param float ds: The distance along the curve from the given parameter.
+    :param float tol: Tolerance.
+
+    Usage:
+
+    >>> from afem.geometry import LineByPoints, Point, PointFromParameter
+    >>> p1 = Point()
+    >>> p2 = Point(10., 0., 0.)
+    >>> line = LineByPoints(p1, p2).line
+    >>> builder = PointFromParameter(line, 0., 1.)
+    >>> assert builder.success
+    >>> builder.point
+    Point(1.0, 0.0, 0.0)
+    >>> builder.parameter
+    1.0
     """
 
-    def __init__(self, c, ds, u0, tol=1.0e-7):
+    def __init__(self, c, u0, ds, tol=1.0e-7):
         super(PointFromParameter, self).__init__()
-        assert CheckGeom.is_curve_like(c), ("Invalid curve in "
-                                            "PointFromParameter")
         self._c = c
         self._ds = ds
         self._u0 = u0
         self._tol = tol
 
     def build(self):
-        ap = GCPnts_AbscissaPoint(self._tol, self._c.adapter, self._ds,
-                                  self._u0)
+        self._performed = True
+        if not CheckGeom.is_curve_like(self._c):
+            return None
+
+        adp_curve = GeomAdaptor_Curve(self._c.handle)
+
+        ap = GCPnts_AbscissaPoint(self._tol, adp_curve, self._ds, self._u0)
         if not ap.IsDone():
             self._success = False
             return None
 
         u = ap.Parameter()
-        self._results['u'] = u
-        self._geom = self._c.eval(u)
-        return None
+        self._set_results('u', u)
+        p = self._c.eval(u)
+        self._set_results('p', p)
+        self._success = isinstance(p, Point)
 
     @property
     def point(self):
-        return self._geom
+        """
+        :return: The created point.
+        :rtype: afem.geometry.entities.Point
+        """
+        return self._get_results('p')
 
     @property
     def parameter(self):
+        """
+        :return: The parameter on the curve.
+        :rtype: float
+        """
         return self._get_results('u')
 
 
-class PointFromOther(GeomBuilder):
+class PointsAlongCurveByNumber(GeomBuilder):
     """
-    Create a point along a curve at a specified distance from another point.
+    Create a specified number of points along a curve. The points will be
+    equidistant.
+
+    :param curve_like c: The curve.
+    :param int n: Number of points to create (*n* > 0).
+    :param float u1: The parameter of the first point (default=c.u1).
+    :param float u2: The parameter of the last point (default=c.u2).
+    :param float d1: An offset distance for the first point.This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last point. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param float tol: Tolerance.
+
+    Usage:
+
+    >>> from afem.geometry import LineByPoints, Point, PointsAlongCurveByNumber
+    >>> p1 = Point()
+    >>> p2 = Point(10., 0., 0.)
+    >>> line = LineByPoints(p1, p2).line
+    >>> builder = PointsAlongCurveByNumber(line, 3, 0., 10.)
+    >>> assert builder.success
+    >>> builder.npts
+    3
+    >>> builder.points
+    [Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)]
+    >>> builder.parameters
+    [0.0, 5.0, 10.0]
     """
-    pass
+
+    def __init__(self, c, n, u1=None, u2=None, d1=None, d2=None, tol=1.0e-7):
+        super(PointsAlongCurveByNumber, self).__init__()
+        self._c = c
+        self._n = int(n)
+        self._u1 = u1
+        self._u2 = u2
+        self._d1 = d1
+        self._d2 = d2
+        self._tol = tol
+
+    def build(self):
+        self._performed = True
+        if not CheckGeom.is_curve_like(self._c) or self._n <= 0:
+            return None
+
+        adp_crv = GeomAdaptor_Curve(self._c.handle)
+
+        # Set u1 and u2
+        if self._u1 is None:
+            self._u1 = adp_crv.FirstParameter()
+        if self._u2 is None:
+            self._u2 = adp_crv.LastParameter()
+
+        # Adjust u1 and u2 if d1 or d2 != 0
+        if self._d1 is not None:
+            ap = GCPnts_AbscissaPoint(self._tol, adp_crv, self._d1, self._u1)
+            if ap.IsDone():
+                self._u1 = ap.Parameter()
+        if self._d1 is not None:
+            ap = GCPnts_AbscissaPoint(self._tol, adp_crv, self._d2, self._u2)
+            if ap.IsDone():
+                self._u2 = ap.Parameter()
+
+        # Create uniform abscissa
+        ua = GCPnts_UniformAbscissa(adp_crv, self._n, self._u1, self._u2,
+                                    self._tol)
+        if not ua.IsDone():
+            return None
+
+        # Gather results
+        npts = ua.NbPoints()
+        pnts = []
+        prms = []
+        for i in range(1, npts + 1):
+            u = ua.Parameter(i)
+            p = Point()
+            adp_crv.D0(u, p)
+            pnts.append(p)
+            prms.append(u)
+        self._set_results('npts', npts)
+        self._set_results('prms', prms)
+        self._set_results('pnts', pnts)
+
+        # Point spacing
+        if npts > 1:
+            ds = pnts[0].distance(pnts[1])
+            self._set_results('ds', ds)
+
+        self._success = True
+
+    @property
+    def npts(self):
+        """
+        :return: The number of points.
+        :rtype: int
+        """
+        return self._get_results('npts')
+
+    @property
+    def points(self):
+        """
+        :return: The points.
+        :rtype: list[afem.geometry.entities.Point]
+        """
+        return self._get_results('pnts')
+
+    @property
+    def parameters(self):
+        """
+        :return: The parameters.
+        :rtype: list[float]
+        """
+        return self._get_results('prms')
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between the first and second points if there
+            are more than one point. Otherwise *None*.
+        :rtype: float or None
+        """
+        return self._get_results('ds')
 
 
-class PointsAlongCurve(GeomBuilder):
+class PointsAlongCurveByDistance(GeomBuilder):
     """
-    Create points along a curve.
+    Create points along a curve by distance between points. The points will
+    be equidistant.
+
+    :param curve_like c: The curve.
+    :param float maxd: The maximum allowed spacing between points. The
+        actual spacing will be adjusted to not to exceed this value.
+    :param float u1: The parameter of the first point (default=c.u1).
+    :param float u2: The parameter of the last point (default=c.u2).
+    :param float d1: An offset distance for the first point.
+    :param float d2: An offset distance for the last point.
+    :param int nmin: Minimum number of points to create.
+    :param float tol: Tolerance.
+
+    Usage:
+
+    >>> from afem.geometry import LineByPoints, Point, PointsAlongCurveByDistance
+    >>> p1 = Point()
+    >>> p2 = Point(10., 0., 0.)
+    >>> line = LineByPoints(p1, p2).line
+    >>> builder = PointsAlongCurveByDistance(line, 5., 0., 10.)
+    >>> assert builder.success
+    >>> builder.npts
+    3
+    >>> builder.points
+    [Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)]
+    >>> builder.parameters
+    [0.0, 5.0, 10.0]
     """
-    pass
+
+    def __init__(self, c, maxd, u1=None, u2=None, d1=None, d2=None, nmin=0,
+                 tol=1.0e-7):
+        super(PointsAlongCurveByDistance, self).__init__()
+        self._c = c
+        self._maxd = float(maxd)
+        self._u1 = u1
+        self._u2 = u2
+        self._d1 = d1
+        self._d2 = d2
+        self._nmin = int(nmin)
+        self._tol = tol
+
+    def build(self):
+        self._performed = True
+        if not CheckGeom.is_curve_like(self._c) or self._maxd <= 0:
+            return None
+
+        adp_crv = GeomAdaptor_Curve(self._c.handle)
+
+        # Set u1 and u2
+        if self._u1 is None:
+            self._u1 = adp_crv.FirstParameter()
+        if self._u2 is None:
+            self._u2 = adp_crv.LastParameter()
+
+        # Adjust u1 and u2 if d1 or d2 != 0
+        if self._d1 is not None:
+            ap = GCPnts_AbscissaPoint(self._tol, adp_crv, self._d1, self._u1)
+            if ap.IsDone():
+                self._u1 = ap.Parameter()
+        if self._d1 is not None:
+            ap = GCPnts_AbscissaPoint(self._tol, adp_crv, self._d2, self._u2)
+            if ap.IsDone():
+                self._u2 = ap.Parameter()
+
+        # Determine number of points
+        arc_length = GCPnts_AbscissaPoint.Length(adp_crv, self._u1,
+                                                 self._u2, self._tol)
+        n = ceil(arc_length / self._maxd) + 1
+        if n < self._nmin:
+            n = self._nmin
+
+        # Create uniform abscissa
+        ua = GCPnts_UniformAbscissa(adp_crv, n, self._u1, self._u2, self._tol)
+        if not ua.IsDone():
+            return None
+
+        # Gather results
+        npts = ua.NbPoints()
+        pnts = []
+        prms = []
+        for i in range(1, npts + 1):
+            u = ua.Parameter(i)
+            p = Point()
+            adp_crv.D0(u, p)
+            pnts.append(p)
+            prms.append(u)
+        self._set_results('npts', npts)
+        self._set_results('prms', prms)
+        self._set_results('pnts', pnts)
+
+        # Point spacing
+        if npts > 1:
+            ds = pnts[0].distance(pnts[1])
+            self._set_results('ds', ds)
+
+        self._success = True
+
+    @property
+    def npts(self):
+        """
+        :return: The number of points.
+        :rtype: int
+        """
+        return self._get_results('npts')
+
+    @property
+    def points(self):
+        """
+        :return: The points.
+        :rtype: list[afem.geometry.entities.Point]
+        """
+        return self._get_results('pnts')
+
+    @property
+    def parameters(self):
+        """
+        :return: The parameters.
+        :rtype: list[float]
+        """
+        return self._get_results('prms')
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between the first and second points if there
+            are more than one point. Otherwise *None*.
+        :rtype: float or None
+        """
+        return self._get_results('ds')
 
 
 class DirectionByXYZ(GeomBuilder):
     """
-    Create a direction by x, y, and z components.
+    Create a direction (i.e., unit vector) by x-, y-, and z-components.
 
-    :param float x:
-    :param float y:
-    :param float z:
+    :param float x: x-component.
+    :param float y: y-component.
+    :param float z: z-component.
+
+    Usage:
+
+    >>> from afem.geometry import DirectionByXYZ
+    >>> DirectionByXYZ(10., 0., 0.).direction
+    Direction(1.0, 0.0, 0.0)
     """
 
     def __init__(self, x=0., y=0., z=0.):
@@ -726,61 +1039,170 @@ class DirectionByXYZ(GeomBuilder):
 
     def build(self):
         self._performed = True
-        self._geom = Direction(self._x, self._y, self._z)
-        self._success = True
+
+        d = Direction(self._x, self._y, self._z)
+        self._set_results('d', d)
+        self._success = isinstance(d, Direction)
 
     @property
     def direction(self):
-        return self.geom
+        """
+        :return: The direction.
+        :rtype: afem.geometry.entities.Direction
+        """
+        return self._get_results('d')
 
 
 class DirectionByArray(DirectionByXYZ):
     """
-    Create a direction from an array-like object.
+    Create a direction (i.e., unit vector) from an array-like object.
 
-    :param xyz:
+    :param array_like xyz: Array-like object defining xyz-components.
+
+    Usage:
+
+    >>> from afem.geometry import DirectionByArray
+    >>> DirectionByArray([10., 0., 0.]).direction
+    Direction(1.0, 0.0, 0.0)
     """
 
-    def __init__(self, xyz=(0., 0., 0.)):
+    def __init__(self, xyz=(1., 0., 0.)):
         assert len(xyz) == 3, "Invalid array size in DirectionByArray"
         x, y, z = xyz
         super(DirectionByArray, self).__init__(x, y, z)
 
 
-class DirectionByPoints(GeomBuilder):
+class DirectionByPoints(DirectionByArray):
     """
-    Create a direction between two points.
+    Create a direction (i.e., unit vector) between two points.
+
+    :param point_like p1: The first point.
+    :param point_like p2: The last point.
+
+    Usage:
+
+    >>> from afem.geometry import DirectionByPoints, Point
+    >>> p1 = Point()
+    >>> p2 = Point(10., 0., 0.)
+    >>> DirectionByPoints(p1, p2).direction
+    Direction(1.0, 0.0, 0.0)
     """
-    pass
+
+    def __init__(self, p1, p2):
+        p1 = CheckGeom.to_point(p1)
+        p2 = CheckGeom.to_point(p2)
+        super(DirectionByPoints, self).__init__(p2 - p1)
 
 
 class VectorByXYZ(GeomBuilder):
     """
-    Create a vector by x, y, and z components.
+    Create a vector by x-, y-, and z-components.
+
+    :param float x: x-component.
+    :param float y: y-component.
+    :param float z: z-component.
+
+    Usage:
+
+    >>> from afem.geometry import VectorByXYZ
+    >>> VectorByXYZ(1., 2., 3.).vector
+    Vector(1.0, 2.0, 3.0)
     """
-    pass
+
+    def __init__(self, x=0., y=0., z=0.):
+        super(VectorByXYZ, self).__init__()
+        self._x = float(x)
+        self._y = float(y)
+        self._z = float(z)
+
+    def build(self):
+        self._performed = True
+
+        v = Vector(self._x, self._y, self._z)
+        self._set_results('v', v)
+        self._success = isinstance(v, Direction)
+
+    @property
+    def vector(self):
+        """
+        :return: The vector.
+        :rtype: afem.geometry.entities.Vector
+        """
+        return self._get_results('v')
 
 
-class VectorByArray(GeomBuilder):
+class VectorByArray(VectorByXYZ):
     """
-    Create a vector from array-like object.
+    Create a vector from an array-like object.
+
+    :param array_like xyz: Array-like object defining xyz-components.
+
+    Usage:
+
+    >>> from afem.geometry import VectorByArray
+    >>> VectorByArray([1., 2., 3.]).vector
+    Vector(1.0, 2.0, 3.0)
     """
-    pass
+
+    def __init__(self, xyz=(1., 0., 0.)):
+        assert len(xyz) == 3, "Invalid array size in VectorByArray"
+        x, y, z = xyz
+        super(VectorByArray, self).__init__(x, y, z)
 
 
 class VectorByPoints(GeomBuilder):
     """
-    Create a vector between two points.
+    Create a vecotr between two points.
+
+    :param point_like p1: The first point.
+    :param point_like p2: The last point.
+
+    >>> from afem.geometry import Point, VectorByPoints
+    >>> p1 = Point()
+    >>> p2 = Point(1., 2., 3.)
+    >>> VectorByPoints(p1, p2).vector
+    Vector(1.0, 2.0, 3.0)
     """
-    pass
+
+    def __init__(self, p1, p2):
+        super(VectorByPoints, self).__init__()
+        self._p1 = CheckGeom.to_point(p1)
+        self._p2 = CheckGeom.to_point(p2)
+
+    def build(self):
+        self._performed = True
+
+        if None in [self._p1, self._p2]:
+            return None
+
+        v = Vector(self._p1, self._p2)
+        self._set_results('v', v)
+        self._success = isinstance(v, Vector)
+
+    @property
+    def vector(self):
+        """
+        :return: The vector.
+        :rtype: afem.geometry.entities.Vector
+        """
+        return self._get_results('v')
 
 
 class LineByVector(GeomBuilder):
     """
     Create a line by an origin and a vector.
 
-    :param p:
-    :param v:
+    :param point_like p: Origin of line.
+    :param vector_like v: Direction of line.
+
+    Usage:
+
+    >>> from afem.geometry import Point, Vector, LineByVector
+    >>> p = Point()
+    >>> v = Vector(1., 0., 0.)
+    >>> builder = LineByVector(p, v)
+    >>> assert builder.success
+    >>> line = builder.line
     """
 
     def __init__(self, p, v):
@@ -792,80 +1214,464 @@ class LineByVector(GeomBuilder):
 
     def build(self):
         self._performed = True
-        self._geom = Line(self._p, self._d)
-        self._success = True
+
+        lin = Line(self._p, self._d)
+        self._set_results('lin', lin)
+        self._success = isinstance(lin, Line)
 
     @property
     def line(self):
-        return self.geom
+        """
+        :return: The line.
+        :rtype: afem.geometry.entities.Line
+        """
+        return self._get_results('lin')
 
 
 class LineByPoints(GeomBuilder):
     """
     Create a line through two points.
 
-    :param p1:
-    :param p2:
+    :param point_like p1: The first point.
+    :param point_like p2: The last point.
+
+    Usage:
+
+    >>> from afem.geometry import LineByPoints, Point
+    >>> p1 = Point()
+    >>> p2 = Point(10., 0. ,0.)
+    >>> builder = LineByPoints(p1, p2)
+    >>> assert builder.success
+    >>> line = builder.line
     """
 
     def __init__(self, p1, p2):
         super(LineByPoints, self).__init__()
         self._p1 = CheckGeom.to_point(p1)
         self._p2 = CheckGeom.to_point(p2)
-        assert isinstance(self._p1, Point), "Invalid point in LineByPoints"
-        assert isinstance(self._p2, Point), "Invalid point in LineByPoints"
+        assert isinstance(self._p1, Point), ("Invalid first point in "
+                                             "LineByPoints")
+        assert isinstance(self._p2, Point), ("Invalid last point in "
+                                             "LineByPoints")
 
     def build(self):
         self._performed = True
-        v = DirectionByArray(self._p1 - self._p2)
-        self._geom = Line(self._p1, v)
-        self._success = True
+
+        d = DirectionByArray(self._p2 - self._p1).direction
+
+        lin = Line(self._p1, d)
+        self._set_results('lin', lin)
+        self._success = isinstance(lin, Line)
 
     @property
     def line(self):
-        return self.geom
+        """
+        :return: The line.
+        :rtype: afem.geometry.entities.Line
+        """
+        return self._get_results('lin')
 
 
-class CurveByData(GeomBuilder):
+class NurbsCurveByData(GeomBuilder):
     """
-    Create a curve by data.
+    Create a NURBS curve by data.
+
+    :param list[point_like] cp: Control points of curve.
+    :param list[float] knots: Knot vector of curve.
+    :param list[int] mult: Multiplicities of curve knot vector.
+    :param list[float] weights: Weights of control points.
+    :param bool is_periodic: Flag for curve periodicity.
+
+    Usage:
+
+    >>> from afem.geometry import NurbsCurveByData, Point
+    >>> cp = [Point(), Point(10., 0., 0.)]
+    >>> knots = [0., 1.]
+    >>> mult = [2, 2]
+    >>> p = 1
+    >>> builder = NurbsCurveByData(cp, knots, mult, p)
+    >>> assert builder.success
+    >>> c = builder.curve
+    >>> c.knots
+    array([ 0.,  1.])
+    >>> c.mult
+    array([2, 2])
+    >>> c.eval(0.5)
+    Point(5.0, 0.0, 0.0)
     """
-    pass
+
+    def __init__(self, cp, knots, mult, p, weights=None, is_periodic=False):
+        super(NurbsCurveByData, self).__init__()
+        self._cp = cp
+        self._knots = knots
+        self._mult = mult
+        self._p = int(p)
+        self._weights = weights
+        self._is_periodic = is_periodic
+
+    def build(self):
+        self._performed = True
+
+        tcol_cp = to_tcolgp_array1_pnt(self._cp)
+        tcol_knots = to_tcolstd_array1_real(self._knots)
+        tcol_mult = to_tcolstd_array1_integer(self._mult)
+        if self._weights is None:
+            self._weights = [1.] * tcol_cp.Length()
+        tcol_weights = to_tcolstd_array1_real(self._weights)
+
+        c = NurbsCurve(tcol_cp, tcol_weights, tcol_knots, tcol_mult, self._p,
+                       self._is_periodic)
+        self._set_results('c', c)
+        self._success = isinstance(c, NurbsCurve)
+
+    @property
+    def curve(self):
+        """
+        :return: The NURBS curve.
+        :rtype: afem.geometry.entities.NurbsCurve
+        """
+        return self._get_results('c')
 
 
-class CurveByInterp(GeomBuilder):
+class NurbsCurveByInterp(GeomBuilder):
     """
-    Create a curve by interpolating points.
+    Create a cubic curve by interpolating points.
+
+    :param list[point_like] qp: List of points to interpolate.
+    :param bool is_periodic: Flag for curve periodicity. If *True* the curve
+        will be periodic and closed.
+    :param vector_like v1: Tangent to match at first point.
+    :param vector_like v2: Tangent to match at last point.
+    :param float tol: Tolerance used to check for coincident points and the
+        magnitude of end vectors.
+
+    For more information see GeomAPI_Interpolate_.
+
+    .. _GeomAPI_Interpolate: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___interpolate.html
+
+    Usage:
+
+    >>> from afem.geometry import NurbsCurveByInterp, Point
+    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
+    >>> builder = NurbsCurveByInterp(qp)
+    >>> assert builder.success
+    >>> c = builder.curve
+    >>> c.p
+    2
+    >>> c.u1
+    0.0
+    >>> c.u2
+    14.142135623730951
+    >>> c.eval(5.)
+    Point(3.5355339059327373, 4.571067811865475, 0.0)
     """
-    pass
+
+    def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
+        super(NurbsCurveByInterp, self).__init__()
+        self._qp = qp
+        self._v1 = v1
+        self._v2 = v2
+        self._is_periodic = is_periodic
+        self._tol = tol
+
+    def build(self):
+        self._performed = True
+
+        tcol_hpnts = to_tcolgp_harray1_pnt(self._qp)
+        # TODO Remove use of GetHandle
+        interp = GeomAPI_Interpolate(tcol_hpnts.GetHandle(),
+                                     self._is_periodic, self._tol)
+
+        if None not in [self._v1, self._v2]:
+            v1 = CheckGeom.to_vector(self._v1)
+            v2 = CheckGeom.to_vector(self._v2)
+            if v1 and v2:
+                interp.Load(v1, v2)
+
+        interp.Perform()
+        if not interp.IsDone():
+            return None
+
+        # TODO Remove use of GetObject
+        occ_crv = interp.Curve().GetObject()
+        c = _create_nurbs_curve_from_occ(occ_crv)
+        self._set_results('c', c)
+        self._success = isinstance(c, NurbsCurve)
+
+    @property
+    def curve(self):
+        """
+        :return: The NURBS curve.
+        :rtype: afem.geometry.entities.NurbsCurve
+        """
+        return self._get_results('c')
 
 
-class CurveByFit(GeomBuilder):
+class NurbsCurveByApprox(GeomBuilder):
     """
-    Create a curve by fitting points.
+    Create a NURBS curve by approximating points.
+
+    :param list[point_like] qp: List of points to approximate.
+    :param int dmin: Minimum degree.
+    :param int dmax: Maximum degree.
+    :param str continuity: Desired continuity of curve ('C0', 'G1', 'C1',
+        'G2', 'C2', 'C3').
+    :param str parm_type: Parametrization type ('uniform', 'chord',
+        'centripetal').
+    :param float tol: The tolerance used for approximation. The distance
+        from the points to the resulting curve should be lower than *tol*.
+
+    For more information see GeomAPI_PointsToBSpline_.
+
+    .. _GeomAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___points_to_b_spline.html
+
+    Usage:
+
+    >>> from afem.geometry import NurbsCurveByApprox, Point
+    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
+    >>> builder = NurbsCurveByApprox(qp)
+    >>> assert builder.success
+    >>> c = builder.curve
+    >>> c.p
+    3
+    >>> c.u1
+    0.0
+    >>> c.u2
+    1.0
+    >>> c.eval(0.5)
+    Point(5.0, 5.0, 0.0)
     """
-    pass
+
+    def __init__(self, qp, dmin=3, dmax=8, continuity='C2',
+                 parm_type='chord', tol=1.0e-3):
+        super(NurbsCurveByApprox, self).__init__()
+        self._qp = qp
+        self._dmin = int(dmin)
+        self._dmax = int(dmax)
+        self._cont = continuity
+        self._parm_type = parm_type
+        self._tol = float(tol)
+
+    def build(self):
+        self._performed = True
+
+        tcol_pnts = to_tcolgp_array1_pnt(self._qp)
+
+        try:
+            cont = _occ_continuity[self._cont.upper()]
+        except (KeyError, AttributeError):
+            cont = GeomAbs_C2
+
+        try:
+            parm_type = _occ_parm_type[self._parm_type.lower()]
+        except (KeyError, AttributeError):
+            parm_type = Approx_ChordLength
+
+        fit = GeomAPI_PointsToBSpline(tcol_pnts, parm_type, self._dmin,
+                                      self._dmax, cont, self._tol)
+        if not fit.IsDone():
+            return None
+
+        # TODO Remove use of GetObject
+        occ_crv = fit.Curve().GetObject()
+        c = _create_nurbs_curve_from_occ(occ_crv)
+        self._set_results('c', c)
+        self._success = isinstance(c, NurbsCurve)
+
+    @property
+    def curve(self):
+        """
+        :return: The NURBS curve.
+        :rtype: afem.geometry.entities.NurbsCurve
+        """
+        return self._get_results('c')
 
 
-class CurveByPoints(GeomBuilder):
+class NurbsCurveByPoints(NurbsCurveByApprox):
     """
-    Create a curve between two points.
+    Create a linear curve (i.e., a polyline) between points.
+
+    :param list[point_like] qp: List of points.
+
+    Usage:
+
+    >>> from afem.geometry import NurbsCurveByPoints, Point
+    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
+    >>> builder = NurbsCurveByPoints(qp)
+    >>> assert builder.success
+    >>> c = builder.curve
+    >>> c.p
+    1
+    >>> c.u1
+    0.0
+    >>> c.u2
+    1.0
+    >>> c.eval(0.5)
+    Point(5.0, 5.0, 0.0)
     """
-    pass
+
+    def __init__(self, qp):
+        super(NurbsCurveByPoints, self).__init__(qp, 1, 1, 'C0')
 
 
 class CurveByUIso(GeomBuilder):
     """
-    Create an isocurve.
+    Create an isocurve from a surface at a constant u-parameter.
+
+    :param surface_like s: The surface.
+    :param float u: The parameter.
+
+    The following curve types are created for a given surface:
+
+    * Plane -> Line
+    * NurbsSurface -> NurbsCurve
+
+    Usage:
+
+    >>> from afem.geometry import CurveByUIso, Direction, Plane, Point
+    >>> p0 = Point()
+    >>> vn = Direction(0., 0., 1.)
+    >>> pln = Plane(p0, vn)
+    >>> builder = CurveByUIso(pln, 1.)
+    >>> assert builder.success
+    >>> builder.is_line
+    True
+    >>> builder.is_nurbs
+    False
+    >>> line = builder.curve
+    >>> line.eval(0.)
+    Point(1.0, 0.0, 0.0)
     """
-    pass
+
+    def __init__(self, s, u):
+        super(CurveByUIso, self).__init__()
+        self._s = s
+        self._u = float(u)
+
+    def build(self):
+        self._performed = True
+
+        if not CheckGeom.is_surface_like(self._s):
+            return None
+
+        # TODO Handle other curve types
+        hcrv = self._s.UIso(self._u)
+        adp_curve = GeomAdaptor_Curve(hcrv)
+        if adp_curve.GetType() == GeomAbs_Line:
+            gp_lin = adp_curve.Line()
+            c = Line(gp_lin)
+        elif adp_curve.GetType() == GeomAbs_BSplineCurve:
+            occ_crv = adp_curve.BSpline().GetObject()
+            c = _create_nurbs_curve_from_occ(occ_crv)
+        else:
+            return None
+
+        self._set_results('c', c)
+        self._success = isinstance(c, Geom_Curve)
+
+    @property
+    def is_line(self):
+        """
+        :return: *True* if the isocurve is a line, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.curve, Line)
+
+    @property
+    def is_nurbs(self):
+        """
+        :return: *True* if the isocurve is a NURBS curve, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.curve, NurbsCurve)
+
+    @property
+    def curve(self):
+        """
+        :return: The curve.
+        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
+        """
+        return self._get_results('c')
 
 
 class CurveByVIso(GeomBuilder):
     """
-    Create an isocurve.
+    Create an isocurve from a surface at a constant v-parameter.
+
+    :param surface_like s: The surface.
+    :param float v: The parameter.
+
+    The following curve types are created for a given surface:
+
+    * Plane -> Line
+    * NurbsSurface -> NurbsCurve
+
+    Usage:
+
+    >>> from afem.geometry import CurveByVIso, Direction, Plane, Point
+    >>> p0 = Point()
+    >>> vn = Direction(0., 0., 1.)
+    >>> pln = Plane(p0, vn)
+    >>> builder = CurveByVIso(pln, 1.)
+    >>> assert builder.success
+    >>> builder.is_line
+    True
+    >>> builder.is_nurbs
+    False
+    >>> line = builder.curve
+    >>> line.eval(0.)
+    Point(0.0, 1.0, 0.0)
     """
-    pass
+
+    def __init__(self, s, v):
+        super(CurveByVIso, self).__init__()
+        self._s = s
+        self._v = float(v)
+
+    def build(self):
+        self._performed = True
+
+        if not CheckGeom.is_surface_like(self._s):
+            return None
+
+        # TODO Handle other curve types
+        hcrv = self._s.VIso(self._v)
+        adp_curve = GeomAdaptor_Curve(hcrv)
+        if adp_curve.GetType() == GeomAbs_Line:
+            gp_lin = adp_curve.Line()
+            c = Line(gp_lin)
+        elif adp_curve.GetType() == GeomAbs_BSplineCurve:
+            occ_crv = adp_curve.BSpline().GetObject()
+            c = _create_nurbs_curve_from_occ(occ_crv)
+        else:
+            return None
+
+        self._set_results('c', c)
+        self._success = isinstance(c, Geom_Curve)
+
+    @property
+    def is_line(self):
+        """
+        :return: *True* if the isocurve is a line, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.curve, Line)
+
+    @property
+    def is_nurbs(self):
+        """
+        :return: *True* if the isocurve is a NURBS curve, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.curve, NurbsCurve)
+
+    @property
+    def curve(self):
+        """
+        :return: The curve.
+        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
+        """
+        return self._get_results('c')
 
 
 class PlaneByNormal(GeomBuilder):
@@ -931,3 +1737,28 @@ class SurfaceByFit(GeomBuilder):
     Create a surface by fitting curves.
     """
     pass
+
+
+def _create_nurbs_curve_from_occ(crv):
+    """
+    Create a NURBS curve from an OCC curve.
+    """
+    # Gather OCC data.
+    tcol_poles = TColgp_Array1OfPnt(1, crv.NbPoles())
+    crv.Poles(tcol_poles)
+    tcol_weights = TColStd_Array1OfReal(1, crv.NbPoles())
+    crv.Weights(tcol_weights)
+    tcol_knots = TColStd_Array1OfReal(1, crv.NbKnots())
+    crv.Knots(tcol_knots)
+    tcol_mult = TColStd_Array1OfInteger(1, crv.NbKnots())
+    crv.Multiplicities(tcol_mult)
+    p = crv.Degree()
+    is_periodic = crv.IsPeriodic()
+    return NurbsCurve(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
+                      is_periodic)
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()

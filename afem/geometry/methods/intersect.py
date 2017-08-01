@@ -8,9 +8,8 @@ from OCC.ShapeFix import ShapeFix_ShapeTolerance
 from OCC.TopAbs import TopAbs_VERTEX
 from numpy import mean
 
+from afem.geometry.entities import Line, Point
 from .create import create_nurbs_curve_from_occ
-from ..curves import Line
-from ..points import Point
 from ...config import Settings
 
 __all__ = []

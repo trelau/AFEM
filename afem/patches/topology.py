@@ -19,7 +19,7 @@ from OCC.TopoDS import TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell, \
 from OCC.gce import gce_MakeMirror
 
 from ..geometry.check import CheckGeom
-from ..geometry.points import Point
+from afem.geometry.entities import Point
 from ..topology import ShapeTools
 
 _analysis_edge = ShapeAnalysis_Edge()
