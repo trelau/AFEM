@@ -3,13 +3,13 @@ from OCC.Bnd import Bnd_Box
 from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Curve,
                       Geom_Line, Geom_Plane, Geom_Surface)
 from OCC.Geom2d import Geom2d_BSplineCurve
+from OCC.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                          TColStd_Array2OfReal)
 from OCC.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
 from OCC.gp import gp_Ax1, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec, gp_XYZ
 from numpy import add, array, float64, subtract
-from numpy.linalg import norm
 
 from afem.config import Settings
 from afem.geometry.methods.calculate import curve_length
@@ -105,14 +105,6 @@ class Point(gp_Pnt, Geometry):
         return subtract(self, other)
 
     @property
-    def xyz(self):
-        """
-        :return: The point location.
-        :rtype: numpy.ndarray
-        """
-        return array([self.X(), self.Y(), self.Z()], dtype=float64)
-
-    @property
     def x(self):
         """
         The point x-location.
@@ -156,6 +148,14 @@ class Point(gp_Pnt, Geometry):
     @z.setter
     def z(self, z):
         self.SetZ(z)
+
+    @property
+    def xyz(self):
+        """
+        :return: The point xyz-location.
+        :rtype: numpy.ndarray
+        """
+        return array([self.X(), self.Y(), self.Z()], dtype=float64)
 
     def copy(self):
         """
@@ -230,13 +230,42 @@ class Point(gp_Pnt, Geometry):
         :return: *True* if translated, *False* if not.
         :rtype: bool
         """
+        # TODO Use vector_like
         self.Translate(v)
         return True
 
 
 class Point2D(gp_Pnt2d, Geometry):
     """
-    2-D point.
+    A 2-D Cartesian point. Supports NumPy array methods.
+
+    For more information see gp_Pnt2d_.
+
+    .. _gp_Pnt2d: https://www.opencascade.com/doc/occt-7.1.0/refman/htmlclassgp___pnt2d.html
+
+    Usage:
+
+    >>> from afem.geometry import Point2D
+    >>> Point2D()
+    Point2D(0.0, 0.0)
+    >>> Point2D(1., 2.)
+    Point2D(1.0, 2.0)
+    >>> from numpy import array
+    >>> array(Point2D(1., 2.))
+    array([ 1.,  2.])
+    >>> p1 = Point2D(1., 2.)
+    >>> p2 = Point2D(4., 5.)
+    >>> p1[0]
+    1.0
+    >>> p1[1]
+    2.0
+    >>> p1 + p2
+    array([ 5.,  7.])
+    >>> p2 - p1
+    array([ 3.,  3.])
+    >>> array([p1, p2])
+    array([[ 1.,  2.],
+           [ 4.,  5.]])
     """
 
     def __init__(self, *args):
@@ -244,7 +273,10 @@ class Point2D(gp_Pnt2d, Geometry):
         Geometry.__init__(self)
 
     def __str__(self):
-        return 'Point 2-D = ({0}, {1})'.format(*self.xy)
+        return 'Point2D({0}, {1})'.format(*self.xy)
+
+    def __repr__(self):
+        return 'Point2D({0}, {1})'.format(*self.xy)
 
     def __array__(self, dtype=float64, copy=True, order=None, subok=False,
                   ndmin=0):
@@ -269,6 +301,10 @@ class Point2D(gp_Pnt2d, Geometry):
 
     @property
     def xy(self):
+        """
+        :return: The point xy-location.
+        :rtype: numpy.ndarray
+        """
         return array([self.X(), self.Y()], dtype=float64)
 
     @property
@@ -277,10 +313,24 @@ class Point2D(gp_Pnt2d, Geometry):
 
     @x.setter
     def x(self, x):
+        """
+        The point x-location.
+
+        :getter: Returns the x-location.
+        :setter: Sets the x-location.
+        :type: float
+        """
         self.SetX(x)
 
     @property
     def y(self):
+        """
+        The point y-location.
+
+        :getter: Returns the y-location.
+        :setter: Sets the y-location.
+        :type: float
+        """
         return self.Y()
 
     @y.setter
@@ -291,7 +341,8 @@ class Point2D(gp_Pnt2d, Geometry):
         """
         Return a new copy of the point.
 
-        :return:
+        :return: New point.
+        :rtype: afem.geometry.entities.Point2D
         """
         return Point2D(*self.xy)
 
@@ -319,8 +370,7 @@ class Point2D(gp_Pnt2d, Geometry):
         """
         Compute the distance between two points.
 
-        :param other: The other point.
-        :type other: point_like
+        :param point_like other: The other point.
 
         :return: Distance to the other point.
         :rtype: float
@@ -336,8 +386,7 @@ class Point2D(gp_Pnt2d, Geometry):
         """
         Check for coincident points.
 
-        :param other: The other point.
-        :type other: point_like
+        :param point_like other: The other point.
         :param float tol: Tolerance for coincidence.
 
         :return: *True* if coincident, *False* if not.
@@ -355,7 +404,20 @@ class Point2D(gp_Pnt2d, Geometry):
 
 class Direction(gp_Dir, Geometry):
     """
-    3-D unit vector.
+    Unit vector in 3-D space. Supports NumPy array methods.
+
+    For more information see gp_Dir_.
+
+    .. _gp_Dir: https://www.opencascade.com/doc/occt-7.1.0/refman/html/classgp___dir.html
+
+    Usage:
+
+    >>> from afem.geometry import Direction, Vector
+    >>> Direction(10., 0., 0.)
+    Direction(1.0, 0.0, 0.0)
+    >>> v = Vector(10., 0., 0.)
+    >>> Direction(v)
+    Direction(1.0, 0.0, 0.0)
     """
 
     def __init__(self, *args):
@@ -391,32 +453,95 @@ class Direction(gp_Dir, Geometry):
 
     @property
     def i(self):
+        """
+        The direction i-component.
+
+        :getter: Returns the i-component.
+        :setter: Sets the i-component.
+        :type: float
+        """
         return self.X()
+
+    @i.setter
+    def i(self, i):
+        self.SetX(i)
 
     @property
     def j(self):
+        """
+        The direction j-component.
+
+        :getter: Returns the j-component.
+        :setter: Sets the j-component.
+        :type: float
+        """
         return self.Y()
+
+    @j.setter
+    def j(self, j):
+        self.SetY(j)
 
     @property
     def k(self):
+        """
+        The direction k-component.
+
+        :getter: Returns the k-component.
+        :setter: Sets the k-component.
+        :type: float
+        """
         return self.Z()
+
+    @k.setter
+    def k(self, k):
+        self.SetZ(k)
 
     @property
     def ijk(self):
+        """
+        :return: The direction ijk-components.
+        :rtype: numpy.ndarray
+        """
         return array([self.i, self.j, self.k], dtype=float64)
 
     @property
     def xyz(self):
+        """
+        :return: The direction ijk-components (Same as ijk property,
+            for compatibility only).
+        :rtype: numpy.ndarray
+        """
         return self.ijk
 
     @property
     def mag(self):
+        """
+        :return: Direction magnitude is always 1.
+        :rtype: float
+        """
         return 1.
 
 
 class Vector(gp_Vec, Geometry):
     """
-    3-D vector.
+    Vector in 3-D space. Supports NumPy array methods.
+
+    For more information see gp_Vec_.
+
+    .. _gp_Vec: https://www.opencascade.com/doc/occt-7.1.0/refman/htmlclassgp___vec.html
+
+    Usage:
+
+    >>> from afem.geometry import Direction, Point, Vector
+    >>> Vector(1., 2., 3.)
+    Vector(1.0, 2.0, 3.0)
+    >>> d = Direction(1., 0., 0.)
+    >>> Vector(d)
+    Vector(1.0, 0.0, 0.0)
+    >>> p1 = Point()
+    >>> p2 = Point(1., 2., 3.)
+    >>> Vector(p1, p2)
+    Vector(1.0, 2.0, 3.0)
     """
 
     def __init__(self, *args):
@@ -452,26 +577,70 @@ class Vector(gp_Vec, Geometry):
 
     @property
     def x(self):
+        """
+        The vector x-component.
+
+        :getter: Returns the x-component.
+        :setter: Sets the x-component.
+        :type: float
+        """
         return self.X()
+
+    @x.setter
+    def x(self, x):
+        self.SetX(x)
 
     @property
     def y(self):
+        """
+        The vector y-component.
+
+        :getter: Returns the y-component.
+        :setter: Sets the y-component.
+        :type: float
+        """
         return self.Y()
+
+    @y.setter
+    def y(self, y):
+        self.SetY(y)
 
     @property
     def z(self):
+        """
+        The vector z-component.
+
+        :getter: Returns the z-component.
+        :setter: Sets the z-component.
+        :type: float
+        """
         return self.Z()
+
+    @z.setter
+    def z(self, z):
+        self.SetZ(z)
 
     @property
     def xyz(self):
+        """
+        :return: The vector xyz-components.
+        :rtype: numpy.ndarray
+        """
         return array([self.x, self.y, self.z], dtype=float64)
 
     @property
     def mag(self):
-        return norm(self.xyz)
+        """
+        :return: Vector magnitude.
+        :rtype: float
+        """
+        return self.Magnitude()
 
     @property
     def ijk(self):
+        """
+        :return: Normalized vector xyz-components.
+        """
         return self.xyz / self.mag
 
     def reverse(self):
@@ -486,7 +655,7 @@ class Vector(gp_Vec, Geometry):
         """
         Normalize the vector.
 
-        :return:
+        :return: None.
         """
         self.Normalize()
 
@@ -494,16 +663,28 @@ class Vector(gp_Vec, Geometry):
         """
         Scale the vector.
 
-        :param scale:
+        :param float scale: Scaling value.
 
-        :return:
+        :return: None.
         """
         self.Scale(scale)
 
 
 class Axis1(gp_Ax1):
     """
-    Coordinate system.
+    Axis in 3-D space. Definition incomplete.
+
+    For more information see gp_Ax1_.
+
+    .. _gp_Ax1: https://www.opencascade.com/doc/occt-7.1.0/refman/html/classgp___ax1.html
+
+    Usage:
+
+    >>> from afem.geometry import Axis1, Direction, Point
+    >>> ax1 = Axis1()
+    >>> p = Point()
+    >>> d = Direction(1., 0., 0.)
+    >>> ax1_ = Axis1(p, d)
     """
 
     def __init__(self, *args):
@@ -512,7 +693,20 @@ class Axis1(gp_Ax1):
 
 class Axis3(gp_Ax3):
     """
-    Coordinate system.
+    Coordinate system in 3-D space. Definition incomplete.
+
+    For more information see gp_Ax3_.
+
+    .. _gp_Ax3: https://www.opencascade.com/doc/occt-7.1.0/refman/html/classgp___ax3.html
+
+    Usage:
+
+    >>> from afem.geometry import Axis3, Direction, Point
+    >>> p = Point()
+    >>> n = Direction(0., 0., 1.)
+    >>> vx = Direction(1., 0., 0.)
+    >>> ax3 = Axis3(p, n, vx)
+    >>> ax3_ = Axis3(p, n)
     """
 
     def __init__(self, *args):
@@ -522,6 +716,10 @@ class Axis3(gp_Ax3):
 class Curve(Geom_Curve, Geometry):
     """
     Base class for curves.
+
+    For more information see Geom_Curve_.
+
+    .. _Geom_Curve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___curve.html
     """
 
     def __init__(self):
@@ -529,36 +727,76 @@ class Curve(Geom_Curve, Geometry):
 
     @property
     def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_Curve
+        """
         return self.GetHandle()
 
     @property
     def adaptor(self):
-        return GeomAdaptor_Curve(self.GetHandle())
+        """
+        :return: A curve adaptor.
+        :rtype: OCC.GeomAdaptor.GeomAdaptor_Curve
+        """
+        return GeomAdaptor_Curve(self.handle)
 
     @property
     def u1(self):
+        """
+        :return: The first parameter.
+        :rtype: float
+        """
         return self.FirstParameter()
 
     @property
     def u2(self):
+        """
+        :return: The last parameter.
+        :rtype: float
+        """
         return self.LastParameter()
 
     @property
     def is_closed(self):
+        """
+        :return: *True* if curve is closed, *False* if not.
+        :rtype: bool
+        """
         return self.IsClosed()
 
     @property
     def is_periodic(self):
+        """
+        :return: *True* if curve is periodic, *False* if not.
+        :rtype: bool
+        """
         return self.IsPeriodic()
+
+    @property
+    def p1(self):
+        """
+        :return: The first point.
+        :rtype: afem.geometry.entities.Point
+        """
+        return self.eval(self.u1)
+
+    @property
+    def p2(self):
+        """
+        :return: The last point.
+        :rtype: afem.geometry.entities.Point
+        """
+        return self.eval(self.u2)
 
     def eval(self, u):
         """
-        Evaluate line at parameter.
+        Evaluate a point on the curve.
 
-        :param float u: Line parameter.
+        :param float u: Curve parameter.
 
-        :return: Point on line.
-        :rtype: :class:`.Point`
+        :return: Curve point.
+        :rtype: afem.geometry.entities.Point
         """
         p = Point()
         self.D0(u, p)
@@ -566,49 +804,62 @@ class Curve(Geom_Curve, Geometry):
 
     def deriv(self, u, d=1):
         """
-        Evaluate the derivative at parameter.
+        Evaluate a derivative on the curve.
 
-        :param u:
-        :param d:
+        :param float u: Curve parameter.
+        :param int d: Derivative to evaluate.
 
-        :return:
+        :return: Curve derivative.
+        :rtype: afem.geometry.entities.Vector
         """
-        v = Vector(self.DN(u, d).XYZ())
-        return v
+        return Vector(self.DN(u, d).XYZ())
 
     def reverse(self):
         """
-        Reverse the direction of the line.
+        Reverse curve direction.
 
-        :return:
+        :return: None.
         """
         self.Reverse()
 
     def reversed_u(self, u):
         """
-        Calculate the parameter on the reversed line.
+        Calculate the parameter on the reversed curve.
 
-        :param u:
+        :param float u: Curve parameter.
 
-        :return:
+        :return: Reversed parameter.
+        :rtype: float
         """
         return self.ReversedParameter(u)
 
     def arc_length(self, u1, u2):
         """
-        Calculate the curve length between the parameter.
+        Calculate the curve length between the parameters.
 
-        :param u1:
-        :param u2:
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
 
-        :return:
+        :return: Curve length.
+        :rtype: float
         """
         return curve_length(self, u1, u2)
 
 
 class Line(Geom_Line, Curve):
     """
-    Line.
+    Infinite line.
+
+    For more information see Geom_Line_.
+
+    .. _Geom_Line: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___line.html
+
+    Usage:
+
+    >>> from afem.geometry import Direction, Line, Point
+    >>> p = Point()
+    >>> d = Direction(1., 0., 0.)
+    >>> line = Line(p, d)
     """
 
     def __init__(self, *args):
@@ -618,7 +869,11 @@ class Line(Geom_Line, Curve):
 
 class NurbsCurve(Geom_BSplineCurve, Curve):
     """
-    NURBS curve.
+    NURBS curve in 3-D space.
+
+    For more information see Geom_BSplineCurve_.
+
+    .. _Geom_BSplineCurve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___b_spline_curve.html
     """
 
     def __init__(self, *args):
@@ -627,26 +882,46 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
 
     @property
     def p(self):
+        """
+        :return: Degree of curve.
+        :rtype: int
+        """
         return self.Degree()
 
     @property
     def n(self):
+        """
+        :return: Number of control points - 1.
+        :rtype: int
+        """
         return self.NbPoles() - 1
 
     @property
     def knots(self):
+        """
+        :return: Knot vector.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfReal(1, self.NbKnots())
         self.Knots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def mult(self):
+        """
+        :return: Multiplicity of knot vector.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfInteger(1, self.NbKnots())
         self.Multiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
     def uk(self):
+        """
+        :return: Knot sequence.
+        :rtype: numpy.ndarray
+        """
         tcol_knot_seq = TColStd_Array1OfReal(1, self.NbPoles() +
                                              self.Degree() + 1)
         self.KnotSequence(tcol_knot_seq)
@@ -654,30 +929,46 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
 
     @property
     def cp(self):
+        """
+        :return: Control points.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColgp_Array1OfPnt(1, self.NbPoles())
         self.Poles(tcol_array)
         return to_np_from_tcolgp_array1_pnt(tcol_array)
 
     @property
     def w(self):
+        """
+        :return: Weights of control points.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfReal(1, self.NbPoles())
         self.Weights(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def cpw(self):
+        """
+        :return: Homogeneous control points.
+        :rtype: numpy.ndarray
+        """
         return homogenize_array1d(self.cp, self.w)
 
     @property
     def length(self):
+        """
+        :return: Curve length.
+        :rtype: float
+        """
         return self.arc_length(self.u1, self.u2)
 
     def set_domain(self, u1=0., u2=1.):
         """
         Reparameterize the knot vector between *u1* and *u2*.
 
-        :param float u1: Lower domain.
-        :param float u2: Upper domain.
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
 
         :return: *True* if successful, *False* if not.
         :rtype: bool
@@ -692,23 +983,25 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
 
     def local_to_global_param(self, *args):
         """
-        Convert parameter(s) from local domain 0 <= u <= 1 to global domain
+        Convert parameter(s) from local domain 0. <= u <= 1. to global domain
         a <= u <= b.
 
-        :param args: Local parameter(s).
+        :param float args: Local parameter(s).
 
         :return: Global parameter(s).
+        :rtype: float or list[float]
         """
         return local_to_global_param(self.u1, self.u2, *args)
 
     def global_to_local_param(self, *args):
         """
         Convert parameter(s) from global domain a <= u <= b to local domain
-        0 <= u <= 1.
+        0. <= u <= 1.
 
-        :param args: Global parameter(s).
+        :param float args: Global parameter(s).
 
         :return: Local parameter(s).
+        :rtype: float or list[float]
         """
         return global_to_local_param(self.u1, self.u2, *args)
 
@@ -716,10 +1009,11 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         """
         Segment the curve between parameters.
 
-        :param u1:
-        :param u2:
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
 
-        :return:
+        :return: *True* if segmented, *False* if not.
+        :rtype: bool
         """
         if u1 > u2:
             return False
@@ -729,7 +1023,11 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
 
 class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
     """
-    2-D NURBS curve.
+    NURBS curve in 2-D space.
+
+    For more information see Geom2d_BSplineCurve_.
+
+    .. _Geom2d_BSplineCurve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom2d___b_spline_curve.html
     """
 
     def __init__(self, *args):
@@ -738,42 +1036,78 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
 
     @property
     def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom2d.Handle_Geom2d_BSplineCurve
+        """
         return self.GetHandle()
 
     @property
     def adaptor(self):
-        return GeomAdaptor_Curve(self.GetHandle())
+        """
+        :return: A curve adaptor.
+        :rtype: OCC.Geom2dAdaptor.Geom2dAdaptor_Curve
+        """
+        return Geom2dAdaptor_Curve(self.handle)
 
     @property
     def u1(self):
+        """
+        :return: The first parameter.
+        :rtype: float
+        """
         return self.FirstParameter()
 
     @property
     def u2(self):
+        """
+        :return: The last parameter.
+        :rtype: float
+        """
         return self.LastParameter()
 
     @property
     def p(self):
+        """
+        :return: Degree of curve.
+        :rtype: int
+        """
         return self.Degree()
 
     @property
     def n(self):
+        """
+        :return: Number of control points - 1.
+        :rtype: int
+        """
         return self.NbPoles() - 1
 
     @property
     def knots(self):
+        """
+        :return: Knot vector.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfReal(1, self.NbKnots())
         self.Knots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def mult(self):
+        """
+        :return: Multiplicity of knot vector.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfInteger(1, self.NbKnots())
         self.Multiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
     def uk(self):
+        """
+        :return: Knot sequence.
+        :rtype: numpy.ndarray
+        """
         tcol_knot_seq = TColStd_Array1OfReal(1, self.NbPoles() +
                                              self.Degree() + 1)
         self.KnotSequence(tcol_knot_seq)
@@ -781,18 +1115,26 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
 
     @property
     def is_closed(self):
+        """
+        :return: *True* if curve is closed, *False* if not.
+        :rtype: bool
+        """
         return self.IsClosed()
 
     @property
     def is_periodic(self):
+        """
+        :return: *True* if curve is periodic, *False* if not.
+        :rtype: bool
+        """
         return self.IsPeriodic()
 
     def set_domain(self, u1=0., u2=1.):
         """
         Reparameterize the knot vector between *u1* and *u2*.
 
-        :param float u1: Lower domain.
-        :param float u2: Upper domain.
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
 
         :return: *True* if successful, *False* if not.
         :rtype: bool
@@ -807,34 +1149,36 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
 
     def local_to_global_param(self, *args):
         """
-        Convert parameter(s) from local domain 0 <= u <= 1 to global domain
+        Convert parameter(s) from local domain 0. <= u <= 1. to global domain
         a <= u <= b.
 
-        :param args: Local parameter(s).
+        :param float args: Local parameter(s).
 
         :return: Global parameter(s).
+        :rtype: float or list[float]
         """
         return local_to_global_param(self.u1, self.u2, *args)
 
     def global_to_local_param(self, *args):
         """
         Convert parameter(s) from global domain a <= u <= b to local domain
-        0 <= u <= 1.
+        0. <= u <= 1.
 
-        :param args: Global parameter(s).
+        :param float args: Global parameter(s).
 
         :return: Local parameter(s).
+        :rtype: float or list[float]
         """
         return global_to_local_param(self.u1, self.u2, *args)
 
     def eval(self, u):
         """
-        Evaluate curve at parameter.
+        Evaluate a point on the curve.
 
         :param float u: Curve parameter.
 
-        :return: Point on curve.
-        :rtype: :class:`.Point2D` or ndarray
+        :return: Curve point.
+        :rtype: afem.geometry.entities.Point2D
         """
         p = Point2D()
         self.D0(u, p)
@@ -842,9 +1186,9 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
 
     def reverse(self):
         """
-        Reverse the direction of the curve.
+        Reverse curve direction.
 
-        :return:
+        :return: None.
         """
         self.Reverse()
 
@@ -852,9 +1196,10 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
         """
         Calculate the parameter on the reversed curve.
 
-        :param u:
+        :param float u: Curve parameter.
 
-        :return:
+        :return: Reversed parameter.
+        :rtype: float
         """
         return self.ReversedParameter(u)
 
@@ -862,10 +1207,11 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
         """
         Segment the curve between parameters.
 
-        :param u1:
-        :param u2:
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
 
-        :return:
+        :return: *True* if segmented, *False* if not.
+        :rtype: bool
         """
         if u1 > u2:
             return False
@@ -876,6 +1222,10 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
 class Surface(Geom_Surface, Geometry):
     """
     Base class for surfaces.
+
+    For more information see Geom_Surface_.
+
+    .. _Geom_Surface: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___surface.html
     """
 
     def __init__(self):
@@ -883,21 +1233,61 @@ class Surface(Geom_Surface, Geometry):
 
     @property
     def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_Surface
+        """
         return self.GetHandle()
 
     @property
     def adaptor(self):
-        return GeomAdaptor_Surface(self.GetHandle())
+        """
+        :return: A surface adaptor.
+        :rtype: OCC.GeomAdaptor.GeomAdaptor_Surface
+        """
+        return GeomAdaptor_Surface(self.handle)
+
+    @property
+    def u1(self):
+        """
+        :return: The first parameter in u-direction.
+        :rtype: float
+        """
+        return self.Bounds()[0]
+
+    @property
+    def u2(self):
+        """
+        :return: The last parameter in u-direction.
+        :rtype: float
+        """
+        return self.Bounds()[1]
+
+    @property
+    def v1(self):
+        """
+        :return: The first parameter in v-direction.
+        :rtype: float
+        """
+        return self.Bounds()[2]
+
+    @property
+    def v2(self):
+        """
+        :return: The last parameter in v-direction.
+        :rtype: float
+        """
+        return self.Bounds()[3]
 
     def eval(self, u=0., v=0.):
         """
-        Evaluate plane at parameters.
+        Evaluate a point on the surface.
 
-        :param float u: Parameter in u-direction.
-        :param float v: Parameter in v-direction.
+        :param float u: Surface u-parameter.
+        :param float v: Surface v-parameter.
 
-        :return: Point on surface.
-        :rtype: :class:`.Point` or ndarray
+        :return: Surface point.
+        :rtype: afem.geometry.entities.Point
         """
         p = Point()
         self.D0(u, v, p)
@@ -905,64 +1295,41 @@ class Surface(Geom_Surface, Geometry):
 
     def deriv(self, u, v, nu, nv):
         """
-        Calculate the plane derivative.
+        Evaluate a derivative on the surface.
 
-        :param u:
-        :param v:
-        :param nu:
-        :param nv:
+        :param float u: Surface u-parameter.
+        :param float v: Surface v-parameter.
+        :param int nu: Derivative in u-direction.
+        :param int nv: Derivative in v-direction.
 
-        :return:
+        :return: Surface derivative.
+        :rtype: afem.geometry.entities.Vector
         """
-        v = Vector(self.DN(u, v, nu, nv).XYZ())
-        return v
+        return Vector(self.DN(u, v, nu, nv).XYZ())
 
     def norm(self, u, v):
         """
-        Calculate the plane normal.
+        Evaluate a normal on the surface.
 
-        :param u:
-        :param v:
+        :param float u: Surface u-parameter.
+        :param float v: Surface v-parameter.
 
-        :return:
+        :return: Surface normal.
+        :rtype: afem.geometry.entities.Vector
         """
         du = self.deriv(u, v, 1, 0)
         dv = self.deriv(u, v, 0, 1)
-        vn = Vector(du.Crossed(dv).XYZ())
-        return vn
-
-    def __call__(self, u, v, nu=0, nv=0):
-        """
-        Evaluate surface or its derivative
-
-        :param float u: Parameter in u-direction.
-        :param float v: Parameter in v-direction.
-        :param int nu: derivative order in u-direction
-        :param int nv: derivative order in v-direction
-
-        :return: Point on surface or derivative
-        :rtype: :class:`.Point` or Vector
-        """
-        if (nu + nv) < 1:
-            return self.eval(u, v)
-        else:
-            return self.deriv(u, v, nu, nv)
-
-    def eval_params(self, uprms, vprms):
-        """
-        Evaluate the surface at multiple parameters.
-
-        :param uprms:
-        :param vprms:
-
-        :return:
-        """
-        return [self.eval(u, v) for u, v in zip(uprms, vprms)]
+        return Vector(du.Crossed(dv).XYZ())
 
 
 class Plane(Geom_Plane, Surface):
     """
-    Plane.
+    Infinite plane.
+
+    For more information see Geom_Plane_.
+
+    .. _Geom_Plane: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___plane.html
+
     """
 
     def __init__(self, *args):
@@ -972,7 +1339,12 @@ class Plane(Geom_Plane, Surface):
 
 class NurbsSurface(Geom_BSplineSurface, Surface):
     """
-    NURBS surface.
+    NURBS surface in 3-D space.
+
+    For more information see Geom_BSplineSurface_.
+
+    .. _Geom_BSplineSurface: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___b_spline_surface.html
+
     """
 
     def __init__(self, *args):
@@ -980,51 +1352,63 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         Surface.__init__(self)
 
     @property
-    def u1(self):
-        return self.Bounds()[0]
-
-    @property
-    def u2(self):
-        return self.Bounds()[1]
-
-    @property
-    def v1(self):
-        return self.Bounds()[2]
-
-    @property
-    def v2(self):
-        return self.Bounds()[3]
-
-    @property
     def p(self):
+        """
+        :return: Degree in u-direction.
+        :rtype: int
+        """
         return self.UDegree()
 
     @property
     def q(self):
+        """
+        :return: Degree in v-direction.
+        :rtype: int
+        """
         return self.VDegree()
 
     @property
     def n(self):
+        """
+        :return: Number of control points - 1 in u-direction.
+        :rtype: int
+        """
         return self.NbUPoles() - 1
 
     @property
     def m(self):
+        """
+        :return: Number of control points - 1 in v-direction.
+        :rtype: int
+        """
         return self.NbVPoles() - 1
 
     @property
     def uknots(self):
+        """
+        :return: Knot vector in u-direction.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfReal(1, self.NbUKnots())
         self.UKnots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def umult(self):
+        """
+        :return: Multiplicity of knot vector in u-direction.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfInteger(1, self.NbUKnots())
         self.UMultiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
     def uk(self):
+        """
+        :return: Knot sequence in u-direction.
+        :rtype: numpy.ndarray
+        """
         tcol_knot_seq = TColStd_Array1OfReal(1, self.NbUPoles() +
                                              self.UDegree() + 1)
         self.UKnotSequence(tcol_knot_seq)
@@ -1032,18 +1416,30 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
 
     @property
     def vknots(self):
+        """
+        :return: Knot vector in v-direction.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfReal(1, self.NbVKnots())
         self.VKnots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def vmult(self):
+        """
+        :return: Multiplicity of knot vector in v-direction.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array1OfInteger(1, self.NbVKnots())
         self.VMultiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
     def vk(self):
+        """
+        :return: Knot sequence in v-direction.
+        :rtype: numpy.ndarray
+        """
         tcol_knot_seq = TColStd_Array1OfReal(1, self.NbVPoles() +
                                              self.VDegree() + 1)
         self.VKnotSequence(tcol_knot_seq)
@@ -1051,12 +1447,20 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
 
     @property
     def cp(self):
+        """
+        :return: Control points.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColgp_Array2OfPnt(1, self.NbUPoles(), 1, self.NbVPoles())
         self.Poles(tcol_array)
         return to_np_from_tcolgp_array2_pnt(tcol_array)
 
     @property
     def w(self):
+        """
+        :return: Weights of control points.
+        :rtype: numpy.ndarray
+        """
         tcol_array = TColStd_Array2OfReal(1, self.NbUPoles(),
                                           1, self.NbVPoles())
         self.Weights(tcol_array)
@@ -1064,15 +1468,18 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
 
     @property
     def cpw(self):
+        """
+        :return: Homogeneous control points.
+        :rtype: numpy.ndarray
+        """
         return homogenize_array2d(self.cp, self.w)
 
     def set_udomain(self, u1=0., u2=1.):
         """
-        Reparameterize the knot vector between *u1* and *u2* in the
-        u-direction.
+        Reparameterize the knot vector between *u1* and *u2*.
 
-        :param float u1: Lower domain.
-        :param float u2: Upper domain.
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
 
         :return: *True* if successful, *False* if not.
         :rtype: bool
@@ -1087,11 +1494,10 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
 
     def set_vdomain(self, v1=0., v2=1.):
         """
-        Reparameterize the knot vector between *v1* and *v2* in the
-        v-direction.
+        Reparameterize the knot vector between *v1* and *v2*.
 
-        :param float v1: Lower domain.
-        :param float v2: Upper domain.
+        :param float v1: First parameter.
+        :param float v2: Last parameter.
 
         :return: *True* if successful, *False* if not.
         :rtype: bool
@@ -1106,13 +1512,14 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
 
     def local_to_global_param(self, d, *args):
         """
-        Convert parameter(s) from local domain 0 <= u,v <= 1 to global domain
+        Convert parameter(s) from local domain 0. <= u,v <= 1. to global domain
         a <= u,v <= b.
 
-        :param str d: Direction ('u' or 'v').
-        :param args: Local parameter(s).
+        :param str d: Parameter direction ('u' or 'v').
+        :param float args: Local parameter(s).
 
         :return: Global parameter(s).
+        :rtype: float or list[float]
         """
         if d.lower() in ['u']:
             return local_to_global_param(self.u1, self.u2, *args)
@@ -1122,12 +1529,13 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
     def global_to_local_param(self, d, *args):
         """
         Convert surface parameter(s) from global domain a <= u,v <= b to local
-        domain 0 <= u,v <= 1.
+        domain 0. <= u,v <= 1.
 
-        :param str d: Direction ('u' or 'v').
-        :param args: Global parameter(s).
+        :param str d: Parameter direction ('u' or 'v').
+        :param float args: Global parameter(s).
 
         :return: Local parameter(s).
+        :rtype: float or list[float]
         """
         if d.lower() in ['u']:
             return global_to_local_param(self.u1, self.u2, *args)
@@ -1136,14 +1544,15 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
 
     def segment(self, u1, u2, v1, v2):
         """
-        Segment the surface between the parameters.
+        Segment the surface between parameters.
 
-        :param u1:
-        :param u2:
-        :param v1:
-        :param v2:
+        :param float u1: First parameter in u-direction.
+        :param float u2: Last parameter in u-direction.
+        :param float v1: First parameter in v-direction.
+        :param float v2: Last parameter in v-direction.
 
-        :return:
+        :return: *True* if segmented, *False* if not.
+        :rtype: bool
         """
         if u1 > u2 or v1 > v2:
             return False
@@ -1154,7 +1563,11 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
 # TODO Move to topology.
 class BBox(Bnd_Box):
     """
-    Bounding box in 3-D.
+    Bounding box in 3-D space.
+
+    For more information see Bnd_Box_.
+
+    .. _Bnd_Box: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_bnd___box.html
     """
 
     def __init__(self):
@@ -1162,63 +1575,100 @@ class BBox(Bnd_Box):
 
     @property
     def is_void(self):
+        """
+        :return: *True* if bounding box is empty, *False* if not.
+        :rtype: bool
+        """
         return self.IsVoid()
 
     @property
     def pmin(self):
+        """
+        :return: Lower corner of bounding box. *None* if empty.
+        :rtype: afem.geometry.entities.Point
+        """
         if self.is_void:
             return None
         return Point(self.CornerMin().XYZ())
 
     @property
     def pmax(self):
+        """
+        :return: Upper corner of bounding box. *None* if empty.
+        :rtype: afem.geometry.entities.Point
+        """
         if self.is_void:
             return None
         return Point(self.CornerMax().XYZ())
 
     @property
     def xmin(self):
+        """
+        :return: Minimum x-component.
+        :rtype: float
+        """
         if self.is_void:
             return None
         return self.CornerMin().X()
 
     @property
     def xmax(self):
+        """
+        :return: Maximum x-component.
+        :rtype: float
+        """
         if self.is_void:
             return None
         return self.CornerMax().X()
 
     @property
     def ymin(self):
+        """
+        :return: Minimum y-component.
+        :rtype: float
+        """
         if self.is_void:
             return None
         return self.CornerMin().Y()
 
     @property
     def ymax(self):
+        """
+        :return: Maximum y-component.
+        :rtype: float
+        """
         if self.is_void:
             return None
         return self.CornerMax().Y()
 
     @property
     def zmin(self):
+        """
+        :return: Minimum z-component.
+        :rtype: float
+        """
         if self.is_void:
             return None
         return self.CornerMin().Z()
 
     @property
     def zmax(self):
+        """
+        :return: Maximum z-component.
+        :rtype: float
+        """
         if self.is_void:
             return None
         return self.CornerMax().Z()
 
     def add_box(self, box):
         """
-        Add the other box to the box.
+        Add the other box to this one.
 
-        :param box:
+        :param afem.geometry.entities.BBox box: The other box.
 
-        :return:
+        :return: *True* if added, *False* if not.
+        :rtype: bool
         """
         if not isinstance(box, Bnd_Box):
             return False
@@ -1227,11 +1677,12 @@ class BBox(Bnd_Box):
 
     def add_shape(self, shape):
         """
-        Add shape to the boudning box.
+        Add shape to the bounding box.
 
-        :param shape:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
 
-        :return:
+        :return: *True* if added, *False* if not.
+        :rtype: bool
         """
         brepbndlib_Add(shape, self, True)
         return True
@@ -1240,12 +1691,11 @@ class BBox(Bnd_Box):
         """
         Calculate distance to other box.
 
-        :param box:
+        :param afem.geometry.entities.BBox box: The other box.
 
-        :return:
+        :return: Distance to other box.
+        :rtype: float
         """
-        if self.is_void or box.IsVoid():
-            return None
         return self.Distance(box)
 
 
