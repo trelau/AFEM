@@ -1,9 +1,18 @@
-from .check import CheckGeom
-from .methods.project import project_curve_to_plane, project_curve_to_surface, \
-    project_point_to_curve, project_point_to_surface
+from OCC import GeomProjLib
+from OCC.Geom import Geom_Line
+from OCC.GeomAPI import (GeomAPI_ExtremaCurveCurve,
+                         GeomAPI_ExtremaCurveSurface,
+                         GeomAPI_ProjectPointOnCurve,
+                         GeomAPI_ProjectPointOnSurf)
+from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve, GeomAbs_Line
+from OCC.GeomAdaptor import GeomAdaptor_Curve
+
+from afem.geometry.check import CheckGeom
+from afem.geometry.methods.create import (create_line_from_occ,
+                                          create_nurbs_curve_from_occ)
 
 __all__ = ["ProjectGeom", "PointProjector", "ProjectPointToCurve",
-           "ProjectPointToSurface", "ProjectCurveToPlane",
+           "ProjectPointToSurface", "CurveProjector", "ProjectCurveToPlane",
            "ProjectCurveToSurface"]
 
 
@@ -132,7 +141,7 @@ class ProjectGeom(object):
 
 class PointProjector(object):
     """
-    Base for handling point projections to curves and surfaces.
+    Base class for point projections.
     """
 
     def __init__(self):
@@ -141,46 +150,74 @@ class PointProjector(object):
 
     @property
     def npts(self):
+        """
+        :return: Number of projection results.
+        :rtype: int
+        """
         return len(self._results)
 
     @property
     def success(self):
+        """
+        :return: *True* if at least one projection was found, *False* if not.
+        :rtype: bool
+        """
         if self.npts > 0:
             return True
         return False
 
     @property
     def points(self):
+        """
+        :return: Projected points.
+        :rtype: list[afem.geometry.entities.Point]
+        """
         if self.npts <= 0:
-            return None
+            return []
         return [results[0] for results in self._results]
 
     @property
     def parameters(self):
+        """
+        :return: Parameters of projected points.
+        :rtype: list[float]
+        """
         if self.npts <= 0:
             return None
         return [results[1] for results in self._results]
 
     @property
     def nearest_point(self):
+        """
+        :return: Nearest projection result to original point.
+        :rtype: afem.geometry.entities.Point
+        """
         return self._results[0][0]
 
     @property
     def nearest_param(self):
+        """
+        :return: Parameter of nearest point.
+        :rtype: float
+        """
         return self._results[0][1]
 
     @property
     def dmin(self):
+        """
+        :return: Minimum distance of all projection results.
+        :rtype: float
+        """
         return self._results[0][2]
 
     def point(self, indx=1):
         """
         Return the point result by index.
 
-        :param int indx: Index for point selection.
+        :param int indx: Index for point.
 
-        :return: Projection point at index.
-        :rtype: :class:`.Point`
+        :return: Projected point.
+        :rtype: afem.geometry.entities.Point
         """
         if indx > self.npts:
             return self._results[-1][0]
@@ -190,13 +227,12 @@ class PointProjector(object):
         """
         Return the parameter result by index.
 
-        :param int indx: Index for parameter selection.
+        :param int indx: Index for parameter.
 
-        :return: Projection parameter at index. For a curve projection a
-            single float *u* will be returned. For a surface projection result
-            a tuple containing the *u* and *v* parameters will be returned
-            (u,v).
-        :rtype: float or tuple
+        :return: Parameter of point. For a curve projection a single float *u*
+            will be returned. For a surface projection a tuple containing the
+            *u* and *v* parameters will be returned (u, v).
+        :rtype: float or tuple(float, float)
         """
         if indx > self.npts:
             return self._results[-1][1]
@@ -206,7 +242,7 @@ class PointProjector(object):
         """
         Return the projection distance by index.
 
-        :param int indx: Index for distance selection.
+        :param int indx: Index for distance.
 
         :return: Projection distance between original point and projection
             result.
@@ -220,41 +256,131 @@ class PointProjector(object):
 class ProjectPointToCurve(PointProjector):
     """
     Project a point to a curve.
+
+    :param point_like pnt: Point to project.
+    :param curve_like crv: Curve to project to.
+    :param array_like direction: Direction of projection. If *None* then a
+        normal projection will be performed. By providing a direction the
+        tool actually performs a line-curve intersection. This is generally
+        not recommended but provided by request.
+
+    Usage:
+
+    >>> from afem.geometry import Direction, Line, Point, ProjectPointToCurve
+    >>> p0 = Point()
+    >>> v = Direction(1., 0., 0.)
+    >>> line = Line(p0, v)
+    >>> p = Point(5., 5., 0.)
+    >>> proj = ProjectPointToCurve(p, line)
+    >>> assert proj.success
+    >>> proj.npts
+    1
+    >>> proj.nearest_point
+    Point(5.0, 0.0, 0.0)
+    >>> proj.nearest_param
+    5.0
+    >>> proj.dmin
+    5.0
     """
 
-    def __init__(self, point, curve, direction=None):
+    def __init__(self, pnt, crv, direction=None):
         super(ProjectPointToCurve, self).__init__()
-        point = CheckGeom.to_point(point)
+        pnt = CheckGeom.to_point(pnt)
         direction = CheckGeom.to_direction(direction)
-        if CheckGeom.is_point(point) and CheckGeom.is_curve_like(curve):
-            self._perform(point, curve, direction)
+        self._perform(pnt, crv, direction)
 
-    def _perform(self, point, curve, direction):
-        """
-        Perform the projection.
-        """
-        results = project_point_to_curve(point, curve, direction)
-        self._results = results
+    def _perform(self, pnt, crv, direction):
+        self._results = []
+        if not direction:
+            # OCC projection.
+            proj = GeomAPI_ProjectPointOnCurve(pnt, crv.handle)
+            npts = proj.NbPoints()
+            for i in range(1, npts + 1):
+                ui = proj.Parameter(i)
+                di = proj.Distance(i)
+                pi = crv.eval(ui)
+                self._results.append([pi, ui, di])
+        else:
+            # Use minimum distance between line and curve to project point
+            # along a direction.
+            geom_line = Geom_Line(pnt, direction)
+            extrema = GeomAPI_ExtremaCurveCurve(crv.GetHandle(),
+                                                geom_line.GetHandle())
+            npts = extrema.NbExtrema()
+            for i in range(1, npts + 1):
+                ui, _ = extrema.Parameters(i)
+                di = extrema.Distance(i)
+                pi = crv.eval(ui)
+                self._results.append([pi, ui, di])
+
+        # Sort by distance and return.
+        if self._results:
+            self._results.sort(key=lambda lst: lst[2])
 
 
 class ProjectPointToSurface(PointProjector):
     """
     Project a point to a surface.
+
+    :param point_like pnt: Point to project.
+    :param surface_like srf: Surface to project to.
+    :param array_like direction: Direction of projection. If *None* then a
+        normal projection will be performed. By providing a direction the
+        tool actually performs a line-surface intersection. This is generally
+        not recommended but provided by request.
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> p0 = Point()
+    >>> n = Direction(0., 0., 1.)
+    >>> pln = Plane(p0, n)
+    >>> p = Point(1., 1., 1.)
+    >>> proj = ProjectPointToSurface(p, pln)
+    >>> assert proj.success
+    >>> proj.npts
+    1
+    >>> proj.nearest_point
+    Point(1.0, 1.0, 0.0)
+    >>> proj.nearest_param
+    (1.0, 1.0)
+    >>> proj.dmin
+    1.0
     """
 
-    def __init__(self, point, surface, direction=None):
+    def __init__(self, pnt, srf, direction=None):
         super(ProjectPointToSurface, self).__init__()
-        point = CheckGeom.to_point(point)
+        pnt = CheckGeom.to_point(pnt)
         direction = CheckGeom.to_direction(direction)
-        if CheckGeom.is_point(point) and CheckGeom.is_surface_like(surface):
-            self._perform(point, surface, direction)
+        self._perform(pnt, srf, direction)
 
     def _perform(self, point, surface, direction):
-        """
-        Perform the point to surface projection.
-        """
-        results = project_point_to_surface(point, surface, direction)
-        self._results = results
+        self._results = []
+        if not direction:
+            # OCC projection.
+            proj = GeomAPI_ProjectPointOnSurf(point, surface.handle)
+            npts = proj.NbPoints()
+            for i in range(1, npts + 1):
+                ui, vi = proj.Parameters(i)
+                di = proj.Distance(i)
+                pi = surface.eval(ui, vi)
+                self._results.append([pi, (ui, vi), di])
+        else:
+            # Use minimum distance between line and surface to project point
+            # along a direction.
+            geom_line = Geom_Line(point, direction)
+            extrema = GeomAPI_ExtremaCurveSurface(geom_line.GetHandle(),
+                                                  surface.GetHandle())
+            npts = extrema.NbExtrema()
+            for i in range(1, npts + 1):
+                _, ui, vi = extrema.Parameters(i)
+                di = extrema.Distance(i)
+                pi = surface.eval(ui, vi)
+                self._results.append([pi, (ui, vi), di])
+
+        # Sort by distance and return.
+        if self._results:
+            self._results.sort(key=lambda lst: lst[2])
 
 
 class CurveProjector(object):
@@ -267,40 +393,118 @@ class CurveProjector(object):
 
     @property
     def success(self):
+        """
+        :return: *True* if a projected curve exists, *False* if not.
+        :rtype: bool
+        """
         return CheckGeom.is_curve(self._crv)
 
     @property
-    def result(self):
+    def curve(self):
+        """
+        :return: The projected curve.
+        :rtype: afem.geometry.entities.Curve
+        """
         return self._crv
 
 
 class ProjectCurveToPlane(CurveProjector):
     """
     Project a curve to a plane along a direction.
+
+    :param curve_like crv: Curve to project.
+    :param afem.geometry.entities.Plane pln: Plane to project to.
+    :param array_like direction: Direction of projection. If *None* is
+        provided, then the curve is projected normal to the plane.
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> qp = [Point(), Point(5., 5., 1.), Point(10., 5., 1.)]
+    >>> c = NurbsCurveByInterp(qp).curve
+    >>> pln = Plane(Point(), Direction(0., 0., 1.))
+    >>> proj = ProjectCurveToPlane(c, pln, [0., 0., 1.])
+    >>> assert proj.success
+    >>> cnew = proj.curve
+    >>> cnew.p1
+    Point(0.0, 0.0, 0.0)
+    >>> cnew.p2
+    Point(10.0, 5.0, 0.0)
     """
 
-    def __init__(self, curve, plane, v=None, keep_param=True):
+    def __init__(self, crv, pln, direction=None, keep_param=True):
         super(ProjectCurveToPlane, self).__init__()
-        if CheckGeom.is_curve(curve) and CheckGeom.is_plane(plane):
-            self._perform(curve, plane, v, keep_param)
+        self._perform(crv, pln, direction, keep_param)
 
     def _perform(self, curve, plane, v, keep_param):
         v = CheckGeom.to_direction(v)
         if not CheckGeom.is_direction(v):
             v = plane.Pln().Axis().Direction()
-        self._crv = project_curve_to_plane(curve, plane, v, keep_param)
+
+        # OCC projection.
+        hcrv = GeomProjLib.geomprojlib_ProjectOnPlane(curve.handle,
+                                                      plane.handle,
+                                                      v, keep_param)
+        if hcrv.IsNull():
+            return None
+
+        # TODO Support other curve types.
+        crv = None
+        adp_crv = GeomAdaptor_Curve(hcrv)
+        if adp_crv.GetType() == GeomAbs_Line:
+            lin = create_line_from_occ(adp_crv.Line())
+            crv = create_line_from_occ(lin)
+
+        if adp_crv.GetType() in [GeomAbs_BezierCurve,
+                                 GeomAbs_BSplineCurve]:
+            occ_crv = adp_crv.BSpline().GetObject()
+            crv = create_nurbs_curve_from_occ(occ_crv)
+
+        self._crv = crv
 
 
 class ProjectCurveToSurface(CurveProjector):
     """
     Project a curve to a surface.
+
+    :param curve_like crv: Curve to project.
+    :param surface_like srf: Surface to project to.
+
+    Usage:
+
     """
 
-    def __init__(self, curve, surface):
+    # TODO Add usage docstring
+    def __init__(self, crv, srf):
         super(ProjectCurveToSurface, self).__init__()
-        self._crv = None
-        if CheckGeom.is_curve(curve) and CheckGeom.is_surface(surface):
-            self._perform(curve, surface)
+        self._perform(crv, srf)
 
     def _perform(self, curve, surface):
-        self._crv = project_curve_to_surface(curve, surface)
+        # OCC projection. Catch error in case curve is outside the surface
+        # boundaries.
+        try:
+            hcrv = GeomProjLib.geomprojlib_Project(curve.handle,
+                                                   surface.handle)
+            if hcrv.IsNull():
+                return None
+        except RuntimeError:
+            return None
+
+        # TODO Support other curve types.
+        crv = None
+        adp_crv = GeomAdaptor_Curve(hcrv)
+        if adp_crv.GetType() == GeomAbs_Line:
+            lin = create_line_from_occ(adp_crv.Line())
+            crv = create_line_from_occ(lin)
+
+        if adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
+            occ_crv = adp_crv.BSpline().GetObject()
+            crv = create_nurbs_curve_from_occ(occ_crv)
+
+        self._crv = crv
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()

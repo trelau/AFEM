@@ -205,25 +205,29 @@ ProjectGeom
 ~~~~~~~~~~~
 .. autoclass:: ProjectGeom
 
+PointProjector
+~~~~~~~~~~~~~~
+.. autoclass:: PointProjector
+
 ProjectPointToCurve
 ~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ProjectPointToCurve
-   :inherited-members:
 
 ProjectPointToSurface
 ~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ProjectPointToSurface
-   :inherited-members:
+
+CurveProjector
+~~~~~~~~~~~~~~
+.. autoclass:: CurveProjector
 
 ProjectCurveToPlane
 ~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ProjectCurveToPlane
-   :inherited-members:
 
 ProjectCurveToSurface
 ~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ProjectCurveToSurface
-   :inherited-members:
 
 Intersect
 ---------
