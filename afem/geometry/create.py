@@ -25,7 +25,7 @@ from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
 from afem.geometry.methods.create import create_crv_by_approx_pnts, \
     create_crv_by_interp_pnts, create_isocurve, create_line_from_occ, \
-    create_nurbs_curve, create_nurbs_curve_from_occ, \
+    create_nurbs_curve, \
     create_nurbs_curve_from_occ2d, create_nurbs_surface, \
     create_nurbs_surface_from_occ, create_plane_by_axes, \
     create_plane_by_fit_points, create_plane_by_points, create_plane_on_curve, \
@@ -44,18 +44,15 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_tcolstd_array2_real)
 
 __all__ = ["CreateGeom", "CreatedPoints", "PointByXYZ", "PointByArray",
-           "PointsAlongCurveByNumber",
-           "PointFromParameter", "PointsAlongCurveByDistance",
-           "DirectionByXYZ", "DirectionByPoints",
-           "DirectionByArray", "VectorByXYZ", "VectorByArray",
+           "PointFromParameter", "PointsAlongCurveByNumber",
+           "PointsAlongCurveByDistance", "DirectionByXYZ", "DirectionByArray",
+           "DirectionByPoints", "VectorByXYZ", "VectorByArray",
            "VectorByPoints", "LineByVector", "LineByPoints",
-           "NurbsCurveByData",
-           "NurbsCurveByInterp", "NurbsCurveByApprox", "NurbsCurveByPoints",
-           "CurveByUIso",
-           "CurveByVIso", "PlaneByNormal", "PlaneByAxes", "PlaneByPoints",
-           "PlaneByApprox", "PlanesAlongCurveByNumber",
-           "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
-           "PlanesBetweenPlanesByDistance",
+           "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
+           "NurbsCurveByPoints", "CurveByUIso", "CurveByVIso",
+           "PlaneByNormal", "PlaneByAxes", "PlaneByPoints", "PlaneByApprox",
+           "PlanesAlongCurveByNumber", "PlanesAlongCurveByDistance",
+           "PlanesBetweenPlanesByNumber", "PlanesBetweenPlanesByDistance",
            "NurbsSurfaceByData", "NurbsSurfaceByInterp",
            "NurbsSurfaceByApprox"]
 
