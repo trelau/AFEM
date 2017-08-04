@@ -130,20 +130,6 @@ class Settings(object):
         """
         cls.part_angle = float(part_angle)
 
-    @classmethod
-    def activate_warnings(cls):
-        """
-        Activate printing warning messages.
-        """
-        cls.warnings = True
-
-    @classmethod
-    def deactivate_warnings(cls):
-        """
-        Deactivate printing warning messages.
-        """
-        cls.warnings = False
-
     @staticmethod
     def set_loggging_level(level='info'):
         """
