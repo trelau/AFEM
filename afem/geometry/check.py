@@ -45,7 +45,7 @@ class CheckGeom(object):
     @staticmethod
     def is_point(geom):
         """
-        Check if the entity is a Point.
+        Check if the entity is a :class:`.Point`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Point, *False* if not.
@@ -56,7 +56,7 @@ class CheckGeom(object):
     @staticmethod
     def is_point2d(geom):
         """
-        Check if the entity is a Point2D.
+        Check if the entity is a :class:`.Point2D`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Point2D, *False* if not.
@@ -67,13 +67,13 @@ class CheckGeom(object):
     @staticmethod
     def to_point(geom):
         """
-        Convert entity to a Point if possible.
+        Convert entity to a :class:`.Point` if possible.
 
         :param geom: An entity.
 
         :return: The entity if already a Point, or a new Point if it is
             array_like. Returns *None* otherwise.
-        :rtype: :class:`.Point` or None
+        :rtype: afem.geometry.entities.Point or None
         """
         if isinstance(geom, Point):
             return geom
@@ -86,12 +86,12 @@ class CheckGeom(object):
     @staticmethod
     def to_points(geoms):
         """
-        Convert entities to Points if possible.
+        Convert entities to points if possible.
 
-        :param list geoms: List of point_like entities.
+        :param list[point_like] geoms: List of entities.
 
-        :return: List of Point instances.
-        :rtype: list
+        :return: List of points.
+        :rtype: list[afem.geometry.entities.Point]
         """
         return [CheckGeom.to_point(p) for p in geoms if
                 CheckGeom.is_point_like(p)]
@@ -99,7 +99,7 @@ class CheckGeom(object):
     @staticmethod
     def is_vector(geom):
         """
-        Check if the entity is a Vector.
+        Check if the entity is a :class:`.Vector`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Vector, *False* if not.
@@ -112,11 +112,11 @@ class CheckGeom(object):
         """
         Convert entity to a Vector if possible.
 
-        :param geom: An entity.
+        :param vector_like geom: An entity.
 
         :return: The entity if already a Vector, or a new Vector if it is
             array_like. Returns *None* otherwise.
-        :rtype: :class:`.Vector` or None
+        :rtype: afem.geometry.entities.Vector or None
         """
         if isinstance(geom, Vector):
             return geom
@@ -131,7 +131,7 @@ class CheckGeom(object):
     @staticmethod
     def is_direction(geom):
         """
-        Check if the entity is a Direction.
+        Check if the entity is a :class:`.Direction`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Direction, *False* if not.
@@ -144,11 +144,11 @@ class CheckGeom(object):
         """
         Convert entity to a Direction if possible.
 
-        :param geom: An entity.
+        :param vector_like geom: An entity.
 
         :return: The entity if already a Direction, or a new Direction if it is
             array_like. Returns *None* otherwise.
-        :rtype: :class:`.Direction` or None
+        :rtype: afem.geometry.entities.Direction or None
         """
         if isinstance(geom, Direction):
             return geom
@@ -161,7 +161,7 @@ class CheckGeom(object):
     @staticmethod
     def is_plane(geom):
         """
-        Check if the entity is a Plane.
+        Check if the entity is a :class:`.Plane`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Plane, *False* if not.
@@ -172,7 +172,7 @@ class CheckGeom(object):
     @staticmethod
     def is_line(geom):
         """
-        Check if the entity is a Line.
+        Check if the entity is a :class:`.Line`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Line, *False* if not.
@@ -194,10 +194,10 @@ class CheckGeom(object):
     @staticmethod
     def is_curve_like(geom):
         """
-        Check if the entity is a curve or line.
+        Check if the entity is an OpenCASCADE Geom_Curve.
 
         :param geom: An entity.
-        :return: *True* if the entity is a line or curve, *False* if not.
+        :return: *True* if the entity is a Geom_Curve, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, Geom_Curve)
@@ -227,10 +227,10 @@ class CheckGeom(object):
     @staticmethod
     def is_surface_like(geom):
         """
-        Check if the entity is a surface or a plane.
+        Check if the entity is an OpenCASCADE Geom_Surface.
 
         :param geom: An entity.
-        :return: *True* if the entity is a surface or plane, *False* if not.
+        :return: *True* if the entity is a Geom_Surface, *False* if not.
         :rtype: bool
         """
         return isinstance(geom, Geom_Surface)
@@ -238,7 +238,7 @@ class CheckGeom(object):
     @staticmethod
     def is_axis3(geom):
         """
-        Check if the entity is an Axis3.
+        Check if the entity is an :class:`.Axis3`.
 
         :param geom: An entity.
 
