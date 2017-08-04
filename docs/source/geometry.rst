@@ -173,29 +173,37 @@ PlaneByPoints
 ~~~~~~~~~~~~~
 .. autoclass:: PlaneByPoints
 
-PlaneByFit
-~~~~~~~~~~
-.. autoclass:: PlaneByFit
-
-PlanesAlongCurve
-~~~~~~~~~~~~~~~~
-.. autoclass:: PlanesAlongCurve
-
-PlanesBetweenPlanes
-~~~~~~~~~~~~~~~~~~~
-.. autoclass:: PlanesBetweenPlanes
-
-SurfaceByData
+PlaneByApprox
 ~~~~~~~~~~~~~
-.. autoclass:: SurfaceByData
+.. autoclass:: PlaneByApprox
 
-SurfaceByInterp
-~~~~~~~~~~~~~~~
-.. autoclass:: SurfaceByInterp
+PlanesAlongCurveByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlanesAlongCurveByNumber
 
-SurfaceByFit
-~~~~~~~~~~~~
-.. autoclass:: SurfaceByFit
+PlanesAlongCurveByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlanesAlongCurveByDistance
+
+PlanesBetweenPlanesByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlanesBetweenPlanesByNumber
+
+PlanesBetweenPlanesByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlanesBetweenPlanesByDistance
+
+NurbsSurfaceByData
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsSurfaceByData
+
+NurbsSurfaceByInterp
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsSurfaceByInterp
+
+NurbsSurfaceByApprox
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsSurfaceByApprox
 
 Project
 -------

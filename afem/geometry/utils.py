@@ -1,10 +1,11 @@
-from __future__ import division
+from __future__ import division, division
 
 import OCC.BSplCLib as CLib
 from OCC.TColStd import TColStd_Array1OfReal
-from numpy import hstack, zeros
+from numpy import array, diff, float64, floor, hstack, sqrt, sum, zeros
+from numpy.linalg import norm
 
-from ..occ.utils import to_np_from_tcolstd_array1_real
+from afem.occ.utils import to_np_from_tcolstd_array1_real
 
 __all__ = []
 
@@ -91,3 +92,144 @@ def build_knot_vector_from_occ(tcol_knots, tcol_mult, p, is_periodic):
     CLib.bsplclib_KnotSequence(tcol_knots, tcol_mult, p, is_periodic,
                                tcol_knots_seq)
     return to_np_from_tcolstd_array1_real(tcol_knots_seq)
+
+
+def uniform_parameters(n, a=0., b=1.):
+    """
+    Generate a uniform parameters.
+
+    :param n: Number of parameters.
+    :param float a: Beginning domain if not 0.
+    :param float b: Ending domain if not 1.
+
+    :return: Uniformly spaced parameters between [a, b].
+    :rtype: ndarray
+    """
+    u = zeros(n, dtype=float64)
+    u[0] = a
+    u[-1] = b
+    for i in range(1, n - 1):
+        u[i] = a + i * (b - a) / n
+    return u
+
+
+def chord_parameters(pnts, a=0., b=1.):
+    """
+    Generate parameters using chord length method.
+
+    :param pnts: List or array of ordered points.
+    :type pnts: Points or array_like
+    :param float a: Beginning domain if not 0.
+    :param float b: Ending domain if not 1.
+
+    :return: Parameters between [a, b].
+    :rtype: ndarray
+    """
+    pnts = array(pnts, dtype=float64)
+    n = len(pnts)
+    dtotal = sum(norm(diff(pnts, axis=0), axis=1))
+    u = zeros(n, dtype=float64)
+    u[0] = a
+    u[-1] = b
+    if dtotal <= 0.:
+        return u
+    for i in range(1, n - 1):
+        di = norm(pnts[i] - pnts[i - 1]) / dtotal
+        u[i] = u[i - 1] + di
+    return u
+
+
+def centripetal_parameters(pnts, a=0., b=1.):
+    """
+    Generate parameters using centripetal method.
+
+    :param pnts: List or array of ordered points.
+    :type pnts: Points or array_like
+    :param float a: Beginning domain if not 0.
+    :param float b: Ending domain if not 1.
+
+    :return: Parameters between [a, b].
+    :rtype: ndarray
+    """
+    pnts = array(pnts, dtype=float64)
+    n = len(pnts)
+    dtotal = sum(norm(diff(pnts, axis=0), axis=1))
+    u = zeros(n, dtype=float64)
+    u[0] = a
+    u[-1] = b
+    if dtotal <= 0.:
+        return u
+    for i in range(1, n - 1):
+        di = sqrt((norm(pnts[i] - pnts[i - 1]) / dtotal))
+        u[i] = u[i - 1] + di
+    return u
+
+
+def reparameterize_knots(u1, u2, tcol_knots):
+    """
+    Reparameterize the knot values between *u1* and *u2*
+    """
+    CLib.bsplclib_Reparametrize(u1, u2, tcol_knots)
+
+
+def find_span(n, p, u, uk):
+    """
+    Determine the knot span index.
+
+    :param int n: Number of control points - 1.
+    :param int p: Degree.
+    :param float u: Parameter.
+    :param ndarray uk: Knot vector.
+
+    :return: Knot span.
+    :rtype: int
+
+    *Reference:* Algorithm A2.1 from "The NURBS Book".
+    """
+    # Special case
+    if u >= uk[n + 1]:
+        return n
+    if u <= uk[p]:
+        return p
+
+    # Do binary search
+    low = p
+    high = n + 1
+    mid = int(floor((low + high) / 2.))
+    while u < uk[mid] or u >= uk[mid + 1]:
+        if u < uk[mid]:
+            high = mid
+        else:
+            low = mid
+        mid = int(floor((low + high) / 2.))
+    return mid
+
+
+def basis_funs(i, u, p, uk):
+    """
+    Compute the non-vanishing basis functions.
+
+    :param int i: Knot span index.
+    :param float u: Parameter.
+    :param int p: Degree.
+    :param ndarray uk: Knot vector.
+
+    :return: Non-vanishing basis functions.
+    :rtype: ndarray
+
+    Reference: Algorithm A2.2 from "The NURBS Book"
+    """
+    bf = [0.0] * (p + 1)
+    bf[0] = 1.0
+    left = [0.0] * (p + 1)
+    right = [0.0] * (p + 1)
+    for j in range(1, p + 1):
+        left[j] = u - uk[i + 1 - j]
+        right[j] = uk[i + j] - u
+        saved = 0.0
+        for r in range(0, j):
+            temp = bf[r] / (right[r + 1] + left[j - r])
+            bf[r] = saved + right[r + 1] * temp
+            saved = left[j - r] * temp
+        bf[j] = saved
+    return array(bf, dtype=float)
