@@ -7,7 +7,7 @@ from numpy.linalg import norm
 
 from afem.occ.utils import to_np_from_tcolstd_array1_real
 
-__all__ = []
+__all__ = ["uniform_parameters", "chord_parameters", "centripetal_parameters"]
 
 
 def local_to_global_param(a, b, *args):
@@ -96,14 +96,14 @@ def build_knot_vector_from_occ(tcol_knots, tcol_mult, p, is_periodic):
 
 def uniform_parameters(n, a=0., b=1.):
     """
-    Generate a uniform parameters.
+    Generate uniform parameters.
 
-    :param n: Number of parameters.
-    :param float a: Beginning domain if not 0.
-    :param float b: Ending domain if not 1.
+    :param int n: Number of parameters.
+    :param float a: Lower bound.
+    :param float b: Upper bound.
 
-    :return: Uniformly spaced parameters between [a, b].
-    :rtype: ndarray
+    :return: Parameters between [a, b].
+    :rtype: numpy.ndarray
     """
     u = zeros(n, dtype=float64)
     u[0] = a
@@ -117,13 +117,12 @@ def chord_parameters(pnts, a=0., b=1.):
     """
     Generate parameters using chord length method.
 
-    :param pnts: List or array of ordered points.
-    :type pnts: Points or array_like
-    :param float a: Beginning domain if not 0.
-    :param float b: Ending domain if not 1.
+    :param list[point_like] pnts: List of ordered points.
+    :param float a: Lower bound.
+    :param float b: Upper bound.
 
     :return: Parameters between [a, b].
-    :rtype: ndarray
+    :rtype: numpy.ndarray
     """
     pnts = array(pnts, dtype=float64)
     n = len(pnts)
@@ -143,13 +142,12 @@ def centripetal_parameters(pnts, a=0., b=1.):
     """
     Generate parameters using centripetal method.
 
-    :param pnts: List or array of ordered points.
-    :type pnts: Points or array_like
-    :param float a: Beginning domain if not 0.
-    :param float b: Ending domain if not 1.
+    :param list[point_like] pnts: List of ordered points.
+    :param float a: Lower domain.
+    :param float b: Upper domain.
 
     :return: Parameters between [a, b].
-    :rtype: ndarray
+    :rtype: numpy.ndarray
     """
     pnts = array(pnts, dtype=float64)
     n = len(pnts)
