@@ -147,6 +147,7 @@ class PointProjector(object):
     def __init__(self):
         self._npts = 0
         self._results = []
+        self._success = False
 
     @property
     def npts(self):
@@ -159,12 +160,10 @@ class PointProjector(object):
     @property
     def success(self):
         """
-        :return: *True* if at least one projection was found, *False* if not.
+        :return: *True* if successful, *False* if not.
         :rtype: bool
         """
-        if self.npts > 0:
-            return True
-        return False
+        return self._success
 
     @property
     def points(self):
@@ -183,7 +182,7 @@ class PointProjector(object):
         :rtype: list[float]
         """
         if self.npts <= 0:
-            return None
+            return []
         return [results[1] for results in self._results]
 
     @property
@@ -219,8 +218,6 @@ class PointProjector(object):
         :return: Projected point.
         :rtype: afem.geometry.entities.Point
         """
-        if indx > self.npts:
-            return self._results[-1][0]
         return self._results[indx - 1][0]
 
     def parameter(self, indx=1):
@@ -234,8 +231,6 @@ class PointProjector(object):
             *u* and *v* parameters will be returned (u, v).
         :rtype: float or tuple(float, float)
         """
-        if indx > self.npts:
-            return self._results[-1][1]
         return self._results[indx - 1][1]
 
     def distance(self, indx=1):
@@ -248,8 +243,6 @@ class PointProjector(object):
             result.
         :rtype: float
         """
-        if indx > self.npts:
-            return self._results[-1][2]
         return self._results[indx - 1][2]
 
 
@@ -263,6 +256,10 @@ class ProjectPointToCurve(PointProjector):
         normal projection will be performed. By providing a direction the
         tool actually performs a line-curve intersection. This is generally
         not recommended but provided by request.
+
+    For more information see GeomAPI_ProjectPointOnCurve_.
+
+    .. _GeomAPI_ProjectPointOnCurve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___project_point_on_curve.html
 
     Usage:
 
@@ -285,12 +282,12 @@ class ProjectPointToCurve(PointProjector):
 
     def __init__(self, pnt, crv, direction=None):
         super(ProjectPointToCurve, self).__init__()
+
+        # Perform
         pnt = CheckGeom.to_point(pnt)
         direction = CheckGeom.to_direction(direction)
-        self._perform(pnt, crv, direction)
-
-    def _perform(self, pnt, crv, direction):
         self._results = []
+
         if not direction:
             # OCC projection.
             proj = GeomAPI_ProjectPointOnCurve(pnt, crv.handle)
@@ -317,6 +314,8 @@ class ProjectPointToCurve(PointProjector):
         if self._results:
             self._results.sort(key=lambda lst: lst[2])
 
+        self._success = True
+
 
 class ProjectPointToSurface(PointProjector):
     """
@@ -328,6 +327,10 @@ class ProjectPointToSurface(PointProjector):
         normal projection will be performed. By providing a direction the
         tool actually performs a line-surface intersection. This is generally
         not recommended but provided by request.
+
+    For more information see GeomAPI_ProjectPointOnSurf_.
+
+    .. _GeomAPI_ProjectPointOnSurf: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___project_point_on_surf.html
 
     Usage:
 
@@ -350,37 +353,39 @@ class ProjectPointToSurface(PointProjector):
 
     def __init__(self, pnt, srf, direction=None):
         super(ProjectPointToSurface, self).__init__()
+
+        # Perform
         pnt = CheckGeom.to_point(pnt)
         direction = CheckGeom.to_direction(direction)
-        self._perform(pnt, srf, direction)
-
-    def _perform(self, point, surface, direction):
         self._results = []
+
         if not direction:
             # OCC projection.
-            proj = GeomAPI_ProjectPointOnSurf(point, surface.handle)
+            proj = GeomAPI_ProjectPointOnSurf(pnt, srf.handle)
             npts = proj.NbPoints()
             for i in range(1, npts + 1):
                 ui, vi = proj.Parameters(i)
                 di = proj.Distance(i)
-                pi = surface.eval(ui, vi)
+                pi = srf.eval(ui, vi)
                 self._results.append([pi, (ui, vi), di])
         else:
             # Use minimum distance between line and surface to project point
             # along a direction.
-            geom_line = Geom_Line(point, direction)
+            geom_line = Geom_Line(pnt, direction)
             extrema = GeomAPI_ExtremaCurveSurface(geom_line.GetHandle(),
-                                                  surface.GetHandle())
+                                                  srf.GetHandle())
             npts = extrema.NbExtrema()
             for i in range(1, npts + 1):
                 _, ui, vi = extrema.Parameters(i)
                 di = extrema.Distance(i)
-                pi = surface.eval(ui, vi)
+                pi = srf.eval(ui, vi)
                 self._results.append([pi, (ui, vi), di])
 
         # Sort by distance and return.
         if self._results:
             self._results.sort(key=lambda lst: lst[2])
+
+        self._success = True
 
 
 class CurveProjector(object):
@@ -390,14 +395,15 @@ class CurveProjector(object):
 
     def __init__(self):
         self._crv = None
+        self._success = False
 
     @property
     def success(self):
         """
-        :return: *True* if a projected curve exists, *False* if not.
+        :return: *True* if successful, *False* if not.
         :rtype: bool
         """
-        return CheckGeom.is_curve(self._crv)
+        return self._success
 
     @property
     def curve(self):
@@ -417,6 +423,13 @@ class ProjectCurveToPlane(CurveProjector):
     :param array_like direction: Direction of projection. If *None* is
         provided, then the curve is projected normal to the plane.
 
+    :raise RuntimeError: If the OCC method fails to project the curve to the
+        plane.
+
+    For more information see GeomProjLib_ProjectOnPlane_.
+
+    .. _GeomProjLib_ProjectOnPlane: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_proj_lib.html
+
     Usage:
 
     >>> from afem.geometry import *
@@ -434,74 +447,93 @@ class ProjectCurveToPlane(CurveProjector):
 
     def __init__(self, crv, pln, direction=None, keep_param=True):
         super(ProjectCurveToPlane, self).__init__()
-        self._perform(crv, pln, direction, keep_param)
 
-    def _perform(self, curve, plane, v, keep_param):
-        v = CheckGeom.to_direction(v)
-        if not CheckGeom.is_direction(v):
-            v = plane.Pln().Axis().Direction()
+        # Perform
+        direction = CheckGeom.to_direction(direction)
+        if not CheckGeom.is_direction(direction):
+            direction = pln.Pln().Axis().Direction()
 
         # OCC projection.
-        hcrv = GeomProjLib.geomprojlib_ProjectOnPlane(curve.handle,
-                                                      plane.handle,
-                                                      v, keep_param)
+        # TODO Consider ProjLib_ProjectOnPlane
+        hcrv = GeomProjLib.geomprojlib_ProjectOnPlane(crv.handle,
+                                                      pln.handle,
+                                                      direction, keep_param)
         if hcrv.IsNull():
-            return None
+            msg = 'OCC failed to project the curve to the plane.'
+            raise RuntimeError(msg)
 
         # TODO Support other curve types.
-        crv = None
         adp_crv = GeomAdaptor_Curve(hcrv)
         if adp_crv.GetType() == GeomAbs_Line:
             lin = create_line_from_occ(adp_crv.Line())
-            crv = create_line_from_occ(lin)
-
-        if adp_crv.GetType() in [GeomAbs_BezierCurve,
-                                 GeomAbs_BSplineCurve]:
+            proj_crv = create_line_from_occ(lin)
+        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
             occ_crv = adp_crv.BSpline().GetObject()
-            crv = create_nurbs_curve_from_occ(occ_crv)
+            proj_crv = create_nurbs_curve_from_occ(occ_crv)
+        else:
+            msg = 'Curve type not supported.'
+            raise RuntimeError(msg)
 
-        self._crv = crv
+        self._crv = proj_crv
+        self._success = True
 
 
 class ProjectCurveToSurface(CurveProjector):
     """
-    Project a curve to a surface.
+    Project a curve to a surface. Only normal projections are supported.
 
     :param curve_like crv: Curve to project.
     :param surface_like srf: Surface to project to.
 
+    :raise RuntimeError: If the OCC method fails to project the curve to the
+        plane.
+
+    For more information see GeomProjLib_Project_.
+
+    .. _GeomProjLib_Project: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_proj_lib.html
+
     Usage:
 
+    >>> from afem.geometry import *
+    >>> c = NurbsCurveByPoints([(0., 5., 6.), (10., 5., 6.)]).curve
+    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+    >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
+    >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
+    >>> s = NurbsSurfaceByApprox([c1, c2, c3]).surface
+    >>> proj = ProjectCurveToSurface(c, s)
+    >>> assert proj.success
+    >>> cproj = proj.curve
+    >>> cproj.eval(0.5)
+    Point(5.0, 5.0, 5.0)
     """
 
     # TODO Add usage docstring
     def __init__(self, crv, srf):
         super(ProjectCurveToSurface, self).__init__()
-        self._perform(crv, srf)
 
-    def _perform(self, curve, surface):
-        # OCC projection. Catch error in case curve is outside the surface
-        # boundaries.
-        try:
-            hcrv = GeomProjLib.geomprojlib_Project(curve.handle,
-                                                   surface.handle)
-            if hcrv.IsNull():
-                return None
-        except RuntimeError:
-            return None
+        # Perform
+        # OCC projection
+        # TODO Catch error in case curve is outside the surface boundaries.
+        hcrv = GeomProjLib.geomprojlib_Project(crv.handle,
+                                               srf.handle)
+        if hcrv.IsNull():
+            msg = 'OCC failed to project the curve to the plane.'
+            raise RuntimeError(msg)
 
         # TODO Support other curve types.
-        crv = None
         adp_crv = GeomAdaptor_Curve(hcrv)
         if adp_crv.GetType() == GeomAbs_Line:
             lin = create_line_from_occ(adp_crv.Line())
-            crv = create_line_from_occ(lin)
-
-        if adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
+            proj_crv = create_line_from_occ(lin)
+        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
             occ_crv = adp_crv.BSpline().GetObject()
-            crv = create_nurbs_curve_from_occ(occ_crv)
+            proj_crv = create_nurbs_curve_from_occ(occ_crv)
+        else:
+            msg = 'Curve type not supported.'
+            raise RuntimeError(msg)
 
-        self._crv = crv
+        self._crv = proj_crv
+        self._success = True
 
 
 if __name__ == "__main__":
