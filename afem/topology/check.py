@@ -16,11 +16,7 @@ from OCC.TopoDS import (TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 from OCC.gp import gp_Pnt
 
-# TODO Fix import error
-try:
-    from afem.geometry.check import CheckGeom
-except ImportError:
-    pass
+from afem.geometry.check import CheckGeom
 
 __all__ = ["CheckShape"]
 

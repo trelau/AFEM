@@ -3,7 +3,6 @@ Topology
 This section describes the topology package. The topology tools can be
 imported by::
 
-    from afem.occ import *
     from afem.topology import *
 
 Entities
@@ -52,7 +51,7 @@ TopoDS_Compound
 
 Create
 ------
-.. py:currentmodule:: afem.occ.create
+.. py:currentmodule:: afem.topology.create
 
 ShapeTools
 ~~~~~~~~~~
@@ -65,97 +64,113 @@ CreateShape
 ~~~~~~~~~~~
 .. autoclass:: CreateShape
 
-ShapeBuilder
+VertexByPoint
+~~~~~~~~~~~~~
+.. autoclass:: VertexByPoint
+
+EdgeByPoints
 ~~~~~~~~~~~~
-.. autoclass:: ShapeBuilder
+.. autoclass:: EdgeByPoints
 
-CompoundByShapes
-~~~~~~~~~~~~~~~~
-.. autoclass:: CompoundByShapes
+EdgeByVertices
+~~~~~~~~~~~~~~
+.. autoclass:: EdgeByVertices
 
-BoxByPlane
+EdgeByCurve
+~~~~~~~~~~~
+.. autoclass:: EdgeByCurve
+
+EdgeByDrag
 ~~~~~~~~~~
-.. autoclass:: BoxByPlane
+.. autoclass:: EdgeByDrag
 
-WireByConnectedEdges
-~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: WireByConnectedEdges
-
-ShapeBySweep
-~~~~~~~~~~~~
-.. autoclass:: ShapeBySweep
-
-EdgeBySweep
+WireByEdges
 ~~~~~~~~~~~
-.. autoclass:: EdgeBySweep
+.. autoclass:: WireByEdges
 
-FaceBySweep
-~~~~~~~~~~~
-.. autoclass:: FaceBySweep
-
-ShellBySweep
-~~~~~~~~~~~~
-.. autoclass:: ShellBySweep
-
-SolidBySweep
-~~~~~~~~~~~~
-.. autoclass:: SolidBySweep
-
-CompSolidBySweep
-~~~~~~~~~~~~~~~~
-.. autoclass:: CompSolidBySweep
+WiresByConnectedEdges
+~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: WiresByConnectedEdges
 
 WireByConcat
 ~~~~~~~~~~~~
 .. autoclass:: WireByConcat
 
-PlaneBySection
-~~~~~~~~~~~~~~
-.. autoclass:: PlaneBySection
+WireByPlanarOffset
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: WireByPlanarOffset
 
-PointsAlongShape
-~~~~~~~~~~~~~~~~
-.. autoclass:: PointsAlongShape
+WiresByShape
+~~~~~~~~~~~~
+.. autoclass:: WiresByShape
 
-PointsAlongEdge
-~~~~~~~~~~~~~~~
-.. autoclass:: PointsAlongEdge
+WireByPoints
+~~~~~~~~~~~~~
+.. autoclass:: WireByPoints
 
-PointsAlongWire
-~~~~~~~~~~~~~~~
-.. autoclass:: PointsAlongWire
+FaceBySurface
+~~~~~~~~~~~~~
+.. autoclass:: FaceBySurface
 
 FaceByPlane
 ~~~~~~~~~~~
 .. autoclass:: FaceByPlane
 
-WireByOffset
-~~~~~~~~~~~~
-.. autoclass:: WireByOffset
+FaceByPlanarWire
+~~~~~~~~~~~~~~~~
+.. autoclass:: FaceByPlanarWire
 
-ShellByPipe
+FaceByDrag
+~~~~~~~~~~
+.. autoclass:: FaceByDrag
+
+ShellBySurface
+~~~~~~~~~~~~~~
+.. autoclass:: ShellBySurface
+
+ShellByFaces
+~~~~~~~~~~~~
+.. autoclass:: ShellByFaces
+
+ShellByDrag
 ~~~~~~~~~~~
-.. autoclass:: ShellByPipe
+.. autoclass:: ShellByDrag
+
+SolidByShell
+~~~~~~~~~~~~
+.. autoclass:: SolidByShell
+
+SolidByPlane
+~~~~~~~~~~~~
+.. autoclass:: SolidByPlane
+
+SolidByDrag
+~~~~~~~~~~~
+.. autoclass:: SolidByDrag
+
+CompoundByShapes
+~~~~~~~~~~~~~~~~
+.. autoclass:: CompoundByShapes
 
 HalfspaceByShape
 ~~~~~~~~~~~~~~~~
 .. autoclass:: HalfspaceByShape
 
-WiresFromShape
-~~~~~~~~~~~~~~
-.. autoclass:: WiresFromShape
+PointsAlongShapeByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PointsAlongShapeByNumber
 
-ShapeByOffset
-~~~~~~~~~~~~~
-.. autoclass:: ShapeByOffset
+PointsAlongShapeByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PointsAlongShapeByDistance
 
-SolidsFromShapes
-~~~~~~~~~~~~~~~~
-.. autoclass:: SolidsFromShapes
+PlaneByEdges
+~~~~~~~~~~~~
+.. autoclass:: PlaneByEdges
 
 Explore
 -------
-.. py:currentmodule:: afem.occ.explore
+.. py:currentmodule:: afem.topology.explore
 
 ExploreShape
 ~~~~~~~~~~~~
@@ -171,7 +186,7 @@ ExploreFreeEdges
 
 Modify
 ------
-.. py:currentmodule:: afem.occ.modify
+.. py:currentmodule:: afem.topology.modify
 
 UnifyShape
 ~~~~~~~~~~
@@ -195,7 +210,7 @@ SplitWire
 
 Boolean
 -------
-.. py:currentmodule:: afem.occ.bop
+.. py:currentmodule:: afem.topology.bop
 
 FuseShapes
 ~~~~~~~~~~
@@ -226,7 +241,7 @@ Check
 
 CheckShape
 ~~~~~~~~~~
-.. autoclass:: afem.occ.check.CheckShape
+.. autoclass:: afem.topology.check.CheckShape
 
 Utilities
 ---------
