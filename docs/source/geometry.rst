@@ -245,20 +245,25 @@ IntersectGeom
 ~~~~~~~~~~~~~
 .. autoclass:: IntersectGeom
 
+CurveIntersector
+~~~~~~~~~~~~~~~~
+.. autoclass:: CurveIntersector
+
 IntersectCurveCurve
 ~~~~~~~~~~~~~~~~~~~
 .. autoclass:: IntersectCurveCurve
-   :inherited-members:
 
 IntersectCurveSurface
 ~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: IntersectCurveSurface
-   :inherited-members:
+
+SurfaceIntersector
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfaceIntersector
 
 IntersectSurfaceSurface
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: IntersectSurfaceSurface
-   :inherited-members:
 
 IntersectError
 ~~~~~~~~~~~~~~

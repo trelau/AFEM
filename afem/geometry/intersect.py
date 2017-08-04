@@ -1,13 +1,21 @@
-from numpy import float64, inf, zeros
+from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge
+from OCC.GeomAPI import GeomAPI_IntCS
+from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve, GeomAbs_Line
+from OCC.GeomAdaptor import GeomAdaptor_Curve
+from OCC.GeomInt import GeomInt_IntSS
+from OCC.IntTools import IntTools_EdgeEdge
+from OCC.ShapeFix import ShapeFix_ShapeTolerance
+from OCC.TopAbs import TopAbs_VERTEX
+from numpy import float64, inf, mean, zeros
 from scipy.spatial import KDTree
 
-from .check import CheckGeom
-from .methods.distance import curve_nearest_point
-from .methods.intersect import intersect_curve_curve, \
-    intersect_curve_surface, intersect_surface_surface
-from ..config import Settings
+from afem.geometry.check import CheckGeom
+from afem.geometry.create import create_nurbs_curve_from_occ
+from afem.geometry.entities import Line, Point
+from afem.geometry.methods.distance import curve_nearest_point
 
-__all__ = ["IntersectGeom", "IntersectCurveCurve", "IntersectCurveSurface",
+__all__ = ["IntersectGeom", "CurveIntersector", "IntersectCurveCurve",
+           "IntersectCurveSurface", "SurfaceIntersector",
            "IntersectSurfaceSurface", "IntersectError"]
 
 
@@ -103,45 +111,63 @@ class CurveIntersector(object):
 
     @property
     def npts(self):
+        """
+        :return: Number of intersection points.
+        :rtype: int
+        """
         return self._npts
 
     @property
     def success(self):
-        if self._npts > 0:
-            return True
-        return False
+        """
+        :return: *True* if successful, *False* if not.
+        :rtype: bool
+        """
+        return self.npts > 0
 
     @property
     def points(self):
+        """
+        :return: List of intersection points.
+        :rtype: list[afem.geometry.entities.Point]
+        """
         if self._npts <= 0:
             return []
         return [results[1] for results in self._results]
 
     @property
     def parameters(self):
+        """
+        :return: List of intersection parameters. For a curve-curve
+            intersection this will be a list of tuples containing the
+            parameters of each curve [(u1, u2), (u1, u2), ...]. For a
+            curve-surface intersection this will be a list of tuples
+            containing the parameters for the surface and then the curve
+            [(u, v, t), (u, v, t), ...].
+        :rtype: list[tuple(float)]
+        """
+        if self._npts <= 0:
+            return []
         return [results[0] for results in self._results]
 
     def point(self, indx=1):
         """
         Return the point result by index.
 
-        :param int indx: Index for point selection.
+        :param int indx: Index for point.
 
-        :return: Intersection point at index.
-        :rtype: :class:`.Point`
+        :return: Intersection point.
+        :rtype: afem.geometry.entities.Point
         """
-        if indx > self._npts:
-            return self._results[-1][1]
         return self._results[indx - 1][1]
 
     def query_point(self, p0, distance_upper_bound=inf):
         """
         Find the intersection result nearest to the provided point.
 
-        :param p0: Point to search from.
-        :type p0: :class:`.Point` or array_like
-        :param distance_upper_bound: Return only results within this distance.
-        :type distance_upper_bound: nonnegative float
+        :param point_like p0: Point to search from.
+        :param float distance_upper_bound: Return only results within this
+            distance.
 
         :return: Distance to nearest intersection result and its index (d, i).
             Returns (None, None) if no results are available.
@@ -149,65 +175,121 @@ class CurveIntersector(object):
         """
         if not self.success:
             return None, None
-        if CheckGeom.is_point(p0):
-            p0 = p0.xyz
-        d, i = self._kdt.query(p0, 1, 0., 2, distance_upper_bound)
+        p0 = CheckGeom.to_point(p0)
+        d, i = self._kdt.query(p0.xyz, 1, 0., 2, distance_upper_bound)
         return d, i
-
-    def params_by_cref(self, cref):
-        """
-        Get the parameters of the intersection results by curve reference.
-
-        :param cref: Reference curve (must have been using in the
-            intersection method).
-
-        :return: List of parameters for the reference curve. Returns empty
-            list if  reference curve is not in the intersection.
-        :rtype: list
-        """
-        if self._c1 is cref:
-            return [results[0][0] for results in self._results]
-        elif self._c2 is cref:
-            if CheckGeom.is_surface_like(cref):
-                return [results[0][1:] for results in self._results]
-            return [results[0][1] for results in self._results]
-        return []
 
 
 class IntersectCurveCurve(CurveIntersector):
     """
-    Curve-curve intersection.
+    Curve-curve intersection. This method converts the curves to edges and
+    performs the intersections that way. This proved to be more robust than
+    OpenCASCADE's native curve-curve intersection tool.
+
+    :param curve_like crv1: The first curve.
+    :param curve_like crv2: The second curve.
+    :param float itol: The intersection tolerance.
+
+    For more information see IntTools_EdgeEdge_.
+
+    .. _IntTools_EdgeEdge: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_int_tools___edge_edge.html
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+    >>> c2 = NurbsCurveByPoints([(5., 0., 0.), (5., 5., 0.)]).curve
+    >>> cci = IntersectCurveCurve(c1, c2)
+    >>> assert cci.success
+    >>> cci.npts
+    1
+    >>> cci.point(1)
+    Point(4.999999999999886, 2.5000361106880673e-08, 0.0)
     """
 
-    def __init__(self, curve1, curve2, itol=None):
-        super(IntersectCurveCurve, self).__init__(curve1, curve2)
-        if CheckGeom.is_curve_like(curve1) and CheckGeom.is_curve_like(curve2):
-            self._perform(curve1, curve2, itol)
+    def __init__(self, crv1, crv2, itol=1.0e-7):
+        super(IntersectCurveCurve, self).__init__(crv1, crv2)
 
-    def _perform(self, curve1, curve2, itol):
-        """
-        Perform the curve-curve intersection.
-        """
-        npts, results = intersect_curve_curve(curve1, curve2, itol)
+        # Perform
+        # TODO Reevaluate if IntTools_EdgeEdge is needed.
+
+        # Build edges from curve.
+        e1 = BRepBuilderAPI_MakeEdge(crv1.handle).Edge()
+        e2 = BRepBuilderAPI_MakeEdge(crv2.handle).Edge()
+
+        # Set tolerance to be half intersection tolerance.
+        shp_tol = ShapeFix_ShapeTolerance()
+        tol = itol / 2.
+        shp_tol.SetTolerance(e1, tol)
+        shp_tol.SetTolerance(e2, tol)
+
+        # Perform edge-edge intersection
+        cci = IntTools_EdgeEdge(e1, e2)
+        cci.Perform()
+
+        # Gather results of point intersection only.
+        results = []
+        common_parts = cci.CommonParts()
+        for i in range(1, common_parts.Length() + 1):
+            common_part = common_parts.Value(i)
+            if not common_part.Type() == TopAbs_VERTEX:
+                continue
+            u1 = common_part.VertexParameter1()
+            u2 = common_part.VertexParameter2()
+            p1 = crv1.eval(u1)
+            p2 = crv2.eval(u2)
+            pi = mean([p1, p2], axis=0)
+            pi = Point(*pi)
+            results.append([(u1, u2), pi])
+
+        npts = len(results)
         self._set_results(npts, results)
 
 
 class IntersectCurveSurface(CurveIntersector):
     """
     Curve-surface intersection.
+
+    :param curve_like crv: The curve.
+    :param surface_like srf: The surface.
+
+    For more information see GeomAPI_IntCS_.
+
+    .. _GeomAPI_IntCS: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___int_c_s.html
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> c = NurbsCurveByPoints([(5., 5., 10.), (5., 5., -10.)]).curve
+    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+    >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
+    >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
+    >>> s = NurbsSurfaceByApprox([c1, c2, c3]).surface
+    >>> csi = IntersectCurveSurface(c, s)
+    >>> assert csi.success
+    >>> csi.npts
+    1
+    >>> csi.point(1)
+    Point(5.0, 5.0, 5.0)
     """
 
-    def __init__(self, curve, surface):
-        super(IntersectCurveSurface, self).__init__(curve, surface)
-        if CheckGeom.is_curve_like(curve) and \
-                CheckGeom.is_surface_like(surface):
-            self._perform(curve, surface)
+    def __init__(self, crv, srf):
+        super(IntersectCurveSurface, self).__init__(crv, srf)
 
-    def _perform(self, curve, surface):
-        """
-        Perform the curve-surface intersection.
-        """
-        npts, results = intersect_curve_surface(curve, surface)
+        # Perform
+
+        # OCC intersection.
+        csi = GeomAPI_IntCS(crv.handle, srf.handle)
+        results = []
+        for i in range(1, csi.NbPoints() + 1):
+            u, v, t = csi.Parameters(i)
+            pc = crv.eval(t)
+            ps = srf.eval(u, v)
+            pi = mean([pc, ps], axis=0)
+            pi = Point(*pi)
+            results.append([(t, u, v), pi])
+
+        npts = len(results)
         self._set_results(npts, results)
 
     @property
@@ -224,80 +306,118 @@ class SurfaceIntersector(object):
     Base class for handling surface intersection methods and results.
     """
 
-    def __init__(self, itol=None):
-        if itol is None:
-            itol = Settings.gtol
-        self._itol = itol
-        self._icrvs = []
+    def __init__(self):
+        self._crvs = []
 
     @property
     def ncrvs(self):
-        return len(self._icrvs)
+        """
+        :return: Number of intersection curves.
+        :rtype: int
+        """
+        return len(self._crvs)
 
     @property
     def success(self):
-        if self.ncrvs > 0:
-            return True
-        return False
-
-    @property
-    def itol(self):
-        return self._itol
-
-    @property
-    def icurves(self):
-        return self._icrvs
-
-    def get_icurve(self, indx=1):
         """
-        Generate an :class:`.ICurve` for the specified intersection curve.
+        :return: *True* if successful, *False* if not.
+        :rtype: bool
+        """
+        return self.ncrvs > 0
+
+    @property
+    def curves(self):
+        """
+        :return: The intersection curves.
+        :rtype: list[afem.geometry.entities.Curve]
+        """
+        return self._crvs
+
+    def curve(self, indx=1):
+        """
+        Generate an intersection curve.
 
         :param int indx: Index of intersection curve.
 
         :return: Intersection curve.
-        :rtype: :class:`.ICurve`
+        :rtype: afem.geometry.entities.Curve
         """
-        try:
-            return self._icrvs[indx - 1]
-        except IndexError:
-            return None
+        return self._crvs[indx - 1]
 
-    def get_icurves(self):
-        """
-        Get all intersection curves.
-
-        :return: List of intersection curves.
-        :rtype: list
-        """
-        return self._icrvs
-
-    def curve_nearest_point(self, pref):
+    def curve_nearest_point(self, pnt):
         """
         Get the index of the intersection curve that is nearest to the given
         reference point.
 
-        :param array_like pref: Reference point.
+        :param point_like pnt: Reference point.
 
         :return: Index of curve nearest point.
         :rtype: int
         """
-        return curve_nearest_point(pref, self.icurves)
+        return curve_nearest_point(pnt, self._crvs)
 
 
 class IntersectSurfaceSurface(SurfaceIntersector):
     """
     Surface-surface intersection.
+
+    :param surface_like srf1: The first surface.
+    :param surface_like srf2: The second surface.
+    :param float itol: Intersection tolerance.
+
+    For more information see GeomAPI_IntSS_.
+
+    .. _GeomAPI_IntSS: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___int_s_s.html
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+    >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
+    >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
+    >>> s = NurbsSurfaceByApprox([c1, c2, c3]).surface
+    >>> pln = PlaneByNormal((5., 5., 0.), (1., 0., 0.)).plane
+    >>> ssi = IntersectSurfaceSurface(s, pln)
+    >>> assert ssi.success
+    >>> ssi.ncrvs
+    1
+    >>> c = ssi.curve(1)
+    >>> c.eval(0.5)
+    Point(5.0, 4.999983574755282, 4.99999990730418)
     """
 
-    def __init__(self, surface1, surface2, itol=None):
-        super(IntersectSurfaceSurface, self).__init__(itol)
-        if CheckGeom.is_surface_like(surface1) and \
-                CheckGeom.is_surface_like(surface2):
-            self._perform(surface1, surface2)
+    def __init__(self, srf1, srf2, itol=1.0e-7):
+        super(IntersectSurfaceSurface, self).__init__()
 
-    def _perform(self, surface1, surface2):
-        """
-        Perform the surface-surface intersection.
-        """
-        icrvs = intersect_surface_surface(surface1, surface2, self.itol)
-        self._icrvs = icrvs
+        # Perform
+
+        # OCC intersect
+        ssi = GeomInt_IntSS(srf1.handle, srf2.handle, itol,
+                            True, False, False)
+
+        # Build curves
+        ncrvs = ssi.NbLines()
+        crvs = []
+        for i in range(1, ncrvs + 1):
+            hcrv = ssi.Line(i)
+            adp_crv = GeomAdaptor_Curve(hcrv)
+            if adp_crv.GetType() == GeomAbs_Line:
+                gp_lin = adp_crv.Line()
+                crv = Line(gp_lin)
+                crvs.append(crv)
+            elif adp_crv.GetType() in [GeomAbs_BezierCurve,
+                                       GeomAbs_BSplineCurve]:
+                crv = adp_crv.BSpline().GetObject()
+                crv = create_nurbs_curve_from_occ(crv)
+                crvs.append(crv)
+            else:
+                msg = 'Unsupported line created in IntersectSurfaceSurface.'
+                raise RuntimeError(msg)
+
+        self._crvs = crvs
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()

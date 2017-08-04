@@ -147,7 +147,6 @@ class PointProjector(object):
     def __init__(self):
         self._npts = 0
         self._results = []
-        self._success = False
 
     @property
     def npts(self):
@@ -163,7 +162,7 @@ class PointProjector(object):
         :return: *True* if successful, *False* if not.
         :rtype: bool
         """
-        return self._success
+        return self.npts > 0
 
     @property
     def points(self):
@@ -314,8 +313,6 @@ class ProjectPointToCurve(PointProjector):
         if self._results:
             self._results.sort(key=lambda lst: lst[2])
 
-        self._success = True
-
 
 class ProjectPointToSurface(PointProjector):
     """
@@ -385,8 +382,6 @@ class ProjectPointToSurface(PointProjector):
         if self._results:
             self._results.sort(key=lambda lst: lst[2])
 
-        self._success = True
-
 
 class CurveProjector(object):
     """
@@ -395,7 +390,6 @@ class CurveProjector(object):
 
     def __init__(self):
         self._crv = None
-        self._success = False
 
     @property
     def success(self):
@@ -403,7 +397,7 @@ class CurveProjector(object):
         :return: *True* if successful, *False* if not.
         :rtype: bool
         """
-        return self._success
+        return self._crv is not None
 
     @property
     def curve(self):
@@ -475,7 +469,6 @@ class ProjectCurveToPlane(CurveProjector):
             raise RuntimeError(msg)
 
         self._crv = proj_crv
-        self._success = True
 
 
 class ProjectCurveToSurface(CurveProjector):
@@ -533,7 +526,6 @@ class ProjectCurveToSurface(CurveProjector):
             raise RuntimeError(msg)
 
         self._crv = proj_crv
-        self._success = True
 
 
 if __name__ == "__main__":

@@ -57,13 +57,13 @@ def intersect_curve_curve(curve1, curve2, itol=None):
     return npts, results
 
 
-def intersect_curve_surface(curve, surface):
+def intersect_curve_surface(crv, srf):
     """
     Find the intersection points between a curve and a surface.
     """
 
     # OCC intersection.
-    csi = GeomAPI_IntCS(curve.handle, surface.handle)
+    csi = GeomAPI_IntCS(crv.handle, srf.handle)
     if not csi.IsDone():
         return 0, []
 
@@ -71,8 +71,8 @@ def intersect_curve_surface(curve, surface):
     results = []
     for i in range(1, csi.NbPoints() + 1):
         u, v, t = csi.Parameters(i)
-        pc = curve.eval(t)
-        ps = surface.eval(u, v)
+        pc = crv.eval(t)
+        ps = srf.eval(u, v)
         pi = mean([pc, ps], axis=0)
         pi = Point(*pi)
         results.append([(t, u, v), pi])

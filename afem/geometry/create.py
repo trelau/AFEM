@@ -5,7 +5,8 @@ from OCC.Approx import (Approx_Centripetal, Approx_ChordLength,
                         Approx_IsoParametric)
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.Geom import Geom_Curve
-from OCC.GeomAPI import GeomAPI_Interpolate, GeomAPI_PointsToBSpline
+from OCC.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
+                         GeomAPI_PointsToBSpline)
 from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_C0, GeomAbs_C1,
                          GeomAbs_C2, GeomAbs_C3, GeomAbs_G1, GeomAbs_G2,
                          GeomAbs_Line)
@@ -22,7 +23,6 @@ from scipy.linalg import lu_factor, lu_solve
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
-from afem.geometry.intersect import IntersectCurveSurface
 from afem.geometry.methods.create import create_crv_by_approx_pnts, \
     create_crv_by_interp_pnts, create_isocurve, create_line_from_occ, \
     create_nurbs_curve, create_nurbs_curve_from_occ, \
@@ -74,9 +74,14 @@ _occ_parm_type = {'u': Approx_IsoParametric,
                   'chord length': Approx_ChordLength}
 
 
-def _create_nurbs_curve_from_occ(crv):
+def create_nurbs_curve_from_occ(crv):
     """
-    Create a NURBS curve from an OCC curve.
+    Create a NURBS curve from an OCC Geom_BSplineCurve.
+
+    :param OCC.Geom.Geom_BSplineCurve crv: The OCC curve.
+
+    :return: The AFEM NurbsCurve.
+    :rtype: afem.geometry.entities.NurbsCurve
     """
     # Gather OCC data.
     tcol_poles = TColgp_Array1OfPnt(1, crv.NbPoles())
@@ -638,18 +643,7 @@ class GeomBuilder(object):
     """
 
     def __init__(self):
-        self._success = False
         self._results = {}
-
-    @property
-    def success(self):
-        """
-        Status of builder.
-
-        :return: *True* if successful, *False* if not.
-        :rtype: bool
-        """
-        return self._success
 
     def _set_results(self, key, value):
         self._results[key] = value
@@ -734,7 +728,6 @@ class PointFromParameter(GeomBuilder):
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
     >>> builder = PointFromParameter(line, 0., 1.)
-    >>> assert builder.success
     >>> builder.point
     Point(1.0, 0.0, 0.0)
     >>> builder.parameter
@@ -807,7 +800,6 @@ class PointsAlongCurveByNumber(GeomBuilder):
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
     >>> builder = PointsAlongCurveByNumber(line, 3, 0., 10.)
-    >>> assert builder.success
     >>> builder.npts
     3
     >>> builder.points
@@ -936,7 +928,6 @@ class PointsAlongCurveByDistance(GeomBuilder):
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
     >>> builder = PointsAlongCurveByDistance(line, 5., 0., 10.)
-    >>> assert builder.success
     >>> builder.npts
     3
     >>> builder.points
@@ -1226,11 +1217,10 @@ class LineByVector(GeomBuilder):
 
     Usage:
 
-    >>> from afem.geometry import Point, Vector, LineByVector
+    >>> from afem.geometry import Point, LineByVector
     >>> p = Point()
     >>> d = Direction(1., 0., 0.)
     >>> builder = LineByVector(p, d)
-    >>> assert builder.success
     >>> line = builder.line
     """
 
@@ -1275,7 +1265,6 @@ class LineByPoints(GeomBuilder):
     >>> p1 = Point()
     >>> p2 = Point(10., 0. ,0.)
     >>> builder = LineByPoints(p1, p2)
-    >>> assert builder.success
     >>> line = builder.line
     """
 
@@ -1326,7 +1315,6 @@ class NurbsCurveByData(GeomBuilder):
     >>> mult = [2, 2]
     >>> p = 1
     >>> builder = NurbsCurveByData(cp, knots, mult, p)
-    >>> assert builder.success
     >>> c = builder.curve
     >>> c.knots
     array([ 0.,  1.])
@@ -1386,7 +1374,6 @@ class NurbsCurveByInterp(GeomBuilder):
     >>> from afem.geometry import NurbsCurveByInterp, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByInterp(qp)
-    >>> assert builder.success
     >>> c = builder.curve
     >>> c.p
     2
@@ -1420,7 +1407,7 @@ class NurbsCurveByInterp(GeomBuilder):
 
         # TODO Remove use of GetObject
         occ_crv = interp.Curve().GetObject()
-        c = _create_nurbs_curve_from_occ(occ_crv)
+        c = create_nurbs_curve_from_occ(occ_crv)
         self._set_results('c', c)
         self._success = True
 
@@ -1459,7 +1446,6 @@ class NurbsCurveByApprox(GeomBuilder):
     >>> from afem.geometry import NurbsCurveByApprox, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByApprox(qp)
-    >>> assert builder.success
     >>> c = builder.curve
     >>> c.p
     3
@@ -1498,7 +1484,7 @@ class NurbsCurveByApprox(GeomBuilder):
 
         # TODO Remove use of GetObject
         occ_crv = fit.Curve().GetObject()
-        c = _create_nurbs_curve_from_occ(occ_crv)
+        c = create_nurbs_curve_from_occ(occ_crv)
         self._set_results('c', c)
         self._success = True
 
@@ -1523,7 +1509,6 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
     >>> from afem.geometry import NurbsCurveByPoints, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByPoints(qp)
-    >>> assert builder.success
     >>> c = builder.curve
     >>> c.p
     1
@@ -1560,7 +1545,6 @@ class CurveByUIso(GeomBuilder):
     >>> vn = Direction(0., 0., 1.)
     >>> pln = Plane(p0, vn)
     >>> builder = CurveByUIso(pln, 1.)
-    >>> assert builder.success
     >>> builder.is_line
     True
     >>> builder.is_nurbs
@@ -1582,7 +1566,7 @@ class CurveByUIso(GeomBuilder):
             c = Line(gp_lin)
         elif adp_curve.GetType() == GeomAbs_BSplineCurve:
             occ_crv = adp_curve.BSpline().GetObject()
-            c = _create_nurbs_curve_from_occ(occ_crv)
+            c = create_nurbs_curve_from_occ(occ_crv)
         else:
             msg = 'Curve type not yet supported.'
             raise RuntimeError(msg)
@@ -1636,7 +1620,6 @@ class CurveByVIso(GeomBuilder):
     >>> vn = Direction(0., 0., 1.)
     >>> pln = Plane(p0, vn)
     >>> builder = CurveByVIso(pln, 1.)
-    >>> assert builder.success
     >>> builder.is_line
     True
     >>> builder.is_nurbs
@@ -1658,7 +1641,7 @@ class CurveByVIso(GeomBuilder):
             c = Line(gp_lin)
         elif adp_curve.GetType() == GeomAbs_BSplineCurve:
             occ_crv = adp_curve.BSpline().GetObject()
-            c = _create_nurbs_curve_from_occ(occ_crv)
+            c = create_nurbs_curve_from_occ(occ_crv)
         else:
             msg = 'Curve type not yet supported.'
             raise RuntimeError(msg)
@@ -1705,7 +1688,6 @@ class PlaneByNormal(GeomBuilder):
 
     >>> from afem.geometry import PlaneByNormal
     >>> builder = PlaneByNormal((0., 0., 0.), (0., 0., 1.))
-    >>> assert builder.success
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
     Point(1.0, 1.0, 0.0)
@@ -1751,7 +1733,6 @@ class PlaneByAxes(GeomBuilder):
 
     >>> from afem.geometry import PlaneByAxes
     >>> builder = PlaneByAxes((0., 0., 0.), 'xz')
-    >>> assert builder.success
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
     Point(1.0, 0.0, 1.0)
@@ -1812,7 +1793,6 @@ class PlaneByPoints(GeomBuilder):
     >>> p2 = Point(1., 0., 0.)
     >>> p3 = Point(0., 1., 0.)
     >>> builder = PlaneByPoints(p1, p2, p3)
-    >>> assert builder.success
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
     Point(1.0, 1.0, 0.0)
@@ -1878,7 +1858,6 @@ class PlaneByApprox(GeomBuilder):
     >>> from afem.geometry import PlaneByApprox, Point
     >>> pnts = [Point(), Point(1., 0., 0.), Point(0., 1., 0.)]
     >>> builder = PlaneByApprox(pnts)
-    >>> assert builder.success
     >>> pln = builder.plane
     """
 
@@ -1946,7 +1925,6 @@ class PlanesAlongCurveByNumber(GeomBuilder):
     >>> from afem.geometry import LineByPoints, PlanesAlongCurveByNumber
     >>> line = LineByPoints((0., 0., 0.), (10., 0., 0.)).line
     >>> builder = PlanesAlongCurveByNumber(line, 3, u1=0., u2=10.)
-    >>> assert builder.success
     >>> builder.nplanes
     3
     >>> builder.parameters
@@ -1961,7 +1939,7 @@ class PlanesAlongCurveByNumber(GeomBuilder):
 
         # Build
         pnt_builder = PointsAlongCurveByNumber(c, n, u1, u2, d1, d2, tol)
-        if not pnt_builder.success:
+        if pnt_builder.npts == 0:
             msg = ('Failed to generate points along the curve for creating '
                    'planes along a curve by number.')
             raise RuntimeError(msg)
@@ -2060,7 +2038,6 @@ class PlanesAlongCurveByDistance(GeomBuilder):
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
     >>> builder = PlanesAlongCurveByDistance(line, 5., u1=0., u2=10.)
-    >>> assert builder.success
     >>> builder.nplanes
     3
     >>> builder.parameters
@@ -2074,7 +2051,7 @@ class PlanesAlongCurveByDistance(GeomBuilder):
         # Build
         pnt_builder = PointsAlongCurveByDistance(c, maxd, u1, u2, d1, d2,
                                                  nmin, tol)
-        if not pnt_builder.success:
+        if pnt_builder.npts == 0:
             msg = ('Failed to generate points along the curve for creating '
                    'planes along a curve by distance.')
             raise RuntimeError(msg)
@@ -2165,7 +2142,6 @@ class PlanesBetweenPlanesByNumber(GeomBuilder):
     >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
     >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
     >>> builder = PlanesBetweenPlanesByNumber(pln1, pln2, 3)
-    >>> assert builder.success
     >>> builder.nplanes
     3
     >>> builder.spacing
@@ -2188,12 +2164,12 @@ class PlanesBetweenPlanesByNumber(GeomBuilder):
         p1 = pln1.eval(0., 0.)
         vn = pln1.norm(0., 0.)
         line = LineByVector(p1, vn).line
-        csi = IntersectCurveSurface(line, pln2)
-        if csi.npts == 0:
+        csi = GeomAPI_IntCS(line.handle, pln2.handle)
+        if csi.NbPoints() == 0:
             msg = ('Failed to intersect the second plane to create planes '
                    'between them.')
             raise RuntimeError(msg)
-        p2 = csi.point(1)
+        p2 = csi.Point(1)
 
         line = NurbsCurveByPoints([p1, p2]).curve
         builder = PlanesAlongCurveByNumber(line, n, pln1, d1=d1, d2=d2)
@@ -2256,7 +2232,6 @@ class PlanesBetweenPlanesByDistance(GeomBuilder):
     >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
     >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
     >>> builder = PlanesBetweenPlanesByDistance(pln1, pln2, 5.)
-    >>> assert builder.success
     >>> builder.nplanes
     3
     >>> builder.spacing
@@ -2279,12 +2254,12 @@ class PlanesBetweenPlanesByDistance(GeomBuilder):
         p1 = pln1.eval(0., 0.)
         vn = pln1.norm(0., 0.)
         line = LineByVector(p1, vn).line
-        csi = IntersectCurveSurface(line, pln2)
-        if csi.npts == 0:
+        csi = GeomAPI_IntCS(line.handle, pln2.handle)
+        if csi.NbPoints() == 0:
             msg = ('Failed to intersect the second plane to create planes '
                    'between them.')
             raise RuntimeError(msg)
-        p2 = csi.point(1)
+        p2 = csi.Point(1)
 
         line = NurbsCurveByPoints([p1, p2]).curve
         builder = PlanesAlongCurveByDistance(line, maxd, pln1, d1=d1, d2=d2,
@@ -2348,7 +2323,6 @@ class NurbsSurfaceByData(GeomBuilder):
     >>> p = 1
     >>> q = 1
     >>> builder = NurbsSurfaceByData(cp, uknots, vknots, umult, vmult, p, q)
-    >>> assert builder.success
     >>> s = builder.surface
     >>> s.eval(0.5, 0.5)
     Point(5.0, 5.0, 0.0)
