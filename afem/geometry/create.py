@@ -972,7 +972,7 @@ class PointsAlongCurveByDistance(GeomBuilder):
             n = nmin
 
         # Create uniform abscissa
-        ua = GCPnts_UniformAbscissa(adp_crv, n, u1, u2, tol)
+        ua = GCPnts_UniformAbscissa(adp_crv, int(n), u1, u2, tol)
         if not ua.IsDone():
             msg = "GCPnts_UniformAbscissa failed."
             raise RuntimeError(msg)
