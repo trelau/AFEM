@@ -23,9 +23,9 @@ from OCC.TopTools import Handle_TopTools_HSequenceOfShape, \
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Face, TopoDS_Shape, \
     TopoDS_Shell, TopoDS_Wire, topods_Wire
 
-from .check import CheckShape
-from .explore import ExploreShape
-from ..geometry import BBox, CheckGeom, CreateGeom
+from afem.geometry import BBox, CheckGeom, CreateGeom
+from afem.topology.check import CheckShape
+from afem.topology.explore import ExploreShape
 
 
 class CreateShape(object):

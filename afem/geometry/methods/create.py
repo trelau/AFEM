@@ -18,15 +18,15 @@ from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
 
-from ..utils import dehomogenize_array2d, homogenize_array1d
-from ...occ.utils import to_np_from_tcolgp_array1_pnt, \
+from afem.geometry.entities import *
+from afem.occ.utils import to_np_from_tcolgp_array1_pnt, \
     to_np_from_tcolstd_array1_real, to_tcolgp_array1_pnt, \
     to_tcolgp_array1_pnt2d, to_tcolgp_array2_pnt, to_tcolgp_harray1_pnt, \
     to_tcolstd_array1_integer, to_tcolstd_array1_real, \
     to_tcolstd_array2_real
 from .evaluate import basis_funs, find_span
 from .parameterize import centripetal, chord_length, uniform
-from afem.geometry.entities import *
+from ..utils import dehomogenize_array2d, homogenize_array1d
 from ...config import Settings
 
 __all__ = []

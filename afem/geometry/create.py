@@ -39,7 +39,8 @@ from afem.geometry.utils import (basis_funs, centripetal_parameters,
 from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolstd_array1_real,
                             to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
-                            to_tcolgp_harray1_pnt, to_tcolstd_array1_integer,
+                            to_tcolgp_harray1_pnt,
+                            to_tcolstd_array1_integer,
                             to_tcolstd_array1_real,
                             to_tcolstd_array2_real)
 

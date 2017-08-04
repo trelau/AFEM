@@ -18,7 +18,7 @@ from OCC.gp import gp_Pnt
 
 # TODO Fix import error
 try:
-    from ..geometry.check import CheckGeom
+    from afem.geometry.check import CheckGeom
 except ImportError:
     pass
 

@@ -18,9 +18,9 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 
 from afem.geometry.entities import Line, Plane
-from .check import CheckShape
-from ..geometry.methods.create import (create_nurbs_curve_from_occ,
-                                       create_nurbs_surface_from_occ)
+from afem.topology.check import CheckShape
+from afem.geometry.methods.create import (create_nurbs_curve_from_occ,
+                                          create_nurbs_surface_from_occ)
 
 
 def _make_compound(shapes):
