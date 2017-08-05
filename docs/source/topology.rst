@@ -244,6 +244,30 @@ SplitShapes
 ~~~~~~~~~~~~
 .. autoclass:: SplitShapes
 
+Offset
+------
+.. py:currentmodule:: afem.topology.offset
+
+ProjectShape
+~~~~~~~~~~~~
+.. autoclass:: ProjectShape
+
+OffsetShape
+~~~~~~~~~~~
+.. autoclass:: OffsetShape
+
+LoftShape
+~~~~~~~~~
+.. autoclass:: LoftShape
+
+SweepShape
+~~~~~~~~~~
+.. autoclass:: SweepShape
+
+SweepWithNormal
+~~~~~~~~~~~~~~~
+.. autoclass:: SweepWithNormal
+
 Properties
 ----------
 .. py:currentmodule:: afem.topology.props
