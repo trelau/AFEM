@@ -86,8 +86,8 @@ pygments_style = 'sphinx'
 todo_include_todos = True
 
 # Member order
-# autodoc_member_order = 'bysource'
-autodoc_member_order = 'groupwise'
+autodoc_member_order = 'bysource'
+# autodoc_member_order = 'groupwise'
 
 # Default flags
 # autodoc_default_flags = ['members', 'inherited-members', 'show-inheritance']

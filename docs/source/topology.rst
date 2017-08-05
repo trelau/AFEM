@@ -212,6 +212,10 @@ Boolean
 -------
 .. py:currentmodule:: afem.topology.bop
 
+BopAlgo
+~~~~~~~
+.. autoclass:: BopAlgo
+
 FuseShapes
 ~~~~~~~~~~
 .. autoclass:: FuseShapes

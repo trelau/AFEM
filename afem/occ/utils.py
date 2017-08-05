@@ -15,7 +15,8 @@ __all__ = ["to_gp_pnt", "to_gp_pnt2d", "to_np_from_tcolgp_array1_pnt",
            "to_tcolgp_array1_pnt", "to_tcolgp_array1_pnt2d",
            "to_tcolgp_array2_pnt", "to_tcolgp_harray1_pnt",
            "to_tcolstd_array1_integer", "to_tcolstd_array1_real",
-           "to_tcolstd_array2_real"]
+           "to_tcolstd_array2_real", "to_toptools_listofshape",
+           "to_lst_from_toptools_listofshape"]
 
 
 def to_gp_pnt(p):
@@ -287,7 +288,7 @@ def to_np_from_tcolstd_array2_real(tcol_array):
     return array
 
 
-def toptools_listofshape(shapes):
+def to_toptools_listofshape(shapes):
     """
     Create TopTools_ListOfShape from shapes.
 
@@ -299,4 +300,24 @@ def toptools_listofshape(shapes):
     lst = TopTools_ListOfShape()
     for s in shapes:
         lst.Append(s)
+    return lst
+
+
+def to_lst_from_toptools_listofshape(toptools_list):
+    """
+    Create a list from a TopTools_ListOfShape.
+
+    :param OCC.TopTools.TopTools_ListOfShape toptools_list: The
+        TopTools_ListOfShape.
+
+    :return: A list of shapes.
+    :rtype: list[OCC.TopoDS.TopoDS_Shape]
+    """
+    if toptools_list.IsEmpty():
+        return []
+    lst = []
+    while not toptools_list.IsEmpty():
+        shp = toptools_list.First()
+        lst.append(shp)
+        toptools_list.RemoveFirst()
     return lst
