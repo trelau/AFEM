@@ -4,7 +4,6 @@ import OCC.BSplCLib as CLib
 from OCC.Approx import (Approx_Centripetal, Approx_ChordLength,
                         Approx_IsoParametric)
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-from OCC.Geom import Geom_Curve
 from OCC.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                          GeomAPI_PointsToBSpline)
 from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_C0, GeomAbs_C1,
@@ -635,25 +634,7 @@ class CreatedPoints(object):
         return zip(self._pnts, self._params)
 
 
-class GeomBuilder(object):
-    """
-    Base class for building geometry.
-    """
-
-    def __init__(self):
-        self._results = {}
-
-    def _set(self, key, value):
-        self._results[key] = value
-
-    def _get(self, key):
-        try:
-            return self._results[key]
-        except KeyError:
-            return None
-
-
-class PointByXYZ(GeomBuilder):
+class PointByXYZ(object):
     """
     Create a point by x, y, and z location.
 
@@ -669,12 +650,8 @@ class PointByXYZ(GeomBuilder):
     """
 
     def __init__(self, x=0., y=0., z=0.):
-        super(PointByXYZ, self).__init__()
-
-        # Build
         p = Point(x, y, z)
-        self._set('p', p)
-        self._success = True
+        self._p = p
 
     @property
     def point(self):
@@ -682,7 +659,7 @@ class PointByXYZ(GeomBuilder):
         :return: The created point.
         :rtype: afem.geometry.entities.Point
         """
-        return self._get('p')
+        return self._p
 
 
 class PointByArray(PointByXYZ):
@@ -708,7 +685,7 @@ class PointByArray(PointByXYZ):
         super(PointByArray, self).__init__(x, y, z)
 
 
-class PointFromParameter(GeomBuilder):
+class PointFromParameter(object):
     """
     Create a point along a curve at a specified distance from a parameter.
 
@@ -733,9 +710,6 @@ class PointFromParameter(GeomBuilder):
     """
 
     def __init__(self, c, u0, ds, tol=1.0e-7):
-        super(PointFromParameter, self).__init__()
-
-        # Build
         adp_curve = GeomAdaptor_Curve(c.handle)
 
         ap = GCPnts_AbscissaPoint(tol, adp_curve, ds, u0)
@@ -744,10 +718,9 @@ class PointFromParameter(GeomBuilder):
             raise RuntimeError(msg)
 
         u = ap.Parameter()
-        self._set('u', u)
+        self._u = u
         p = c.eval(u)
-        self._set('p', p)
-        self._success = True
+        self._p = p
 
     @property
     def point(self):
@@ -755,7 +728,7 @@ class PointFromParameter(GeomBuilder):
         :return: The created point.
         :rtype: afem.geometry.entities.Point
         """
-        return self._get('p')
+        return self._p
 
     @property
     def parameter(self):
@@ -763,10 +736,10 @@ class PointFromParameter(GeomBuilder):
         :return: The parameter on the curve.
         :rtype: float
         """
-        return self._get('u')
+        return self._u
 
 
-class PointsAlongCurveByNumber(GeomBuilder):
+class PointsAlongCurveByNumber(object):
     """
     Create a specified number of points along a curve. The points will be
     equidistant.
@@ -807,10 +780,7 @@ class PointsAlongCurveByNumber(GeomBuilder):
     """
 
     def __init__(self, c, n, u1=None, u2=None, d1=None, d2=None, tol=1.0e-7):
-        super(PointsAlongCurveByNumber, self).__init__()
         n = int(n)
-
-        # Build
         adp_crv = GeomAdaptor_Curve(c.handle)
 
         # Set u1 and u2
@@ -850,16 +820,15 @@ class PointsAlongCurveByNumber(GeomBuilder):
             adp_crv.D0(u, p)
             pnts.append(p)
             prms.append(u)
-        self._set('npts', npts)
-        self._set('prms', prms)
-        self._set('pnts', pnts)
+        self._npts = npts
+        self._prms = prms
+        self._pnts = pnts
 
         # Point spacing
+        self._ds = None
         if npts > 1:
             ds = pnts[0].distance(pnts[1])
-            self._set('ds', ds)
-
-        self._success = True
+            self._ds = ds
 
     @property
     def npts(self):
@@ -867,7 +836,7 @@ class PointsAlongCurveByNumber(GeomBuilder):
         :return: The number of points.
         :rtype: int
         """
-        return self._get('npts')
+        return self._npts
 
     @property
     def points(self):
@@ -875,7 +844,7 @@ class PointsAlongCurveByNumber(GeomBuilder):
         :return: The points.
         :rtype: list[afem.geometry.entities.Point]
         """
-        return self._get('pnts')
+        return self._pnts
 
     @property
     def parameters(self):
@@ -883,7 +852,7 @@ class PointsAlongCurveByNumber(GeomBuilder):
         :return: The parameters.
         :rtype: list[float]
         """
-        return self._get('prms')
+        return self._prms
 
     @property
     def spacing(self):
@@ -892,10 +861,10 @@ class PointsAlongCurveByNumber(GeomBuilder):
             are more than one point. Otherwise *None*.
         :rtype: float or None
         """
-        return self._get('ds')
+        return self._ds
 
 
-class PointsAlongCurveByDistance(GeomBuilder):
+class PointsAlongCurveByDistance(object):
     """
     Create points along a curve by distance between points. The points will
     be equidistant. This method calculates the number of points given the
@@ -936,11 +905,9 @@ class PointsAlongCurveByDistance(GeomBuilder):
 
     def __init__(self, c, maxd, u1=None, u2=None, d1=None, d2=None, nmin=0,
                  tol=1.0e-7):
-        super(PointsAlongCurveByDistance, self).__init__()
         maxd = float(maxd)
         nmin = int(nmin)
 
-        # Build
         adp_crv = GeomAdaptor_Curve(c.handle)
 
         # Set u1 and u2
@@ -987,16 +954,15 @@ class PointsAlongCurveByDistance(GeomBuilder):
             adp_crv.D0(u, p)
             pnts.append(p)
             prms.append(u)
-        self._set('npts', npts)
-        self._set('prms', prms)
-        self._set('pnts', pnts)
+        self._npts = npts
+        self._prms = prms
+        self._pnts = pnts
 
         # Point spacing
+        self._ds = None
         if npts > 1:
             ds = pnts[0].distance(pnts[1])
-            self._set('ds', ds)
-
-        self._success = True
+            self._ds = ds
 
     @property
     def npts(self):
@@ -1004,7 +970,7 @@ class PointsAlongCurveByDistance(GeomBuilder):
         :return: The number of points.
         :rtype: int
         """
-        return self._get('npts')
+        return self._npts
 
     @property
     def points(self):
@@ -1012,7 +978,7 @@ class PointsAlongCurveByDistance(GeomBuilder):
         :return: The points.
         :rtype: list[afem.geometry.entities.Point]
         """
-        return self._get('pnts')
+        return self._pnts
 
     @property
     def parameters(self):
@@ -1020,7 +986,7 @@ class PointsAlongCurveByDistance(GeomBuilder):
         :return: The parameters.
         :rtype: list[float]
         """
-        return self._get('prms')
+        return self._prms
 
     @property
     def spacing(self):
@@ -1029,10 +995,10 @@ class PointsAlongCurveByDistance(GeomBuilder):
             are more than one point. Otherwise *None*.
         :rtype: float or None
         """
-        return self._get('ds')
+        return self._ds
 
 
-class DirectionByXYZ(GeomBuilder):
+class DirectionByXYZ(object):
     """
     Create a direction (i.e., unit vector) by x-, y-, and z-components.
 
@@ -1048,12 +1014,8 @@ class DirectionByXYZ(GeomBuilder):
     """
 
     def __init__(self, x=0., y=0., z=0.):
-        super(DirectionByXYZ, self).__init__()
-
-        # Build
         d = Direction(x, y, z)
-        self._set('d', d)
-        self._success = True
+        self._d = d
 
     @property
     def direction(self):
@@ -1061,7 +1023,7 @@ class DirectionByXYZ(GeomBuilder):
         :return: The direction.
         :rtype: afem.geometry.entities.Direction
         """
-        return self._get('d')
+        return self._d
 
 
 class DirectionByArray(DirectionByXYZ):
@@ -1109,7 +1071,7 @@ class DirectionByPoints(DirectionByArray):
         super(DirectionByPoints, self).__init__(p2 - p1)
 
 
-class VectorByXYZ(GeomBuilder):
+class VectorByXYZ(object):
     """
     Create a vector by x-, y-, and z-components.
 
@@ -1125,12 +1087,8 @@ class VectorByXYZ(GeomBuilder):
     """
 
     def __init__(self, x=0., y=0., z=0.):
-        super(VectorByXYZ, self).__init__()
-
-        # Build
         v = Vector(x, y, z)
-        self._set('v', v)
-        self._success = True
+        self._v = v
 
     @property
     def vector(self):
@@ -1138,7 +1096,7 @@ class VectorByXYZ(GeomBuilder):
         :return: The vector.
         :rtype: afem.geometry.entities.Vector
         """
-        return self._get('v')
+        return self._v
 
 
 class VectorByArray(VectorByXYZ):
@@ -1164,7 +1122,7 @@ class VectorByArray(VectorByXYZ):
         super(VectorByArray, self).__init__(x, y, z)
 
 
-class VectorByPoints(GeomBuilder):
+class VectorByPoints(object):
     """
     Create a vecotr between two points.
 
@@ -1181,9 +1139,6 @@ class VectorByPoints(GeomBuilder):
     """
 
     def __init__(self, p1, p2):
-        super(VectorByPoints, self).__init__()
-
-        # Build
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
         if None in [p1, p2]:
@@ -1191,8 +1146,7 @@ class VectorByPoints(GeomBuilder):
             raise TypeError(msg)
 
         v = Vector(p1, p2)
-        self._set('v', v)
-        self._success = isinstance(v, Vector)
+        self._v = v
 
     @property
     def vector(self):
@@ -1200,10 +1154,10 @@ class VectorByPoints(GeomBuilder):
         :return: The vector.
         :rtype: afem.geometry.entities.Vector
         """
-        return self._get('v')
+        return self._v
 
 
-class LineByVector(GeomBuilder):
+class LineByVector(object):
     """
     Create a line by an origin and a vector.
 
@@ -1223,9 +1177,6 @@ class LineByVector(GeomBuilder):
     """
 
     def __init__(self, p, d):
-        super(LineByVector, self).__init__()
-
-        # Build
         p = CheckGeom.to_point(p)
         d = CheckGeom.to_direction(d)
         if not isinstance(p, Point):
@@ -1235,9 +1186,8 @@ class LineByVector(GeomBuilder):
             msg = "Invalid direction."
             raise TypeError(msg)
 
-        lin = Line(p, d)
-        self._set('lin', lin)
-        self._success = True
+        line = Line(p, d)
+        self._line = line
 
     @property
     def line(self):
@@ -1245,10 +1195,10 @@ class LineByVector(GeomBuilder):
         :return: The line.
         :rtype: afem.geometry.entities.Line
         """
-        return self._get('lin')
+        return self._line
 
 
-class LineByPoints(GeomBuilder):
+class LineByPoints(object):
     """
     Create a line through two points.
 
@@ -1267,9 +1217,6 @@ class LineByPoints(GeomBuilder):
     """
 
     def __init__(self, p1, p2):
-        super(LineByPoints, self).__init__()
-
-        # Build
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
         if not isinstance(p1, Point):
@@ -1281,9 +1228,8 @@ class LineByPoints(GeomBuilder):
 
         d = DirectionByArray(p2 - p1).direction
 
-        lin = Line(p1, d)
-        self._set('lin', lin)
-        self._success = True
+        line = Line(p1, d)
+        self._line = line
 
     @property
     def line(self):
@@ -1291,10 +1237,10 @@ class LineByPoints(GeomBuilder):
         :return: The line.
         :rtype: afem.geometry.entities.Line
         """
-        return self._get('lin')
+        return self._line
 
 
-class NurbsCurveByData(GeomBuilder):
+class NurbsCurveByData(object):
     """
     Create a NURBS curve by data.
 
@@ -1323,10 +1269,7 @@ class NurbsCurveByData(GeomBuilder):
     """
 
     def __init__(self, cp, knots, mult, p, weights=None, is_periodic=False):
-        super(NurbsCurveByData, self).__init__()
         p = int(p)
-
-        # Build
         tcol_cp = to_tcolgp_array1_pnt(cp)
         tcol_knots = to_tcolstd_array1_real(knots)
         tcol_mult = to_tcolstd_array1_integer(mult)
@@ -1336,9 +1279,7 @@ class NurbsCurveByData(GeomBuilder):
 
         c = NurbsCurve(tcol_cp, tcol_weights, tcol_knots, tcol_mult, p,
                        is_periodic)
-
-        self._set('c', c)
-        self._success = True
+        self._c = c
 
     @property
     def curve(self):
@@ -1346,10 +1287,10 @@ class NurbsCurveByData(GeomBuilder):
         :return: The NURBS curve.
         :rtype: afem.geometry.entities.NurbsCurve
         """
-        return self._get('c')
+        return self._c
 
 
-class NurbsCurveByInterp(GeomBuilder):
+class NurbsCurveByInterp(object):
     """
     Create a cubic curve by interpolating points.
 
@@ -1384,9 +1325,6 @@ class NurbsCurveByInterp(GeomBuilder):
     """
 
     def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
-        super(NurbsCurveByInterp, self).__init__()
-
-        # Build
         tcol_hpnts = to_tcolgp_harray1_pnt(qp)
         # TODO Remove use of GetHandle
         interp = GeomAPI_Interpolate(tcol_hpnts.GetHandle(),
@@ -1406,8 +1344,7 @@ class NurbsCurveByInterp(GeomBuilder):
         # TODO Remove use of GetObject
         occ_crv = interp.Curve().GetObject()
         c = create_nurbs_curve_from_occ(occ_crv)
-        self._set('c', c)
-        self._success = True
+        self._c = c
 
     @property
     def curve(self):
@@ -1415,10 +1352,10 @@ class NurbsCurveByInterp(GeomBuilder):
         :return: The NURBS curve.
         :rtype: afem.geometry.entities.NurbsCurve
         """
-        return self._get('c')
+        return self._c
 
 
-class NurbsCurveByApprox(GeomBuilder):
+class NurbsCurveByApprox(object):
     """
     Create a NURBS curve by approximating points.
 
@@ -1457,9 +1394,6 @@ class NurbsCurveByApprox(GeomBuilder):
 
     def __init__(self, qp, dmin=3, dmax=8, continuity='C2',
                  parm_type='chord', tol=1.0e-3):
-        super(NurbsCurveByApprox, self).__init__()
-
-        # Build
         dmin = int(dmin)
         dmax = int(dmax)
         tcol_pnts = to_tcolgp_array1_pnt(qp)
@@ -1483,8 +1417,7 @@ class NurbsCurveByApprox(GeomBuilder):
         # TODO Remove use of GetObject
         occ_crv = fit.Curve().GetObject()
         c = create_nurbs_curve_from_occ(occ_crv)
-        self._set('c', c)
-        self._success = True
+        self._c = c
 
     @property
     def curve(self):
@@ -1492,7 +1425,7 @@ class NurbsCurveByApprox(GeomBuilder):
         :return: The NURBS curve.
         :rtype: afem.geometry.entities.NurbsCurve
         """
-        return self._get('c')
+        return self._c
 
 
 class NurbsCurveByPoints(NurbsCurveByApprox):
@@ -1522,7 +1455,7 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
         super(NurbsCurveByPoints, self).__init__(qp, 1, 1, 'C0')
 
 
-class CurveByUIso(GeomBuilder):
+class CurveByUIso(object):
     """
     Create an isocurve from a surface at a constant u-parameter.
 
@@ -1553,9 +1486,6 @@ class CurveByUIso(GeomBuilder):
     """
 
     def __init__(self, s, u):
-        super(CurveByUIso, self).__init__()
-
-        # Build
         # TODO Handle other curve types
         hcrv = s.UIso(u)
         adp_curve = GeomAdaptor_Curve(hcrv)
@@ -1569,8 +1499,7 @@ class CurveByUIso(GeomBuilder):
             msg = 'Curve type not yet supported.'
             raise RuntimeError(msg)
 
-        self._set('c', c)
-        self._success = True
+        self._c = c
 
     @property
     def is_line(self):
@@ -1594,10 +1523,10 @@ class CurveByUIso(GeomBuilder):
         :return: The curve.
         :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
         """
-        return self._get('c')
+        return self._c
 
 
-class CurveByVIso(GeomBuilder):
+class CurveByVIso(object):
     """
     Create an isocurve from a surface at a constant v-parameter.
 
@@ -1628,9 +1557,6 @@ class CurveByVIso(GeomBuilder):
     """
 
     def __init__(self, s, v):
-        super(CurveByVIso, self).__init__()
-
-        # Build
         # TODO Handle other curve types
         hcrv = s.VIso(v)
         adp_curve = GeomAdaptor_Curve(hcrv)
@@ -1644,8 +1570,7 @@ class CurveByVIso(GeomBuilder):
             msg = 'Curve type not yet supported.'
             raise RuntimeError(msg)
 
-        self._set('c', c)
-        self._success = isinstance(c, Geom_Curve)
+        self._c = c
 
     @property
     def is_line(self):
@@ -1669,10 +1594,10 @@ class CurveByVIso(GeomBuilder):
         :return: The curve.
         :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
         """
-        return self._get('c')
+        return self._c
 
 
-class PlaneByNormal(GeomBuilder):
+class PlaneByNormal(object):
     """
     Create a plane by an origin and a normal vector.
 
@@ -1692,9 +1617,6 @@ class PlaneByNormal(GeomBuilder):
     """
 
     def __init__(self, origin=(0., 0., 0.), vnorm=(0., 0., 1.)):
-        super(PlaneByNormal, self).__init__()
-
-        # Build
         p0 = CheckGeom.to_point(origin)
         vn = CheckGeom.to_direction(vnorm)
         if not isinstance(p0, Point):
@@ -1705,8 +1627,7 @@ class PlaneByNormal(GeomBuilder):
             raise TypeError(msg)
 
         pln = Plane(p0, vn)
-        self._set('pln', pln)
-        self._success = True
+        self._pln = pln
 
     @property
     def plane(self):
@@ -1714,10 +1635,10 @@ class PlaneByNormal(GeomBuilder):
         :return: The plane.
         :rtype: afem.geometry.entities.Plane
         """
-        return self._get('pln')
+        return self._pln
 
 
-class PlaneByAxes(GeomBuilder):
+class PlaneByAxes(object):
     """
     Create a plane by an origin and basic axes.
 
@@ -1737,9 +1658,6 @@ class PlaneByAxes(GeomBuilder):
     """
 
     def __init__(self, origin=(0., 0., 0.), axes='xz'):
-        super(PlaneByAxes, self).__init__()
-
-        # Build
         origin = CheckGeom.to_point(origin)
         axes = axes.lower()
         if not isinstance(origin, Point):
@@ -1759,8 +1677,7 @@ class PlaneByAxes(GeomBuilder):
             msg = 'Unknown axes.'
             raise RuntimeError(msg)
 
-        self._set('pln', pln)
-        self._success = True
+        self._pln = pln
 
     @property
     def plane(self):
@@ -1768,10 +1685,10 @@ class PlaneByAxes(GeomBuilder):
         :return: The plane.
         :rtype: afem.geometry.entities.Plane
         """
-        return self._get('pln')
+        return self._pln
 
 
-class PlaneByPoints(GeomBuilder):
+class PlaneByPoints(object):
     """
     Create a plane by three points. The points must not be collinear. The
     plane will be defined by (*p2* - *p1*) x (*p3* - *p1*).
@@ -1797,9 +1714,6 @@ class PlaneByPoints(GeomBuilder):
     """
 
     def __init__(self, p1, p2, p3):
-        super(PlaneByPoints, self).__init__()
-
-        # Build
         p1 = CheckGeom.to_point(p1)
         if not isinstance(p1, Point):
             msg = 'Invalid point 1.'
@@ -1825,8 +1739,7 @@ class PlaneByPoints(GeomBuilder):
         ax = Axis3(p1, n, vx)
         pln = Plane(gp_Pln(ax))
 
-        self._set('pln', pln)
-        self._success = True
+        self._pln = pln
 
     @property
     def plane(self):
@@ -1834,10 +1747,10 @@ class PlaneByPoints(GeomBuilder):
         :return: The plane.
         :rtype: afem.geometry.entities.Plane
         """
-        return self._get('pln')
+        return self._pln
 
 
-class PlaneByApprox(GeomBuilder):
+class PlaneByApprox(object):
     """
     Create a plane by fitting points. The points must not be collinear.
 
@@ -1860,9 +1773,6 @@ class PlaneByApprox(GeomBuilder):
     """
 
     def __init__(self, pnts, tol=1.0e-7):
-        super(PlaneByApprox, self).__init__()
-
-        # Build
         _pnts = [CheckGeom.to_point(p) for p in pnts if
                  CheckGeom.is_point_like(p)]
         if len(_pnts) < 3:
@@ -1884,8 +1794,7 @@ class PlaneByApprox(GeomBuilder):
         gp_pln.SetLocation(pcg)
         pln = Plane(gp_pln)
 
-        self._set('pln', pln)
-        self._success = True
+        self._pln = pln
 
     @property
     def plane(self):
@@ -1893,10 +1802,10 @@ class PlaneByApprox(GeomBuilder):
         :return: The plane.
         :rtype: afem.geometry.entities.Plane
         """
-        return self._get('pln')
+        return self._pln
 
 
-class PlanesAlongCurveByNumber(GeomBuilder):
+class PlanesAlongCurveByNumber(object):
     """
     Create planes along a curve using a specified number. The origin of the
     planes will be equidistant along the curve.
@@ -1933,9 +1842,6 @@ class PlanesAlongCurveByNumber(GeomBuilder):
 
     def __init__(self, c, n, ref_pln=None, u1=None, u2=None, d1=None,
                  d2=None, tol=1.0e-7):
-        super(PlanesAlongCurveByNumber, self).__init__()
-
-        # Build
         pnt_builder = PointsAlongCurveByNumber(c, n, u1, u2, d1, d2, tol)
         if pnt_builder.npts == 0:
             msg = ('Failed to generate points along the curve for creating '
@@ -1963,11 +1869,10 @@ class PlanesAlongCurveByNumber(GeomBuilder):
                 pln = Plane(p, dn)
                 plns.append(pln)
 
-        self._set('plns', plns)
-        self._set('nplns', npts)
-        self._set('prms', prms)
-        self._set('ds', spacing)
-        self._success = True
+        self._plns = plns
+        self._nplns = npts
+        self._prms = prms
+        self._ds = spacing
 
     @property
     def nplanes(self):
@@ -1975,7 +1880,7 @@ class PlanesAlongCurveByNumber(GeomBuilder):
         :return: The number of planes.
         :rtype: int
         """
-        return self._get('nplns')
+        return self._nplns
 
     @property
     def planes(self):
@@ -1983,7 +1888,7 @@ class PlanesAlongCurveByNumber(GeomBuilder):
         :return: The planes.
         :rtype: list[afem.geometry.entities.Plane]
         """
-        return self._get('plns')
+        return self._plns
 
     @property
     def parameters(self):
@@ -1991,7 +1896,7 @@ class PlanesAlongCurveByNumber(GeomBuilder):
         :return: The parameters.
         :rtype: list[float]
         """
-        return self._get('prms')
+        return self._prms
 
     @property
     def spacing(self):
@@ -2000,10 +1905,10 @@ class PlanesAlongCurveByNumber(GeomBuilder):
             are more than one point. Otherwise *None*.
         :rtype: float or None
         """
-        return self._get('ds')
+        return self._ds
 
 
-class PlanesAlongCurveByDistance(GeomBuilder):
+class PlanesAlongCurveByDistance(object):
     """
     Create planes along a curve by distance between points. The origin of the
     planes will be equidistant along the curve. This method calculates the
@@ -2044,9 +1949,6 @@ class PlanesAlongCurveByDistance(GeomBuilder):
 
     def __init__(self, c, maxd, ref_pln=None, u1=None, u2=None, d1=None,
                  d2=None, nmin=0, tol=1.0e-7):
-        super(PlanesAlongCurveByDistance, self).__init__()
-
-        # Build
         pnt_builder = PointsAlongCurveByDistance(c, maxd, u1, u2, d1, d2,
                                                  nmin, tol)
         if pnt_builder.npts == 0:
@@ -2075,11 +1977,10 @@ class PlanesAlongCurveByDistance(GeomBuilder):
                 pln = Plane(p, dn)
                 plns.append(pln)
 
-        self._set('plns', plns)
-        self._set('nplns', npts)
-        self._set('prms', prms)
-        self._set('ds', spacing)
-        self._success = True
+        self._plns = plns
+        self._nplns = npts
+        self._prms = prms
+        self._ds = spacing
 
     @property
     def nplanes(self):
@@ -2087,7 +1988,7 @@ class PlanesAlongCurveByDistance(GeomBuilder):
         :return: The number of planes.
         :rtype: int
         """
-        return self._get('nplns')
+        return self._nplns
 
     @property
     def planes(self):
@@ -2095,7 +1996,7 @@ class PlanesAlongCurveByDistance(GeomBuilder):
         :return: The planes.
         :rtype: list[afem.geometry.entities.Plane]
         """
-        return self._get('plns')
+        return self._plns
 
     @property
     def parameters(self):
@@ -2103,7 +2004,7 @@ class PlanesAlongCurveByDistance(GeomBuilder):
         :return: The parameters.
         :rtype: list[float]
         """
-        return self._get('prms')
+        return self._prms
 
     @property
     def spacing(self):
@@ -2112,10 +2013,10 @@ class PlanesAlongCurveByDistance(GeomBuilder):
             are more than one point. Otherwise *None*.
         :rtype: float or None
         """
-        return self._get('ds')
+        return self._ds
 
 
-class PlanesBetweenPlanesByNumber(GeomBuilder):
+class PlanesBetweenPlanesByNumber(object):
     """
     Create planes between two other planes. This method will create a line
     normal to the first plane at its origin and then intersect
@@ -2156,9 +2057,6 @@ class PlanesBetweenPlanesByNumber(GeomBuilder):
     """
 
     def __init__(self, pln1, pln2, n, d1=None, d2=None):
-        super(PlanesBetweenPlanesByNumber, self).__init__()
-
-        # Build
         p1 = pln1.eval(0., 0.)
         vn = pln1.norm(0., 0.)
         line = LineByVector(p1, vn).line
@@ -2172,10 +2070,9 @@ class PlanesBetweenPlanesByNumber(GeomBuilder):
         line = NurbsCurveByPoints([p1, p2]).curve
         builder = PlanesAlongCurveByNumber(line, n, pln1, d1=d1, d2=d2)
 
-        self._set('plns', builder.planes)
-        self._set('nplns', builder.nplanes)
-        self._set('ds', builder.spacing)
-        self._success = True
+        self._plns = builder.planes
+        self._nplns = builder.nplanes
+        self._ds = builder.spacing
 
     @property
     def nplanes(self):
@@ -2183,7 +2080,7 @@ class PlanesBetweenPlanesByNumber(GeomBuilder):
         :return: The number of planes.
         :rtype: int
         """
-        return self._get('nplns')
+        return self._nplns
 
     @property
     def planes(self):
@@ -2191,7 +2088,7 @@ class PlanesBetweenPlanesByNumber(GeomBuilder):
         :return: The planes.
         :rtype: list[afem.geometry.entities.Plane]
         """
-        return self._get('plns')
+        return self._plns
 
     @property
     def spacing(self):
@@ -2200,10 +2097,10 @@ class PlanesBetweenPlanesByNumber(GeomBuilder):
             are more than one point. Otherwise *None*.
         :rtype: float or None
         """
-        return self._get('ds')
+        return self._ds
 
 
-class PlanesBetweenPlanesByDistance(GeomBuilder):
+class PlanesBetweenPlanesByDistance(object):
     """
     Create planes between two other planes by distance. This method will
     create a line normal to the first plane at its origin and then intersect
@@ -2246,9 +2143,6 @@ class PlanesBetweenPlanesByDistance(GeomBuilder):
     """
 
     def __init__(self, pln1, pln2, maxd, d1=None, d2=None, nmin=0):
-        super(PlanesBetweenPlanesByDistance, self).__init__()
-
-        # Build
         p1 = pln1.eval(0., 0.)
         vn = pln1.norm(0., 0.)
         line = LineByVector(p1, vn).line
@@ -2263,10 +2157,9 @@ class PlanesBetweenPlanesByDistance(GeomBuilder):
         builder = PlanesAlongCurveByDistance(line, maxd, pln1, d1=d1, d2=d2,
                                              nmin=nmin)
 
-        self._set('plns', builder.planes)
-        self._set('nplns', builder.nplanes)
-        self._set('ds', builder.spacing)
-        self._success = True
+        self._plns = builder.planes
+        self._nplns = builder.nplanes
+        self._ds = builder.spacing
 
     @property
     def nplanes(self):
@@ -2274,7 +2167,7 @@ class PlanesBetweenPlanesByDistance(GeomBuilder):
         :return: The number of planes.
         :rtype: int
         """
-        return self._get('nplns')
+        return self._nplns
 
     @property
     def planes(self):
@@ -2282,7 +2175,7 @@ class PlanesBetweenPlanesByDistance(GeomBuilder):
         :return: The planes.
         :rtype: list[afem.geometry.entities.Plane]
         """
-        return self._get('plns')
+        return self._plns
 
     @property
     def spacing(self):
@@ -2291,10 +2184,10 @@ class PlanesBetweenPlanesByDistance(GeomBuilder):
             are more than one point. Otherwise *None*.
         :rtype: float or None
         """
-        return self._get('ds')
+        return self._ds
 
 
-class NurbsSurfaceByData(GeomBuilder):
+class NurbsSurfaceByData(object):
     """
     Create a NURBS surface by data.
 
@@ -2328,9 +2221,6 @@ class NurbsSurfaceByData(GeomBuilder):
 
     def __init__(self, cp, uknots, vknots, umult, vmult, p, q, weights=None,
                  is_u_periodic=False, is_v_periodic=False):
-        super(NurbsSurfaceByData, self).__init__()
-
-        # Build
         tcol_cp = to_tcolgp_array2_pnt(cp)
         tcol_uknots = to_tcolstd_array1_real(uknots)
         tcol_umult = to_tcolstd_array1_integer(umult)
@@ -2350,8 +2240,7 @@ class NurbsSurfaceByData(GeomBuilder):
             for j in range(1, tcol_weights.RowLength() + 1):
                 s.SetWeight(i, j, tcol_weights.Value(i, j))
 
-        self._set('s', s)
-        self._success = True
+        self._s = s
 
     @property
     def surface(self):
@@ -2359,10 +2248,10 @@ class NurbsSurfaceByData(GeomBuilder):
         :return: The NURBS surface.
         :rtype: afem.geometry.entities.NurbsSurface
         """
-        return self._get('s')
+        return self._s
 
 
-class NurbsSurfaceByInterp(GeomBuilder):
+class NurbsSurfaceByInterp(object):
     """
     Create a surface by interpolating curves. This method was developed from
     scratch using "The NURBS Book" since OpenCASCADE did not support
@@ -2389,9 +2278,6 @@ class NurbsSurfaceByInterp(GeomBuilder):
     """
 
     def __init__(self, crvs, q=3, parm_type='chord', tol2d=1.0e-9):
-        super(NurbsSurfaceByInterp, self).__init__()
-
-        # Build
         q = int(q)
 
         ncrvs = len(crvs)
@@ -2487,8 +2373,7 @@ class NurbsSurfaceByInterp(GeomBuilder):
         s = NurbsSurface(tcol_poles, tcol_weights, tcol_uknots, tcol_vknots,
                          tcol_umult, tcol_vmult, p, q, is_u_periodic, False)
 
-        self._set('s', s)
-        self._success = True
+        self._s = s
 
     @property
     def surface(self):
@@ -2496,10 +2381,10 @@ class NurbsSurfaceByInterp(GeomBuilder):
         :return: The NURBS surface.
         :rtype: afem.geometry.entities.NurbsSurface
         """
-        return self._get('s')
+        return self._s
 
 
-class NurbsSurfaceByApprox(GeomBuilder):
+class NurbsSurfaceByApprox(object):
     """
     Create a NURBS surface by approximating curves.
 
@@ -2540,9 +2425,6 @@ class NurbsSurfaceByApprox(GeomBuilder):
 
     def __init__(self, crvs, dmin=3, dmax=8, tol3d=1.0e-3, tol2d=1.0e-6,
                  niter=5, continuity='C2', parm_type='chord'):
-        super(NurbsSurfaceByApprox, self).__init__()
-
-        # Build
         dmin = int(dmin)
         dmax = int(dmax)
 
@@ -2594,10 +2476,9 @@ class NurbsSurfaceByApprox(GeomBuilder):
                          is_v_periodic)
 
         tol3d_reached, tol2d_reached = app_tool.TolReached()
-        self._set('s', s)
-        self._set('tol3d_reached', tol3d_reached)
-        self._set('tol2d_reached', tol2d_reached)
-        self._success = True
+        self._s = s
+        self._tol3d_reached = tol3d_reached
+        self._tol2d_reached = tol2d_reached
 
     @property
     def surface(self):
@@ -2605,7 +2486,7 @@ class NurbsSurfaceByApprox(GeomBuilder):
         :return: The NURBS surface.
         :rtype: afem.geometry.entities.NurbsSurface
         """
-        return self._get('s')
+        return self._s
 
     @property
     def told3d_reached(self):
@@ -2613,7 +2494,7 @@ class NurbsSurfaceByApprox(GeomBuilder):
         :return: 3-D tolerance achieved.
         :rtype: float
         """
-        return self._get('tol3d_reached')
+        return self._tol3d_reached
 
     @property
     def told2d_reached(self):
@@ -2621,7 +2502,7 @@ class NurbsSurfaceByApprox(GeomBuilder):
         :return: 2-D tolerance achieved.
         :rtype: float
         """
-        return self._get('tol2d_reached')
+        return self._tol2d_reached
 
 
 if __name__ == "__main__":

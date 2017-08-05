@@ -81,10 +81,6 @@ CreatedPoints
 ~~~~~~~~~~~~~
 .. autoclass:: CreatedPoints
 
-GeomBuilder
-~~~~~~~~~~~
-.. autoclass:: GeomBuilder
-
 PointByXYZ
 ~~~~~~~~~~
 .. autoclass:: PointByXYZ
