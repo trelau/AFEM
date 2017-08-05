@@ -1407,12 +1407,14 @@ class ShellBySewing(object):
     :param list[OCC.TopoDS.TopoDS_Face] faces: The faces.
     :param float tol: Sewing tolerance. If *None* the maximum tolerance of all
         the faces is used.
+    :param bool cut_free_edges: Option for cutting of free edges.
+    :param bool non_manifold: Option for non-manifold processing.
 
     :raise RuntimeError: If an invalid shape type results.
 
     Usage:
 
-    >>> from afem.topology import FaceByPlanarWire, ShellBySewing, WireByPoints
+    >>> from afem.topology import *
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -1425,16 +1427,33 @@ class ShellBySewing(object):
     >>> p4 = (0., 1., 0.)
     >>> w2 = WireByPoints([p1, p2, p3, p4], True).wire
     >>> f2 = FaceByPlanarWire(w2).face
-    >>> builder = ShellBySewing([f1])
+    >>> builder = ShellBySewing([f1, f2])
     >>> builder.nshells
     1
+    >>> len(ExploreShape.get_faces(builder.shell))
+    2
+    >>>
+    >>> # Non-manifold case
+    >>> p1 = (0., 0., 0.)
+    >>> p2 = (-1., 0., 0.)
+    >>> p3 = (-1., 1., 0.)
+    >>> p4 = (0., 1., 0.)
+    >>> w3 = WireByPoints([p1, p2, p3, p4], True).wire
+    >>> f3 = FaceByPlanarWire(w3).face
+    >>> builder = ShellBySewing([f1, f2, f3], non_manifold=True)
+    >>> builder.nshells
+    1
+    >>> len(ExploreShape.get_faces(builder.shell))
+    3
     """
 
-    def __init__(self, faces, tol=None):
+    def __init__(self, faces, tol=None, cut_free_edges=False,
+                 non_manifold=False):
         if tol is None:
             tol = max([ExploreShape.get_tolerance(f, 1) for f in faces])
 
-        tool = BRepBuilderAPI_Sewing(tol)
+        tool = BRepBuilderAPI_Sewing(tol, True, True, cut_free_edges,
+                                     non_manifold)
         for f in faces:
             tool.Add(f)
         tool.Perform()
@@ -1442,14 +1461,16 @@ class ShellBySewing(object):
         shape = tool.SewedShape()
         self._shells = []
         self._shell = None
+        self._nshells = 0
         if shape.ShapeType() == TopAbs_COMPOUND:
             self._shells = ExploreShape.get_shells(shape)
+            self._nshells = len(self._shells)
         elif shape.ShapeType() == TopAbs_FACE:
             self._shell = CheckShape.to_shell(shape)
-            self._shells = [self._shell]
+            self._nshells = 1
         elif shape.ShapeType() == TopAbs_SHELL:
             self._shell = topods_Shell(shape)
-            self._shells = [self._shell]
+            self._nshells = 1
         else:
             msg = 'Invalid shape type in ShellBySewing.'
             raise RuntimeError(msg)
@@ -1460,7 +1481,7 @@ class ShellBySewing(object):
         :return: Number of shells.
         :rtype: int
         """
-        return len(self._shells)
+        return self._nshells
 
     @property
     def shell(self):
@@ -1476,7 +1497,7 @@ class ShellBySewing(object):
         :return: The sewn shells if more than one is found.
         :rtype: list[OCC.TopoDS.TopoDS_Shell]
         """
-        return self._shell
+        return self._shells
 
 
 class SolidByShell(object):
