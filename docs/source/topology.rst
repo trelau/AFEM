@@ -246,7 +246,23 @@ SplitShapes
 
 Properties
 ----------
-Tools for shape properties (length, area, volume, etc.) will be here.
+.. py:currentmodule:: afem.topology.props
+
+ShapeProps
+~~~~~~~~~~
+.. autoclass:: ShapeProps
+
+LinearProps
+~~~~~~~~~~~
+.. autoclass:: LinearProps
+
+SurfaceProps
+~~~~~~~~~~~~
+.. autoclass:: SurfaceProps
+
+VolumeProps
+~~~~~~~~~~~
+.. autoclass:: VolumeProps
 
 Check
 -----
