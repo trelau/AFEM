@@ -18,9 +18,10 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 
 from afem.geometry.entities import Line, Plane
-from afem.topology.check import CheckShape
 from afem.geometry.methods.create import (create_nurbs_curve_from_occ,
                                           create_nurbs_surface_from_occ)
+
+__all__ = ["ExploreShape", "ExploreWire", "ExploreFreeEdges"]
 
 
 def _make_compound(shapes):
@@ -45,7 +46,12 @@ class ExploreShape(object):
         """
         Get vertices from a shape.
 
-        :return:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool as_compound: Option to return as a compound rather than
+            a list.
+
+        :return: Vertices of shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Vertex] or OCC.TopoDS.TopoDS_Compound
         """
         if isinstance(shape, TopoDS_Vertex):
             if as_compound:
@@ -68,11 +74,13 @@ class ExploreShape(object):
         """
         Get edges from a shape.
 
-        :param shape:
-        :param bool unique: Unique edges based on TShape and Location.
-        :param as_compound:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool as_compound: Option to return as a compound rather than
+            a list.
+        :param bool unique: Option to return only unique edges.
 
-        :return:
+        :return: Edges of shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Edge] or OCC.TopoDS.TopoDS_Compound
         """
         if isinstance(shape, TopoDS_Edge):
             if as_compound:
@@ -104,7 +112,12 @@ class ExploreShape(object):
         """
         Get wires from a shape.
 
-        :return:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool as_compound: Option to return as a compound rather than
+            a list.
+
+        :return: Wires of shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Wire] or OCC.TopoDS.TopoDS_Compound
         """
         if isinstance(shape, TopoDS_Wire):
             if as_compound:
@@ -127,7 +140,12 @@ class ExploreShape(object):
         """
         Get faces from a shape.
 
-        :return:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool as_compound: Option to return as a compound rather than
+            a list.
+
+        :return: Faces of shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Face] or OCC.TopoDS.TopoDS_Compound
         """
         if isinstance(shape, TopoDS_Face):
             if as_compound:
@@ -150,7 +168,12 @@ class ExploreShape(object):
         """
         Get shells from a shape.
 
-        :return:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool as_compound: Option to return as a compound rather than
+            a list.
+
+        :return: Shells of shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Shell] or OCC.TopoDS.TopoDS_Compound
         """
         if isinstance(shape, TopoDS_Shell):
             if as_compound:
@@ -173,7 +196,12 @@ class ExploreShape(object):
         """
         Get solids from a shape.
 
-        :return:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool as_compound: Option to return as a compound rather than
+            a list.
+
+        :return: Solids of shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Solid] or OCC.TopoDS.TopoDS_Compound
         """
         if isinstance(shape, TopoDS_Solid):
             if as_compound:
@@ -196,7 +224,12 @@ class ExploreShape(object):
         """
         Get compounds from a shape.
 
-        :return:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool as_compound: Option to return as a compound rather than
+            a list.
+
+        :return: Compounds of shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Compound] or OCC.TopoDS.TopoDS_Compound
         """
         if isinstance(shape, TopoDS_Compound):
             if as_compound:
@@ -219,14 +252,11 @@ class ExploreShape(object):
         """
         Get outer wire of face.
 
-        :param face:
+        :param OCC.TopoDS.TopoDS_Face face: The face.
 
-        :return:
+        :return: Outer wire.
+        :rtype: OCC.TopoDS.TopoDS_Wire
         """
-        face = CheckShape.to_face(face)
-        if not face:
-            return None
-
         return breptools_OuterWire(face)
 
     @staticmethod
@@ -234,14 +264,11 @@ class ExploreShape(object):
         """
         Get the outer shell of the solid.
 
-        :param solid:
+        :param OCC.TopoDS.TopoDS_Solid solid: The solid.
 
-        :return:
+        :return: Outer shell.
+        :rtype: OCC.TopoDS.TopoDS_Shell
         """
-        solid = CheckShape.to_solid(solid)
-        if not solid:
-            return None
-
         return brepclass3d.OuterShell(solid)
 
     @staticmethod
@@ -249,37 +276,42 @@ class ExploreShape(object):
         """
         Get the curve of the edge.
 
-        :param edge:
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
 
-        :return:
+        :return: Underlying curve of edge.
+        :rtype: afem.geometry.entities.Curve
+
+        :raise RuntimeError: If an unsupported curve type is found.
         """
-        edge = CheckShape.to_edge(edge)
-        if not edge:
-            return None
-
+        # TODO Handle other curve types.
         adp_crv = BRepAdaptor_Curve(edge)
         if adp_crv.GetType() == GeomAbs_Line:
             gp_lin = adp_crv.Line()
             crv = Line(gp_lin)
             return crv
-        # TODO Handle other curve types.
-        crv = adp_crv.BSpline().GetObject()
-        crv = create_nurbs_curve_from_occ(crv)
-        return crv
+        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
+            crv = adp_crv.BSpline().GetObject()
+            crv = create_nurbs_curve_from_occ(crv)
+            return crv
+        else:
+            msg = 'Unsupported curve type.'
+            raise RuntimeError(msg)
 
     @staticmethod
     def curve_of_wire(wire):
         """
-        Get the curve of the wire.
+        Get the curve of the wire. The edges are concatenated so the
+        resulting curve may be C0 continuous.
 
-        :return:
+        :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+
+        :return: Concatenated curve of wire.
+        :rtype: afem.geometry.entities.Curve
+
+        :raise RuntimeError: If an unsupported curve type is found.
         """
-        wire = CheckShape.to_wire(wire)
-        if not wire:
-            return None
-
         geom_convert = GeomConvert_CompCurveToBSplineCurve()
-        exp = ExploreShape.wire_explorer(wire)
+        exp = BRepTools_WireExplorer(wire)
         while exp.More():
             e = topods_Edge(exp.Current())
             exp.Next()
@@ -292,7 +324,8 @@ class ExploreShape(object):
             geom_convert.Add(adp_crv.BSpline(), tol)
         occ_crv = geom_convert.BSplineCurve().GetObject()
         if not occ_crv:
-            return None
+            msg = 'Unsupported curve type.'
+            raise RuntimeError(msg)
         crv = create_nurbs_curve_from_occ(occ_crv)
         return crv
 
@@ -301,30 +334,34 @@ class ExploreShape(object):
         """
         Get the curve of the shape if possible.
 
-        :param shape:
-        :return:
+        :param shape: The edge or wire.
+        :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+
+        :return: The underlying curve of the edge or wire.
+        :rtype: afem.geometry.entities.Curve
+
+        :raise TypeError: If *shape* is not an edge or wire.
         """
-        shape = CheckShape.to_shape(shape)
-        if isinstance(shape, TopoDS_Edge):
+        if shape.ShapeType() == TopAbs_EDGE:
             return cls.curve_of_edge(shape)
-        elif isinstance(shape, TopoDS_Wire):
+        elif shape.ShapeType() == TopAbs_WIRE:
             return cls.curve_of_wire(shape)
         else:
-            return None
+            msg = 'Invalid shape.'
+            raise TypeError(msg)
 
     @staticmethod
     def surface_of_face(face):
         """
         Get the surface of the face.
 
-        :param face:
+        :param OCC.TopoDS.TopoDS_Face face: The face.
 
-        :return:
+        :return: Underlying surface of face.
+        :rtype: afem.geometry.entities.Surface
+
+        :raise RuntimeError: If unsupported surface type is found.
         """
-        face = CheckShape.to_face(face)
-        if not face:
-            return None
-
         hsrf = BRep_Tool.Surface(face)
         adp_srf = GeomAdaptor_Surface(hsrf)
         if adp_srf.GetType() == GeomAbs_Plane:
@@ -334,8 +371,9 @@ class ExploreShape(object):
                                    GeomAbs_BSplineSurface]:
             occ_srf = adp_srf.BSpline().GetObject()
             return create_nurbs_surface_from_occ(occ_srf)
-
-        return None
+        else:
+            msg = 'Unsupported surface type.'
+            raise RuntimeError(msg)
 
     @classmethod
     def surface_of_shape(cls, shape):
@@ -356,39 +394,15 @@ class ExploreShape(object):
         return cls.surface_of_face(f)
 
     @staticmethod
-    def wire_explorer(wire, face=None):
-        """
-        Create a wire explorer.
-
-        :param wire:
-        :param face:
-
-        :return:
-        """
-        wire = CheckShape.to_wire(wire)
-        face = CheckShape.to_face(face)
-        if not wire:
-            return None
-
-        # TODO Use custom ExploreWire class
-        if not face:
-            return BRepTools_WireExplorer(wire)
-        else:
-            return BRepTools_WireExplorer(wire, face)
-
-    @staticmethod
     def first_vertex(edge):
         """
         Return the first vertex of the edge considering orientation.
 
-        :param edge:
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
 
-        :return:
+        :return: The first vertex.
+        :rtype: OCC.TopoDS.TopoDS_Vertex
         """
-        edge = CheckShape.to_edge(edge)
-        if not edge:
-            return None
-
         return ShapeAnalysis_Edge().FirstVertex(edge)
 
     @staticmethod
@@ -396,14 +410,11 @@ class ExploreShape(object):
         """
         Return the last vertex of the edge considering orientation.
 
-        :param edge:
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
 
-        :return:
+        :return: The last vertex.
+        :rtype: OCC.TopoDS.TopoDS_Vertex
         """
-        edge = CheckShape.to_edge(edge)
-        if not edge:
-            return None
-
         return ShapeAnalysis_Edge().LastVertex(edge)
 
     @classmethod
@@ -411,14 +422,11 @@ class ExploreShape(object):
         """
         Return the first and last vertex of the edge.
 
-        :param edge:
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
 
-        :return:
+        :return: The first and last vertices (v1, v2).
+        :rtype: tuple(OCC.TopoDS.TopoDS_Vertex)
         """
-        edge = CheckShape.to_edge(edge)
-        if not edge:
-            return None, None
-
         return cls.first_vertex(edge), cls.last_vertex(edge)
 
     @staticmethod
@@ -426,17 +434,13 @@ class ExploreShape(object):
         """
         Return the parameter of the vertex on the edge.
 
-        :param vertex:
-        :param edge:
-        :param face:
+        :param OCC.TopoDS.TopoDS_Vertex vertex: The vertex.
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCC.TopoDS.TopoDS_Face face: The face.
 
-        :return:
+        :return: The parameter.
+        :rtype: float
         """
-        vertex = CheckShape.to_vertex(vertex)
-        edge = CheckShape.to_edge(edge)
-        face = CheckShape.to_face(face)
-        if not vertex or not edge:
-            return None
         if not face:
             return BRep_Tool_Parameter(vertex, edge)
         else:
@@ -447,10 +451,11 @@ class ExploreShape(object):
         """
         Return the first and last parameters on the edge.
 
-        :param edge:
-        :param face:
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCC.TopoDS.TopoDS_Face face: The face.
 
-        :return:
+        :return: The parameters (u1, u2).
+        :rtype: tuple(float)
         """
         v1, v2 = cls.vertices(edge)
         u1 = cls.parameter(v1, edge, face)
@@ -462,10 +467,11 @@ class ExploreShape(object):
         """
         Compute the global tolerance of the shape.
 
-        :param shape:
-        :param mode: Average (0), maximal (1), minimal (2)
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param int mode: Average (0), maximal (1), minimal (2)
 
-        :return:
+        :return: The tolerance.
+        :rtype: float
         """
         tol = ShapeAnalysis_ShapeTolerance()
         tol.AddTolerance(shape)
@@ -498,8 +504,95 @@ class ExploreShape(object):
 
 
 class ExploreWire(object):
-    pass
+    """
+    Explore the edges of a wire.
+
+    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCC.TopoDS.TopoDS_Face face: The face.
+
+    Usage:
+
+    >>> from afem.topology import ExploreWire, WireByPoints
+    >>> p1 = (0., 0., 0.)
+    >>> p2 = (1., 0., 0.)
+    >>> p3 = (1., 1., 0.)
+    >>> p4 = (0., 1., 0.)
+    >>> wire = WireByPoints([p1, p2, p3, p4], True).wire
+    >>> explorer = ExploreWire(wire)
+    >>> explorer.nedges
+    4
+    """
+
+    def __init__(self, wire, face=None):
+        if face is None:
+            explorer = BRepTools_WireExplorer(wire)
+        else:
+            explorer = BRepTools_WireExplorer(wire, face)
+
+        edges = []
+        while explorer.More():
+            ei = topods_Edge(explorer.Current())
+            edges.append(ei)
+            explorer.Next()
+        self._edges = edges
+
+    @property
+    def nedges(self):
+        """
+        :return: Number of edges.
+        :rtype: int
+        """
+        return len(self._edges)
+
+    @property
+    def edges(self):
+        """
+        :return: The ordered edges.
+        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        """
+        return self._edges
 
 
 class ExploreFreeEdges(object):
-    pass
+    """
+    Explore the free bounds of a shape.
+
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    """
+
+    def __init__(self, shape):
+        tool = ShapeAnalysis_FreeBounds(shape)
+        self._closed_wires = ExploreShape.get_wires(tool.GetClosedWires())
+        self._open_wires = ExploreShape.get_wires(tool.GetOpenWires())
+        self._edges = (ExploreShape.get_edges(self._closed_wires) +
+                       ExploreShape.get_edges(self._open_wires))
+
+    @property
+    def closed_wires(self):
+        """
+        :return: Closed wires of free edges.
+        :rtype: list[OCC.TopoDS.TopoDS_Wire]
+        """
+        return self._closed_wires
+
+    @property
+    def open_wires(self):
+        """
+        :return: Open wires of free edges.
+        :rtype: list[OCC.TopoDS.TopoDS_Wire]
+        """
+        return self._open_wires
+
+    @property
+    def free_edges(self):
+        """
+        :return: All free edges of the shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        """
+        return self._edges
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
