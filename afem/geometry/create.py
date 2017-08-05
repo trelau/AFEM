@@ -19,6 +19,7 @@ from OCC.gp import gp_Pln, gp_Quaternion, gp_Trsf
 from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
+from warnings import warn
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
@@ -755,10 +756,6 @@ class PointsAlongCurveByNumber(object):
     :param float tol: Tolerance.
 
     :raise RuntimeError: If OCC method fails.
-    :raise RuntimeWarning: If OCC methods fails to update *u1* if *d1* is
-        provided.
-    :raise RuntimeWarning: If OCC methods fails to update *u2* if *d2* is
-        provided.
 
     For more information see GCPnts_UniformAbscissa_.
 
@@ -796,14 +793,14 @@ class PointsAlongCurveByNumber(object):
                 u1 = ap.Parameter()
             else:
                 msg = "GCPnts_AbscissaPoint failed for u1."
-                raise RuntimeWarning(msg)
+                warn(msg, RuntimeWarning)
         if d1 is not None:
             ap = GCPnts_AbscissaPoint(tol, adp_crv, d2, u2)
             if ap.IsDone():
                 u2 = ap.Parameter()
             else:
                 msg = "GCPnts_AbscissaPoint failed for u2."
-                raise RuntimeWarning(msg)
+                warn(msg, RuntimeWarning)
 
         # Create uniform abscissa
         ua = GCPnts_UniformAbscissa(adp_crv, n, u1, u2, tol)
@@ -883,10 +880,6 @@ class PointsAlongCurveByDistance(object):
     :param float tol: Tolerance.
 
     :raise RuntimeError: If OCC method fails.
-    :raise RuntimeWarning: If OCC methods fails to update *u1* if *d1* is
-        provided.
-    :raise RuntimeWarning: If OCC methods fails to update *u2* if *d2* is
-        provided.
 
     Usage:
 
@@ -923,14 +916,14 @@ class PointsAlongCurveByDistance(object):
                 u1 = ap.Parameter()
             else:
                 msg = "GCPnts_AbscissaPoint failed for u1."
-                raise RuntimeWarning(msg)
+                warn(msg, RuntimeWarning)
         if d1 is not None:
             ap = GCPnts_AbscissaPoint(tol, adp_crv, d2, u2)
             if ap.IsDone():
                 u2 = ap.Parameter()
             else:
                 msg = "GCPnts_AbscissaPoint failed for u2."
-                raise RuntimeWarning(msg)
+                warn(msg, RuntimeWarning)
 
         # Determine number of points
         arc_length = GCPnts_AbscissaPoint.Length(adp_crv, u1, u2, tol)
