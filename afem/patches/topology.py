@@ -27,6 +27,10 @@ _analysis_edge = ShapeAnalysis_Edge()
 __all__ = []
 
 
+def _shape(self):
+    return self
+
+
 def _to_shape(self):
     """
     Convert to shape.
@@ -453,7 +457,8 @@ def _get_mirrored(self):
     return builder.Shape()
 
 
-TopoDS_Shape.shape = property(_to_shape)
+TopoDS_Shape.shape = property(_shape)
+TopoDS_Shape.downcast = property(_to_shape)
 TopoDS_Shape.is_closed = property(_is_closed)
 TopoDS_Shape.is_valid = property(_is_valid)
 TopoDS_Shape.is_vertex = property(_is_vertex)
