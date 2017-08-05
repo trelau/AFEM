@@ -16,10 +16,12 @@ from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset, \
     BRepOffsetAPI_NormalProjection
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
+from OCC.GEOMAlgo import GEOMAlgo_Splitter
 from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.ShapeAnalysis import ShapeAnalysis_FreeBounds_ConnectEdgesToWires
+from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.TopAbs import TopAbs_EDGE, TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL, \
     TopAbs_WIRE
 from OCC.TopTools import Handle_TopTools_HSequenceOfShape, \
@@ -38,7 +40,7 @@ from afem.topology.tools import ShapeTools
 __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "EdgeByDrag", "WireByEdges", "WiresByConnectedEdges",
            "WireByConcat",
-           "WireByPlanarOffset", "WiresByShape", "WireByPoints",
+           "WireByPlanarOffset", "WiresByShape", "WireByPoints", "WireBySplit",
            "FaceBySurface",
            "FaceByPlane", "FaceByPlanarWire", "FaceByDrag", "ShellBySurface",
            "ShellByFaces",
@@ -1077,6 +1079,69 @@ class WireByPoints(object):
         :rtype: OCC.TopoDS.TopoDS_Wire
         """
         return self._w
+
+
+class WireBySplit(object):
+    """
+    Split a wire with a shape.
+
+    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCC.TopoDS.TopoDS_Shape splitter: The splitter shape.
+    """
+
+    def __init__(self, wire, splitter):
+        # Split algorithm
+        bop = GEOMAlgo_Splitter()
+        bop.AddArgument(wire)
+        bop.AddTool(splitter)
+        bop.Perform()
+        if bop.ErrorStatus() != 0:
+            msg = 'Failed to split wire.'
+            raise RuntimeError(msg)
+
+        # Replace edges in wire
+        reshape = ShapeBuild_ReShape()
+        performed = False
+        for old_edge in ExploreShape.get_edges(wire):
+            # Check deleted
+            if bop.IsDeleted(old_edge):
+                reshape.Remove(old_edge)
+                performed = True
+                break
+
+            # Check modified
+            modified = bop.Modified(old_edge)
+            if modified.IsEmpty():
+                continue
+
+            # Put modified edges into compound
+            new_edges = []
+            while not modified.IsEmpty():
+                shape = modified.First()
+                new_edges.append(shape)
+                modified.RemoveFirst()
+            if not new_edges:
+                continue
+
+            # Replace old edge with new.
+            new_edges = CompoundByShapes(new_edges).compound
+            reshape.Replace(old_edge, new_edges)
+            performed = True
+
+        # Apply substitution.
+        if not performed:
+            self._wire = wire
+        else:
+            new_wire = reshape.Apply(wire)
+            self._wire = topods_Wire(new_wire)
+
+    @property
+    def wire(self):
+        """
+        :return: The split wire.
+        :rtype: OCC.TopoDS.TopoDS_Wire
+        """
+        return self._wire
 
 
 class FaceBySurface(object):

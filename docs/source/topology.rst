@@ -108,6 +108,10 @@ WireByPoints
 ~~~~~~~~~~~~~
 .. autoclass:: WireByPoints
 
+WireBySplit
+~~~~~~~~~~~
+.. autoclass:: WireBySplit
+
 FaceBySurface
 ~~~~~~~~~~~~~
 .. autoclass:: FaceBySurface
@@ -203,10 +207,6 @@ DivideClosedShape
 DivideC0Shape
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: DivideC0Shape
-
-SplitWire
-~~~~~~~~~
-.. autoclass:: SplitWire
 
 Boolean
 -------
