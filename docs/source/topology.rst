@@ -196,10 +196,6 @@ Modify
 ------
 .. py:currentmodule:: afem.topology.modify
 
-UnifyShape
-~~~~~~~~~~
-.. autoclass:: UnifyShape
-
 FixShape
 ~~~~~~~~
 .. autoclass:: FixShape
@@ -211,6 +207,14 @@ DivideClosedShape
 DivideC0Shape
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: DivideC0Shape
+
+UnifyShape
+~~~~~~~~~~
+.. autoclass:: UnifyShape
+
+SewShape
+~~~~~~~~
+.. autoclass:: SewShape
 
 Boolean
 -------
