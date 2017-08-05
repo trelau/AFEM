@@ -22,8 +22,8 @@ from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.ShapeAnalysis import ShapeAnalysis_FreeBounds_ConnectEdgesToWires
 from OCC.ShapeBuild import ShapeBuild_ReShape
-from OCC.TopAbs import TopAbs_EDGE, TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL, \
-    TopAbs_WIRE
+from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE, \
+    TopAbs_REVERSED, TopAbs_SHELL, TopAbs_WIRE
 from OCC.TopTools import Handle_TopTools_HSequenceOfShape, \
     TopTools_HSequenceOfShape
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Face, TopoDS_Shape, \
@@ -43,7 +43,7 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "WireByPlanarOffset", "WiresByShape", "WireByPoints", "WireBySplit",
            "FaceBySurface",
            "FaceByPlane", "FaceByPlanarWire", "FaceByDrag", "ShellBySurface",
-           "ShellByFaces",
+           "ShellByFaces", "ShellBySewing",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
            "CompoundByShapes", "HalfspaceByShape", "PointsAlongShapeByNumber",
            "PointsAlongShapeByDistance", "PlaneByEdges"]
@@ -1398,6 +1398,85 @@ class ShellByDrag(object):
         :rtype: OCC.TopoDS.TopoDS_Wire
         """
         return self._w2
+
+
+class ShellBySewing(object):
+    """
+    Create a shell by sewing faces.
+
+    :param list[OCC.TopoDS.TopoDS_Face] faces: The faces.
+    :param float tol: Sewing tolerance. If *None* the maximum tolerance of all
+        the faces is used.
+
+    :raise RuntimeError: If an invalid shape type results.
+
+    Usage:
+
+    >>> from afem.topology import FaceByPlanarWire, ShellBySewing, WireByPoints
+    >>> p1 = (0., 0., 0.)
+    >>> p2 = (1., 0., 0.)
+    >>> p3 = (1., 1., 0.)
+    >>> p4 = (0., 1., 0.)
+    >>> w1 = WireByPoints([p1, p2, p3, p4], True).wire
+    >>> f1 = FaceByPlanarWire(w1).face
+    >>> p1 = (0., 0., 0.)
+    >>> p2 = (0., 0., 1.)
+    >>> p3 = (0., 1., 1.)
+    >>> p4 = (0., 1., 0.)
+    >>> w2 = WireByPoints([p1, p2, p3, p4], True).wire
+    >>> f2 = FaceByPlanarWire(w2).face
+    >>> builder = ShellBySewing([f1])
+    >>> builder.nshells
+    1
+    """
+
+    def __init__(self, faces, tol=None):
+        if tol is None:
+            tol = max([ExploreShape.get_tolerance(f, 1) for f in faces])
+
+        tool = BRepBuilderAPI_Sewing(tol)
+        for f in faces:
+            tool.Add(f)
+        tool.Perform()
+
+        shape = tool.SewedShape()
+        self._shells = []
+        self._shell = None
+        if shape.ShapeType() == TopAbs_COMPOUND:
+            self._shells = ExploreShape.get_shells(shape)
+        elif shape.ShapeType() == TopAbs_FACE:
+            self._shell = CheckShape.to_shell(shape)
+            self._shells = [self._shell]
+        elif shape.ShapeType() == TopAbs_SHELL:
+            self._shell = topods_Shell(shape)
+            self._shells = [self._shell]
+        else:
+            msg = 'Invalid shape type in ShellBySewing.'
+            raise RuntimeError(msg)
+
+    @property
+    def nshells(self):
+        """
+        :return: Number of shells.
+        :rtype: int
+        """
+        return len(self._shells)
+
+    @property
+    def shell(self):
+        """
+        :return: The sewn shell.
+        :rtype: OCC.TopoDS.TopoDS_Shell
+        """
+        return self._shell
+
+    @property
+    def shells(self):
+        """
+        :return: The sewn shells if more than one is found.
+        :rtype: list[OCC.TopoDS.TopoDS_Shell]
+        """
+        return self._shell
 
 
 class SolidByShell(object):

@@ -293,6 +293,9 @@ class CheckShape(object):
 
         :raise TypeError: If entity cannot be converted to a shape.
         """
+        if entity is None:
+            return None
+
         # Shapes
         if isinstance(entity, TopoDS_Shape):
             if entity.ShapeType() == TopAbs_VERTEX:

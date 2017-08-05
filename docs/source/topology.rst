@@ -140,6 +140,10 @@ ShellByDrag
 ~~~~~~~~~~~
 .. autoclass:: ShellByDrag
 
+ShellBySewing
+~~~~~~~~~~~~~
+.. autoclass:: ShellBySewing
+
 SolidByShell
 ~~~~~~~~~~~~
 .. autoclass:: SolidByShell
