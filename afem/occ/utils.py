@@ -2,6 +2,7 @@ from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                          TColStd_Array2OfReal)
 from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
                         TColgp_Array2OfPnt, TColgp_HArray1OfPnt)
+from OCC.TopTools import TopTools_ListOfShape
 from OCC.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
@@ -284,3 +285,18 @@ def to_np_from_tcolstd_array2_real(tcol_array):
             x = tcol_array.Value(i + 1, j + 1)
             array[i, j] = x
     return array
+
+
+def toptools_listofshape(shapes):
+    """
+    Create TopTools_ListOfShape from shapes.
+
+    :param list[OCC.TopoDS.TopoDS_Shape] shapes: List of shapes.
+
+    :return: TopTools_ListOfShape
+    :rtype: OCC.TopTools.TopTools_ListOfShape
+    """
+    lst = TopTools_ListOfShape()
+    for s in shapes:
+        lst.Append(s)
+    return lst
