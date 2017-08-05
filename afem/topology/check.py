@@ -29,11 +29,12 @@ class CheckShape(object):
     @staticmethod
     def is_shape(shape):
         """
-        Check if shape is a TopoDS_Shape.
+        Check if entity is a shape.
 
-        :param shape:
+        :param shape: The shape.
 
-        :return:
+        :return: *True* if a shape, *False* if not.
+        :rtype: bool
         """
         return isinstance(shape, TopoDS_Shape)
 
@@ -42,9 +43,10 @@ class CheckShape(object):
         """
         Check if the shape is a solid.
 
-        :param shape:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
 
-        :return:
+        :return: *True* if a solid, *False* if not.
+        :rtype: bool
         """
         try:
             return shape.ShapeType() == TopAbs_SOLID
@@ -56,13 +58,11 @@ class CheckShape(object):
         """
         Check the shape for errors.
 
-        :param shape:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
 
-        :return:
+        :return: *True* if valid, *False* if not.
+        :rtype: bool
         """
-        shape = cls.to_shape(shape)
-        if not shape:
-            return False
         return BRepCheck_Analyzer(shape, True).IsValid()
 
     @staticmethod
@@ -70,10 +70,11 @@ class CheckShape(object):
         """
         Check to see if the edge is a seam edge on the face.
 
-        :param edge:
-        :param face:
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCC.TopoDS.TopoDS_Face face: The face.
 
-        :return:
+        :return: *True* if a seam, *False* if not.
+        :rtype: bool
         """
         return ShapeAnalysis_Edge().IsSeam(edge, face)
 
@@ -82,9 +83,12 @@ class CheckShape(object):
         """
         Convert an entity to a vertex.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: A vertex.
+        :rtype: OCC.TopoDS.TopoDS_Vertex
+
+        :raise TypeError: If entity cannot be converted to a vertex.
         """
         if isinstance(entity, TopoDS_Vertex):
             return entity
@@ -99,16 +103,19 @@ class CheckShape(object):
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_VERTEX:
             return topods_Vertex(entity)
 
-        return None
+        raise TypeError('Failed to convert entity to a vertex.')
 
     @classmethod
     def to_edge(cls, entity):
         """
         Convert an entity to an edge.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: An edge.
+        :rtype: OCC.TopoDS.TopoDS_Edge
+
+        :raise TypeError: If entity cannot be converted to an edge.
         """
         if isinstance(entity, TopoDS_Edge):
             return entity
@@ -119,16 +126,19 @@ class CheckShape(object):
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_EDGE:
             return topods_Edge(entity)
 
-        return None
+        raise TypeError('Failed to convert entity to an edge.')
 
     @classmethod
     def to_wire(cls, entity):
         """
         Convert an entity to a wire.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: A wire.
+        :rtype: OCC.TopoDS.TopoDS_Wire
+
+        :raise TypeError: If entity cannot be converted to a wire.
         """
         if isinstance(entity, TopoDS_Wire):
             return entity
@@ -143,16 +153,19 @@ class CheckShape(object):
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_WIRE:
             return topods_Wire(entity)
 
-        return None
+        raise TypeError('Failed to convert entity to a wire.')
 
     @classmethod
     def to_face(cls, entity):
         """
         Convert an entity to a face.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: A face.
+        :rtype: OCC.TopoDS.TopoDS_Face
+
+        :raise TypeError: If entity cannot be converted to a face.
         """
         if isinstance(entity, TopoDS_Face):
             return entity
@@ -163,16 +176,19 @@ class CheckShape(object):
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_FACE:
             return topods_Face(entity)
 
-        return None
+        raise TypeError('Failed to convert entity to a face.')
 
     @classmethod
     def to_shell(cls, entity):
         """
         Convert an entity to a shell.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: A shell.
+        :rtype: OCC.TopoDS.TopoDS_Shell
+
+        :raise TypeError: If entity cannot be converted to a shell.
         """
         if isinstance(entity, TopoDS_Shell):
             return entity
@@ -195,16 +211,19 @@ class CheckShape(object):
             builder.Add(shell, f)
             return shell
 
-        return None
+        raise TypeError('Failed to convert entity to a shell.')
 
     @classmethod
     def to_solid(cls, entity):
         """
         Convert an entity to a solid.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: A solid.
+        :rtype: OCC.TopoDS.TopoDS_Solid
+
+        :raise TypeError: If entity cannot be converted to a solid.
         """
         if isinstance(entity, TopoDS_Solid):
             return entity
@@ -212,16 +231,19 @@ class CheckShape(object):
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_SOLID:
             return topods_Solid(entity)
 
-        return None
+        raise TypeError('Failed to convert entity to a solid.')
 
     @classmethod
     def to_compsolid(cls, entity):
         """
         Convert an entity to a compsolid.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: A compsolid.
+        :rtype: OCC.TopoDS.TopoDS_CompSolid
+
+        :raise TypeError: If entity cannot be converted to a compsolid.
         """
         if isinstance(entity, TopoDS_CompSolid):
             return entity
@@ -229,16 +251,19 @@ class CheckShape(object):
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_COMPSOLID:
             return topods_CompSolid(entity)
 
-        return None
+        raise TypeError('Failed to convert entity to a compsolid.')
 
     @classmethod
     def to_compound(cls, entity):
         """
         Convert an entity to a compound.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: A compound
+        :rtype: OCC.TopoDS.TopoDS_Compound
+
+        :raise TypeError: If entity cannot be converted to a compound.
         """
         if isinstance(entity, TopoDS_Compound):
             return entity
@@ -253,16 +278,20 @@ class CheckShape(object):
             builder.Add(cp, entity)
             return cp
 
-        return None
+        raise TypeError('Failed to convert entity to a compound.')
 
     @classmethod
     def to_shape(cls, entity):
         """
-        Convert the entity to a shape.
+        Convert the entity to a shape. This method tries to convert the
+        entity to its most specific shape type.
 
-        :param entity:
+        :param entity: The entity.
 
-        :return:
+        :return: A shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+
+        :raise TypeError: If entity cannot be converted to a shape.
         """
         # Shapes
         if isinstance(entity, TopoDS_Shape):
@@ -283,7 +312,7 @@ class CheckShape(object):
             elif entity.ShapeType() == TopAbs_COMPOUND:
                 return topods_Compound(entity)
             else:
-                return None
+                raise TypeError('Failed to convert entity to a shape.')
 
         # Geometry
         if CheckGeom.is_point_like(entity):
@@ -293,16 +322,17 @@ class CheckShape(object):
         if CheckGeom.is_surface_like(entity):
             return cls.to_face(entity)
 
-        return None
+        raise TypeError('Failed to convert entity to a shape.')
 
     @staticmethod
     def same_parameter(edge):
         """
         Returns the SameParameter flag for the edge.
 
-        :param edge:
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
 
-        :return:
+        :return: The same parameter flag.
+        :rtype: bool
         """
         return BRep_Tool_SameParameter(edge)
 
@@ -311,8 +341,9 @@ class CheckShape(object):
         """
         Returns the SameRange flag for the edge.
 
-        :param edge:
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
 
-        :return:
+        :return: The same range flag.
+        :rtype: bool
         """
         return BRep_Tool_SameRange(edge)
