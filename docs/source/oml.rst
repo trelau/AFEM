@@ -7,18 +7,19 @@ tools can be imported by:
 
 Entities
 --------
+.. py:currentmodule:: afem.oml.entities
 
 Body
 ~~~~
-.. autoclass:: afem.oml.body.Body
+.. autoclass:: Body
 
 Wing
 ~~~~
-.. autoclass:: afem.oml.wing.Wing
+.. autoclass:: Wing
 
 Fuselage
 ~~~~~~~~
-.. autoclass:: afem.oml.fuselage.Fuselage
+.. autoclass:: Fuselage
 
 Check
 -----
