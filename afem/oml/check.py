@@ -1,47 +1,45 @@
-from .body import Body
-from .fuselage import Fuselage
-from .wing import Wing
+from afem.oml.entities import Body, Fuselage, Wing
 
 __all__ = ["CheckOML"]
 
 
 class CheckOML(object):
     """
-    Check OML components.
+    Check OML.
     """
 
     @staticmethod
-    def is_body(oml):
+    def is_body(entity):
         """
         Check to see if the entity is a Body.
 
-        :param oml: Object to check.
+        :param entity: Entity to check.
 
         :return: *True* if Body, *False* if not.
         :rtype: bool
         """
-        return isinstance(oml, Body)
+        return isinstance(entity, Body)
 
     @staticmethod
-    def is_wing(oml):
+    def is_wing(entity):
         """
-        Check to see if the OML component is a wing.
+        Check to see if the entity is a wing.
 
-        :param oml: Object to check.
+        :param entity: Entity to check.
 
-        :return: *True* if a wing, *False* if not.
+        :return: *True* if a Wing, *False* if not.
         :rtype: bool
         """
-        return isinstance(oml, Wing)
+        return isinstance(entity, Wing)
 
     @staticmethod
-    def is_fuselage(oml):
+    def is_fuselage(entity):
         """
-        Check to see if the OML component is a fuselage.
+        Check to see if the entity is a fuselage.
 
-        :param oml: Object to check.
+        :param entity: Entity to check.
 
-        :return: *True* if a fuselage, *False* if not.
+        :return: *True* if a Fuselage, *False* if not.
         :rtype: bool
         """
-        return isinstance(oml, Fuselage)
+        return isinstance(entity, Fuselage)
