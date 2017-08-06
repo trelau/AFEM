@@ -1,7 +1,7 @@
 OML
 ===
 This section describes the Outer Mold Line (OML) package. The entities and
-tools can be imported by:
+tools can be imported by::
 
     from afem.oml import *
 
