@@ -1,4 +1,5 @@
 from math import ceil, radians
+from warnings import warn
 
 import OCC.BSplCLib as CLib
 from OCC.Approx import (Approx_Centripetal, Approx_ChordLength,
@@ -19,7 +20,6 @@ from OCC.gp import gp_Pln, gp_Quaternion, gp_Trsf
 from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
-from warnings import warn
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
@@ -1796,6 +1796,11 @@ class PlaneByApprox(object):
         :rtype: afem.geometry.entities.Plane
         """
         return self._pln
+
+
+class PlaneFromParameter(object):
+    # TODO PlaneFromParameter
+    pass
 
 
 class PlanesAlongCurveByNumber(object):

@@ -7,66 +7,67 @@ imported by::
 
 Entities
 --------
+.. py:currentmodule:: afem.structure.entities
 
 Part
 ~~~~
-.. autoclass:: afem.structure.part.Part
+.. autoclass:: Part
 
 CurvePart
 ~~~~~~~~~
-.. autoclass:: afem.structure.curve_part.CurvePart
+.. autoclass:: CurvePart
 
 Beam
 ~~~~
-.. autoclass:: afem.structure.beam.Beam
+.. autoclass:: Beam
 
 SurfacePart
 ~~~~~~~~~~~
-.. autoclass:: afem.structure.surface_part.SurfacePart
+.. autoclass:: SurfacePart
 
 WingPart
 ~~~~~~~~
-.. autoclass:: afem.structure.wing_part.WingPart
+.. autoclass:: WingPart
 
 Spar
 ~~~~
-.. autoclass:: afem.structure.spar.Spar
+.. autoclass:: Spar
 
 Rib
 ~~~
-.. autoclass:: afem.structure.rib.Rib
+.. autoclass:: Rib
 
 FuselagePart
 ~~~~~~~~~~~~
-.. autoclass:: afem.structure.fuselage_part.FuselagePart
+.. autoclass:: FuselagePart
 
 Bulkhead
 ~~~~~~~~
-.. autoclass:: afem.structure.bulkhead.Bulkhead
+.. autoclass:: Bulkhead
 
 Floor
 ~~~~~
-.. autoclass:: afem.structure.floor.Floor
+.. autoclass:: Floor
 
 Frame
 ~~~~~
-.. autoclass:: afem.structure.frame.Frame
+.. autoclass:: Frame
 
 Skin
 ~~~~
-.. autoclass:: afem.structure.skin.Skin
+.. autoclass:: Skin
 
 Stiffener1D
 ~~~~~~~~~~~
-.. autoclass:: afem.structure.stiffeners.Stiffener1D
+.. autoclass:: Stiffener1D
 
 Stiffener2D
 ~~~~~~~~~~~
-.. autoclass:: afem.structure.stiffeners.Stiffener2D
+.. autoclass:: Stiffener2D
 
 Stringer
 ~~~~~~~~
-.. autoclass:: afem.structure.stringer.Stringer
+.. autoclass:: Stringer
 
 Assembly
 ~~~~~~~~
