@@ -1,11 +1,8 @@
 from __future__ import division, division
 
 import OCC.BSplCLib as CLib
-from OCC.TColStd import TColStd_Array1OfReal
 from numpy import array, diff, float64, floor, hstack, sqrt, sum, zeros
 from numpy.linalg import norm
-
-from afem.occ.utils import to_np_from_tcolstd_array1_real
 
 __all__ = ["uniform_parameters", "chord_parameters", "centripetal_parameters"]
 
@@ -82,16 +79,15 @@ def dehomogenize_array2d(cpw):
     return cp, w
 
 
-def build_knot_vector_from_occ(tcol_knots, tcol_mult, p, is_periodic):
-    """
-    Build knot sequence from OCC data.
-    """
-    # TODO Figure out where used and make local
-    n = CLib.bsplclib_KnotSequenceLength(tcol_mult, p, is_periodic)
-    tcol_knots_seq = TColStd_Array1OfReal(1, n)
-    CLib.bsplclib_KnotSequence(tcol_knots, tcol_mult, p, is_periodic,
-                               tcol_knots_seq)
-    return to_np_from_tcolstd_array1_real(tcol_knots_seq)
+# def build_knot_vector_from_occ(tcol_knots, tcol_mult, p, is_periodic):
+#     """
+#     Build knot sequence from OCC data.
+#     """
+#     n = CLib.bsplclib_KnotSequenceLength(tcol_mult, p, is_periodic)
+#     tcol_knots_seq = TColStd_Array1OfReal(1, n)
+#     CLib.bsplclib_KnotSequence(tcol_knots, tcol_mult, p, is_periodic,
+#                                tcol_knots_seq)
+#     return to_np_from_tcolstd_array1_real(tcol_knots_seq)
 
 
 def uniform_parameters(n, a=0., b=1.):

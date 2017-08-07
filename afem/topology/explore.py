@@ -389,8 +389,6 @@ class ExploreShape(object):
             return None
 
         f = AreaOfShapes(faces).largest_shape
-        if not f:
-            return None
         return cls.surface_of_face(f)
 
     @staticmethod
@@ -476,31 +474,6 @@ class ExploreShape(object):
         tol = ShapeAnalysis_ShapeTolerance()
         tol.AddTolerance(shape)
         return tol.GlobalTolerance(mode)
-
-    @classmethod
-    def get_free_edges(cls, shape, as_compound=False):
-        """
-        Get the free edges of a shape.
-
-        :param shape:
-        :param bool as_compound:
-
-        :return:
-        """
-        # TODO Use ExploreFreeEdges class.
-        faces = ExploreShape.get_faces(shape)
-        if not faces:
-            return []
-
-        compound = _make_compound(faces)
-        tol = ExploreShape.get_tolerance(compound, 1)
-        fb_tool = ShapeAnalysis_FreeBounds(compound, tol)
-        closed_edges = ExploreShape.get_edges(fb_tool.GetClosedWires())
-        open_edges = ExploreShape.get_edges(fb_tool.GetOpenWires())
-        edges = closed_edges + open_edges
-        if as_compound:
-            return _make_compound(edges)
-        return edges
 
 
 class ExploreWire(object):
