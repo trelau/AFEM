@@ -1,3 +1,4 @@
+from itertools import product
 from OCC.BRep import BRep_Builder, BRep_Tool, BRep_Tool_Parameter
 from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.BRepClass3d import brepclass3d
@@ -193,6 +194,35 @@ class ExploreShape(object):
             compounds.append(compound)
             exp.Next()
         return compounds
+
+    @staticmethod
+    def get_shared_edges(shape1, shape2):
+        """
+        Get the shared edges between the two shapes.
+
+        :param TopoDS.TopoDS_Shape shape1: The first shape.
+        :param TopoDS.TopoDS_Shape shape2: The second shape.
+
+        :rtype: List of shared edges.
+        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        """
+        edges1 = ExploreShape.get_edges(shape1)
+        edges2 = ExploreShape.get_edges(shape2)
+        if not edges1 or not edges2:
+            return []
+
+        shared_edges = []
+        for e1, e2 in product(edges1, edges2):
+            if e1.IsSame(e2):
+                unique = True
+                for ei in shared_edges:
+                    if ei.IsSame(e1):
+                        unique = False
+                        break
+                if unique:
+                    shared_edges.append(e1)
+
+        return shared_edges
 
     @staticmethod
     def outer_wire(face):
