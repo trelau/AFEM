@@ -9,7 +9,7 @@ from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                          TColStd_Array2OfReal)
 from OCC.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
 from OCC.gp import gp_Ax1, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec, gp_XYZ
-from numpy import add, array, float64, subtract
+from numpy import add, array, float64, ndarray, subtract
 
 from afem.config import Settings
 from afem.geometry.methods.calculate import curve_length
@@ -225,12 +225,23 @@ class Point(gp_Pnt, Geometry):
         """
         Translate the point along the vector.
 
-        :param afem.geometry.entities.Vector v: The translation vector.
+        :param vector_like v: The translation vector.
 
         :return: *True* if translated, *False* if not.
         :rtype: bool
+
+        :raise TypeError: If *v* cannot be converted to a vector.
         """
-        # TODO Use vector_like
+        if isinstance(v, (tuple, list, ndarray)):
+            return Vector(v[0], v[1], v[2])
+        elif isinstance(v, Direction):
+            v = Vector(v)
+        elif isinstance(v, gp_Vec):
+            v = Vector(v.XYZ())
+        else:
+            msg = 'Invalid vector type.'
+            raise TypeError(msg)
+
         self.Translate(v)
         return True
 
