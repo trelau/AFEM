@@ -9,6 +9,7 @@ from afem.topology.adaptors import ShapeAdaptorSurface
 from afem.topology.bop import IntersectShapes
 from afem.topology.check import CheckShape
 from afem.topology.create import WiresByConnectedEdges
+from afem.topology.distance import DistancePointToShapes
 
 __all__ = ["Body", "Wing", "Fuselage"]
 
@@ -324,8 +325,12 @@ class Wing(Body):
             msg = 'Failed to extract any curves.'
             raise RuntimeError(msg)
 
-        # TODO Nearest shape method and support other curve types.
-        wire = builder.wires[0]
+        # TODO Support other curve types.
+        if builder.nwires == 1:
+            wire = builder.wires[0]
+        else:
+            dist = DistancePointToShapes(p1, builder.wires)
+            wire = dist.nearest_shape
         crv = ExploreShape.curve_of_wire(wire)
         if not isinstance(crv, NurbsCurve):
             msg = 'Unsupported curve type created.'

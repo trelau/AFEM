@@ -280,6 +280,10 @@ DistanceShapeToShape
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: DistanceShapeToShape
 
+DistanceShapeToShapes
+~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: DistanceShapeToShapes
+
 Properties
 ----------
 .. py:currentmodule:: afem.topology.props
@@ -299,6 +303,14 @@ SurfaceProps
 VolumeProps
 ~~~~~~~~~~~
 .. autoclass:: VolumeProps
+
+LengthOfEdges
+~~~~~~~~~~~~~
+.. autoclass:: LengthOfEdges
+
+AreaOfFaces
+~~~~~~~~~~~
+.. autoclass:: AreaOfFaces
 
 Check
 -----

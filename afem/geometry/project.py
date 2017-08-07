@@ -500,7 +500,6 @@ class ProjectCurveToSurface(CurveProjector):
     Point(5.0, 5.0, 5.0)
     """
 
-    # TODO Add usage docstring
     def __init__(self, crv, srf):
         super(ProjectCurveToSurface, self).__init__()
 

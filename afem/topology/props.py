@@ -3,8 +3,10 @@ from OCC.BRepGProp import brepgprop_LinearProperties, \
 from OCC.GProp import GProp_GProps
 
 from afem.geometry.entities import Point
+from afem.topology.check import CheckShape
 
-__all__ = ["ShapeProps", "LinearProps", "SurfaceProps", "VolumeProps"]
+__all__ = ["ShapeProps", "LinearProps", "SurfaceProps", "VolumeProps",
+           "LengthOfEdges", "AreaOfFaces"]
 
 
 class ShapeProps(object):
@@ -126,6 +128,140 @@ class VolumeProps(ShapeProps):
         :rtype: float
         """
         return self.mass
+
+
+class LengthOfEdges(object):
+    """
+    Calculate the length of each edge and sort the results.
+
+    :param list[OCC.TopoDS.TopoDS_Edge] edges: The edges.
+    """
+
+    def __init__(self, edges):
+        results = []
+        for e in edges:
+            e = CheckShape.to_edge(e)
+            le = LinearProps(e).length
+            results.append((le, e))
+
+        results.sort(key=lambda tup: tup[0])
+        self._lengths = [data[0] for data in results]
+        self._edges = [data[1] for data in results]
+
+    @property
+    def min_length(self):
+        """
+        :return: The minimum length.
+        :rtype: float
+        """
+        return self._lengths[0]
+
+    @property
+    def max_length(self):
+        """
+        :return: The maximum length.
+        :rtype: float
+        """
+        return self._lengths[-1]
+
+    @property
+    def sorted_lengths(self):
+        """
+        :return: List of sorted lengths.
+        :rtype: list[float]
+        """
+        return self._lengths
+
+    @property
+    def shortest_edge(self):
+        """
+        :return: The shortest edge.
+        :rtype: OCC.TopoDS.TopoDS_Edge
+        """
+        return self._edges[0]
+
+    @property
+    def longest_edge(self):
+        """
+        :return: The longest edge.
+        :rtype: OCC.TopoDS.TopoDS_Edge
+        """
+        return self._edges[-1]
+
+    @property
+    def sorted_edges(self):
+        """
+        :return: List of edges sorted by length.
+        :rtype: list[OCC.TopoDS.TopoDS_Face]
+        """
+        return self._edges
+
+
+class AreaOfFaces(object):
+    """
+    Calculate the area of each face and sort the results.
+
+    :param list[OCC.TopoDS.TopoDS_Face] faces: The faces.
+    """
+
+    def __init__(self, faces):
+        results = []
+        for f in faces:
+            f = CheckShape.to_face(f)
+            a = SurfaceProps(f).area
+            results.append((a, f))
+
+        results.sort(key=lambda tup: tup[0])
+        self._areas = [data[0] for data in results]
+        self._faces = [data[1] for data in results]
+
+    @property
+    def min_area(self):
+        """
+        :return: The minimum area.
+        :rtype: float
+        """
+        return self._areas[0]
+
+    @property
+    def max_area(self):
+        """
+        :return: The maximum area.
+        :rtype: float
+        """
+        return self._areas[-1]
+
+    @property
+    def sorted_areas(self):
+        """
+        :return: List of sorted areas.
+        :rtype: list[float]
+        """
+        return self._areas
+
+    @property
+    def smallest_face(self):
+        """
+        :return: The smallest face.
+        :rtype: OCC.TopoDS.TopoDS_Face
+        """
+        return self._faces[0]
+
+    @property
+    def largest_face(self):
+        """
+        :return: The largest face.
+        :rtype: OCC.TopoDS.TopoDS_Face
+        """
+        return self._faces[-1]
+
+    @property
+    def sorted_faces(self):
+        """
+        :return: List of faces sorted by area.
+        :rtype: list[OCC.TopoDS.TopoDS_Face]
+        """
+        return self._faces
 
 
 if __name__ == "__main__":

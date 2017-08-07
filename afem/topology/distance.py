@@ -1,6 +1,12 @@
+from warnings import warn
+
 from OCC.BRepExtrema import BRepExtrema_DistShapeShape
 
-__all__ = ["DistanceShapeToShape"]
+from afem.geometry.check import CheckGeom
+from afem.topology.check import CheckShape
+
+__all__ = ["DistanceShapeToShape", "DistanceShapeToShapes",
+           "DistancePointToShapes"]
 
 
 class DistanceShapeToShape(object):
@@ -45,3 +51,114 @@ class DistanceShapeToShape(object):
         :rtype: float
         """
         return self._tool.Value()
+
+
+class DistanceShapeToShapes(object):
+    """
+    Calculate the minimum distance between a shape and other shapes. Sort the
+    results by distance.
+
+    :param OCC.TopoDS.TopoDS_Shape shape: The main shape.
+    :param list[OCC.TopoDS.TopoDS_Shape] other_shapes: The other shapes.
+
+    :raises RuntimeWarning: If the distance between two shapes cannot be
+        found. This shape will be ignored and process will continue.
+
+    Usage:
+
+    >>> from afem.topology import *
+    >>> v1 = VertexByPoint((0., 0., 0.)).vertex
+    >>> v2 = VertexByPoint((5., 0., 0.)).vertex
+    >>> v3 = VertexByPoint((10., 0., 0.)).vertex
+    >>> tool = DistanceShapeToShapes(v1, [v3, v2])
+    >>> tool.dmin
+    5.0
+    >>> tool.dmax
+    10.0
+    >>> tool.sorted_distances
+    [5.0, 10.0]
+    """
+
+    def __init__(self, shape, other_shapes):
+        results = []
+        for shape2 in other_shapes:
+            dist = DistanceShapeToShape(shape, shape2)
+            if dist.nsol == 0:
+                warn("Could not calculate distance to a shape. Continuing...",
+                     RuntimeWarning)
+                continue
+            results.append((dist.dmin, shape2))
+
+        results.sort(key=lambda tup: tup[0])
+        self._distances = [data[0] for data in results]
+        self._shapes = [data[1] for data in results]
+
+    @property
+    def dmin(self):
+        """
+        :return: The minimum distance of all shapes.
+        :rtype: float
+        """
+        return self._distances[0]
+
+    @property
+    def dmax(self):
+        """
+        :return: The maximum distance of all shapes.
+        :rtype: float
+        """
+        return self._distances[-1]
+
+    @property
+    def sorted_distances(self):
+        """
+        :return: List of sorted distances.
+        :rtype: list[float]
+        """
+        return self._distances
+
+    @property
+    def nearest_shape(self):
+        """
+        :return: The nearest shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._shapes[0]
+
+    @property
+    def farthest_shape(self):
+        """
+        :return: The farthest shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._shapes[-1]
+
+    @property
+    def sorted_shapes(self):
+        """
+        :return: List of shapes sorted by distance.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        """
+        return self._shapes
+
+
+class DistancePointToShapes(DistanceShapeToShapes):
+    """
+    Calculate the minimum distance between a point and other shapes. Sort the
+    results by distance. This method converts the point to a vertex and then
+    uses :class:`.DistanceShapeToShapes`.
+
+    :param point_like pnt: The point.
+    :param list[OCC.TopoDS.TopoDS_Shape] other_shapes: The other shapes.
+
+    :raise TypeError: If *pnt* cannot be converted to a point.
+    """
+
+    def __init__(self, pnt, other_shapes):
+        pnt = CheckGeom.to_point(pnt)
+        if not pnt:
+            msg = 'Invalid point type provided.'
+            raise TypeError(msg)
+
+        v = CheckShape.to_vertex(pnt)
+        super(DistancePointToShapes, self).__init__(v, other_shapes)
