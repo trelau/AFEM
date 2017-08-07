@@ -19,8 +19,8 @@ from afem.structure.methods.reshape_parts import reshape_parts
 from afem.structure.methods.sew_parts import sew_surface_parts
 from afem.structure.methods.split_parts import split_part
 from afem.topology.check import CheckShape
-from afem.topology.create import PointsAlongShapeByDistance, \
-    PointsAlongShapeByNumber
+from afem.topology.create import CompoundByShapes, \
+    PointsAlongShapeByDistance, PointsAlongShapeByNumber
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import FixShape
@@ -823,7 +823,8 @@ class SurfacePart(Part):
         if not isinstance(smesh_mesh, SMESH_Mesh):
             return set()
 
-        compound = ExploreShape.get_faces(self, True)
+        faces = ExploreShape.get_faces(self)
+        compound = CompoundByShapes(faces).compound
         submesh = smesh_mesh.GetSubMesh(compound)
         if submesh.IsEmpty():
             return set()
