@@ -52,10 +52,10 @@ __all__ = ["CreateGeom", "CreatedPoints", "PointByXYZ", "PointByArray",
            "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
            "NurbsCurveByPoints", "CurveByUIso", "CurveByVIso",
            "PlaneByNormal", "PlaneByAxes", "PlaneByPoints", "PlaneByApprox",
-           "PlanesAlongCurveByNumber", "PlanesAlongCurveByDistance",
-           "PlanesBetweenPlanesByNumber", "PlanesBetweenPlanesByDistance",
-           "NurbsSurfaceByData", "NurbsSurfaceByInterp",
-           "NurbsSurfaceByApprox"]
+           "PlaneFromParameter", "PlanesAlongCurveByNumber",
+           "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
+           "PlanesBetweenPlanesByDistance", "NurbsSurfaceByData",
+           "NurbsSurfaceByInterp", "NurbsSurfaceByApprox"]
 
 _occ_continuity = {'C0': GeomAbs_C0,
                    'G1': GeomAbs_G1,
@@ -1319,7 +1319,6 @@ class NurbsCurveByInterp(object):
 
     def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
         tcol_hpnts = to_tcolgp_harray1_pnt(qp)
-        # TODO Remove use of GetHandle
         interp = GeomAPI_Interpolate(tcol_hpnts.GetHandle(),
                                      is_periodic, tol)
 
@@ -1334,7 +1333,6 @@ class NurbsCurveByInterp(object):
             msg = "GeomAPI_Interpolate failed."
             raise RuntimeError(msg)
 
-        # TODO Remove use of GetObject
         occ_crv = interp.Curve().GetObject()
         c = create_nurbs_curve_from_occ(occ_crv)
         self._c = c
@@ -1407,7 +1405,6 @@ class NurbsCurveByApprox(object):
             msg = "GeomAPI_PointsToBSpline failed."
             raise RuntimeError(msg)
 
-        # TODO Remove use of GetObject
         occ_crv = fit.Curve().GetObject()
         c = create_nurbs_curve_from_occ(occ_crv)
         self._c = c
@@ -1479,7 +1476,6 @@ class CurveByUIso(object):
     """
 
     def __init__(self, s, u):
-        # TODO Handle other curve types
         hcrv = s.UIso(u)
         adp_curve = GeomAdaptor_Curve(hcrv)
         if adp_curve.GetType() == GeomAbs_Line:
@@ -1550,7 +1546,6 @@ class CurveByVIso(object):
     """
 
     def __init__(self, s, v):
-        # TODO Handle other curve types
         hcrv = s.VIso(v)
         adp_curve = GeomAdaptor_Curve(hcrv)
         if adp_curve.GetType() == GeomAbs_Line:
@@ -1799,8 +1794,65 @@ class PlaneByApprox(object):
 
 
 class PlaneFromParameter(object):
-    # TODO PlaneFromParameter
-    pass
+    """
+    Create a plane along a curve at a specified distance from a parameter.
+
+    :param curve_like c: The curve.
+    :param float u0: The initial parameter.
+    :param float ds: The distance along the curve from the given parameter.
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+        will be used to define the normal of the new plane. If no plane is
+        provided, then the first derivative of the curve will define the
+        plane normal.
+    :param float tol: Tolerance.
+
+    :raise RuntimeError: If OCC method fails.
+
+    Usage:
+
+    >>> from afem.geometry import LineByPoints, Point, PlaneFromParameter
+    >>> p1 = Point()
+    >>> p2 = Point(10., 0., 0.)
+    >>> line = LineByPoints(p1, p2).line
+    >>> builder = PlaneFromParameter(line, 0., 1.)
+    >>> pln = builder.plane
+    """
+
+    def __init__(self, c, u0, ds, ref_pln=None, tol=1.0e-7):
+        adp_curve = GeomAdaptor_Curve(c.handle)
+
+        ap = GCPnts_AbscissaPoint(tol, adp_curve, ds, u0)
+        if not ap.IsDone():
+            msg = "GCPnts_AbscissaPoint failed."
+            raise RuntimeError(msg)
+
+        u = ap.Parameter()
+        self._u = u
+        p = c.eval(u)
+        if isinstance(ref_pln, Plane):
+            gp_pln = ref_pln.Pln()
+            ax1 = gp_pln.Axis()
+            dn = ax1.Direction()
+            self._pln = Plane(p, dn)
+        else:
+            v = c.deriv(u, 1)
+            self._pln = PlaneByNormal(p, v)
+
+    @property
+    def plane(self):
+        """
+        :return: The plane.
+        :rtype: afem.geometry.entities.Plane
+        """
+        return self._pln
+
+    @property
+    def parameter(self):
+        """
+        :return: The parameter on the curve.
+        :rtype: float
+        """
+        return self._u
 
 
 class PlanesAlongCurveByNumber(object):

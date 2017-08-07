@@ -856,7 +856,7 @@ class SurfacePart(Part):
         """
         Fuse with other parts.
 
-        :param afem.structure.entities.Part other_parts: The other part(s)
+        :param afem.structure.entities.Part other_parts: The other part(s).
 
         :return: *True* if fused, *False* if not.
         :rtype: bool
@@ -868,7 +868,7 @@ class SurfacePart(Part):
         Sew with other parts.
 
         :param afem.structure.entities.SurfacePart other_parts: The other
-            part(s)
+            part(s).
 
         :return: *True* if sewed, *False* if not.
         :rtype: bool

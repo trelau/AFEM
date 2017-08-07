@@ -173,6 +173,10 @@ PlaneByApprox
 ~~~~~~~~~~~~~
 .. autoclass:: PlaneByApprox
 
+PlaneFromParameter
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlaneFromParameter
+
 PlanesAlongCurveByNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PlanesAlongCurveByNumber
