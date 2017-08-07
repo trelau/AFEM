@@ -10,7 +10,7 @@ from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
 
 __all__ = ["FixShape", "DivideClosedShape", "DivideC0Shape", "UnifyShape",
-           "SewShape", "RebuildShapeByTool"]
+           "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool"]
 
 
 class FixShape(object):
@@ -330,6 +330,60 @@ class SewShape(object):
         :rtype: OCC.TopoDS.TopoDS_Shape
         """
         return self._tool.ModifiedSubShape(subshape)
+
+
+class RebuildShapeWithShapes(object):
+    """
+    Rebuild a shape by requesting substitutions on a shape.
+
+    :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape that will be
+        rebuilt.
+    """
+
+    def __init__(self, old_shape):
+        self._tool = ShapeBuild_ReShape()
+        self._old_shape = old_shape
+
+    def remove(self, old_shape):
+        """
+        Request to remove the old shape.
+
+        :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape. This is
+            usually a sub-shape of the original old shape.
+
+        :return: None.
+        """
+        self._tool.Remove(old_shape)
+
+    def replace(self, old_shape, new_shapes):
+        """
+        Request to replace the old shape with a list of new shapes.
+
+        :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape. This is
+            usually a sub-shape of the original old shape.
+        :param list[OCC.TopoDS.TopoDS_Shape] new_shapes: The new shapes.
+
+        :return: None.
+        """
+        cmp = CompoundByShapes(new_shapes).compound
+        self._tool.Replace(old_shape, cmp)
+
+    def apply(self, fix=False):
+        """
+        Apply the substitutions to the original old shape and return a new
+        shape.
+
+        :param bool fix: Option to use :class:`.FixShape` on the new shape in
+        case the substitutions caused errors (e.g., like a solid is now a
+        shell).
+
+        :return: The new shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        new_shape = self._tool.Apply(self._old_shape)
+        if not fix:
+            return new_shape
+        return FixShape(new_shape).shape
 
 
 class RebuildShapeByTool(object):
