@@ -875,15 +875,6 @@ class CurvePart(Part):
         super(CurvePart, self).__init__(label, shape, cref, None)
 
     @property
-    def reshapes(self):
-        """
-        :return: The shapes to use when reshaping. For a curve part these
-            are edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
-        """
-        return self.edges
-
-    @property
     def length(self):
         """
         :return: The length of all the edges of the part.
@@ -928,15 +919,6 @@ class SurfacePart(Part):
 
     def __init__(self, label, shape, cref=None, sref=None):
         super(SurfacePart, self).__init__(label, shape, cref, sref)
-
-    @property
-    def reshapes(self):
-        """
-        :return: The shapes to use when reshaping. For a surface part these
-            are faces.
-        :rtype: list[OCC.TopoDS.TopoDS_Face]
-        """
-        return self.faces
 
     @property
     def area(self):
