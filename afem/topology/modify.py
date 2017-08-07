@@ -169,7 +169,7 @@ class SewShape(object):
     """
 
     def __init__(self, shape=None, tol=None, min_tol=None, max_tol=None,
-                 cut_free_edges=False, non_manifold=False, ):
+                 cut_free_edges=False, non_manifold=False):
         if tol is None:
             if shape is None:
                 tol = 1.0e-7
@@ -286,6 +286,50 @@ class SewShape(object):
             e = topods_Edge(self._tool.ContigousEdge(i))
             edges.append(e)
         return edges
+
+    def is_modified(self, shape):
+        """
+        Check to see if input shape has been modified.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if modified, *False* if not.
+        :rtype: bool
+        """
+        self._tool.IsModified(shape)
+
+    def modified(self, shape):
+        """
+        Get a modified shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: The modified shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._tool.Modified(shape)
+
+    def is_modified_subshape(self, subshape):
+        """
+        Check to see if input sub-shape has been modified.
+
+        :param OCC.TopoDS.TopoDS_Shape subshape: The shape.
+
+        :return: *True* if modified, *False* if not.
+        :rtype: bool
+        """
+        self._tool.IsModifiedSubShape(subshape)
+
+    def modified_subshape(self, subshape):
+        """
+        Get a modified sub-shape.
+
+        :param OCC.TopoDS.TopoDS_Shape subshape: The shape.
+
+        :return: The modified sub-shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._tool.ModifiedSubShape(subshape)
 
 
 class RebuildShapeByTool(object):
