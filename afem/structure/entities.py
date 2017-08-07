@@ -1,29 +1,23 @@
 from OCC.SMESH import SMESH_Mesh
 from OCC.TopoDS import TopoDS_Shape
+from numpy import mean
 
 from afem.fem.elements import Elm2D
 from afem.fem.meshes import MeshData
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import PlaneFromParameter, PointFromParameter
+from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
+                                  PointFromParameter)
 from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
 from afem.graphics.viewer import ViewableItem
-from afem.structure.methods.cut_parts import cut_part, \
-    cut_wing_part_with_circle
-from afem.structure.methods.explore_parts import get_shared_edges, \
-    get_shared_nodes
-from afem.structure.methods.fuse_parts import fuse_surface_part
-from afem.structure.methods.merge_parts import merge_surface_part
-from afem.structure.methods.modify_parts import discard_faces_by_distance, \
-    discard_faces_by_solid, discard_wing_part_faces, unify_surface_part
-from afem.structure.methods.reshape_parts import reshape_parts
-from afem.structure.methods.sew_parts import sew_surface_parts
-from afem.structure.methods.split_parts import split_part
-from afem.topology.check import CheckShape
-from afem.topology.create import CompoundByShapes, \
-    PointsAlongShapeByDistance, PointsAlongShapeByNumber
+from afem.topology.bop import CutShapes, FuseShapes, SplitShapes
+from afem.topology.check import CheckShape, ClassifyPointInSolid
+from afem.topology.create import (CompoundByShapes, FaceBySurface,
+                                  HalfspaceByShape, PointsAlongShapeByDistance,
+                                  PointsAlongShapeByNumber)
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
-from afem.topology.modify import FixShape
+from afem.topology.modify import (FixShape, RebuildShapeByTool,
+                                  RebuildShapeWithShapes, SewShape, UnifyShape)
 from afem.topology.props import LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
@@ -678,42 +672,189 @@ class Part(TopoDS_Shape, ViewableItem):
         new_shape = FixShape(self, min_tol, max_tol).shape
         self.set_shape(new_shape)
 
-    def reshape(self, tool):
-        """
-        Reshape the part shape with a tool.
-
-        :param tool: The tool. It should provide the typical generated,
-            modified, and deleted methods.
-
-        :return: *True* if modified, *False* if not.
-        :rtype: bool
-        """
-        return reshape_parts(tool, [self])
-
     def cut(self, cutter):
         """
-        Cut the part shape.
+        Cut the part shape and rebuild this part.
 
         :param cutter: The cutter.
         :type cutter: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
 
         :return: *True* if shape was cut, *False* if not.
         :rtype: bool
-        """
-        cutter = CheckShape.to_shape(cutter)
-        return cut_part(self, cutter)
 
-    def split(self, splitter, split_both=True):
+        :raise TypeError: If this part is not a curve or surface part.
         """
-        Split the part shape.
+        cut = CutShapes(self, cutter)
+        if not cut.is_done:
+            return False
+
+        # Rebuild the parts
+        if isinstance(self, CurvePart):
+            rebuild = RebuildShapeByTool(self, cut, 'edge')
+        elif isinstance(self, SurfacePart):
+            rebuild = RebuildShapeByTool(self, cut, 'face')
+        else:
+            msg = 'Invalid part type in split operation.'
+            raise TypeError(msg)
+
+        new_shape = rebuild.new_shape
+        self.set_shape(new_shape)
+
+        return True
+
+    def split(self, splitter, rebuild_both=True):
+        """
+        Split the part shape and rebuild this part. Optionally rebuild the
+        splitter if it is a part. This method should handle splitting with
+        parts and shapes or different types (i.e., splitting a face with an
+        edge).
 
         :param splitter: The splitter.
         :type splitter: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
-        :param bool split_both: Option to split both if *splitter* is a part.
+        :param bool rebuild_both: Option to rebuild both if *splitter* is a
+            part.
 
-        :return:
+        :return: *True* if split, *False* if not.
+        :rtype: bool
+
+        :raise TypeError: If this part is or the splitter not a curve or
+            surface part.
         """
-        return split_part(self, splitter, split_both)
+        split = SplitShapes()
+        split.add_arg(self)
+        if rebuild_both:
+            split.add_arg(splitter)
+        else:
+            split.add_tool(splitter)
+        split.build()
+        if not split.is_done:
+            return False
+
+        parts = [self]
+        if rebuild_both:
+            parts += [splitter]
+        for part in parts:
+            if isinstance(part, CurvePart):
+                rebuild = RebuildShapeByTool(part, split, 'edge')
+            elif isinstance(part, SurfacePart):
+                rebuild = RebuildShapeByTool(part, split, 'face')
+            else:
+                msg = 'Invalid part type in split operation.'
+                raise TypeError(msg)
+            new_shape = rebuild.new_shape
+            part.set_shape(new_shape)
+        return True
+
+    def rebuild(self, tool):
+        """
+        Rebuild the part shape with a supported tool.
+
+        :param tool: The tool. It should provide the typical generated,
+            modified, and deleted methods.
+
+        :return: *True* if modified, *False* if not.
+        :rtype: bool
+
+        :raise TypeError: If this part is not a curve or surface part.
+        """
+        if isinstance(self, CurvePart):
+            rebuild = RebuildShapeByTool(self, tool, 'edge')
+        elif isinstance(self, SurfaceProps):
+            rebuild = RebuildShapeByTool(self, tool, 'face')
+        else:
+            msg = 'Invalid part type in split operation.'
+            raise TypeError(msg)
+
+        new_shape = rebuild.new_shape
+        self.set_shape(new_shape)
+        return True
+
+    def discard_by_solid(self, solid, tol=None):
+        """
+        Discard shapes of the part using a solid. Any shapes of the part that
+        have centroids inside the solid will be removed. Edges are checked
+        for curve parts and faces are checked for surface parts.
+
+        :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+        :param float tol: The tolerance. If not provided then the part
+            tolerance will be used.
+
+        :return: *True* if shapes were discarded, *False* if not.
+        :rtype: bool
+
+        :raise TypeError: If this part is not a curve or surface part.
+        """
+        if isinstance(self, CurvePart):
+            shapes = ExploreShape.get_edges(self)
+        elif isinstance(self, SurfacePart):
+            shapes = ExploreShape.get_faces(self)
+        else:
+            msg = 'Invalid part type in discard operation.'
+            raise TypeError(msg)
+
+        if tol is None:
+            tol = self.tol
+
+        rebuild = RebuildShapeWithShapes(self)
+        classifer = ClassifyPointInSolid(solid, tol=tol)
+
+        modified = False
+        for shape in shapes:
+            if isinstance(self, CurvePart):
+                cg = LinearProps(shape).cg
+            else:
+                cg = SurfaceProps(shape).cg
+
+            classifer.perform(cg, tol)
+            if classifer.is_in:
+                rebuild.remove(shape)
+                modified = True
+
+        if not modified:
+            return False
+
+        new_shape = rebuild.apply()
+        self.set_shape(new_shape)
+        return True
+
+    def discard_by_distance(self, shape, dmax):
+        """
+        Discard shapes of the part using a shape and a distance. If the
+        distance between a shape of the part and the given shape is greater
+        than the tolerance, then the shape is removed. Edges are checked
+        for curve parts and faces are checked for surface parts.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param float dmax: The maximum distance allowed.
+
+        :return: *True* if shapes were discarded, *False* if not.
+        :rtype: bool
+
+        :raise TypeError: If this part is not a curve or surface part.
+        """
+        if isinstance(self, CurvePart):
+            shapes = ExploreShape.get_edges(self)
+        elif isinstance(self, SurfacePart):
+            shapes = ExploreShape.get_faces(self)
+        else:
+            msg = 'Invalid part type in discard operation.'
+            raise TypeError(msg)
+
+        rebuild = RebuildShapeWithShapes(self)
+
+        modified = False
+        for part_shape in shapes:
+            dmin = DistanceShapeToShape(shape, part_shape).dmin
+            if dmin <= dmax:
+                rebuild.remove(shape)
+                modified = True
+
+        if not modified:
+            return False
+
+        new_shape = rebuild.apply()
+        self.set_shape(new_shape)
+        return True
 
 
 class CurvePart(Part):
@@ -819,6 +960,7 @@ class SurfacePart(Part):
         :return: The shell elements of the part.
         :rtype: set(afem.fem.entities.Elm2D)
         """
+        # TODO Support nodes and elements for both curve and surface parts.
         smesh_mesh = MeshData.get_mesh().smesh_obj
         if not isinstance(smesh_mesh, SMESH_Mesh):
             return set()
@@ -855,18 +997,34 @@ class SurfacePart(Part):
 
     def fuse(self, *other_parts):
         """
-        Fuse with other parts.
+        Fuse with other surface parts and rebuild both.
 
-        :param afem.structure.entities.Part other_parts: The other part(s).
+        :param afem.structure.entities.SurfacePart other_parts: The other
+            part(s).
 
         :return: *True* if fused, *False* if not.
         :rtype: bool
         """
-        return fuse_surface_part(self, *other_parts)
+        # Putting the other parts in a compound avoids fusing them to each
+        # other.
+        other_parts = list(other_parts)
+        other_compound = CompoundByShapes(other_parts).compound
+
+        fuse = FuseShapes(self, other_compound)
+        if not fuse.is_done:
+            return False
+
+        # Rebuild the parts
+        for part in [self] + other_parts:
+            rebuild = RebuildShapeByTool(part, fuse)
+            new_shape = rebuild.new_shape
+            part.set_shape(new_shape)
+
+        return True
 
     def sew(self, *other_parts):
         """
-        Sew with other parts.
+        Sew with other parts and rebuild all parts.
 
         :param afem.structure.entities.SurfacePart other_parts: The other
             part(s).
@@ -874,11 +1032,28 @@ class SurfacePart(Part):
         :return: *True* if sewed, *False* if not.
         :rtype: bool
         """
-        return sew_surface_parts([self] + list(other_parts))
+        parts = [self] + list(other_parts)
+
+        tol = mean([ExploreShape.get_tolerance(part, 0) for part in parts],
+                   dtype=float)
+        max_tol = max([ExploreShape.get_tolerance(part, 1) for part in parts])
+
+        sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
+                       non_manifold=True)
+        for part in parts:
+            sew.add(part)
+        sew.perform()
+
+        for part in parts:
+            if not sew.is_modified(part):
+                continue
+            mod_shape = sew.modified(part)
+            part.set_shape(mod_shape)
+        return True
 
     def merge(self, other, unify=False):
         """
-        Merge other part or shape with this one.
+        Merge other surface part or shape with this one.
 
         :param other: The other part or shape.
         :type other: afem.structure.entities.SurfacePart or
@@ -888,7 +1063,18 @@ class SurfacePart(Part):
         :return: *True* if merged, *False* if not.
         :rtype: bool
         """
-        return merge_surface_part(self, other, unify)
+        # Fuse the parts
+        fuse = FuseShapes(self, other)
+        if not fuse.is_done:
+            return False
+
+        # Reset the shape
+        self.set_shape(fuse.shape)
+
+        # Unify if possible
+        if not unify:
+            return True
+        return self.unify()
 
     def unify(self, edges=True, faces=True, bsplines=False):
         """
@@ -902,35 +1088,9 @@ class SurfacePart(Part):
         :return: *True* if unified, *False* if not.
         :rtype: bool
         """
-        return unify_surface_part(self, edges, faces, bsplines)
-
-    def discard_by_solid(self, solid, tol=1.0e-7):
-        """
-        Discard faces of the part using a solid. Any faces of the part that
-        have centroids inside the solid will be removed.
-
-        :param OCC.TopoDS.TopoDS_Solid solid: The solid.
-        :param float tol: The tolerance.
-
-        :return: *True* if faces were discard, *False* if not.
-        :rtype: bool
-        """
-        return discard_faces_by_solid(self, solid, tol)
-
-    def discard_by_distance(self, shape, dmax):
-        """
-        Discard faces of the part using a shape and a distance. If the
-        distance between a face of the part and the given shape is greater
-        than the tolerance, then the face is removed.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The solid.
-        :param float dmax: The maximum distance allowed.
-
-        :return: *True* if faces were discard, *False* if not.
-        :rtype: bool
-        """
-        # TODO Support use of geometry.
-        return discard_faces_by_distance(self, shape, dmax)
+        unify = UnifyShape(self, edges, faces, bsplines)
+        new_shape = unify.shape
+        self.set_shape(new_shape)
 
     def discard_by_cref(self):
         """
@@ -947,7 +1107,33 @@ class SurfacePart(Part):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        return discard_wing_part_faces(self)
+        # Create vectors at each end of the reference curve pointing "out" of
+        # the part
+        u1, u2 = self.cref.u1, self.cref.u2
+        v1 = self.cref.deriv(u1, 1)
+        v2 = self.cref.deriv(u2, 1)
+        # Reverse v1 so it's "out" of the part
+        v1.reverse()
+
+        # Create planes at each end
+        p1 = self.cref.eval(u1)
+        p2 = self.cref.eval(u2)
+        pln1 = PlaneByNormal(p1, v1).plane
+        pln2 = PlaneByNormal(p2, v2).plane
+
+        # Translate points to define half space
+        pref1 = p1 + 100. * v1.xyz
+        pref2 = p2 + 100. * v2.xyz
+        f1 = FaceBySurface(pln1).face
+        f2 = FaceBySurface(pln2).face
+        hs1 = HalfspaceByShape(f1, pref1).solid
+        hs2 = HalfspaceByShape(f2, pref2).solid
+
+        # Discard by solid
+        status1 = self.discard_by_solid(hs1)
+        status2 = self.discard_by_solid(hs2)
+
+        return status1 or status2
 
     def shared_edges(self, other):
         """
@@ -959,37 +1145,20 @@ class SurfacePart(Part):
         :return: Shared edges.
         :rtype: list[OCC.TopoDS.TopoDS_Edge]
         """
-        return get_shared_edges(self, other)
+        return ExploreShape.get_shared_edges(self, other)
 
-    def shared_nodes(self, other_part):
+    def shared_nodes(self, other):
         """
         Get nodes shared between the two parts.
 
-        :param afem.structure.entities.Part other_part: The other part.
+        :param afem.structure.entities.SurfacePart other: The other part.
 
         :return: Shared nodes.
         :rtype: list[afem.fem.entities.Node]
         """
-        return get_shared_nodes(self, other_part)
-
-    def cut_hole(self, ds, r):
-        """
-        Cut a circular hole in the part (in development).
-
-        :param float ds: The distance along the reference curve from its
-            first point.
-        :param float r: The radius of the hole.
-
-        :return: *True* if hole was cut, *False* if not.
-        :rtype: bool
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        return cut_wing_part_with_circle(self, ds, r)
+        nodes1 = self.nodes
+        nodes2 = other.nodes
+        return list(nodes1 & nodes2)
 
 
 class WingPart(SurfacePart):

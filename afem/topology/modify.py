@@ -374,8 +374,8 @@ class RebuildShapeWithShapes(object):
         shape.
 
         :param bool fix: Option to use :class:`.FixShape` on the new shape in
-        case the substitutions caused errors (e.g., like a solid is now a
-        shell).
+            case the substitutions caused errors (e.g., like a solid is now a
+            shell).
 
         :return: The new shape.
         :rtype: OCC.TopoDS.TopoDS_Shape

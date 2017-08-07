@@ -220,6 +220,10 @@ SewShape
 ~~~~~~~~
 .. autoclass:: SewShape
 
+RebuildShapeWithShapes
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: RebuildShapeWithShapes
+
 RebuildShapeByTool
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: RebuildShapeByTool
@@ -318,10 +322,15 @@ AreaOfShapes
 
 Check
 -----
+.. py:currentmodule:: afem.topology.check
 
 CheckShape
 ~~~~~~~~~~
-.. autoclass:: afem.topology.check.CheckShape
+.. autoclass:: CheckShape
+
+ClassifyPointInSolid
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: ClassifyPointInSolid
 
 Utilities
 ---------
