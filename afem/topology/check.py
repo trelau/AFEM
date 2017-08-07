@@ -5,10 +5,11 @@ from OCC.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge,
                                 BRepBuilderAPI_MakeVertex,
                                 BRepBuilderAPI_MakeWire)
 from OCC.BRepCheck import BRepCheck_Analyzer
+from OCC.BRepClass3d import BRepClass3d_SolidClassifier
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge
-from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
-                        TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX,
-                        TopAbs_WIRE)
+from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
+    TopAbs_FACE, TopAbs_IN, TopAbs_ON, TopAbs_OUT, TopAbs_SHELL, \
+    TopAbs_SOLID, TopAbs_UNKNOWN, TopAbs_VERTEX, TopAbs_WIRE
 from OCC.TopoDS import (TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge,
                         TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid,
                         TopoDS_Vertex, TopoDS_Wire, topods_CompSolid,
@@ -18,7 +19,7 @@ from OCC.gp import gp_Pnt
 
 from afem.geometry.check import CheckGeom
 
-__all__ = ["CheckShape"]
+__all__ = ["CheckShape", "ClassifyPointInSolid"]
 
 
 class CheckShape(object):
@@ -365,3 +366,83 @@ class CheckShape(object):
         :rtype: bool
         """
         return BRep_Tool_SameRange(edge)
+
+
+class ClassifyPointInSolid(object):
+    """
+    Classify a point in a solid.
+
+    :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+    :param point_like pnt: The point. If not provided the *perform()* method
+        will need to be used.
+    :param float tol: The tolerance.
+    """
+
+    def __init__(self, solid, pnt=None, tol=1.0e-7):
+        pnt = CheckGeom.to_point(pnt)
+
+        if not CheckGeom.is_point(pnt):
+            self._tool = BRepClass3d_SolidClassifier(solid)
+        else:
+            self._tool = BRepClass3d_SolidClassifier(solid, pnt, tol)
+
+    def perform(self, pnt, tol=1.0e-7):
+        """
+        Perform the classification with the point and tolerance.
+
+        :param point_like pnt: The point.
+        :param float tol: The tolerance.
+
+        :return: None.
+        """
+        pnt = CheckGeom.to_point(pnt)
+        self._tool.Perform(pnt, tol)
+
+    @property
+    def is_in(self):
+        """
+        :return: *True* if point is in solid, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.State() == TopAbs_IN
+
+    @property
+    def is_out(self):
+        """
+        :return: *True* if point is outside the solid, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.State() == TopAbs_OUT
+
+    @property
+    def is_on(self):
+        """
+        :return: *True* if point is on the solid, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.State() == TopAbs_ON
+
+    @property
+    def is_unknown(self):
+        """
+        :return: *True* if classification is unknown, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.State() == TopAbs_UNKNOWN
+
+    @property
+    def is_on_face(self):
+        """
+        :return: *True* if point is on a face, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.IsOnAFace()
+
+    def face(self):
+        """
+        Get the face the point is on.
+
+        :return: The face.
+        :rtype: OCC.TopoDS.TopoDS_Face
+        """
+        return self._tool.Face()
