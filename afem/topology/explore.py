@@ -20,7 +20,7 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
 from afem.geometry.entities import Line, Plane
 from afem.geometry.methods.create import (create_nurbs_curve_from_occ,
                                           create_nurbs_surface_from_occ)
-from afem.topology.props import AreaOfFaces
+from afem.topology.props import AreaOfShapes
 
 __all__ = ["ExploreShape", "ExploreWire", "ExploreFreeEdges"]
 
@@ -388,7 +388,7 @@ class ExploreShape(object):
         if not faces:
             return None
 
-        f = AreaOfFaces(faces).largest_face
+        f = AreaOfShapes(faces).largest_shape
         if not f:
             return None
         return cls.surface_of_face(f)

@@ -304,13 +304,13 @@ VolumeProps
 ~~~~~~~~~~~
 .. autoclass:: VolumeProps
 
-LengthOfEdges
-~~~~~~~~~~~~~
-.. autoclass:: LengthOfEdges
+LengthOfShapes
+~~~~~~~~~~~~~~
+.. autoclass:: LengthOfShapes
 
-AreaOfFaces
-~~~~~~~~~~~
-.. autoclass:: AreaOfFaces
+AreaOfShapes
+~~~~~~~~~~~~
+.. autoclass:: AreaOfShapes
 
 Check
 -----

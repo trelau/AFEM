@@ -6,7 +6,7 @@ from afem.geometry.entities import Point
 from afem.topology.check import CheckShape
 
 __all__ = ["ShapeProps", "LinearProps", "SurfaceProps", "VolumeProps",
-           "LengthOfEdges", "AreaOfFaces"]
+           "LengthOfShapes", "AreaOfShapes"]
 
 
 class ShapeProps(object):
@@ -130,23 +130,23 @@ class VolumeProps(ShapeProps):
         return self.mass
 
 
-class LengthOfEdges(object):
+class LengthOfShapes(object):
     """
-    Calculate the length of each edge and sort the results.
+    Calculate the total length of all edges of each shape and sort the results.
 
-    :param list[OCC.TopoDS.TopoDS_Edge] edges: The edges.
+    :param list[OCC.TopoDS.TopoDS_Shape] shapes: The shapes.
     """
 
-    def __init__(self, edges):
+    def __init__(self, shapes):
         results = []
-        for e in edges:
-            e = CheckShape.to_edge(e)
-            le = LinearProps(e).length
-            results.append((le, e))
+        for shape in shapes:
+            shape = CheckShape.to_shape(shape)
+            ls = LinearProps(shape).length
+            results.append((ls, shape))
 
         results.sort(key=lambda tup: tup[0])
         self._lengths = [data[0] for data in results]
-        self._edges = [data[1] for data in results]
+        self._shapes = [data[1] for data in results]
 
     @property
     def min_length(self):
@@ -173,47 +173,47 @@ class LengthOfEdges(object):
         return self._lengths
 
     @property
-    def shortest_edge(self):
+    def shortest_shape(self):
         """
-        :return: The shortest edge.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :return: The shortest shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
         """
-        return self._edges[0]
+        return self._shapes[0]
 
     @property
-    def longest_edge(self):
+    def longest_shape(self):
         """
-        :return: The longest edge.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :return: The longest shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
         """
-        return self._edges[-1]
+        return self._shapes[-1]
 
     @property
-    def sorted_edges(self):
+    def sorted_shapes(self):
         """
-        :return: List of edges sorted by length.
-        :rtype: list[OCC.TopoDS.TopoDS_Face]
+        :return: List of shapes sorted by length.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
         """
-        return self._edges
+        return self._shapes
 
 
-class AreaOfFaces(object):
+class AreaOfShapes(object):
     """
-    Calculate the area of each face and sort the results.
+    Calculate the total area of each face for each shape and sort the results.
 
-    :param list[OCC.TopoDS.TopoDS_Face] faces: The faces.
+    :param list[OCC.TopoDS.TopoDS_Shape] shapes: The shapes.
     """
 
-    def __init__(self, faces):
+    def __init__(self, shapes):
         results = []
-        for f in faces:
-            f = CheckShape.to_face(f)
-            a = SurfaceProps(f).area
-            results.append((a, f))
+        for shape in shapes:
+            shape = CheckShape.to_shape(shape)
+            a = SurfaceProps(shape).area
+            results.append((a, shape))
 
         results.sort(key=lambda tup: tup[0])
         self._areas = [data[0] for data in results]
-        self._faces = [data[1] for data in results]
+        self._shapes = [data[1] for data in results]
 
     @property
     def min_area(self):
@@ -240,28 +240,28 @@ class AreaOfFaces(object):
         return self._areas
 
     @property
-    def smallest_face(self):
+    def smallest_shape(self):
         """
-        :return: The smallest face.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :return: The smallest shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
         """
-        return self._faces[0]
+        return self._shapes[0]
 
     @property
-    def largest_face(self):
+    def largest_shape(self):
         """
-        :return: The largest face.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :return: The largest shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
         """
-        return self._faces[-1]
+        return self._shapes[-1]
 
     @property
-    def sorted_faces(self):
+    def sorted_shape(self):
         """
-        :return: List of faces sorted by area.
-        :rtype: list[OCC.TopoDS.TopoDS_Face]
+        :return: List of shapes sorted by area.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
         """
-        return self._faces
+        return self._shapes
 
 
 if __name__ == "__main__":
