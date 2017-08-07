@@ -1,5 +1,3 @@
-from OCC.BRepBndLib import brepbndlib_Add
-from OCC.Bnd import Bnd_Box
 from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Curve,
                       Geom_Line, Geom_Plane, Geom_Surface)
 from OCC.Geom2d import Geom2d_BSplineCurve
@@ -26,7 +24,7 @@ from afem.utils.check import is_array_like
 
 __all__ = ["Geometry", "Point", "Point2D", "Direction", "Vector", "Axis1",
            "Axis3", "Curve", "Line", "NurbsCurve", "NurbsCurve2D", "Surface",
-           "Plane", "NurbsSurface", "BBox"]
+           "Plane", "NurbsSurface"]
 
 
 class Geometry(ViewableItem):
@@ -1569,145 +1567,6 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
             return False
         self.CheckAndSegment(u1, u2, v1, v2)
         return True
-
-
-# TODO Move to topology.
-class BBox(Bnd_Box):
-    """
-    Bounding box in 3-D space.
-
-    For more information see Bnd_Box_.
-
-    .. _Bnd_Box: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_bnd___box.html
-    """
-
-    def __init__(self):
-        super(BBox, self).__init__()
-
-    @property
-    def is_void(self):
-        """
-        :return: *True* if bounding box is empty, *False* if not.
-        :rtype: bool
-        """
-        return self.IsVoid()
-
-    @property
-    def pmin(self):
-        """
-        :return: Lower corner of bounding box. *None* if empty.
-        :rtype: afem.geometry.entities.Point
-        """
-        if self.is_void:
-            return None
-        return Point(self.CornerMin().XYZ())
-
-    @property
-    def pmax(self):
-        """
-        :return: Upper corner of bounding box. *None* if empty.
-        :rtype: afem.geometry.entities.Point
-        """
-        if self.is_void:
-            return None
-        return Point(self.CornerMax().XYZ())
-
-    @property
-    def xmin(self):
-        """
-        :return: Minimum x-component.
-        :rtype: float
-        """
-        if self.is_void:
-            return None
-        return self.CornerMin().X()
-
-    @property
-    def xmax(self):
-        """
-        :return: Maximum x-component.
-        :rtype: float
-        """
-        if self.is_void:
-            return None
-        return self.CornerMax().X()
-
-    @property
-    def ymin(self):
-        """
-        :return: Minimum y-component.
-        :rtype: float
-        """
-        if self.is_void:
-            return None
-        return self.CornerMin().Y()
-
-    @property
-    def ymax(self):
-        """
-        :return: Maximum y-component.
-        :rtype: float
-        """
-        if self.is_void:
-            return None
-        return self.CornerMax().Y()
-
-    @property
-    def zmin(self):
-        """
-        :return: Minimum z-component.
-        :rtype: float
-        """
-        if self.is_void:
-            return None
-        return self.CornerMin().Z()
-
-    @property
-    def zmax(self):
-        """
-        :return: Maximum z-component.
-        :rtype: float
-        """
-        if self.is_void:
-            return None
-        return self.CornerMax().Z()
-
-    def add_box(self, box):
-        """
-        Add the other box to this one.
-
-        :param afem.geometry.entities.BBox box: The other box.
-
-        :return: *True* if added, *False* if not.
-        :rtype: bool
-        """
-        if not isinstance(box, Bnd_Box):
-            return False
-        self.Add(box)
-        return True
-
-    def add_shape(self, shape):
-        """
-        Add shape to the bounding box.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: *True* if added, *False* if not.
-        :rtype: bool
-        """
-        brepbndlib_Add(shape, self, True)
-        return True
-
-    def distance(self, box):
-        """
-        Calculate distance to other box.
-
-        :param afem.geometry.entities.BBox box: The other box.
-
-        :return: Distance to other box.
-        :rtype: float
-        """
-        return self.Distance(box)
 
 
 if __name__ == "__main__":

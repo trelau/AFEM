@@ -65,10 +65,6 @@ NurbsSurface
 ~~~~~~~~~~~~
 .. autoclass:: NurbsSurface
 
-Bounding Box
-~~~~~~~~~~~~
-.. autoclass:: BBox
-
 Create
 ------
 .. py:currentmodule:: afem.geometry.create

@@ -13,6 +13,10 @@ OpenCASCADE entities are provided here for reference. Rarely will the user
 ever need to initialize any of these entities. The topology builders should
 be used instead.
 
+Bounding Box
+~~~~~~~~~~~~
+.. autoclass:: afem.topology.entities.BBox
+
 TopoDS_Shape
 ~~~~~~~~~~~~
 .. autoclass:: TopoDS_Shape

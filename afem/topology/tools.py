@@ -52,6 +52,7 @@ from OCC.gp import gp_Pnt
 from ..config import Settings
 from ..geometry import CheckGeom, CreateGeom
 from afem.geometry.entities import *
+from afem.topology.entities import BBox
 from ..geometry.methods.create import create_nurbs_curve_from_occ, \
     create_nurbs_surface_from_occ
 

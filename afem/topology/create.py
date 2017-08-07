@@ -31,9 +31,10 @@ from OCC.TopoDS import TopoDS_Compound, TopoDS_Face, TopoDS_Shape, \
     topods_Solid, topods_Vertex, topods_Wire
 from numpy import ceil
 
-from afem.geometry import BBox, CheckGeom, CreateGeom
+from afem.geometry import CheckGeom, CreateGeom
 from afem.geometry.entities import Plane, Point
 from afem.topology.check import CheckShape
+from afem.topology.entities import BBox
 from afem.topology.explore import ExploreShape
 from afem.topology.tools import ShapeTools
 
