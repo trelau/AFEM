@@ -18,10 +18,10 @@ from afem.structure.methods.modify_parts import discard_faces_by_distance, \
 from afem.structure.methods.reshape_parts import reshape_parts
 from afem.structure.methods.sew_parts import sew_surface_parts
 from afem.structure.methods.split_parts import split_part
-from afem.topology import ShapeTools
 from afem.topology.check import CheckShape
 from afem.topology.create import PointsAlongShapeByDistance, \
     PointsAlongShapeByNumber
+from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import FixShape
 from afem.topology.props import LinearProps, SurfaceProps
@@ -652,13 +652,10 @@ class Part(TopoDS_Shape, ViewableItem):
         :param other: Other part or shape.
         :type other: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
 
-        :return: The minimum distance and the points of minimum distance on
-            each shape (dmin, p1, p2).
-        :rtype: tuple(float, afem.geometry.entities.Point,
-            afem.geometry.entities.Point)
+        :return: The minimum distance.
+        :rtype: float
         """
-        # TODO Min distance for shapes.
-        return ShapeTools.min_distance(self, other)
+        return DistanceShapeToShape(self, other).dmin
 
     def check(self):
         """
