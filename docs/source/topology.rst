@@ -268,6 +268,14 @@ SweepWithNormal
 ~~~~~~~~~~~~~~~
 .. autoclass:: SweepWithNormal
 
+Distance
+--------
+.. py:currentmodule:: afem.topology.distance
+
+DistanceShapeToShape
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: DistanceShapeToShape
+
 Properties
 ----------
 .. py:currentmodule:: afem.topology.props
