@@ -1806,6 +1806,9 @@ class PlaneFromParameter(object):
         plane normal.
     :param float tol: Tolerance.
 
+    :return: The plane.
+    :rtype: afem.geometry.entities.Plane
+
     :raise RuntimeError: If OCC method fails.
 
     Usage:

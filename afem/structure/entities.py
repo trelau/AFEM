@@ -3,9 +3,8 @@ from OCC.TopoDS import TopoDS_Shape
 
 from afem.fem.elements import Elm2D
 from afem.fem.meshes import MeshData
-from afem.geometry import CreateGeom
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import PointFromParameter
+from afem.geometry.create import PlaneFromParameter, PointFromParameter
 from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
 from afem.graphics.viewer import ViewableItem
 from afem.structure.methods.cut_parts import cut_part, \
@@ -581,16 +580,20 @@ class Part(TopoDS_Shape, ViewableItem):
             success.append(status)
         return success
 
-    def get_plane(self, u=None, ds=None, pnt=None, ref_pln=None):
+    def get_plane(self, u0, ds, ref_pln=None, tol=1.0e-7):
         """
         Get a plane along the reference curve.
 
-        :param u:
-        :param ds:
-        :param pnt:
-        :param ref_pln:
+        :param float u0: The initial parameter.
+        :param float ds: The distance along the curve from the given parameter.
+        :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+            will be used to define the normal of the new plane. If no plane is
+            provided, then the first derivative of the curve will define the
+            plane normal.
+        :param float tol: Tolerance.
 
-        :return:
+        :return: The plane.
+        :rtype: afem.geometry.entities.Plane
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -598,7 +601,7 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        return CreateGeom.plane_on_curve(self.cref, u, ds, pnt, ref_pln)
+        return PlaneFromParameter(self.cref, u0, ds, ref_pln, tol)
 
     def invert_cref(self, pnt):
         """
