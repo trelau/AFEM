@@ -25,38 +25,22 @@ from afem.topology.props import AreaOfShapes
 __all__ = ["ExploreShape", "ExploreWire", "ExploreFreeEdges"]
 
 
-def _make_compound(shapes):
-    """
-    Make a compound from a list of shapes.
-    """
-    cp = TopoDS_Compound()
-    builder = BRep_Builder()
-    builder.MakeCompound(cp)
-    for shape in shapes:
-        builder.Add(cp, shape)
-    return cp
-
-
 class ExploreShape(object):
     """
     Explore shape.
     """
 
     @staticmethod
-    def get_vertices(shape, as_compound=False):
+    def get_vertices(shape):
         """
         Get vertices from a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param bool as_compound: Option to return as a compound rather than
-            a list.
 
         :return: Vertices of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Vertex] or OCC.TopoDS.TopoDS_Compound
+        :rtype: list[OCC.TopoDS.TopoDS_Vertex]
         """
         if isinstance(shape, TopoDS_Vertex):
-            if as_compound:
-                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_VERTEX)
@@ -66,26 +50,20 @@ class ExploreShape(object):
             vertex = topods_Vertex(vi)
             vertices.append(vertex)
             exp.Next()
-        if as_compound:
-            return _make_compound(vertices)
         return vertices
 
     @staticmethod
-    def get_edges(shape, as_compound=False, unique=True):
+    def get_edges(shape, unique=True):
         """
         Get edges from a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param bool as_compound: Option to return as a compound rather than
-            a list.
         :param bool unique: Option to return only unique edges.
 
         :return: Edges of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge] or OCC.TopoDS.TopoDS_Compound
+        :rtype: list[OCC.TopoDS.TopoDS_Edge]
         """
         if isinstance(shape, TopoDS_Edge):
-            if as_compound:
-                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_EDGE)
@@ -104,25 +82,19 @@ class ExploreShape(object):
             else:
                 edges.append(edge)
             exp.Next()
-        if as_compound:
-            return _make_compound(edges)
         return edges
 
     @staticmethod
-    def get_wires(shape, as_compound=False):
+    def get_wires(shape):
         """
         Get wires from a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param bool as_compound: Option to return as a compound rather than
-            a list.
 
         :return: Wires of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Wire] or OCC.TopoDS.TopoDS_Compound
+        :rtype: list[OCC.TopoDS.TopoDS_Wire]
         """
         if isinstance(shape, TopoDS_Wire):
-            if as_compound:
-                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_WIRE)
@@ -132,25 +104,19 @@ class ExploreShape(object):
             wire = topods_Wire(wi)
             wires.append(wire)
             exp.Next()
-        if as_compound:
-            return _make_compound(wires)
         return wires
 
     @staticmethod
-    def get_faces(shape, as_compound=False):
+    def get_faces(shape):
         """
         Get faces from a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param bool as_compound: Option to return as a compound rather than
-            a list.
 
         :return: Faces of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Face] or OCC.TopoDS.TopoDS_Compound
+        :rtype: list[OCC.TopoDS.TopoDS_Face]
         """
         if isinstance(shape, TopoDS_Face):
-            if as_compound:
-                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_FACE)
@@ -160,25 +126,19 @@ class ExploreShape(object):
             face = topods_Face(fi)
             faces.append(face)
             exp.Next()
-        if as_compound:
-            return _make_compound(faces)
         return faces
 
     @staticmethod
-    def get_shells(shape, as_compound=False):
+    def get_shells(shape):
         """
         Get shells from a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param bool as_compound: Option to return as a compound rather than
-            a list.
 
         :return: Shells of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Shell] or OCC.TopoDS.TopoDS_Compound
+        :rtype: list[OCC.TopoDS.TopoDS_Shell]
         """
         if isinstance(shape, TopoDS_Shell):
-            if as_compound:
-                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_SHELL)
@@ -188,25 +148,19 @@ class ExploreShape(object):
             shell = topods_Shell(si)
             shells.append(shell)
             exp.Next()
-        if as_compound:
-            return _make_compound(shells)
         return shells
 
     @staticmethod
-    def get_solids(shape, as_compound=False):
+    def get_solids(shape):
         """
         Get solids from a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param bool as_compound: Option to return as a compound rather than
-            a list.
 
         :return: Solids of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Solid] or OCC.TopoDS.TopoDS_Compound
+        :rtype: list[OCC.TopoDS.TopoDS_Solid]
         """
         if isinstance(shape, TopoDS_Solid):
-            if as_compound:
-                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_SOLID)
@@ -216,25 +170,19 @@ class ExploreShape(object):
             solid = topods_Solid(si)
             solids.append(solid)
             exp.Next()
-        if as_compound:
-            return _make_compound(solids)
         return solids
 
     @staticmethod
-    def get_compounds(shape, as_compound=False):
+    def get_compounds(shape):
         """
         Get compounds from a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param bool as_compound: Option to return as a compound rather than
-            a list.
 
         :return: Compounds of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Compound] or OCC.TopoDS.TopoDS_Compound
+        :rtype: list[OCC.TopoDS.TopoDS_Compound]
         """
         if isinstance(shape, TopoDS_Compound):
-            if as_compound:
-                return _make_compound([shape])
             return [shape]
 
         exp = TopExp_Explorer(shape, TopAbs_COMPOUND)
@@ -244,8 +192,6 @@ class ExploreShape(object):
             compound = topods_Compound(ci)
             compounds.append(compound)
             exp.Next()
-        if as_compound:
-            return _make_compound(compounds)
         return compounds
 
     @staticmethod
@@ -535,10 +481,12 @@ class ExploreFreeEdges(object):
 
     def __init__(self, shape):
         tool = ShapeAnalysis_FreeBounds(shape)
-        self._closed_wires = ExploreShape.get_wires(tool.GetClosedWires())
-        self._open_wires = ExploreShape.get_wires(tool.GetOpenWires())
-        self._edges = (ExploreShape.get_edges(self._closed_wires) +
-                       ExploreShape.get_edges(self._open_wires))
+        cmp_closed_wires = tool.GetClosedWires()
+        cmp_open_wires = tool.GetOpenWires()
+        self._closed_wires = ExploreShape.get_wires(cmp_closed_wires)
+        self._open_wires = ExploreShape.get_wires(cmp_open_wires)
+        self._edges = (ExploreShape.get_edges(cmp_closed_wires) +
+                       ExploreShape.get_edges(cmp_open_wires))
 
     @property
     def closed_wires(self):
