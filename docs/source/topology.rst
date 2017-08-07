@@ -220,6 +220,10 @@ SewShape
 ~~~~~~~~
 .. autoclass:: SewShape
 
+RebuildShapeByTool
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: RebuildShapeByTool
+
 Boolean
 -------
 .. py:currentmodule:: afem.topology.bop

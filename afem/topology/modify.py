@@ -1,14 +1,16 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_Sewing
+from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.ShapeFix import ShapeFix_Shape
 from OCC.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                               ShapeUpgrade_ShapeDivideContinuity,
                               ShapeUpgrade_UnifySameDomain)
 from OCC.TopoDS import topods_Edge
 
+from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
 
 __all__ = ["FixShape", "DivideClosedShape", "DivideC0Shape", "UnifyShape",
-           "SewShape"]
+           "SewShape", "RebuildShapeByTool"]
 
 
 class FixShape(object):
@@ -284,6 +286,86 @@ class SewShape(object):
             e = topods_Edge(self._tool.ContigousEdge(i))
             edges.append(e)
         return edges
+
+
+class RebuildShapeByTool(object):
+    """
+    Rebuild a shape using a supported tool.
+
+    :param OCC.TopoDS.TopoDS_Shape: The shape.
+    :param tool: The tool.
+    :type tool: afem.topology.bop.BopAlgo
+    :param str replace_type: The level of shape to replace ('vertex',
+        'edge', 'face').
+    :param bool fix: Option to use :class:`.FixShape` on the new shape in
+        case the substitutions caused errors (e.g., like a solid is now a
+        shell).
+
+    For more information see ShapeBuild_ReShape_.
+
+    .. _ShapeBuild_ReShape: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_shape_build___re_shape.html
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> from afem.topology import *
+    >>> pln1 = PlaneByAxes(axes='xy').plane
+    >>> box1 = SolidByPlane(pln1, 10., 10., 10.).solid
+    >>> pln2 = PlaneByAxes((1., 1., 1.), 'xy').plane
+    >>> box2 = SolidByPlane(pln2, 5., 15., 5.).solid
+    >>> cut = CutShapes(box1, box2)
+    >>> assert cut.is_done
+    >>> rebuild = RebuildShapeByTool(box1, cut, fix=True)
+    >>> new_shape = rebuild.new_shape
+    >>> CheckShape.is_solid(box1)
+    True
+    >>> CheckShape.is_shell(new_shape)
+    True
+    """
+
+    def __init__(self, old_shape, tool, replace_type='face', fix=False):
+        reshape = ShapeBuild_ReShape()
+
+        # TODO Consider iterating through all shapes?
+
+        # Old shapes
+        replace_type = replace_type.lower()
+        if replace_type in ['v', 'vertex', 'vertices']:
+            old_shapes = ExploreShape.get_vertices(old_shape)
+        elif replace_type in ['e', 'edge', 'edges']:
+            old_shapes = ExploreShape.get_edges(old_shape)
+        elif replace_type in ['f', 'face', 'faces']:
+            old_shapes = ExploreShape.get_faces(old_shape)
+        else:
+            msg = 'Invalid replace type.'
+            raise TypeError(msg)
+
+        # Delete and replace
+        for shape in old_shapes:
+            # Deleted
+            if tool.is_deleted(shape):
+                reshape.Remove(shape)
+                continue
+
+            # Modified
+            mod_shapes = tool.modified(shape)
+            if mod_shapes:
+                new_shape = CompoundByShapes(mod_shapes).compound
+                reshape.Replace(shape, new_shape)
+
+        new_shape = reshape.Apply(old_shape)
+        if fix:
+            self._new_shape = FixShape(new_shape).shape
+        else:
+            self._new_shape = new_shape
+
+    @property
+    def new_shape(self):
+        """
+        :return: The new shape after substitutions.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._new_shape
 
 
 if __name__ == "__main__":

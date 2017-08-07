@@ -23,6 +23,8 @@ def reshape_parts(tool, parts):
                 performed = True
                 continue
 
+            # TODO Handle generated?
+
             # Check modified.
             mod = tool.Modified(old_shape)
             if mod.IsEmpty():

@@ -39,6 +39,21 @@ class CheckShape(object):
         return isinstance(shape, TopoDS_Shape)
 
     @staticmethod
+    def is_shell(shape):
+        """
+        Check if the shape is a shell.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if a shell, *False* if not.
+        :rtype: bool
+        """
+        try:
+            return shape.ShapeType() == TopAbs_SHELL
+        except AttributeError:
+            return False
+
+    @staticmethod
     def is_solid(shape):
         """
         Check if the shape is a solid.
