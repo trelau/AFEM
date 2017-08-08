@@ -44,10 +44,10 @@ from afem.topology.explore import ExploreShape
 from afem.topology.tools import ShapeTools
 
 __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
-           "EdgeByDrag", "WireByEdges", "WiresByConnectedEdges",
-           "WireByConcat",
+           "EdgeByDrag", "EdgeByWireConcat", "WireByEdges",
+           "WiresByConnectedEdges",
            "WireByPlanarOffset", "WiresByShape", "WireByPoints", "WireBySplit",
-           "FaceBySurface",
+           "WireByConcat", "FaceBySurface",
            "FaceByPlane", "FaceByPlanarWire", "FaceByDrag", "ShellBySurface",
            "ShellByFaces", "ShellBySewing",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
@@ -849,7 +849,39 @@ class EdgeByDrag(object):
         return self._v2
 
 
+class EdgeByWireConcat(object):
+    """
+    Create an edge by concatenating all the edges of a wire. The edge may
+    have C0 continuity.
+
+    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+
+    Usage:
+
+    >>> from afem.geometry import NurbsCurveByPoints
+    >>> from afem.topology import EdgeByCurve, WireByEdges, EdgeByWireConcat
+    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+    >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
+    >>> e1 =  EdgeByCurve(c1).edge
+    >>> e2 =  EdgeByCurve(c2).edge
+    >>> w = WireByEdges(e1, e2).wire
+    >>> edge = EdgeByWireConcat(w).edge
+    """
+
+    def __init__(self, wire):
+        self._edge = brepalgo_ConcatenateWireC0(wire)
+
+    @property
+    def edge(self):
+        """
+        :return: The edge.
+        :rtype: OCC.TopoDS.TopoDS_Edge
+        """
+        return self._edge
+
+
 # WIRE ------------------------------------------------------------------------
+
 
 class WireByEdges(object):
     """
@@ -967,37 +999,6 @@ class WiresByConnectedEdges(object):
         :rtype: list[OCC.TopoDS.TopoDS_Wire]
         """
         return self._wires
-
-
-class WireByConcat(object):
-    """
-    Create a wire by concatenating all the edges into a single edge. The
-    wire may have C0 continuity.
-
-    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByPoints
-    >>> from afem.topology import EdgeByCurve, WireByEdges, WireByConcat
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
-    >>> e1 =  EdgeByCurve(c1).edge
-    >>> e2 =  EdgeByCurve(c2).edge
-    >>> w = WireByEdges(e1, e2).wire
-    >>> wnew = WireByConcat(w).wire
-    """
-
-    def __init__(self, wire):
-        self._wire = brepalgo_ConcatenateWireC0(wire)
-
-    @property
-    def wire(self):
-        """
-        :return: The wire.
-        :rtype: OCC.TopoDS.TopoDS_Wire
-        """
-        return self._wire
 
 
 class WireByPlanarOffset(object):
@@ -1151,6 +1152,38 @@ class WireBySplit(object):
     def wire(self):
         """
         :return: The split wire.
+        :rtype: OCC.TopoDS.TopoDS_Wire
+        """
+        return self._wire
+
+
+class WireByConcat(object):
+    """
+    Create a wire by concatenating all the edges of the wire. The wire may
+    have C0 continuity.
+
+    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+
+    Usage:
+
+    >>> from afem.geometry import NurbsCurveByPoints
+    >>> from afem.topology import EdgeByCurve, WireByEdges, WireByConcat
+    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+    >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
+    >>> e1 =  EdgeByCurve(c1).edge
+    >>> e2 =  EdgeByCurve(c2).edge
+    >>> w = WireByEdges(e1, e2).wire
+    >>> wire = WireByConcat(w).wire
+    """
+
+    def __init__(self, wire):
+        edge = brepalgo_ConcatenateWireC0(wire)
+        self._wire = BRepBuilderAPI_MakeWire(edge).Wire()
+
+    @property
+    def wire(self):
+        """
+        :return: The wire.
         :rtype: OCC.TopoDS.TopoDS_Wire
         """
         return self._wire

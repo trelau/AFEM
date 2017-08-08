@@ -88,6 +88,10 @@ EdgeByDrag
 ~~~~~~~~~~
 .. autoclass:: EdgeByDrag
 
+EdgeByWireConcat
+~~~~~~~~~~~~~~~~
+.. autoclass:: EdgeByWireConcat
+
 WireByEdges
 ~~~~~~~~~~~
 .. autoclass:: WireByEdges
@@ -95,10 +99,6 @@ WireByEdges
 WiresByConnectedEdges
 ~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: WiresByConnectedEdges
-
-WireByConcat
-~~~~~~~~~~~~
-.. autoclass:: WireByConcat
 
 WireByPlanarOffset
 ~~~~~~~~~~~~~~~~~~
@@ -115,6 +115,10 @@ WireByPoints
 WireBySplit
 ~~~~~~~~~~~
 .. autoclass:: WireBySplit
+
+WireByConcat
+~~~~~~~~~~~~
+.. autoclass:: WireByConcat
 
 FaceBySurface
 ~~~~~~~~~~~~~
