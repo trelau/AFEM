@@ -157,9 +157,7 @@ def import_vsp_step(fname, divide_closed):
             continue
         wing = wing_bodies[sref_id]
         sref = ref_surfs[sref_id]
-        status = wing.set_sref(sref)
-        if not status:
-            print('Failed to set wing reference surface for a wing body.')
+        wing.set_sref(sref)
 
     return bodies
 
