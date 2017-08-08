@@ -1,3 +1,4 @@
+from afem.structure.create import *
 from .assembly import *
 from .beam import *
 from .bulkhead import *

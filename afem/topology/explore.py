@@ -1,5 +1,6 @@
 from itertools import product
-from OCC.BRep import BRep_Builder, BRep_Tool, BRep_Tool_Parameter
+
+from OCC.BRep import BRep_Tool, BRep_Tool_Parameter
 from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
@@ -18,7 +19,7 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                         TopoDS_Wire, topods_Compound, topods_Edge, topods_Face,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 
-from afem.geometry.entities import Line, Plane
+from afem.geometry.entities import Line, Plane, Point
 from afem.geometry.methods.create import (create_nurbs_curve_from_occ,
                                           create_nurbs_surface_from_occ)
 from afem.topology.props import AreaOfShapes
@@ -247,6 +248,19 @@ class ExploreShape(object):
         :rtype: OCC.TopoDS.TopoDS_Shell
         """
         return brepclass3d.OuterShell(solid)
+
+    @staticmethod
+    def pnt_of_vertex(vertex):
+        """
+        Get the underlying point of the vertex.
+
+        :param OCC.TopoDS.TopoDS_Vertex vertex: The vertex.
+
+        :return: The point.
+        :rtype: afem.geometry.entities.Point
+        """
+        gp_pnt = BRep_Tool.Pnt(vertex)
+        return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
 
     @staticmethod
     def curve_of_edge(edge):

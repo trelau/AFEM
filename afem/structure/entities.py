@@ -58,10 +58,12 @@ class Part(TopoDS_Shape, ViewableItem):
         # Set attributes
         self._label = label
         self.set_shape(shape)
-        self.set_cref(cref)
-        self.set_sref(sref)
+        if cref is not None:
+            self.set_cref(cref)
+        if sref is not None:
+            self.set_sref(sref)
 
-        print('Creating part: ', label)
+            # TODO Log creating part.
 
     @property
     def label(self):

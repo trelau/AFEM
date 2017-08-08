@@ -86,6 +86,18 @@ CurvePartByShape
 ~~~~~~~~~~~~~~~~
 .. autoclass:: CurvePartByShape
 
+BeamByShape
+~~~~~~~~~~~
+.. autoclass:: BeamByShape
+
+BeamByCurve
+~~~~~~~~~~~
+.. autoclass:: BeamByCurve
+
+BeamByPoints
+~~~~~~~~~~~~
+.. autoclass:: BeamByPoints
+
 SurfacePartByShape
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: SurfacePartByShape
@@ -98,13 +110,13 @@ SparByPoints
 ~~~~~~~~~~~~
 .. autoclass:: SparByPoints
 
-SparByShape
-~~~~~~~~~~~
-.. autoclass:: SparByShape
+SparBySurface
+~~~~~~~~~~~~~
+.. autoclass:: SparBySurface
 
-SparBetweenGeom
-~~~~~~~~~~~~~~~
-.. autoclass:: SparBetweenGeom
+SparBetweenShapes
+~~~~~~~~~~~~~~~~~
+.. autoclass:: SparBetweenShapes
 
 SparsBetweenPlanes
 ~~~~~~~~~~~~~~~~~~
