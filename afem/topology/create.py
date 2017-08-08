@@ -3,17 +3,21 @@ from OCC.BRep import BRep_Builder, BRep_Tool
 from OCC.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve
 from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
 from OCC.BRepAlgoAPI import BRepAlgoAPI_Section
-from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy, BRepBuilderAPI_FindPlane, \
-    BRepBuilderAPI_MakeEdge, BRepBuilderAPI_MakeFace, \
-    BRepBuilderAPI_MakePolygon, BRepBuilderAPI_MakeShell, \
-    BRepBuilderAPI_MakeSolid, BRepBuilderAPI_MakeVertex, \
-    BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing
+from OCC.BRepBuilderAPI import (BRepBuilderAPI_Copy, BRepBuilderAPI_FindPlane,
+                                BRepBuilderAPI_MakeEdge,
+                                BRepBuilderAPI_MakeFace,
+                                BRepBuilderAPI_MakePolygon,
+                                BRepBuilderAPI_MakeShell,
+                                BRepBuilderAPI_MakeSolid,
+                                BRepBuilderAPI_MakeVertex,
+                                BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
 from OCC.BRepMesh import BRepMesh_IncrementalMesh
-from OCC.BRepOffset import BRepOffset_Pipe, BRepOffset_RectoVerso, \
-    BRepOffset_Skin
-from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffset, \
-    BRepOffsetAPI_MakeOffsetShape, BRepOffsetAPI_MakePipeShell, \
-    BRepOffsetAPI_NormalProjection
+from OCC.BRepOffset import (BRepOffset_Pipe, BRepOffset_RectoVerso,
+                            BRepOffset_Skin)
+from OCC.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset,
+                               BRepOffsetAPI_MakeOffsetShape,
+                               BRepOffsetAPI_MakePipeShell,
+                               BRepOffsetAPI_NormalProjection)
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
@@ -22,13 +26,14 @@ from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.ShapeAnalysis import ShapeAnalysis_FreeBounds_ConnectEdgesToWires
 from OCC.ShapeBuild import ShapeBuild_ReShape
-from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE, \
-    TopAbs_REVERSED, TopAbs_SHELL, TopAbs_WIRE
-from OCC.TopTools import Handle_TopTools_HSequenceOfShape, \
-    TopTools_HSequenceOfShape
-from OCC.TopoDS import TopoDS_Compound, TopoDS_Face, TopoDS_Shape, \
-    TopoDS_Shell, TopoDS_Wire, topods_Edge, topods_Face, topods_Shell, \
-    topods_Solid, topods_Vertex, topods_Wire
+from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE,
+                        TopAbs_REVERSED, TopAbs_SHELL, TopAbs_WIRE)
+from OCC.TopTools import (Handle_TopTools_HSequenceOfShape,
+                          TopTools_HSequenceOfShape)
+from OCC.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
+                        TopoDS_Shell, TopoDS_Wire, topods_Edge, topods_Face,
+                        topods_Shell,
+                        topods_Solid, topods_Vertex, topods_Wire)
 from numpy import ceil
 
 from afem.geometry import CheckGeom, CreateGeom
@@ -635,6 +640,8 @@ class CreateShape(object):
         BRepMesh_IncrementalMesh(shape, linear, is_relative, angular, False)
 
 
+# VERTEX ----------------------------------------------------------------------
+
 class VertexByPoint(object):
     """
     Create a vertex using a point.
@@ -663,6 +670,8 @@ class VertexByPoint(object):
         """
         return self._v
 
+
+# EDGE ------------------------------------------------------------------------
 
 class EdgeByPoints(object):
     """
@@ -839,6 +848,8 @@ class EdgeByDrag(object):
         """
         return self._v2
 
+
+# WIRE ------------------------------------------------------------------------
 
 class WireByEdges(object):
     """
@@ -1145,6 +1156,8 @@ class WireBySplit(object):
         return self._wire
 
 
+# FACE ------------------------------------------------------------------------
+
 class FaceBySurface(object):
     """
     Create a face from a surface.
@@ -1283,6 +1296,8 @@ class FaceByDrag(object):
         """
         return self._e2
 
+
+# SHELL -----------------------------------------------------------------------
 
 class ShellBySurface(object):
     """
@@ -1521,6 +1536,8 @@ class SolidByShell(object):
         return self._solid
 
 
+# SOLID -----------------------------------------------------------------------
+
 class SolidByPlane(object):
     """
     Create a solid box using a plane. The plane will be extruded in the
@@ -1614,6 +1631,8 @@ class SolidByDrag(object):
         return self._f2
 
 
+# COMPOUND --------------------------------------------------------------------
+
 class CompoundByShapes(object):
     """
     Create a compound from a list of shapes.
@@ -1637,6 +1656,8 @@ class CompoundByShapes(object):
         """
         return self._cp
 
+
+# HALFSPACE -------------------------------------------------------------------
 
 class HalfspaceByShape(object):
     """
@@ -1678,6 +1699,8 @@ class HalfspaceByShape(object):
         """
         return self._solid
 
+
+# GEOMETRY --------------------------------------------------------------------
 
 class PointsAlongShapeByNumber(object):
     """

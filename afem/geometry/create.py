@@ -635,6 +635,8 @@ class CreatedPoints(object):
         return zip(self._pnts, self._params)
 
 
+# POINT -----------------------------------------------------------------------
+
 class PointByXYZ(object):
     """
     Create a point by x, y, and z location.
@@ -991,6 +993,8 @@ class PointsAlongCurveByDistance(object):
         return self._ds
 
 
+# DIRECTION -------------------------------------------------------------------
+
 class DirectionByXYZ(object):
     """
     Create a direction (i.e., unit vector) by x-, y-, and z-components.
@@ -1063,6 +1067,8 @@ class DirectionByPoints(DirectionByArray):
         p2 = CheckGeom.to_point(p2)
         super(DirectionByPoints, self).__init__(p2 - p1)
 
+
+# VECTOR ----------------------------------------------------------------------
 
 class VectorByXYZ(object):
     """
@@ -1150,6 +1156,150 @@ class VectorByPoints(object):
         return self._v
 
 
+# CURVE -----------------------------------------------------------------------
+
+class CurveByUIso(object):
+    """
+    Create an isocurve from a surface at a constant u-parameter.
+
+    :param surface_like s: The surface.
+    :param float u: The parameter.
+
+    :raise RuntimeError: If an unsupported curve type is created.
+
+    The following curve types are created for a given surface:
+
+    * Plane -> Line
+    * NurbsSurface -> NurbsCurve
+
+    Usage:
+
+    >>> from afem.geometry import CurveByUIso, Direction, Plane, Point
+    >>> p0 = Point()
+    >>> vn = Direction(0., 0., 1.)
+    >>> pln = Plane(p0, vn)
+    >>> builder = CurveByUIso(pln, 1.)
+    >>> builder.is_line
+    True
+    >>> builder.is_nurbs
+    False
+    >>> line = builder.curve
+    >>> line.eval(0.)
+    Point(1.0, 0.0, 0.0)
+    """
+
+    def __init__(self, s, u):
+        hcrv = s.UIso(u)
+        adp_curve = GeomAdaptor_Curve(hcrv)
+        if adp_curve.GetType() == GeomAbs_Line:
+            gp_lin = adp_curve.Line()
+            c = Line(gp_lin)
+        elif adp_curve.GetType() == GeomAbs_BSplineCurve:
+            occ_crv = adp_curve.BSpline().GetObject()
+            c = create_nurbs_curve_from_occ(occ_crv)
+        else:
+            msg = 'Curve type not yet supported.'
+            raise RuntimeError(msg)
+
+        self._c = c
+
+    @property
+    def is_line(self):
+        """
+        :return: *True* if the isocurve is a line, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.curve, Line)
+
+    @property
+    def is_nurbs(self):
+        """
+        :return: *True* if the isocurve is a NURBS curve, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.curve, NurbsCurve)
+
+    @property
+    def curve(self):
+        """
+        :return: The curve.
+        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
+        """
+        return self._c
+
+
+class CurveByVIso(object):
+    """
+    Create an isocurve from a surface at a constant v-parameter.
+
+    :param surface_like s: The surface.
+    :param float v: The parameter.
+
+    :raise RuntimeError: If an unsupported curve type is created.
+
+    The following curve types are created for a given surface:
+
+    * Plane -> Line
+    * NurbsSurface -> NurbsCurve
+
+    Usage:
+
+    >>> from afem.geometry import CurveByVIso, Direction, Plane, Point
+    >>> p0 = Point()
+    >>> vn = Direction(0., 0., 1.)
+    >>> pln = Plane(p0, vn)
+    >>> builder = CurveByVIso(pln, 1.)
+    >>> builder.is_line
+    True
+    >>> builder.is_nurbs
+    False
+    >>> line = builder.curve
+    >>> line.eval(0.)
+    Point(0.0, 1.0, 0.0)
+    """
+
+    def __init__(self, s, v):
+        hcrv = s.VIso(v)
+        adp_curve = GeomAdaptor_Curve(hcrv)
+        if adp_curve.GetType() == GeomAbs_Line:
+            gp_lin = adp_curve.Line()
+            c = Line(gp_lin)
+        elif adp_curve.GetType() == GeomAbs_BSplineCurve:
+            occ_crv = adp_curve.BSpline().GetObject()
+            c = create_nurbs_curve_from_occ(occ_crv)
+        else:
+            msg = 'Curve type not yet supported.'
+            raise RuntimeError(msg)
+
+        self._c = c
+
+    @property
+    def is_line(self):
+        """
+        :return: *True* if the isocurve is a line, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.curve, Line)
+
+    @property
+    def is_nurbs(self):
+        """
+        :return: *True* if the isocurve is a NURBS curve, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.curve, NurbsCurve)
+
+    @property
+    def curve(self):
+        """
+        :return: The curve.
+        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
+        """
+        return self._c
+
+
+# LINE ------------------------------------------------------------------------
+
 class LineByVector(object):
     """
     Create a line by an origin and a vector.
@@ -1232,6 +1382,8 @@ class LineByPoints(object):
         """
         return self._line
 
+
+# NURBSCURVE ------------------------------------------------------------------
 
 class NurbsCurveByData(object):
     """
@@ -1445,145 +1597,7 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
         super(NurbsCurveByPoints, self).__init__(qp, 1, 1, 'C0')
 
 
-class CurveByUIso(object):
-    """
-    Create an isocurve from a surface at a constant u-parameter.
-
-    :param surface_like s: The surface.
-    :param float u: The parameter.
-
-    :raise RuntimeError: If an unsupported curve type is created.
-
-    The following curve types are created for a given surface:
-
-    * Plane -> Line
-    * NurbsSurface -> NurbsCurve
-
-    Usage:
-
-    >>> from afem.geometry import CurveByUIso, Direction, Plane, Point
-    >>> p0 = Point()
-    >>> vn = Direction(0., 0., 1.)
-    >>> pln = Plane(p0, vn)
-    >>> builder = CurveByUIso(pln, 1.)
-    >>> builder.is_line
-    True
-    >>> builder.is_nurbs
-    False
-    >>> line = builder.curve
-    >>> line.eval(0.)
-    Point(1.0, 0.0, 0.0)
-    """
-
-    def __init__(self, s, u):
-        hcrv = s.UIso(u)
-        adp_curve = GeomAdaptor_Curve(hcrv)
-        if adp_curve.GetType() == GeomAbs_Line:
-            gp_lin = adp_curve.Line()
-            c = Line(gp_lin)
-        elif adp_curve.GetType() == GeomAbs_BSplineCurve:
-            occ_crv = adp_curve.BSpline().GetObject()
-            c = create_nurbs_curve_from_occ(occ_crv)
-        else:
-            msg = 'Curve type not yet supported.'
-            raise RuntimeError(msg)
-
-        self._c = c
-
-    @property
-    def is_line(self):
-        """
-        :return: *True* if the isocurve is a line, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(self.curve, Line)
-
-    @property
-    def is_nurbs(self):
-        """
-        :return: *True* if the isocurve is a NURBS curve, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(self.curve, NurbsCurve)
-
-    @property
-    def curve(self):
-        """
-        :return: The curve.
-        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
-        """
-        return self._c
-
-
-class CurveByVIso(object):
-    """
-    Create an isocurve from a surface at a constant v-parameter.
-
-    :param surface_like s: The surface.
-    :param float v: The parameter.
-
-    :raise RuntimeError: If an unsupported curve type is created.
-
-    The following curve types are created for a given surface:
-
-    * Plane -> Line
-    * NurbsSurface -> NurbsCurve
-
-    Usage:
-
-    >>> from afem.geometry import CurveByVIso, Direction, Plane, Point
-    >>> p0 = Point()
-    >>> vn = Direction(0., 0., 1.)
-    >>> pln = Plane(p0, vn)
-    >>> builder = CurveByVIso(pln, 1.)
-    >>> builder.is_line
-    True
-    >>> builder.is_nurbs
-    False
-    >>> line = builder.curve
-    >>> line.eval(0.)
-    Point(0.0, 1.0, 0.0)
-    """
-
-    def __init__(self, s, v):
-        hcrv = s.VIso(v)
-        adp_curve = GeomAdaptor_Curve(hcrv)
-        if adp_curve.GetType() == GeomAbs_Line:
-            gp_lin = adp_curve.Line()
-            c = Line(gp_lin)
-        elif adp_curve.GetType() == GeomAbs_BSplineCurve:
-            occ_crv = adp_curve.BSpline().GetObject()
-            c = create_nurbs_curve_from_occ(occ_crv)
-        else:
-            msg = 'Curve type not yet supported.'
-            raise RuntimeError(msg)
-
-        self._c = c
-
-    @property
-    def is_line(self):
-        """
-        :return: *True* if the isocurve is a line, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(self.curve, Line)
-
-    @property
-    def is_nurbs(self):
-        """
-        :return: *True* if the isocurve is a NURBS curve, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(self.curve, NurbsCurve)
-
-    @property
-    def curve(self):
-        """
-        :return: The curve.
-        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
-        """
-        return self._c
-
+# PLANE -----------------------------------------------------------------------
 
 class PlaneByNormal(object):
     """
@@ -2282,6 +2296,8 @@ class PlanesBetweenPlanesByDistance(object):
         """
         return self._ds
 
+
+# NURBSSURFACE ----------------------------------------------------------------
 
 class NurbsSurfaceByData(object):
     """
