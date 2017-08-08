@@ -25,12 +25,10 @@ from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
 from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
+from afem.oml.entities import Body, Fuselage, Wing
 from ....config import Settings
 from ....geometry import CreateGeom
 from ....geometry.methods.create import create_nurbs_surface_from_occ
-from ....oml.body import Body
-from ....oml.fuselage import Fuselage
-from ....oml.wing import Wing
 from ....topology import ShapeTools
 
 __all__ = []
