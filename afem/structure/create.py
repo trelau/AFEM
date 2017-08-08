@@ -14,7 +14,10 @@ from afem.topology.props import *
 
 __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SurfacePartByShape", "SparByParameters", "SparByPoints",
-           "SparBySurface", "SparBetweenShapes"]
+           "SparBySurface", "SparBetweenShapes", "RibByParameters",
+           "RibByPoints", "RibBySurface", "RibBetweenShapes",
+           "RibsBetweenPlanesByNumber", "RibsBetweenPlanesByDistance",
+           "RibsAlongCurveByNumber", "RibsAlongCurveByDistance"]
 
 
 def _validate_type(input_, type_, required=True):
