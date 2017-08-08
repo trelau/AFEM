@@ -118,17 +118,25 @@ SparBetweenShapes
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: SparBetweenShapes
 
-SparsBetweenPlanes
-~~~~~~~~~~~~~~~~~~
-.. autoclass:: SparsBetweenPlanes
+SparsBetweenPlanesByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SparsBetweenPlanesByNumber
+
+SparsBetweenPlanesByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SparsBetweenPlanesByDistance
+
+SparsAlongCurveByNumber
+~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SparsAlongCurveByNumber
+
+SparsAlongCurveByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SparsAlongCurveByDistance
 
 SparsAtShapes
 ~~~~~~~~~~~~~
 .. autoclass:: SparsAtShapes
-
-SparsAlongCurve
-~~~~~~~~~~~~~~~
-.. autoclass:: SparsAlongCurve
 
 RibByParameters
 ~~~~~~~~~~~~~~~~
@@ -138,41 +146,53 @@ RibByPoints
 ~~~~~~~~~~~~
 .. autoclass:: RibByPoints
 
-RibByShape
-~~~~~~~~~~~
-.. autoclass:: RibByShape
+RibBySurface
+~~~~~~~~~~~~
+.. autoclass:: RibBySurface
 
-RibBetweenGeom
-~~~~~~~~~~~~~~~
-.. autoclass:: RibBetweenGeom
+RibBetweenShapes
+~~~~~~~~~~~~~~~~
+.. autoclass:: RibBetweenShapes
 
-RibsBetweenPlanes
-~~~~~~~~~~~~~~~~~~
-.. autoclass:: RibsBetweenPlanes
+RibsBetweenPlanesByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: RibsBetweenPlanesByNumber
+
+RibsBetweenPlanesByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: RibsBetweenPlanesByDistance
+
+RibsAlongCurveByNumber
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: RibsAlongCurveByNumber
+
+RibsAlongCurveByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: RibsAlongCurveByDistance
 
 RibsAtShapes
 ~~~~~~~~~~~~~
 .. autoclass:: RibsAtShapes
 
-RibsAlongCurve
-~~~~~~~~~~~~~~~
-.. autoclass:: RibsAlongCurve
+BulkheadBySurface
+~~~~~~~~~~~~~~~~~
+.. autoclass:: BulkheadBySurface
 
-BulkheadByShape
-~~~~~~~~~~~~~~~
-.. autoclass:: BulkheadByShape
+FloorBySurface
+~~~~~~~~~~~~~~
+.. autoclass:: FloorBySurface
 
-FloorByShape
-~~~~~~~~~~~~
-.. autoclass:: FloorByShape
+FrameByPlane
+~~~~~~~~~~~~~
+.. autoclass:: FrameByPlane
 
-FrameByShape
-~~~~~~~~~~~~
-.. autoclass:: FrameByShape
+FramesBetweenPlanesByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: FramesBetweenPlanesByNumber
 
-FramesBetweenPlanes
-~~~~~~~~~~~~~~~~~~~
-.. autoclass:: FramesBetweenPlanes
+FramesBetweenPlanesByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: FramesBetweenPlanesByDistance
 
 FramesAtShapes
 ~~~~~~~~~~~~~~
