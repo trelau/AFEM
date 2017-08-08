@@ -1345,6 +1345,27 @@ class Plane(Geom_Plane, Surface):
         super(Plane, self).__init__(*args)
         Surface.__init__(self)
 
+    def distance(self, pnt):
+        """
+        Compute the distance between a point and this plane.
+
+        :param point_like pnt: The point.
+
+        :return: The distance.
+        :rtype: float
+
+        :raises TypeError: If *pnt* cannot be converted to a point.
+        """
+        if isinstance(pnt, gp_Pnt):
+            pnt = Point(pnt.XYZ())
+        elif isinstance(pnt, (tuple, list, ndarray)):
+            pnt = Point(pnt[0], pnt[1], pnt[2])
+        else:
+            msg = 'Invalid point type.'
+            raise TypeError(msg)
+
+        return self.Pln().Distance(pnt)
+
 
 class NurbsSurface(Geom_BSplineSurface, Surface):
     """

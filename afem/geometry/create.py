@@ -2074,7 +2074,8 @@ class PlanesBetweenPlanesByNumber(object):
     Create planes between two other planes. This method will create a line
     normal to the first plane at its origin and then intersect
     that line with the second plane. Planes are then created along this line
-    using :class:`.PlanesAlongCurveByNumber`.
+    using :class:`.PlanesAlongCurveByNumber`. Planes are not generated at
+    the same location as the boundary planes.
 
     :param afem.geometry.entities.Plane pln1: The first plane. This will be
         the reference plane to define the orientation of the new planes.
@@ -2097,16 +2098,16 @@ class PlanesBetweenPlanesByNumber(object):
     >>> builder.nplanes
     3
     >>> builder.spacing
-    5.0
+    2.5
     >>> pln1 = builder.planes[0]
     >>> pln1.eval(0., 0.)
-    Point(0.0, 0.0, 0.0)
+    Point(2.5, 0.0, 0.0)
     >>> pln2 = builder.planes[1]
     >>> pln2.eval(0., 0.)
     Point(5.0, 0.0, 0.0)
     >>> pln3 = builder.planes[2]
     >>> pln3.eval(0., 0.)
-    Point(10.0, 0.0, 0.0)
+    Point(7.5, 0.0, 0.0)
     """
 
     def __init__(self, pln1, pln2, n, d1=None, d2=None):
@@ -2120,12 +2121,34 @@ class PlanesBetweenPlanesByNumber(object):
             raise RuntimeError(msg)
         p2 = csi.Point(1)
 
-        line = NurbsCurveByPoints([p1, p2]).curve
-        builder = PlanesAlongCurveByNumber(line, n, pln1, d1=d1, d2=d2)
+        n = int(n)
+        if d1 is None:
+            n += 1
+        if d2 is None:
+            n += 1
 
-        self._plns = builder.planes
-        self._nplns = builder.nplanes
-        self._ds = builder.spacing
+        c = NurbsCurveByPoints([p1, p2]).curve
+        builder = PlanesAlongCurveByNumber(c, n, pln1, d1=d1, d2=d2)
+
+        plns = builder.planes
+        nplns = builder.nplanes
+        spacing = None
+
+        if plns and plns[0].distance(c.p1) <= 1.0e-7:
+            plns.pop(0)
+            nplns -= 1
+        if plns and plns[-1].distance(c.p2) <= 1.0e-7:
+            plns.pop(-1)
+            nplns -= 1
+
+        if nplns > 1:
+            p1 = plns[0].eval(0., 0.)
+            p2 = plns[1].eval(0., 0.)
+            spacing = p1.distance(p2)
+
+        self._plns = plns
+        self._nplns = nplns
+        self._ds = spacing
 
     @property
     def nplanes(self):
@@ -2158,7 +2181,8 @@ class PlanesBetweenPlanesByDistance(object):
     Create planes between two other planes by distance. This method will
     create a line normal to the first plane at its origin and then intersect
     that line with the second plane. Planes are then created along this line
-    using :class:`.PlanesAlongCurveByNumber`.
+    using :class:`.PlanesAlongCurveByNumber`. Planes are not generated at
+    the same location as the boundary planes.
 
     :param afem.geometry.entities.Plane pln1: The first plane. This will be
         the reference plane to define the orientation of the new planes.
@@ -2179,20 +2203,23 @@ class PlanesBetweenPlanesByDistance(object):
     >>> from afem.geometry import PlaneByNormal, PlanesBetweenPlanesByDistance
     >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
     >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
-    >>> builder = PlanesBetweenPlanesByDistance(pln1, pln2, 5.)
+    >>> builder = PlanesBetweenPlanesByDistance(pln1, pln2, 2.)
     >>> builder.nplanes
-    3
+    4
     >>> builder.spacing
-    5.0
+    2.0
     >>> pln1 = builder.planes[0]
     >>> pln1.eval(0., 0.)
-    Point(0.0, 0.0, 0.0)
+    Point(2.0, 0.0, 0.0)
     >>> pln2 = builder.planes[1]
     >>> pln2.eval(0., 0.)
-    Point(5.0, 0.0, 0.0)
+    Point(4.0, 0.0, 0.0)
     >>> pln3 = builder.planes[2]
     >>> pln3.eval(0., 0.)
-    Point(10.0, 0.0, 0.0)
+    Point(6.000000000000001, 0.0, 0.0)
+    >>> pln4 = builder.planes[3]
+    >>> pln4.eval(0., 0.)
+    Point(8.0, 0.0, 0.0)
     """
 
     def __init__(self, pln1, pln2, maxd, d1=None, d2=None, nmin=0):
@@ -2206,13 +2233,29 @@ class PlanesBetweenPlanesByDistance(object):
             raise RuntimeError(msg)
         p2 = csi.Point(1)
 
-        line = NurbsCurveByPoints([p1, p2]).curve
-        builder = PlanesAlongCurveByDistance(line, maxd, pln1, d1=d1, d2=d2,
+        c = NurbsCurveByPoints([p1, p2]).curve
+        builder = PlanesAlongCurveByDistance(c, maxd, pln1, d1=d1, d2=d2,
                                              nmin=nmin)
 
-        self._plns = builder.planes
-        self._nplns = builder.nplanes
-        self._ds = builder.spacing
+        plns = builder.planes
+        nplns = builder.nplanes
+        spacing = None
+
+        if plns and plns[0].distance(c.p1) <= 1.0e-7:
+            plns.pop(0)
+            nplns -= 1
+        if plns and plns[-1].distance(c.p2) <= 1.0e-7:
+            plns.pop(-1)
+            nplns -= 1
+
+        if nplns > 1:
+            p1 = plns[0].eval(0., 0.)
+            p2 = plns[1].eval(0., 0.)
+            spacing = p1.distance(p2)
+
+        self._plns = plns
+        self._nplns = nplns
+        self._ds = spacing
 
     @property
     def nplanes(self):
