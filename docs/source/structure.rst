@@ -194,9 +194,9 @@ FramesBetweenPlanesByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: FramesBetweenPlanesByDistance
 
-FramesAtShapes
+FramesByPlanes
 ~~~~~~~~~~~~~~
-.. autoclass:: FramesAtShapes
+.. autoclass:: FramesByPlanes
 
 SkinBySolid
 ~~~~~~~~~~~

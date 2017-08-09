@@ -1,10 +1,10 @@
 from OCC.TopoDS import TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell, \
-    TopoDS_Wire
+    TopoDS_Solid, TopoDS_Wire
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import *
 from afem.geometry.entities import *
-from afem.oml.entities import Fuselage, Wing
+from afem.oml.entities import Body, Fuselage, Wing
 from afem.structure.entities import *
 from afem.topology.bop import *
 from afem.topology.check import CheckShape
@@ -17,7 +17,11 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SparBySurface", "SparBetweenShapes", "RibByParameters",
            "RibByPoints", "RibBySurface", "RibBetweenShapes",
            "RibsBetweenPlanesByNumber", "RibsBetweenPlanesByDistance",
-           "RibsAlongCurveByNumber", "RibsAlongCurveByDistance"]
+           "RibsAlongCurveByNumber", "RibsAlongCurveByDistance",
+           "RibsAtShapes", "BulkheadBySurface", "FloorBySurface",
+           "FrameByPlane", "FramesBetweenPlanesByNumber",
+           "FramesBetweenPlanesByDistance", "FramesByPlanes", "SkinBySolid",
+           "SkinByBody"]
 
 
 def _validate_type(input_, type_, required=True):
@@ -1050,12 +1054,13 @@ class FloorBySurface(object):
 
 class FrameByPlane(object):
     """
-    Create a frame using a plane.
+    Create a frame using a plane. A plane is required since the shape of
+    frame is formed using an offset algorithm that requires planar shapes.
 
     :param str label: Part label.
     :param afem.geometry.entities.Plane pln: The plane.
     :param afem.oml.entities.Fuselage fuselage: The fuselage.
-    :param float height: The height.
+    :param float height: The height. The absolute value is used.
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
@@ -1083,7 +1088,7 @@ class FrameByPlane(object):
             outer_wire = closed_wires[0]
 
         # Offset the outer wire and concatenate it
-        inner_wire = WireByPlanarOffset(outer_wire, height).wire
+        inner_wire = WireByPlanarOffset(outer_wire, -abs(height)).wire
         inner_wire = WireByConcat(inner_wire).wire
 
         # Create inner and outer shapes and cut one from the other
@@ -1110,25 +1115,271 @@ class FrameByPlane(object):
 
 
 class FramesBetweenPlanesByNumber(object):
-    pass
+    """
+    Create a specified number of frames between two planes. This method uses
+    :class:`.PlanesBetweenPlanesByNumber` and :class:`.FrameByPlane`.
+
+    :param str label: Part label.
+    :param afem.geometry.entities.Plane pln1: The first plane.
+    :param afem.geometry.entities.Plane pln2: The second plane.
+    :param int n: The number of parts.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param float height: The height.
+    :param float d1: An offset distance for the first plane. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last plane. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    """
+
+    def __init__(self, label, pln1, pln2, n, fuselage, height, d1=None,
+                 d2=None, first_index=1, delimiter=' '):
+        _validate_type(pln1, Plane)
+        _validate_type(pln2, Plane)
+        _validate_type(fuselage, Fuselage)
+
+        n = int(n)
+        first_index = int(first_index)
+
+        builder = PlanesBetweenPlanesByNumber(pln1, pln2, n, d1, d2)
+
+        self._frames = []
+        self._nframes = builder.nplanes
+        self._ds = builder.spacing
+        for pln in builder.planes:
+            label_indx = delimiter.join([label, str(first_index)])
+            frame = FrameByPlane(label_indx, pln, fuselage, height).frame
+            first_index += 1
+            self._frames.append(frame)
+        self._next_index = first_index
+
+    @property
+    def nframes(self):
+        """
+        :return: The number of frames.
+        :rtype: int
+        """
+        return self._nframes
+
+    @property
+    def frames(self):
+        """
+        :return: The frames.
+        :rtype: list[afem.structure.entities.Frame]
+        """
+        return self._frames
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between first and second parts.
+        :rtype: float
+        """
+        return self._ds
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
 
 
 class FramesBetweenPlanesByDistance(object):
-    pass
+    """
+    Create frames between two planes using a maximum spacing. This method uses
+    :class:`.PlanesBetweenPlanesByDistance` and :class:`.FrameByPlane`.
+
+    :param str label: Part label.
+    :param afem.geometry.entities.Plane pln1: The first plane.
+    :param afem.geometry.entities.Plane pln2: The second plane.
+    :param float maxd: The maximum allowed spacing. The actual spacing will
+        be adjusted to not to exceed this value.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param float height: The height.
+    :param float d1: An offset distance for the first plane. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last plane. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param int nmin: Minimum number of parts to create.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    """
+
+    def __init__(self, label, pln1, pln2, maxd, fuselage, height, d1=None,
+                 d2=None, nmin=0, first_index=1, delimiter=' '):
+        _validate_type(pln1, Plane)
+        _validate_type(pln2, Plane)
+        _validate_type(fuselage, Fuselage)
+
+        first_index = int(first_index)
+
+        builder = PlanesBetweenPlanesByDistance(pln1, pln2, maxd, d1, d2, nmin)
+
+        self._frames = []
+        self._nframes = builder.nplanes
+        self._ds = builder.spacing
+        for pln in builder.planes:
+            label_indx = delimiter.join([label, str(first_index)])
+            frame = FrameByPlane(label_indx, pln, fuselage, height).frame
+            first_index += 1
+            self._frames.append(frame)
+        self._next_index = first_index
+
+    @property
+    def nframes(self):
+        """
+        :return: The number of frames.
+        :rtype: int
+        """
+        return self._nframes
+
+    @property
+    def frames(self):
+        """
+        :return: The frames.
+        :rtype: list[afem.structure.entities.Frame]
+        """
+        return self._frames
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between first and second parts.
+        :rtype: float
+        """
+        return self._ds
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
 
 
-class FramesAtShapes(object):
-    pass
+class FramesByPlanes(object):
+    """
+    Create frames using a list of planes. This method uses
+    :class:`.FrameByPlane`.
+
+    :param str label: Part label.
+    :param list[afem.geometry.entities.Plane] plns: The planes.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param float height: The height.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    """
+
+    def __init__(self, label, plns, fuselage, height, first_index=1,
+                 delimiter=' '):
+        for pln in plns:
+            _validate_type(pln, Plane)
+        _validate_type(fuselage, Fuselage)
+
+        first_index = int(first_index)
+
+        self._frames = []
+        self._nframes = len(plns)
+        self._ds = None
+        for pln in plns:
+            label_indx = delimiter.join([label, str(first_index)])
+            frame = FrameByPlane(label_indx, pln, fuselage, height).frame
+            first_index += 1
+            self._frames.append(frame)
+        self._next_index = first_index
+
+        if len(plns) > 1:
+            p1 = plns[0].eval(0., 0.)
+            p2 = plns[1].eval(0., 0.)
+            self._ds = p1.distance(p2)
+
+    @property
+    def nframes(self):
+        """
+        :return: The number of frames.
+        :rtype: int
+        """
+        return self._nframes
+
+    @property
+    def frames(self):
+        """
+        :return: The frames.
+        :rtype: list[afem.structure.entities.Frame]
+        """
+        return self._frames
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between first and second parts.
+        :rtype: float
+        """
+        return self._ds
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
 
 
 # SKIN ------------------------------------------------------------------------
 
 class SkinBySolid(object):
-    pass
+    """
+    Create a skin part from the outer shell of the solid.
+
+    :param str label: Part label.
+    :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+    :param bool copy: Option to copy the outer shell.
+    """
+
+    def __init__(self, label, solid, copy=True):
+        _validate_type(solid, TopoDS_Solid)
+
+        shell = ExploreShape.outer_shell(solid)
+        if copy:
+            shell = ExploreShape.copy_shape(shell, False)
+
+        self._skin = Skin(label, shell)
+
+    @property
+    def skin(self):
+        """
+        :return: The skin.
+        :rtype: afem.structure.entities.Skin
+        """
+        return self._skin
 
 
-class SkinByBody(object):
-    pass
+class SkinByBody(SkinBySolid):
+    """
+    Create a skin part from the outer shell of a body.
+
+    :param str label: Part label.
+    :param afem.oml.entities.Body body: The body.
+    :param bool copy: Option to copy the outer shell.
+    """
+
+    def __init__(self, label, body, copy=True):
+        _validate_type(body, Body)
+        super(SkinByBody, self).__init__(label, body, copy)
 
 
 # STRINGER --------------------------------------------------------------------

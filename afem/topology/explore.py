@@ -2,6 +2,7 @@ from itertools import product
 
 from OCC.BRep import BRep_Tool, BRep_Tool_Parameter
 from OCC.BRepAdaptor import BRepAdaptor_Curve
+from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
 from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_BSplineSurface,
@@ -464,6 +465,19 @@ class ExploreShape(object):
         tol = ShapeAnalysis_ShapeTolerance()
         tol.AddTolerance(shape)
         return tol.GlobalTolerance(mode)
+
+    @staticmethod
+    def copy_shape(shape, copy_geom=True):
+        """
+        Copy a shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape,
+        :param bool copy_geom: Option to copy geometry.
+
+        :return: The copied shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return BRepBuilderAPI_Copy(shape, copy_geom).Shape()
 
 
 class ExploreWire(object):
