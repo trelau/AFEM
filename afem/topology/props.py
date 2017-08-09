@@ -1,6 +1,7 @@
 from OCC.BRepGProp import brepgprop_LinearProperties, \
     brepgprop_SurfaceProperties, brepgprop_VolumeProperties
 from OCC.GProp import GProp_GProps
+from numpy import array
 
 from afem.geometry.entities import Point
 from afem.topology.check import CheckShape
@@ -35,6 +36,40 @@ class ShapeProps(object):
         """
         gp_pnt = self._props.CentreOfMass()
         return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
+
+    @property
+    def static_moments(self):
+        """
+        :return: The static moments of inertia Ix, Iy, and Iz.
+        :rtype: tuple(float)
+        """
+        return self._props.StaticMoments()
+
+    @property
+    def matrix_of_inertia(self):
+        """
+        :return: The 3 x 3 matrix of inertia.
+        :rtype: numpy.ndarray
+        """
+        gp_mat = self._props.MatrixOfInertia()
+        matrix = []
+        for j in range(1, 4):
+            row = []
+            for i in range(1, 4):
+                row.append(gp_mat.Value(i, j))
+            matrix.append(row)
+        return array(matrix, dtype=float)
+
+    def moment_of_inertia(self, axis):
+        """
+        Compute the moment of inertia about the axis.
+
+        :param afem.geometry.entities.Axis1 axis: The axis.
+
+        :return: The moment of inertia.
+        :rtype: float
+        """
+        return self._props.MomentOfInertia(axis)
 
 
 class LinearProps(ShapeProps):
