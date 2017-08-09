@@ -1,12 +1,15 @@
 from math import sqrt
 
-from OCC.BRepOffsetAPI import BRepOffsetAPI_NormalProjection
+from OCC.BRepOffset import BRepOffset_Skin
+from OCC.BRepOffsetAPI import BRepOffsetAPI_MakeOffsetShape, \
+    BRepOffsetAPI_NormalProjection
 from OCC.GeomAbs import GeomAbs_C2
 
 from afem.geometry.create import occ_continuity
+from afem.occ.utils import occ_join_type
 from afem.topology.explore import ExploreShape
 
-__all__ = ["ProjectShape"]
+__all__ = ["ProjectShape", "OffsetShape"]
 
 
 class ProjectShape(object):
@@ -122,8 +125,52 @@ class ProjectShape(object):
 
 
 class OffsetShape(object):
-    # TODO OffsetShape
-    pass
+    """
+    Offset a shape.
+
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape. It may be a face,
+        shell, a solid, or a compound of these kinds.
+    :param float offset: The offset value. The offset will be outside the
+        shape if positive and inside if negative.
+    :param float tol: Tolerance for coincidence for generated shapes. If not
+        provided the average tolerance of the shape is used.
+    :param str join_mode: Option for how to fill holes that may appear when
+        offsetting two adjacent faces ('arc' or 'intersect').
+
+    For more information see BRepOffsetAPI_MakeOffsetShape_.
+
+    .. _BRepOffsetAPI_MakeOffsetShape: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_offset_a_p_i___make_offset_shape.html
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> from afem.topology import *
+    >>> pln = PlaneByAxes().plane
+    >>> face = FaceByPlane(pln, -5., 5., -5., 5.).face
+    >>> tool = OffsetShape(face, 5.)
+    >>> shape = tool.shape
+    """
+
+    def __init__(self, shape, offset, tol=None, join_mode='arc'):
+        if tol is None:
+            tol = ExploreShape.get_tolerance(shape)
+
+        join_mode = occ_join_type[join_mode.lower()]
+
+        # TODO Remove internal edges option for OCC 7
+        self._tool = BRepOffsetAPI_MakeOffsetShape(shape, offset, tol,
+                                                   BRepOffset_Skin, False,
+                                                   False, join_mode)
+        self._tool.Build()
+        self._shape = self._tool.Shape()
+
+    @property
+    def shape(self):
+        """
+        :return: The offset shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._shape
 
 
 class LoftShape(object):

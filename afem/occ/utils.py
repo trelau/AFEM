@@ -1,3 +1,4 @@
+from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                          TColStd_Array2OfReal)
 from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
@@ -17,6 +18,12 @@ __all__ = ["to_gp_pnt", "to_gp_pnt2d", "to_np_from_tcolgp_array1_pnt",
            "to_tcolstd_array1_integer", "to_tcolstd_array1_real",
            "to_tcolstd_array2_real", "to_toptools_listofshape",
            "to_lst_from_toptools_listofshape"]
+
+occ_join_type = {'a': GeomAbs_Arc,
+                 'arc': GeomAbs_Arc,
+                 'i': GeomAbs_Intersection,
+                 'intersect': GeomAbs_Intersection,
+                 'intersection': GeomAbs_Intersection}
 
 
 def to_gp_pnt(p):
