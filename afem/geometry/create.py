@@ -57,12 +57,12 @@ __all__ = ["CreateGeom", "CreatedPoints", "PointByXYZ", "PointByArray",
            "PlanesBetweenPlanesByDistance", "NurbsSurfaceByData",
            "NurbsSurfaceByInterp", "NurbsSurfaceByApprox"]
 
-_occ_continuity = {'C0': GeomAbs_C0,
-                   'G1': GeomAbs_G1,
-                   'C1': GeomAbs_C1,
-                   'G2': GeomAbs_G2,
-                   'C2': GeomAbs_C2,
-                   'C3': GeomAbs_C3}
+occ_continuity = {'C0': GeomAbs_C0,
+                  'G1': GeomAbs_G1,
+                  'C1': GeomAbs_C1,
+                  'G2': GeomAbs_G2,
+                  'C2': GeomAbs_C2,
+                  'C3': GeomAbs_C3}
 
 _occ_parm_type = {'u': Approx_IsoParametric,
                   'uniform': Approx_IsoParametric,
@@ -1542,7 +1542,7 @@ class NurbsCurveByApprox(object):
         tcol_pnts = to_tcolgp_array1_pnt(qp)
 
         try:
-            cont = _occ_continuity[continuity.upper()]
+            cont = occ_continuity[continuity.upper()]
         except (KeyError, AttributeError):
             cont = GeomAbs_C2
 
@@ -2552,7 +2552,7 @@ class NurbsSurfaceByApprox(object):
 
         # Set continuity
         try:
-            cont = _occ_continuity[continuity.upper()]
+            cont = occ_continuity[continuity.upper()]
         except (KeyError, AttributeError):
             cont = GeomAbs_C2
         app_tool.SetContinuity(cont)
