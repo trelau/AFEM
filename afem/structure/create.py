@@ -816,7 +816,7 @@ class RibsAlongCurveByNumber(object):
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
         _validate_type(wing, Wing)
-        _validate_type(ref_pln, Plane)
+        _validate_type(ref_pln, Plane, False)
 
         n = int(n)
         first_index = int(first_index)
@@ -907,7 +907,7 @@ class RibsAlongCurveByDistance(object):
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
         _validate_type(wing, Wing)
-        _validate_type(ref_pln, Plane)
+        _validate_type(ref_pln, Plane, False)
 
         first_index = int(first_index)
 
