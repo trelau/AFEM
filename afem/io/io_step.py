@@ -1,7 +1,7 @@
 from OCC.IFSelect import IFSelect_ItemsByEntity, IFSelect_RetError
 from OCC.Interface import Interface_Static_SetCVal
-from OCC.STEPControl import STEPControl_AsIs, STEPControl_Reader, \
-    STEPControl_Writer
+from OCC.STEPControl import (STEPControl_AsIs, STEPControl_Reader,
+                             STEPControl_Writer)
 
 from afem.config import Settings, units_dict
 from afem.topology.check import CheckShape
@@ -30,9 +30,10 @@ class StepExport(STEPControl_Writer):
         """
         Transfer and add the shapes to the exported entities.
 
-        :param shapes:
+        :param OCC.TopoDS.TopoDS_Shape shapes: The shape(s).
 
-        :return:
+        :return: *True* if shape was transferred, *False* if not.
+        :rtype: bool
         """
         added_shape = False
         for shape in shapes:
@@ -46,11 +47,12 @@ class StepExport(STEPControl_Writer):
 
     def write(self, fn='afem.stp'):
         """
-        Write STEP file.
+        Write the STEP file.
 
-        :param fn:
+        :param str fn: The filename.
 
-        :return:
+        :return: *True* if written, *False* if not.
+        :rtype: bool
         """
         status = self.Write(fn)
         if status < IFSelect_RetError:
@@ -69,15 +71,19 @@ class StepImport(STEPControl_Reader):
 
     @property
     def shape(self):
+        """
+        :return: The shape.
+        """
         return self._shape
 
     def read(self, fn):
         """
         Read a STEP file.
         
-        :param fn:
+        :param str fn: The full path to the file.
          
-        :return: 
+        :return: *True* if file was imported, *False* if not.
+        :rtype: bool
         """
         # Read file.
         status = self.ReadFile(fn)

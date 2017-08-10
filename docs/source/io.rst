@@ -4,12 +4,12 @@ Input and output tools.
 
 STEP
 ----
-.. automodule:: afem.io.step.step_util
+.. automodule:: afem.io.io_step
 
 STL
 ---
-.. automodule:: afem.io.stl.stl_util
+.. automodule:: afem.io.io_step
 
 OpenVSP
 -------
-.. automodule:: afem.io.vsp.vsp_importer
+.. automodule:: afem.io.io_vsp

@@ -15,9 +15,9 @@ class StlExport(StlAPI_Writer):
         """
         Converts shape to STL format and writes to a file.
         
-        :param shape: 
-        :param fn:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param str fn: The filename.
          
-        :return: 
+        :return: None.
         """
         self.Write(shape, fn)
