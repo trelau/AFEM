@@ -11,6 +11,7 @@ _fh = logging.FileHandler('afem.log')
 _fmt = logging.Formatter('%(levelname)s: %(message)s')
 _fh.setFormatter(_fmt)
 logger.addHandler(_fh)
+logger.propagate = False
 
 # Dictionary for units
 units_dict = {'i': 'IN',
@@ -57,6 +58,21 @@ class Settings(object):
     part_angle = 30.0
     warnings = False
     units = 'IN'
+
+    @staticmethod
+    def log_to_console(option=False):
+        """
+        Option to print logging output to the console.
+
+        :param bool option: *True* will print to the console, *False* will
+            not.
+
+        :return: None.
+        """
+        if option:
+            logger.propagate = True
+        else:
+            logger.propagate = False
 
     @classmethod
     def set_gtol(cls, gtol=1.0e-7):

@@ -2,22 +2,26 @@ from OCC.SMESH import SMESH_Mesh
 from OCC.TopoDS import TopoDS_Shape
 from numpy import mean
 
+from afem.config import logger
 from afem.fem.elements import Elm2D
 from afem.fem.meshes import MeshData
 from afem.geometry.geom_check import CheckGeom
 from afem.geometry.geom_create import (PlaneByNormal, PlaneFromParameter,
                                        PointFromParameter)
-from afem.geometry.geom_project import ProjectPointToCurve, ProjectPointToSurface
+from afem.geometry.geom_project import (ProjectPointToCurve,
+                                        ProjectPointToSurface)
 from afem.graphics.graphics_viewer import ViewableItem
 from afem.topology.topo_bop import CutShapes, FuseShapes, SplitShapes
 from afem.topology.topo_check import CheckShape, ClassifyPointInSolid
 from afem.topology.topo_create import (CompoundByShapes, FaceBySurface,
-                                       HalfspaceByShape, PointsAlongShapeByDistance,
+                                       HalfspaceByShape,
+                                       PointsAlongShapeByDistance,
                                        PointsAlongShapeByNumber)
 from afem.topology.topo_distance import DistanceShapeToShape
 from afem.topology.topo_explore import ExploreShape
 from afem.topology.topo_modify import (FixShape, RebuildShapeByTool,
-                                       RebuildShapeWithShapes, SewShape, UnifyShape)
+                                       RebuildShapeWithShapes, SewShape,
+                                       UnifyShape)
 from afem.topology.topo_props import LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
@@ -63,7 +67,8 @@ class Part(TopoDS_Shape, ViewableItem):
         if sref is not None:
             self.set_sref(sref)
 
-            # TODO Log creating part.
+        msg = ' '.join(['Creating part:', label])
+        logger.info(msg)
 
     @property
     def label(self):

@@ -25,7 +25,7 @@ from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
 from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
-from afem.config import Settings
+from afem.config import Settings, logger
 from afem.geometry.geom_create import (CurveByVIso, NurbsSurfaceByInterp,
                                        create_nurbs_surface_from_occ)
 from afem.geometry.geom_entities import NurbsSurface
@@ -160,7 +160,8 @@ def _import_vsp_step(fname, divide_closed):
         if not name:
             indx += 1
             comp_name = '.'.join(['Body', str(indx)])
-            print('---Processing OpenVSP component:', comp_name)
+            msg = ' '.join(['---Processing OpenVSP component:', comp_name])
+            logger.info(msg)
             solid = _build_solid(compound, divide_closed)
             if solid:
                 body = Body(solid)
@@ -187,7 +188,8 @@ def _import_vsp_step(fname, divide_closed):
             comp_name = '.'.join([comp_name, str(indx)])
 
         # Process component.
-        print('---Processing OpenVSP component:', comp_name)
+        msg = ' '.join(['---Processing OpenVSP component:', comp_name])
+        logger.info(msg)
 
         # Wing
         if metadata['m_Type'] == 5 and metadata['m_SurfType'] != 99:
@@ -267,7 +269,7 @@ def _build_solid(compound, divide_closed):
             else:
                 non_planar_faces.append(f)
         except RuntimeError:
-            print('Failed to check for planar face...')
+            logger.info('Failed to check for planar face...')
             non_planar_faces.append(f)
 
     # # Check the faces.
@@ -323,7 +325,7 @@ def _build_solid(compound, divide_closed):
         unify_shp.UnifyFaces()
         shape = unify_shp.Shape()
     except RuntimeError:
-        print('...failed to unify faces on solid.')
+        logger.info('...failed to unify faces on solid.')
         shape = sewn_shape
 
     # Make solid.
@@ -342,15 +344,15 @@ def _build_solid(compound, divide_closed):
     # Check the solid and attempt to fix.
     check_shp = BRepCheck_Analyzer(solid, True)
     if not check_shp.IsValid():
-        print('Fixing the solid...')
+        logger.info('Fixing the solid...')
         fix = ShapeFix_Solid(solid)
         fix.Perform()
         solid = fix.Solid()
         check_shp = BRepCheck_Analyzer(solid, True)
         if not check_shp.IsValid():
-            print('...solid could not be fixed.')
+            logger.info('...solid could not be fixed.')
     else:
-        print('Successfully generated solid.')
+        logger.info('Successfully generated solid.')
 
     return solid
 
