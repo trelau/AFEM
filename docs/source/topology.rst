@@ -280,9 +280,9 @@ SweepShape
 ~~~~~~~~~~
 .. autoclass:: SweepShape
 
-SweepWithNormal
-~~~~~~~~~~~~~~~
-.. autoclass:: SweepWithNormal
+SweepShapeWithNormal
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SweepShapeWithNormal
 
 Distance
 --------

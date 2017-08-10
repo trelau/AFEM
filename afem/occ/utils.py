@@ -1,5 +1,8 @@
 from OCC.Approx import (Approx_Centripetal, Approx_ChordLength,
                         Approx_IsoParametric)
+from OCC.BRepBuilderAPI import (BRepBuilderAPI_RightCorner,
+                                BRepBuilderAPI_RoundCorner,
+                                BRepBuilderAPI_Transformed)
 from OCC.GeomAbs import (GeomAbs_Arc, GeomAbs_C0, GeomAbs_C1, GeomAbs_C2,
                          GeomAbs_C3, GeomAbs_G1, GeomAbs_G2,
                          GeomAbs_Intersection)
@@ -42,6 +45,13 @@ occ_join_type = {'a': GeomAbs_Arc,
                  'i': GeomAbs_Intersection,
                  'intersect': GeomAbs_Intersection,
                  'intersection': GeomAbs_Intersection}
+
+occ_transition_mode = {'t': BRepBuilderAPI_Transformed,
+                       'transform': BRepBuilderAPI_Transformed,
+                       'transformed': BRepBuilderAPI_Transformed,
+                       'right': BRepBuilderAPI_RightCorner,
+                       'round': BRepBuilderAPI_RoundCorner
+                       }
 
 
 def to_gp_pnt(p):

@@ -2,16 +2,20 @@ from math import sqrt
 
 from OCC.BRepOffset import BRepOffset_Skin
 from OCC.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
+                               BRepOffsetAPI_MakePipe,
+                               BRepOffsetAPI_MakePipeShell,
                                BRepOffsetAPI_NormalProjection,
                                BRepOffsetAPI_ThruSections)
 from OCC.GeomAbs import GeomAbs_C2
 from OCC.TopAbs import TopAbs_EDGE, TopAbs_VERTEX, TopAbs_WIRE
 
-from afem.occ.utils import occ_continuity, occ_join_type, occ_parm_type
+from afem.occ.utils import (occ_continuity, occ_join_type, occ_parm_type,
+                            occ_transition_mode)
 from afem.topology.check import CheckShape
 from afem.topology.explore import ExploreShape
 
-__all__ = ["ProjectShape", "OffsetShape", "LoftShape"]
+__all__ = ["ProjectShape", "OffsetShape", "LoftShape", "SweepShape",
+           "SweepShapeWithNormal"]
 
 
 class ProjectShape(object):
@@ -292,7 +296,7 @@ class LoftShape(object):
     @property
     def max_degree(self):
         """
-        :return: The max degree in u-direction used in the loft.
+        :return: The max degree used in the approximation algorithm
         :rtype: int
         """
         return self._tool.MaxDegree()
@@ -312,10 +316,180 @@ class LoftShape(object):
 
 
 class SweepShape(object):
-    # TODO SweepShape
-    pass
+    """
+    Sweep a profile along a spine.
+
+    :param OCC.TopoDS.TopoDS_Wire spine: The path for the sweep. This must
+        be at least G1 continuous.
+    :param OCC.TopoDS.TopoDS_Shape profile: The profile.
+
+    For more information see BRepOffsetAPI_MakePipe_.
+
+    .. _BRepOffsetAPI_MakePipe: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_offset_a_p_i___make_pipe.html
+    """
+
+    def __init__(self, spine, profile):
+        self._tool = BRepOffsetAPI_MakePipe(spine, profile)
+
+        self._tool.Build()
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if done, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.IsDone()
+
+    @property
+    def shape(self):
+        """
+        :return: The swept shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._tool.Shape()
+
+    @property
+    def first_shape(self):
+        """
+        :return: The first/bottom shape of the sweep.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._tool.FirstShape()
+
+    @property
+    def last_shape(self):
+        """
+        :return: The last/top shape of the sweep.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._tool.LastShape()
 
 
-class SweepWithNormal(object):
-    # TODO SweepWithNormal
-    pass
+class SweepShapeWithNormal(object):
+    """
+    Sweep sections along a spine using a support shape to define the
+    local orientation.
+
+    :param OCC.TopoDS.TopoDS_Wire spine: The spine.
+    :param OCC.TopoDS.TopoDS_Shape spine_support: The shape that will define
+        the normal during the sweeping algorithm. To be effective, each edge of
+        the spine must have a representation on one face of the spine support.
+    :param float tol3d: The 3-D tolerance.
+    :param float tol_bound: The boundary tolerance.
+    :param float tol_angular: The angular tolerance.
+    :param int max_degree: The maximum degree allowed in the resulting surface.
+    :param int max_segments: The maximum number of segments allowed in the
+        resulting surface.
+    :param bool force_c1: If *True*, the tool will attempt to approximate a
+        C1 surface if a swept surface proved to be C0.
+    :param str transition_mode: The transition mode to manage
+        discontinuities on the swept shape ('transformed', 'right', 'round').
+
+    For more information see BRepOffsetAPI_MakePipeShell_.
+
+    .. _BRepOffsetAPI_MakePipeShell: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_offset_a_p_i___make_pipe_shell.html
+    """
+
+    def __init__(self, spine, spine_support, tol3d=1.0e-4, tol_bound=1.0e-4,
+                 tol_angular=1.0e-2, max_degree=None, max_segments=None,
+                 force_c1=None, transition_mode='transformed', ):
+        self._tool = BRepOffsetAPI_MakePipeShell(spine)
+        self._tool.SetMode(spine_support)
+
+        self._tool.SetTolerance(tol3d, tol_bound, tol_angular)
+
+        if max_degree is not None:
+            self._tool.SetMaxDegree(max_degree)
+
+        if max_segments is not None:
+            self._tool.SetMaxSegments(max_segments)
+
+        if force_c1 is not None:
+            self._tool.SetForceApproxC1(force_c1)
+
+        if transition_mode is not None:
+            transition_mode = occ_transition_mode[transition_mode.lower()]
+            self._tool.SetTransitionMode(transition_mode)
+
+    def add_profile(self, profile, with_contact=False, with_correction=False):
+        """
+        Add the profile to the tool.
+
+        :param profile: The profile to add.
+        :type profile: OCC.TopoDS.TopoDS_Vertex or OCC.TopoDS.TopoDS_Edge or
+            OCC.TopoDS.TopoDS_Wire
+        :param bool with_contact: If *True*, then the profile is translated
+            to be in contact with the spine.
+        :param bool with_correction: If *True*, then the profile is rotated
+            to be orthogonal to the spine's tangent.
+
+        :return: None.
+
+        :raise TypeError: If the profile is not a vertex, edge, or wire.
+        """
+        if profile.ShapeType() == TopAbs_EDGE:
+            profile = CheckShape.to_wire(profile)
+
+        if profile.ShapeType() not in [TopAbs_VERTEX, TopAbs_WIRE]:
+            msg = 'Invalid profile type.'
+            raise TypeError(msg)
+
+        self._tool.Add(profile, with_contact, with_correction)
+
+    @property
+    def is_ready(self):
+        """
+        :return: *True* if tool is ready to build the shape. *False* if not.
+        :rtype: bool
+        """
+        return self._tool.IsReady()
+
+    def build(self):
+        """
+        Build the resulting shape.
+
+        :return: None.
+        """
+        self._tool.Build()
+
+    def make_solid(self):
+        """
+        Attempts to transform the sweeping shell into a solid.
+
+        :return: *True* if done, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.MakeSolid()
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if done, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.IsDone()
+
+    @property
+    def shape(self):
+        """
+        :return: The resulting shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._tool.Shape()
+
+    @property
+    def first_shape(self):
+        """
+        :return: The first/bottom shape of the sweep.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._tool.FirstShape()
+
+    @property
+    def last_shape(self):
+        """
+        :return: The last/top shape of the sweep.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._tool.LastShape()
