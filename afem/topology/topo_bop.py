@@ -1,7 +1,7 @@
 from warnings import warn
 
-from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
-    BRepAlgoAPI_Fuse, BRepAlgoAPI_Section
+from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
+                             BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 
 from afem.occ.occ_utils import (to_lst_from_toptools_listofshape,

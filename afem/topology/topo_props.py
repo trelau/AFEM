@@ -1,5 +1,6 @@
-from OCC.BRepGProp import brepgprop_LinearProperties, \
-    brepgprop_SurfaceProperties, brepgprop_VolumeProperties
+from OCC.BRepGProp import (brepgprop_LinearProperties,
+                           brepgprop_SurfaceProperties,
+                           brepgprop_VolumeProperties)
 from OCC.GProp import GProp_GProps
 from numpy import array
 

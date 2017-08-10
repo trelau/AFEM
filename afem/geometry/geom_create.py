@@ -31,7 +31,8 @@ from afem.occ.occ_utils import (occ_continuity, occ_parm_type,
                                 to_np_from_tcolstd_array1_real,
                                 to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
                                 to_tcolgp_harray1_pnt,
-                                to_tcolstd_array1_integer, to_tcolstd_array1_real,
+                                to_tcolstd_array1_integer,
+                                to_tcolstd_array1_real,
                                 to_tcolstd_array2_real)
 
 __all__ = ["PointByXYZ", "PointByArray",

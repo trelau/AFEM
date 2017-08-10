@@ -1,1 +1,1 @@
-from .meshes import MeshData
+from afem.fem.meshes import MeshData

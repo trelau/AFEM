@@ -7,9 +7,11 @@ from OCC.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge,
 from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepClass3d import BRepClass3d_SolidClassifier
 from OCC.ShapeAnalysis import ShapeAnalysis_Edge
-from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE, \
-    TopAbs_FACE, TopAbs_IN, TopAbs_ON, TopAbs_OUT, TopAbs_SHELL, \
-    TopAbs_SOLID, TopAbs_UNKNOWN, TopAbs_VERTEX, TopAbs_WIRE
+from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
+                        TopAbs_FACE, TopAbs_IN, TopAbs_ON, TopAbs_OUT,
+                        TopAbs_SHELL,
+                        TopAbs_SOLID, TopAbs_UNKNOWN, TopAbs_VERTEX,
+                        TopAbs_WIRE)
 from OCC.TopoDS import (TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge,
                         TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid,
                         TopoDS_Vertex, TopoDS_Wire, topods_CompSolid,

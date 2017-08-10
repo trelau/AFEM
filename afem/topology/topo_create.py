@@ -62,7 +62,7 @@ class VertexByPoint(object):
 
     Usage:
 
-    >>> from afem.topo_patch import VertexByPoint
+    >>> from afem.topology import VertexByPoint
     >>> builder = VertexByPoint((1., 2., 3.))
     >>> v = builder.vertex
     """
@@ -94,7 +94,7 @@ class EdgeByPoints(object):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByPoints
+    >>> from afem.topology import EdgeByPoints
     >>> builder = EdgeByPoints((0., 0., 0.), (10., 0., 0.))
     >>> e = builder.edge
     >>> v1 = builder.vertex1
@@ -144,7 +144,7 @@ class EdgeByVertices(object):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByPoints
+    >>> from afem.topology import EdgeByPoints
     >>> builder = EdgeByPoints((0., 0., 0.), (10., 0., 0.))
     >>> e = builder.edge
     """
@@ -172,7 +172,7 @@ class EdgeByCurve(object):
     Usage:
 
     >>> from afem.geom_patch import NurbsCurveByPoints
-    >>> from afem.topo_patch import EdgeByCurve
+    >>> from afem.topology import EdgeByCurve
     >>> c = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> builder = EdgeByCurve(c)
     >>> e = builder.edge
@@ -221,7 +221,7 @@ class EdgeByDrag(object):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByDrag, VertexByPoint
+    >>> from afem.topology import EdgeByDrag, VertexByPoint
     >>> vertex = VertexByPoint((0., 0., 0.)).vertex
     >>> builder = EdgeByDrag(vertex, (1., 0., 0.))
     >>> e = builder.edge
@@ -271,7 +271,7 @@ class EdgeByWireConcat(object):
     Usage:
 
     >>> from afem.geom_patch import NurbsCurveByPoints
-    >>> from afem.topo_patch import EdgeByCurve, WireByEdges, EdgeByWireConcat
+    >>> from afem.topology import EdgeByCurve, WireByEdges, EdgeByWireConcat
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
     >>> e1 =  EdgeByCurve(c1).edge
@@ -305,7 +305,7 @@ class WireByEdges(object):
     :param OCC.TopoDS.TopoDS_Edge e4: The fourth edge.
 
     >>> from afem.geom_patch import NurbsCurveByPoints
-    >>> from afem.topo_patch import EdgeByCurve, WireByEdges
+    >>> from afem.topology import EdgeByCurve, WireByEdges
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 0., 0.)]).curve
     >>> e1 =  EdgeByCurve(c1).edge
@@ -365,7 +365,7 @@ class WiresByConnectedEdges(object):
     Usage:
 
     >>> from afem.geom_patch import NurbsCurveByPoints
-    >>> from afem.topo_patch import EdgeByCurve, WiresByConnectedEdges
+    >>> from afem.topology import EdgeByCurve, WiresByConnectedEdges
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 0., 0.)]).curve
     >>> e1 =  EdgeByCurve(c1).edge
@@ -477,7 +477,7 @@ class WireByPoints(object):
 
     Usage:
 
-    >>> from afem.topo_patch import WireByPoints
+    >>> from afem.topology import WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -579,7 +579,7 @@ class WireByConcat(object):
     Usage:
 
     >>> from afem.geom_patch import NurbsCurveByPoints
-    >>> from afem.topo_patch import EdgeByCurve, WireByEdges, WireByConcat
+    >>> from afem.topology import EdgeByCurve, WireByEdges, WireByConcat
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
     >>> e1 =  EdgeByCurve(c1).edge
@@ -613,7 +613,7 @@ class FaceBySurface(object):
     Usage:
 
     >>> from afem.geom_patch import PlaneByNormal
-    >>> from afem.topo_patch import FaceBySurface
+    >>> from afem.topology import FaceBySurface
     >>> pln = PlaneByNormal().plane
     >>> f = FaceBySurface(pln).face
     """
@@ -644,7 +644,7 @@ class FaceByPlane(object):
     Usage:
 
     >>> from afem.geom_patch import PlaneByNormal
-    >>> from afem.topo_patch import FaceByPlane
+    >>> from afem.topology import FaceByPlane
     >>> pln = PlaneByNormal().plane
     >>> f = FaceByPlane(pln, -1., 1., -1., 1.).face
     """
@@ -670,7 +670,7 @@ class FaceByPlanarWire(object):
 
     Usage:
 
-    >>> from afem.topo_patch import FaceByPlanarWire, WireByPoints
+    >>> from afem.topology import FaceByPlanarWire, WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -701,7 +701,7 @@ class FaceByDrag(object):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByDrag, FaceByDrag, VertexByPoint
+    >>> from afem.topology import EdgeByDrag, FaceByDrag, VertexByPoint
     >>> vertex = VertexByPoint((0., 0., 0.)).vertex
     >>> e = EdgeByDrag(vertex, (1., 0., 0.)).edge
     >>> builder = FaceByDrag(e, (0., 1., 0.))
@@ -753,7 +753,7 @@ class ShellBySurface(object):
     Usage:
 
     >>> from afem.geom_patch import PlaneByNormal
-    >>> from afem.topo_patch import ShellBySurface
+    >>> from afem.topology import ShellBySurface
     >>> pln = PlaneByNormal().plane
     >>> shell = ShellBySurface(pln).shell
     """
@@ -781,7 +781,7 @@ class ShellByFaces(object):
 
     Usage:
 
-    >>> from afem.topo_patch import FaceByPlanarWire, ShellByFaces, WireByPoints
+    >>> from afem.topology import FaceByPlanarWire, ShellByFaces, WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -817,7 +817,7 @@ class ShellByDrag(object):
 
     Usage:
 
-    >>> from afem.topo_patch import ShellByDrag, WireByPoints
+    >>> from afem.topology import ShellByDrag, WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -875,7 +875,7 @@ class ShellBySewing(object):
 
     Usage:
 
-    >>> from afem.topo_patch import *
+    >>> from afem.topology import *
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -997,7 +997,7 @@ class SolidByPlane(object):
     Usage:
 
     >>> from afem.geom_patch import PlaneByNormal
-    >>> from afem.topo_patch import SolidByPlane
+    >>> from afem.topology import SolidByPlane
     >>> pln = PlaneByNormal().plane
     >>> box = SolidByPlane(pln, 1., 1., 1.).solid
     """
@@ -1031,7 +1031,7 @@ class SolidByDrag(object):
 
     Usage:
 
-    >>> from afem.topo_patch import FaceByPlanarWire, SolidByDrag, WireByPoints
+    >>> from afem.topology import FaceByPlanarWire, SolidByDrag, WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -1122,7 +1122,7 @@ class HalfspaceByShape(object):
     Usage:
 
     >>> from afem.geom_patch import PlaneByNormal
-    >>> from afem.topo_patch import FaceByPlane, HalfspaceByShape
+    >>> from afem.topology import FaceByPlane, HalfspaceByShape
     >>> pln = PlaneByNormal().plane
     >>> f = FaceByPlane(pln, -1., 1., -1., 1.).face
     >>> builder = HalfspaceByShape(f, (0., 0., 1.))
@@ -1169,7 +1169,7 @@ class PointsAlongShapeByNumber(object):
 
     Usage:
 
-    >>> from afem.topo_patch import PointsAlongShapeByNumber, WireByPoints
+    >>> from afem.topology import PointsAlongShapeByNumber, WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -1306,7 +1306,7 @@ class PointsAlongShapeByDistance(object):
 
     Usage:
 
-    >>> from afem.topo_patch import PointsAlongShapeByDistance, WireByPoints
+    >>> from afem.topology import PointsAlongShapeByDistance, WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -1436,7 +1436,7 @@ class PlaneByEdges(object):
 
     Usage:
 
-    >>> from afem.topo_patch import PlaneByEdges, WireByPoints
+    >>> from afem.topology import PlaneByEdges, WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)

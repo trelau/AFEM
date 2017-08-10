@@ -1,5 +1,5 @@
-from OCC.TopoDS import TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell, \
-    TopoDS_Solid, TopoDS_Wire
+from OCC.TopoDS import (TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell,
+                        TopoDS_Solid, TopoDS_Wire)
 
 from afem.geometry.geom_check import CheckGeom
 from afem.geometry.geom_create import *
