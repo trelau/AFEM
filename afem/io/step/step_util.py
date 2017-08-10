@@ -3,8 +3,8 @@ from OCC.Interface import Interface_Static_SetCVal
 from OCC.STEPControl import STEPControl_AsIs, STEPControl_Reader, \
     STEPControl_Writer
 
-from ...config import Settings, units_dict
-from ...topology import ShapeTools
+from afem.config import Settings, units_dict
+from afem.topology.check import CheckShape
 
 __all__ = ["StepExport", "StepImport"]
 
@@ -36,7 +36,7 @@ class StepExport(STEPControl_Writer):
         """
         added_shape = False
         for shape in shapes:
-            shape = ShapeTools.to_shape(shape)
+            shape = CheckShape.to_shape(shape)
             if not shape:
                 continue
             status = self.Transfer(shape, STEPControl_AsIs)

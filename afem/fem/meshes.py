@@ -1,8 +1,8 @@
 from OCC.SMESH import SMESH_Gen_get
 
-from .hypotheses import HypothesisData
-from .nodes import Node
-from ..topology import ShapeTools
+from afem.fem.hypotheses import HypothesisData
+from afem.fem.nodes import Node
+from afem.topology.check import CheckShape
 
 _mesh_gen = SMESH_Gen_get()
 
@@ -97,7 +97,7 @@ class Mesh(object):
 
         :return:
         """
-        shape = ShapeTools.to_shape(shape)
+        shape = CheckShape.to_shape(shape)
         if not shape:
             return False
         self._mesh.ShapeToMesh(shape)
@@ -112,7 +112,7 @@ class Mesh(object):
 
         :return:
         """
-        shape = ShapeTools.to_shape(shape)
+        shape = CheckShape.to_shape(shape)
         if not shape:
             if self.has_shape:
                 shape = self.shape

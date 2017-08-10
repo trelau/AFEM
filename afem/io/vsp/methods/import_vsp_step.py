@@ -25,11 +25,15 @@ from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
 from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
+from afem.config import Settings
+from afem.geometry.entities import NurbsSurface
 from afem.oml.entities import Body, Fuselage, Wing
-from ....config import Settings
+from afem.topology.check import CheckShape
+from afem.topology.create import CompoundByShapes
+from afem.topology.explore import ExploreShape
+from afem.topology.props import LinearProps
 from ....geometry import CreateGeom
 from ....geometry.methods.create import create_nurbs_surface_from_occ
-from ....topology import ShapeTools
 
 __all__ = []
 
@@ -169,7 +173,7 @@ def _build_solid(compound, divide_closed):
     faces = []
     while top_exp.More():
         shape = top_exp.Current()
-        face = ShapeTools.to_face(shape)
+        face = CheckShape.to_face(shape)
         fprop = GProp_GProps()
         brepgprop.SurfaceProperties(face, fprop, 1.0e-7)
         a = fprop.Mass()
@@ -191,8 +195,8 @@ def _build_solid(compound, divide_closed):
                 # Fix the wire because they are usually degenerate edges in
                 # the planar end caps.
                 builder = BRepBuilderAPI_MakeWire()
-                for e in ShapeTools.get_edges(w):
-                    if ShapeTools.shape_length(e) > 1.0e-7:
+                for e in ExploreShape.get_edges(w):
+                    if LinearProps(e).length > 1.0e-7:
                         builder.Add(e)
                 w = builder.Wire()
                 fix = ShapeFix_Wire()
@@ -270,7 +274,7 @@ def _build_solid(compound, divide_closed):
         shape = sewn_shape
 
     # Make solid.
-    shell = ShapeTools.get_shells(shape)[0]
+    shell = ExploreShape.get_shells(shape)[0]
     solid = ShapeFix_Solid().SolidFromShell(shell)
 
     # Split closed faces of the solid to make OCC more robust.
@@ -280,7 +284,7 @@ def _build_solid(compound, divide_closed):
         solid = divide.Result()
 
     # Make sure it's a solid.
-    solid = ShapeTools.to_solid(solid)
+    solid = CheckShape.to_solid(solid)
 
     # Check the solid and attempt to fix.
     check_shp = BRepCheck_Analyzer(solid, True)
@@ -305,11 +309,11 @@ def _process_wing(compound, divide_closed):
 
     # Process based on number of faces in compound assuming split/no split
     # option was used.
-    faces = ShapeTools.get_faces(compound)
+    faces = ExploreShape.get_faces(compound)
     vsp_surf = None
     if len(faces) == 1:
         solid = _process_unsplit_wing(compound, divide_closed)
-        vsp_surf = ShapeTools.surface_of_face(faces[0])
+        vsp_surf = ExploreShape.surface_of_face(faces[0])
     else:
         solid = _build_solid(compound, divide_closed)
 
@@ -319,6 +323,8 @@ def _process_wing(compound, divide_closed):
     wing = Wing(solid)
 
     if vsp_surf:
+        # TODO Remove assert statement
+        assert isinstance(vsp_surf, NurbsSurface)
         wing.add_metadata('vsp surface', vsp_surf)
         upr_srf = CreateGeom.copy_geom(vsp_surf)
         v_le = vsp_surf.local_to_global_param('v', 0.5)
@@ -341,9 +347,9 @@ def _process_fuse(compound, divide_closed):
 
     fuselage = Fuselage(solid)
 
-    faces = ShapeTools.get_faces(compound)
+    faces = ExploreShape.get_faces(compound)
     if len(faces) == 1:
-        vsp_surf = ShapeTools.surface_of_face(faces[0])
+        vsp_surf = ExploreShape.surface_of_face(faces[0])
         fuselage.add_metadata('vsp surface', vsp_surf)
 
     return fuselage
@@ -356,7 +362,7 @@ def _process_sref(compound):
     # Wing reference surfaces should be a single bilinear surface. Extract
     # this from the compound.
     top_exp = TopExp_Explorer(compound, TopAbs_FACE)
-    face = ShapeTools.to_face(top_exp.Current())
+    face = CheckShape.to_face(top_exp.Current())
     hsrf = BRep_Tool.Surface(face)
     adp_srf = GeomAdaptor_Surface(hsrf)
     occ_srf = adp_srf.BSpline().GetObject()
@@ -379,13 +385,15 @@ def _process_sref(compound):
 def _process_unsplit_wing(compound, divide_closed):
     # Process a wing that was generated without "Split Surfs" option.
 
-    faces = ShapeTools.get_faces(compound)
+    faces = ExploreShape.get_faces(compound)
     if len(faces) != 1:
         return None
     face = faces[0]
 
     # Get the surface.
-    master_surf = ShapeTools.surface_of_face(face)
+    master_surf = ExploreShape.surface_of_face(face)
+    # TODO Remove assert
+    assert isinstance(master_surf, NurbsSurface)
     uknots, vknots = master_surf.uknots, master_surf.vknots
     vsplit = master_surf.local_to_global_param('v', 0.5)
 
@@ -464,6 +472,6 @@ def _process_unsplit_wing(compound, divide_closed):
             new_faces.append(f)
 
     # Put all faces into a compound a generate solid.
-    new_compound = ShapeTools.make_compound(new_faces)
+    new_compound = CompoundByShapes(new_faces).compound
 
     return _build_solid(new_compound, divide_closed)

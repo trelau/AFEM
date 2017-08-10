@@ -5,6 +5,5 @@ from afem.topology.distance import *
 from afem.topology.entities import *
 from afem.topology.explore import *
 from afem.topology.modify import *
-from afem.topology.props import *
-from .tools import ShapeTools
 from afem.topology.offset import *
+from afem.topology.props import *

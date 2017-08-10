@@ -1,4 +1,4 @@
-from ..topology import ShapeTools
+from afem.topology.create import CompoundByShapes
 
 __all__ = ["Assembly", "AssemblyData"]
 
@@ -128,7 +128,7 @@ class Assembly(object):
         parts = self.get_parts(include_subassy)
         if not parts:
             return None
-        return ShapeTools.make_compound(parts)
+        return CompoundByShapes(parts).compound
 
 
 class AssemblyData(object):
