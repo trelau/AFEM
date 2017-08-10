@@ -2,14 +2,11 @@ from math import ceil, radians
 from warnings import warn
 
 import OCC.BSplCLib as CLib
-from OCC.Approx import (Approx_Centripetal, Approx_ChordLength,
-                        Approx_IsoParametric)
+from OCC.Approx import (Approx_ChordLength)
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                          GeomAPI_PointsToBSpline)
-from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_C0, GeomAbs_C1,
-                         GeomAbs_C2, GeomAbs_C3, GeomAbs_G1, GeomAbs_G2,
-                         GeomAbs_Line)
+from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_C2, GeomAbs_Line)
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
                           GeomFill_SectionGenerator)
@@ -36,12 +33,12 @@ from afem.geometry.utils import (basis_funs, centripetal_parameters,
                                  chord_parameters, dehomogenize_array2d,
                                  find_span, homogenize_array1d,
                                  uniform_parameters)
-from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
+from afem.occ.utils import (occ_continuity, occ_parm_type,
+                            to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolstd_array1_real,
                             to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
                             to_tcolgp_harray1_pnt,
-                            to_tcolstd_array1_integer,
-                            to_tcolstd_array1_real,
+                            to_tcolstd_array1_integer, to_tcolstd_array1_real,
                             to_tcolstd_array2_real)
 
 __all__ = ["CreateGeom", "CreatedPoints", "PointByXYZ", "PointByArray",
@@ -56,20 +53,6 @@ __all__ = ["CreateGeom", "CreatedPoints", "PointByXYZ", "PointByArray",
            "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
            "PlanesBetweenPlanesByDistance", "NurbsSurfaceByData",
            "NurbsSurfaceByInterp", "NurbsSurfaceByApprox"]
-
-occ_continuity = {'C0': GeomAbs_C0,
-                  'G1': GeomAbs_G1,
-                  'C1': GeomAbs_C1,
-                  'G2': GeomAbs_G2,
-                  'C2': GeomAbs_C2,
-                  'C3': GeomAbs_C3}
-
-_occ_parm_type = {'u': Approx_IsoParametric,
-                  'uniform': Approx_IsoParametric,
-                  'centripetal': Approx_Centripetal,
-                  'c': Approx_ChordLength,
-                  'chord': Approx_ChordLength,
-                  'chord length': Approx_ChordLength}
 
 
 def create_nurbs_curve_from_occ(crv):
@@ -1547,7 +1530,7 @@ class NurbsCurveByApprox(object):
             cont = GeomAbs_C2
 
         try:
-            parm_type = _occ_parm_type[parm_type.lower()]
+            parm_type = occ_parm_type[parm_type.lower()]
         except (KeyError, AttributeError):
             parm_type = Approx_ChordLength
 
@@ -2545,7 +2528,7 @@ class NurbsSurfaceByApprox(object):
 
         # Set parametrization type
         try:
-            parm_type = _occ_parm_type[parm_type.lower()]
+            parm_type = occ_parm_type[parm_type.lower()]
         except (KeyError, AttributeError):
             parm_type = Approx_ChordLength
         app_tool.SetParType(parm_type)
