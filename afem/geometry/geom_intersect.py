@@ -131,7 +131,7 @@ class IntersectCurveCurve(CurveIntersector):
 
     Usage:
 
-    >>> from afem.geom_patch import *
+    >>> from afem.geometry import *
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(5., 0., 0.), (5., 5., 0.)]).curve
     >>> cci = IntersectCurveCurve(c1, c2)
@@ -194,7 +194,7 @@ class IntersectCurveSurface(CurveIntersector):
 
     Usage:
 
-    >>> from afem.geom_patch import *
+    >>> from afem.geometry import *
     >>> c = NurbsCurveByPoints([(5., 5., 10.), (5., 5., -10.)]).curve
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
@@ -306,7 +306,7 @@ class IntersectSurfaceSurface(SurfaceIntersector):
 
     Usage:
 
-    >>> from afem.geom_patch import *
+    >>> from afem.geometry import *
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
     >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve

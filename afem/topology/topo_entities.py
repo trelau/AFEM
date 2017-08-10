@@ -19,7 +19,7 @@ class BBox(Bnd_Box):
 
     Usage:
 
-    >>> from afem.topo_patch import *
+    >>> from afem.topology import *
     >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> bbox = BBox()
     >>> bbox.add_shape(e)

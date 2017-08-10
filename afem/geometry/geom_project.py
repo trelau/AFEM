@@ -139,7 +139,7 @@ class ProjectPointToCurve(PointProjector):
 
     Usage:
 
-    >>> from afem.geom_patch import Direction, Line, Point, ProjectPointToCurve
+    >>> from afem.geometry import Direction, Line, Point, ProjectPointToCurve
     >>> p0 = Point()
     >>> v = Direction(1., 0., 0.)
     >>> line = Line(p0, v)
@@ -208,7 +208,7 @@ class ProjectPointToSurface(PointProjector):
 
     Usage:
 
-    >>> from afem.geom_patch import *
+    >>> from afem.geometry import *
     >>> p0 = Point()
     >>> n = Direction(0., 0., 1.)
     >>> pln = Plane(p0, n)
@@ -303,7 +303,7 @@ class ProjectCurveToPlane(CurveProjector):
 
     Usage:
 
-    >>> from afem.geom_patch import *
+    >>> from afem.geometry import *
     >>> qp = [Point(), Point(5., 5., 1.), Point(10., 5., 1.)]
     >>> c = NurbsCurveByInterp(qp).curve
     >>> pln = Plane(Point(), Direction(0., 0., 1.))
@@ -364,7 +364,7 @@ class ProjectCurveToSurface(CurveProjector):
 
     Usage:
 
-    >>> from afem.geom_patch import *
+    >>> from afem.geometry import *
     >>> c = NurbsCurveByPoints([(0., 5., 6.), (10., 5., 6.)]).curve
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve

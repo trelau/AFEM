@@ -489,7 +489,7 @@ class ExploreWire(object):
 
     Usage:
 
-    >>> from afem.topo_patch import ExploreWire, WireByPoints
+    >>> from afem.topology import ExploreWire, WireByPoints
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)

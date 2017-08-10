@@ -43,8 +43,8 @@ class ProjectShape(object):
 
     Usage:
 
-    >>> from afem.geom_patch import *
-    >>> from afem.topo_patch import *
+    >>> from afem.geometry import *
+    >>> from afem.topology import *
     >>> pln = PlaneByAxes().plane
     >>> face = FaceByPlane(pln, -5., 5., -5., 5.).face
     >>> edge = EdgeByPoints((0., 1., 15.), (0., 1., -15.)).edge
@@ -149,8 +149,8 @@ class OffsetShape(object):
 
     Usage:
 
-    >>> from afem.geom_patch import *
-    >>> from afem.topo_patch import *
+    >>> from afem.geometry import *
+    >>> from afem.topology import *
     >>> pln = PlaneByAxes().plane
     >>> face = FaceByPlane(pln, -5., 5., -5., 5.).face
     >>> tool = OffsetShape(face, 5.)
@@ -213,7 +213,7 @@ class LoftShape(object):
 
     Usage:
 
-    >>> from afem.topo_patch import *
+    >>> from afem.topology import *
     >>> pnts1 = [(0., 0., 0.), (5., 0., 5.), (10., 0., 0.)]
     >>> wire1 = WireByPoints(pnts1).wire
     >>> pnts2 = [(0., 10., 0.), (5., 10., -5.), (10., 10., 0.)]

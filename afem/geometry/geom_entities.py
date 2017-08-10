@@ -52,7 +52,7 @@ class Point(gp_Pnt, Geometry):
 
     Usage:
 
-    >>> from afem.geom_patch import Point
+    >>> from afem.geometry import Point
     >>> Point()
     Point(0.0, 0.0, 0.0)
     >>> Point(1., 2., 3.)
@@ -260,7 +260,7 @@ class Point2D(gp_Pnt2d, Geometry):
 
     Usage:
 
-    >>> from afem.geom_patch import Point2D
+    >>> from afem.geometry import Point2D
     >>> Point2D()
     Point2D(0.0, 0.0)
     >>> Point2D(1., 2.)
@@ -427,7 +427,7 @@ class Direction(gp_Dir, Geometry):
 
     Usage:
 
-    >>> from afem.geom_patch import Direction, Vector
+    >>> from afem.geometry import Direction, Vector
     >>> Direction(10., 0., 0.)
     Direction(1.0, 0.0, 0.0)
     >>> v = Vector(10., 0., 0.)
@@ -547,7 +547,7 @@ class Vector(gp_Vec, Geometry):
 
     Usage:
 
-    >>> from afem.geom_patch import Direction, Point, Vector
+    >>> from afem.geometry import Direction, Point, Vector
     >>> Vector(1., 2., 3.)
     Vector(1.0, 2.0, 3.0)
     >>> d = Direction(1., 0., 0.)
@@ -695,7 +695,7 @@ class Axis1(gp_Ax1):
 
     Usage:
 
-    >>> from afem.geom_patch import Axis1, Direction, Point
+    >>> from afem.geometry import Axis1, Direction, Point
     >>> ax1 = Axis1()
     >>> p = Point()
     >>> d = Direction(1., 0., 0.)
@@ -716,7 +716,7 @@ class Axis3(gp_Ax3):
 
     Usage:
 
-    >>> from afem.geom_patch import Axis3, Direction, Point
+    >>> from afem.geometry import Axis3, Direction, Point
     >>> p = Point()
     >>> n = Direction(0., 0., 1.)
     >>> vx = Direction(1., 0., 0.)
@@ -874,7 +874,7 @@ class Line(Geom_Line, Curve):
 
     Usage:
 
-    >>> from afem.geom_patch import Direction, Line, Point
+    >>> from afem.geometry import Direction, Line, Point
     >>> p = Point()
     >>> d = Direction(1., 0., 0.)
     >>> line = Line(p, d)

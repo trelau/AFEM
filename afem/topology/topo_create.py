@@ -171,7 +171,7 @@ class EdgeByCurve(object):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByPoints
+    >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve
     >>> c = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> builder = EdgeByCurve(c)
@@ -270,7 +270,7 @@ class EdgeByWireConcat(object):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByPoints
+    >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve, WireByEdges, EdgeByWireConcat
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
@@ -304,7 +304,7 @@ class WireByEdges(object):
     :param OCC.TopoDS.TopoDS_Edge e3: The third edge.
     :param OCC.TopoDS.TopoDS_Edge e4: The fourth edge.
 
-    >>> from afem.geom_patch import NurbsCurveByPoints
+    >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve, WireByEdges
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 0., 0.)]).curve
@@ -364,7 +364,7 @@ class WiresByConnectedEdges(object):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByPoints
+    >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve, WiresByConnectedEdges
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 0., 0.)]).curve
@@ -578,7 +578,7 @@ class WireByConcat(object):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByPoints
+    >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve, WireByEdges, WireByConcat
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
@@ -612,7 +612,7 @@ class FaceBySurface(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByNormal
+    >>> from afem.geometry import PlaneByNormal
     >>> from afem.topology import FaceBySurface
     >>> pln = PlaneByNormal().plane
     >>> f = FaceBySurface(pln).face
@@ -643,7 +643,7 @@ class FaceByPlane(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByNormal
+    >>> from afem.geometry import PlaneByNormal
     >>> from afem.topology import FaceByPlane
     >>> pln = PlaneByNormal().plane
     >>> f = FaceByPlane(pln, -1., 1., -1., 1.).face
@@ -752,7 +752,7 @@ class ShellBySurface(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByNormal
+    >>> from afem.geometry import PlaneByNormal
     >>> from afem.topology import ShellBySurface
     >>> pln = PlaneByNormal().plane
     >>> shell = ShellBySurface(pln).shell
@@ -996,7 +996,7 @@ class SolidByPlane(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByNormal
+    >>> from afem.geometry import PlaneByNormal
     >>> from afem.topology import SolidByPlane
     >>> pln = PlaneByNormal().plane
     >>> box = SolidByPlane(pln, 1., 1., 1.).solid
@@ -1121,7 +1121,7 @@ class HalfspaceByShape(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByNormal
+    >>> from afem.geometry import PlaneByNormal
     >>> from afem.topology import FaceByPlane, HalfspaceByShape
     >>> pln = PlaneByNormal().plane
     >>> f = FaceByPlane(pln, -1., 1., -1., 1.).face

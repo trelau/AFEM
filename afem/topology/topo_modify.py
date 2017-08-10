@@ -141,7 +141,7 @@ class SewShape(object):
 
     Usage:
 
-    >>> from afem.topo_patch import *
+    >>> from afem.topology import *
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -405,8 +405,8 @@ class RebuildShapeByTool(object):
 
     Usage:
 
-    >>> from afem.geom_patch import *
-    >>> from afem.topo_patch import *
+    >>> from afem.geometry import *
+    >>> from afem.topology import *
     >>> pln1 = PlaneByAxes(axes='xy').plane
     >>> box1 = SolidByPlane(pln1, 10., 10., 10.).solid
     >>> pln2 = PlaneByAxes((1., 1., 1.), 'xy').plane

@@ -49,7 +49,7 @@ class CurvePartByShape(object):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByPoints
+    >>> from afem.topology import EdgeByPoints
     >>> from afem.structure import CurvePartByShape
     >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> part = CurvePartByShape('part', e).curve_part
@@ -87,7 +87,7 @@ class BeamByShape(object):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByPoints
+    >>> from afem.topology import EdgeByPoints
     >>> from afem.structure import BeamByShape
     >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> beam = BeamByShape('part', e).beam
@@ -120,7 +120,7 @@ class BeamByCurve(BeamByShape):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByPoints
+    >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.structure import BeamByCurve
     >>> c = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> part = BeamByCurve('part', c).beam
@@ -176,7 +176,7 @@ class SurfacePartByShape(object):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByPoints, FaceByDrag
+    >>> from afem.topology import EdgeByPoints, FaceByDrag
     >>> from afem.structure import SurfacePartByShape
     >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> f = FaceByDrag(e, (0., 10., 0.)).face

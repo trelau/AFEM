@@ -20,7 +20,7 @@ class DistanceShapeToShape(object):
 
     Usage:
 
-    >>> from afem.topo_patch import *
+    >>> from afem.topology import *
     >>> v1 = VertexByPoint((0., 0., 0.)).vertex
     >>> v2 = VertexByPoint((10., 0., 0.)).vertex
     >>> tool = DistanceShapeToShape(v1, v2)
@@ -66,7 +66,7 @@ class DistanceShapeToShapes(object):
 
     Usage:
 
-    >>> from afem.topo_patch import *
+    >>> from afem.topology import *
     >>> v1 = VertexByPoint((0., 0., 0.)).vertex
     >>> v2 = VertexByPoint((5., 0., 0.)).vertex
     >>> v3 = VertexByPoint((10., 0., 0.)).vertex

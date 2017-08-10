@@ -81,7 +81,7 @@ class LinearProps(ShapeProps):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByPoints, LinearProps
+    >>> from afem.topology import EdgeByPoints, LinearProps
     >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
     >>> props = LinearProps(e)
     >>> props.length
@@ -111,7 +111,7 @@ class SurfaceProps(ShapeProps):
 
     Usage:
 
-    >>> from afem.topo_patch import EdgeByPoints, FaceByDrag, SurfaceProps
+    >>> from afem.topology import EdgeByPoints, FaceByDrag, SurfaceProps
     >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
     >>> f = FaceByDrag(e, (0., 1., 0.)).face
     >>> props = SurfaceProps(f)
@@ -142,7 +142,7 @@ class VolumeProps(ShapeProps):
 
     Usage:
 
-    >>> from afem.topo_patch import *
+    >>> from afem.topology import *
     >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
     >>> f = FaceByDrag(e, (0., 1., 0.)).face
     >>> solid = SolidByDrag(f, (0., 0., 1.)).solid

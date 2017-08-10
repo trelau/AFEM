@@ -154,7 +154,7 @@ class PointByXYZ(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PointByXYZ
+    >>> from afem.geometry import PointByXYZ
     >>> PointByXYZ(1., 2., 3.).point
     Point(1.0, 2.0, 3.0)
     """
@@ -182,7 +182,7 @@ class PointByArray(PointByXYZ):
 
     Usage:
 
-    >>> from afem.geom_patch import PointByArray
+    >>> from afem.geometry import PointByArray
     >>> PointByArray([1., 2., 3.]).point
     Point(1.0, 2.0, 3.0)
     """
@@ -208,7 +208,7 @@ class PointFromParameter(object):
 
     Usage:
 
-    >>> from afem.geom_patch import LineByPoints, Point, PointFromParameter
+    >>> from afem.geometry import LineByPoints, Point, PointFromParameter
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -272,7 +272,7 @@ class PointsAlongCurveByNumber(object):
 
     Usage:
 
-    >>> from afem.geom_patch import LineByPoints, Point, PointsAlongCurveByNumber
+    >>> from afem.geometry import LineByPoints, Point, PointsAlongCurveByNumber
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -392,7 +392,7 @@ class PointsAlongCurveByDistance(object):
 
     Usage:
 
-    >>> from afem.geom_patch import LineByPoints, Point, PointsAlongCurveByDistance
+    >>> from afem.geometry import LineByPoints, Point, PointsAlongCurveByDistance
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -512,7 +512,7 @@ class DirectionByXYZ(object):
 
     Usage:
 
-    >>> from afem.geom_patch import DirectionByXYZ
+    >>> from afem.geometry import DirectionByXYZ
     >>> DirectionByXYZ(10., 0., 0.).direction
     Direction(1.0, 0.0, 0.0)
     """
@@ -540,7 +540,7 @@ class DirectionByArray(DirectionByXYZ):
 
     Usage:
 
-    >>> from afem.geom_patch import DirectionByArray
+    >>> from afem.geometry import DirectionByArray
     >>> DirectionByArray([10., 0., 0.]).direction
     Direction(1.0, 0.0, 0.0)
     """
@@ -562,7 +562,7 @@ class DirectionByPoints(DirectionByArray):
 
     Usage:
 
-    >>> from afem.geom_patch import DirectionByPoints, Point
+    >>> from afem.geometry import DirectionByPoints, Point
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> DirectionByPoints(p1, p2).direction
@@ -587,7 +587,7 @@ class VectorByXYZ(object):
 
     Usage:
 
-    >>> from afem.geom_patch import VectorByXYZ
+    >>> from afem.geometry import VectorByXYZ
     >>> VectorByXYZ(1., 2., 3.).vector
     Vector(1.0, 2.0, 3.0)
     """
@@ -615,7 +615,7 @@ class VectorByArray(VectorByXYZ):
 
     Usage:
 
-    >>> from afem.geom_patch import VectorByArray
+    >>> from afem.geometry import VectorByArray
     >>> VectorByArray([1., 2., 3.]).vector
     Vector(1.0, 2.0, 3.0)
     """
@@ -637,7 +637,7 @@ class VectorByPoints(object):
 
     :raise TypeError: If *p1* or *p2* cannot be converted to a :class:`.Point`.
 
-    >>> from afem.geom_patch import Point, VectorByPoints
+    >>> from afem.geometry import Point, VectorByPoints
     >>> p1 = Point()
     >>> p2 = Point(1., 2., 3.)
     >>> VectorByPoints(p1, p2).vector
@@ -681,7 +681,7 @@ class CurveByUIso(object):
 
     Usage:
 
-    >>> from afem.geom_patch import CurveByUIso, Direction, Plane, Point
+    >>> from afem.geometry import CurveByUIso, Direction, Plane, Point
     >>> p0 = Point()
     >>> vn = Direction(0., 0., 1.)
     >>> pln = Plane(p0, vn)
@@ -751,7 +751,7 @@ class CurveByVIso(object):
 
     Usage:
 
-    >>> from afem.geom_patch import CurveByVIso, Direction, Plane, Point
+    >>> from afem.geometry import CurveByVIso, Direction, Plane, Point
     >>> p0 = Point()
     >>> vn = Direction(0., 0., 1.)
     >>> pln = Plane(p0, vn)
@@ -819,7 +819,7 @@ class LineByVector(object):
 
     Usage:
 
-    >>> from afem.geom_patch import Point, LineByVector
+    >>> from afem.geometry import Point, LineByVector
     >>> p = Point()
     >>> d = Direction(1., 0., 0.)
     >>> builder = LineByVector(p, d)
@@ -859,7 +859,7 @@ class LineByPoints(object):
 
     Usage:
 
-    >>> from afem.geom_patch import LineByPoints, Point
+    >>> from afem.geometry import LineByPoints, Point
     >>> p1 = Point()
     >>> p2 = Point(10., 0. ,0.)
     >>> builder = LineByPoints(p1, p2)
@@ -905,7 +905,7 @@ class NurbsCurveByData(object):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByData, Point
+    >>> from afem.geometry import NurbsCurveByData, Point
     >>> cp = [Point(), Point(10., 0., 0.)]
     >>> knots = [0., 1.]
     >>> mult = [2, 2]
@@ -962,7 +962,7 @@ class NurbsCurveByInterp(object):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByInterp, Point
+    >>> from afem.geometry import NurbsCurveByInterp, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByInterp(qp)
     >>> c = builder.curve
@@ -1028,7 +1028,7 @@ class NurbsCurveByApprox(object):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByApprox, Point
+    >>> from afem.geometry import NurbsCurveByApprox, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByApprox(qp)
     >>> c = builder.curve
@@ -1086,7 +1086,7 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsCurveByPoints, Point
+    >>> from afem.geometry import NurbsCurveByPoints, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByPoints(qp)
     >>> c = builder.curve
@@ -1118,7 +1118,7 @@ class PlaneByNormal(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByNormal
+    >>> from afem.geometry import PlaneByNormal
     >>> builder = PlaneByNormal((0., 0., 0.), (0., 0., 1.))
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
@@ -1159,7 +1159,7 @@ class PlaneByAxes(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByAxes
+    >>> from afem.geometry import PlaneByAxes
     >>> builder = PlaneByAxes((0., 0., 0.), 'xz')
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
@@ -1212,7 +1212,7 @@ class PlaneByPoints(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByPoints, Point
+    >>> from afem.geometry import PlaneByPoints, Point
     >>> p1 = Point()
     >>> p2 = Point(1., 0., 0.)
     >>> p3 = Point(0., 1., 0.)
@@ -1275,7 +1275,7 @@ class PlaneByApprox(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByApprox, Point
+    >>> from afem.geometry import PlaneByApprox, Point
     >>> pnts = [Point(), Point(1., 0., 0.), Point(0., 1., 0.)]
     >>> builder = PlaneByApprox(pnts)
     >>> pln = builder.plane
@@ -1334,7 +1334,7 @@ class PlaneFromParameter(object):
 
     Usage:
 
-    >>> from afem.geom_patch import LineByPoints, Point, PlaneFromParameter
+    >>> from afem.geometry import LineByPoints, Point, PlaneFromParameter
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -1403,7 +1403,7 @@ class PlanesAlongCurveByNumber(object):
 
     Usage:
 
-    >>> from afem.geom_patch import LineByPoints, PlanesAlongCurveByNumber
+    >>> from afem.geometry import LineByPoints, PlanesAlongCurveByNumber
     >>> line = LineByPoints((0., 0., 0.), (10., 0., 0.)).line
     >>> builder = PlanesAlongCurveByNumber(line, 3, u1=0., u2=10.)
     >>> builder.nplanes
@@ -1510,7 +1510,7 @@ class PlanesAlongCurveByDistance(object):
 
     Usage:
 
-    >>> from afem.geom_patch import LineByPoints, Point, PlanesAlongCurveByDistance
+    >>> from afem.geometry import LineByPoints, Point, PlanesAlongCurveByDistance
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -1612,7 +1612,7 @@ class PlanesBetweenPlanesByNumber(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByNormal, PlanesBetweenPlanesByNumber
+    >>> from afem.geometry import PlaneByNormal, PlanesBetweenPlanesByNumber
     >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
     >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
     >>> builder = PlanesBetweenPlanesByNumber(pln1, pln2, 3)
@@ -1721,7 +1721,7 @@ class PlanesBetweenPlanesByDistance(object):
 
     Usage:
 
-    >>> from afem.geom_patch import PlaneByNormal, PlanesBetweenPlanesByDistance
+    >>> from afem.geometry import PlaneByNormal, PlanesBetweenPlanesByDistance
     >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
     >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
     >>> builder = PlanesBetweenPlanesByDistance(pln1, pln2, 2.)
@@ -1824,7 +1824,7 @@ class NurbsSurfaceByData(object):
 
     Usage:
 
-    >>> from afem.geom_patch import NurbsSurfaceByData, Point
+    >>> from afem.geometry import NurbsSurfaceByData, Point
     >>> cp = [[Point(), Point(10., 0., 0.)], [Point(0., 10., 0.), Point(10., 10., 0.)]]
     >>> uknots = [0., 1.]
     >>> vknots = [0., 1.]
@@ -1885,7 +1885,7 @@ class NurbsSurfaceByInterp(object):
 
     Usage:
 
-    >>> from afem.geom_patch import *
+    >>> from afem.geometry import *
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
     >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
@@ -2027,7 +2027,7 @@ class NurbsSurfaceByApprox(object):
 
     Usage:
 
-    >>> from afem.geom_patch import *
+    >>> from afem.geometry import *
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
     >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
