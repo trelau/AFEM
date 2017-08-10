@@ -14,74 +14,9 @@ from afem.geometry.check import CheckGeom
 from afem.geometry.create import create_nurbs_curve_from_occ
 from afem.geometry.entities import Line, Point
 
-__all__ = ["IntersectGeom", "CurveIntersector", "IntersectCurveCurve",
+__all__ = ["CurveIntersector", "IntersectCurveCurve",
            "IntersectCurveSurface", "SurfaceIntersector",
-           "IntersectSurfaceSurface", "IntersectError"]
-
-
-class IntersectGeom(object):
-    """
-    Intersect geometry.
-    """
-
-    @staticmethod
-    def perform(geom1, geom2, itol=None):
-        """
-        Perform the intersection of two geometries.
-
-        :param geom1: Geometry entity 1.
-        :param geom2: Geometry entity 2.
-        :param float itol: Intersection tolerance.
-
-        :return: Intersector object depending on type of *geom1* and *geom2*.
-            *None* if returned if entities are not supported.
-        """
-        # Curve intersection with...
-        if CheckGeom.is_curve_like(geom1):
-            # Curve
-            if CheckGeom.is_curve_like(geom2):
-                return IntersectCurveCurve(geom1, geom2, itol)
-            # Surface/plane
-            if CheckGeom.is_surface_like(geom2):
-                return IntersectCurveSurface(geom1, geom2)
-
-        # Surface intersection with...
-        if CheckGeom.is_surface_like(geom1):
-            # Curve
-            if CheckGeom.is_curve_like(geom2):
-                return IntersectCurveSurface(geom2, geom1)
-            # Surface/plane
-            if CheckGeom.is_surface_like(geom2):
-                return IntersectSurfaceSurface(geom1, geom2, itol)
-
-        # Return error if combination not supported.
-        return IntersectError()
-
-
-class IntersectError(object):
-    """
-    Class for handling intersection errors.
-    """
-
-    @property
-    def success(self):
-        return False
-
-    @property
-    def npts(self):
-        return 0
-
-    @property
-    def ncrvs(self):
-        return 0
-
-    @property
-    def points(self):
-        return []
-
-    @property
-    def icrvs(self):
-        return []
+           "IntersectSurfaceSurface"]
 
 
 class CurveIntersector(object):
