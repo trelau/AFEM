@@ -71,7 +71,7 @@ class DivideC0Shape(object):
     def __init__(self, shape):
         tool = ShapeUpgrade_ShapeDivideContinuity(shape)
         tool.Perform()
-        self._shape = tool.Result
+        self._shape = tool.Result()
 
     @property
     def shape(self):

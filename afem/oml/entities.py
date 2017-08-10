@@ -5,10 +5,10 @@ from afem.geometry.entities import NurbsCurve, NurbsSurface
 from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
 from afem.graphics.viewer import ViewableItem
 from afem.topology import ExploreShape
-from afem.topology.adaptors import ShapeAdaptorSurface
 from afem.topology.bop import IntersectShapes
 from afem.topology.check import CheckShape
-from afem.topology.create import WiresByConnectedEdges
+from afem.topology.create import WiresByConnectedEdges, FaceBySurface
+from afem.topology.modify import DivideC0Shape, DivideClosedShape
 from afem.topology.distance import DistancePointToShapes
 
 __all__ = ["Body", "Wing", "Fuselage"]
@@ -131,7 +131,7 @@ class Wing(Body):
     def __init__(self, solid):
         super(Wing, self).__init__(solid)
         self._sref = None
-        self._sref_adp = None
+        self._sref_shape = None
 
     @property
     def sref(self):
@@ -147,7 +147,7 @@ class Wing(Body):
         :return: The reference shape.
         :rtype: OCC.TopoDS.TopoDS_Shape
         """
-        return self._sref_adp.shape
+        return self._sref_shape
 
     @property
     def u1(self):
@@ -197,11 +197,15 @@ class Wing(Body):
         """
         return self.sref.vknots
 
-    def set_sref(self, srf):
+    def set_sref(self, srf, divide_closed=True, divide_c0=True):
         """
         Set the wing reference surface.
 
         :param afem.geometry.entities.NurbsSurface srf: The surface.
+        :param bool divide_closed: Option to divide the surface if closed
+            when creating the reference shape.
+        :param bool divide_c0: Option to divide the surface at C0 boundaries
+            when creating the reference shape.
 
         :return: None.
 
@@ -212,8 +216,13 @@ class Wing(Body):
             raise TypeError(msg)
 
         self._sref = srf
-        self._sref_adp = ShapeAdaptorSurface()
-        self._sref_adp.build(srf)
+
+        shape = FaceBySurface(srf).face
+        if divide_closed:
+            shape = DivideClosedShape(shape).shape
+        if divide_c0:
+            shape = DivideC0Shape(shape).shape
+        self._sref_shape = shape
 
     def eval(self, u, v):
         """

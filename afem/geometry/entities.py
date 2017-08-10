@@ -1,3 +1,7 @@
+from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace
+from OCC.BRepGProp import brepgprop_SurfaceProperties
+from OCC.GCPnts import GCPnts_AbscissaPoint
+from OCC.GProp import GProp_GProps
 from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Curve,
                       Geom_Line, Geom_Plane, Geom_Surface)
 from OCC.Geom2d import Geom2d_BSplineCurve
@@ -10,10 +14,9 @@ from OCC.gp import gp_Ax1, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec, gp_XYZ
 from numpy import add, array, float64, ndarray, subtract
 
 from afem.config import Settings
-from afem.geometry.methods.calculate import curve_length
-from afem.geometry.methods.parameterize import reparameterize_knots
 from afem.geometry.utils import (global_to_local_param, homogenize_array1d,
-                                 homogenize_array2d, local_to_global_param)
+                                 homogenize_array2d, local_to_global_param,
+                                 reparameterize_knots)
 from afem.graphics.viewer import ViewableItem
 from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolgp_array2_pnt,
@@ -842,17 +845,20 @@ class Curve(Geom_Curve, Geometry):
         """
         return self.ReversedParameter(u)
 
-    def arc_length(self, u1, u2):
+    def arc_length(self, u1, u2, tol=1.0e-7):
         """
         Calculate the curve length between the parameters.
 
         :param float u1: First parameter.
         :param float u2: Last parameter.
+        :param float tol: The tolerance.
 
         :return: Curve length.
         :rtype: float
         """
-        return curve_length(self, u1, u2)
+        if u1 > u2:
+            u1, u2 = u2, u1
+        return GCPnts_AbscissaPoint.Length(self.adaptor, u1, u2, tol)
 
 
 class Line(Geom_Line, Curve):
@@ -1288,6 +1294,14 @@ class Surface(Geom_Surface, Geometry):
         """
         return self.Bounds()[3]
 
+    @property
+    def area(self):
+        """
+        :return: The surface area.
+        :rtype: float
+        """
+        return self.surface_area(self.u1, self.v1, self.u2, self.v1)
+
     def eval(self, u=0., v=0.):
         """
         Evaluate a point on the surface.
@@ -1329,6 +1343,24 @@ class Surface(Geom_Surface, Geometry):
         du = self.deriv(u, v, 1, 0)
         dv = self.deriv(u, v, 0, 1)
         return Vector(du.Crossed(dv).XYZ())
+
+    def surface_area(self, u1, v1, u2, v2, tol=1.0e-7):
+        """
+        Calculate the surface area between the parameter.
+
+        :param float u1:
+        :param float v1:
+        :param float u2:
+        :param float v2:
+        :param float tol: The tolerance.
+
+        :return: The area.
+        :rtype: float
+        """
+        f = BRepBuilderAPI_MakeFace(self.handle, u1, u2, v1, v2, tol).Face()
+        sprops = GProp_GProps()
+        brepgprop_SurfaceProperties(f, sprops, tol)
+        return sprops.Mass()
 
 
 class Plane(Geom_Plane, Surface):

@@ -1,5 +1,3 @@
-from .checker import CheckPart
-from .creator import CreatePart
 from .methods.cut_parts import cut_part
 from .methods.fuse_parts import fuse_surface_parts, fuse_wing_parts
 from .methods.sew_parts import sew_surface_parts
@@ -12,8 +10,6 @@ class PartTools(object):
     """
     Part tools.
     """
-    create = CreatePart()
-    check = CheckPart()
 
     @staticmethod
     def fuse_parts(parts):

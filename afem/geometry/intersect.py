@@ -1,4 +1,5 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge
+from OCC.Extrema import Extrema_ExtPC
 from OCC.GeomAPI import GeomAPI_IntCS
 from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve, GeomAbs_Line
 from OCC.GeomAdaptor import GeomAdaptor_Curve
@@ -6,13 +7,12 @@ from OCC.GeomInt import GeomInt_IntSS
 from OCC.IntTools import IntTools_EdgeEdge
 from OCC.ShapeFix import ShapeFix_ShapeTolerance
 from OCC.TopAbs import TopAbs_VERTEX
-from numpy import float64, inf, mean, zeros
+from numpy import float64, inf, mean, sqrt, zeros
 from scipy.spatial import KDTree
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import create_nurbs_curve_from_occ
 from afem.geometry.entities import Line, Point
-from afem.geometry.methods.distance import curve_nearest_point
 
 __all__ = ["IntersectGeom", "CurveIntersector", "IntersectCurveCurve",
            "IntersectCurveSurface", "SurfaceIntersector",
@@ -354,7 +354,7 @@ class SurfaceIntersector(object):
         :return: Index of curve nearest point.
         :rtype: int
         """
-        return curve_nearest_point(pnt, self._crvs)
+        return _curve_nearest_point(pnt, self._crvs)
 
 
 class IntersectSurfaceSurface(SurfaceIntersector):
@@ -415,6 +415,46 @@ class IntersectSurfaceSurface(SurfaceIntersector):
                 raise RuntimeError(msg)
 
         self._crvs = crvs
+
+
+def _distance_point_to_curve(point, curve):
+    """
+    Find the minimum distance between a point and a curve.
+    """
+    # OCC extrema.
+    ext_pc = Extrema_ExtPC(point, curve.adaptor)
+    if not ext_pc.IsDone():
+        return None
+
+    # Find the minimum result.
+    n_ext = ext_pc.NbExt()
+    for i in range(1, n_ext + 1):
+        if ext_pc.IsMin(i):
+            d = ext_pc.SquareDistance(i)
+            return sqrt(d)
+
+    return None
+
+
+def _curve_nearest_point(point, curves):
+    """
+    Find the curve nearest to the point.
+    """
+    ncrvs = len(curves)
+    if ncrvs == 0:
+        return None
+    if ncrvs == 1:
+        return curves[0]
+
+    cmin = curves[0]
+    dmin = _distance_point_to_curve(point, cmin)
+    for c in curves[1:]:
+        di = _distance_point_to_curve(point, c)
+        if di < dmin:
+            dmin = di
+            cmin = c
+
+    return cmin
 
 
 if __name__ == "__main__":
