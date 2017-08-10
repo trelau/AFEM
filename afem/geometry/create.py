@@ -105,9 +105,8 @@ def create_nurbs_curve_from_occ2d(crv2d):
     p = crv2d.Degree()
     is_periodic = crv2d.IsPeriodic()
 
-    c = NurbsCurve2D(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
-                     is_periodic)
-    return c
+    return NurbsCurve2D(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
+                        is_periodic)
 
 
 def create_nurbs_surface_from_occ(srf):
@@ -137,10 +136,9 @@ def create_nurbs_surface_from_occ(srf):
     is_u_periodic = srf.IsUPeriodic()
     is_v_periodic = srf.IsVPeriodic()
 
-    s = NurbsSurface(tcol_poles, tcol_weights, tcol_uknots, tcol_vknots,
-                     tcol_umult, tcol_vmult, p, q, is_u_periodic,
-                     is_v_periodic)
-    return s
+    return NurbsSurface(tcol_poles, tcol_weights, tcol_uknots, tcol_vknots,
+                        tcol_umult, tcol_vmult, p, q, is_u_periodic,
+                        is_v_periodic)
 
 
 # POINT -----------------------------------------------------------------------

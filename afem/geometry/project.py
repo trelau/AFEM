@@ -8,8 +8,8 @@ from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve, GeomAbs_Line
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 
 from afem.geometry.check import CheckGeom
-from afem.geometry.methods.create import (create_line_from_occ,
-                                          create_nurbs_curve_from_occ)
+from afem.geometry.create import (create_line_from_occ,
+                                  create_nurbs_curve_from_occ)
 
 __all__ = ["ProjectGeom", "PointProjector", "ProjectPointToCurve",
            "ProjectPointToSurface", "CurveProjector", "ProjectCurveToPlane",

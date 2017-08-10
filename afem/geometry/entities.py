@@ -9,7 +9,8 @@ from OCC.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                          TColStd_Array2OfReal)
-from OCC.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
+from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
+                        TColgp_Array2OfPnt)
 from OCC.gp import gp_Ax1, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec, gp_XYZ
 from numpy import add, array, float64, ndarray, subtract
 
@@ -158,15 +159,6 @@ class Point(gp_Pnt, Geometry):
         """
         return array([self.X(), self.Y(), self.Z()], dtype=float64)
 
-    def copy(self):
-        """
-        Return a new copy of the point.
-
-        :return: New point.
-        :rtype: afem.geometry.entities.Point
-        """
-        return Point(*self.xyz)
-
     def set_xyz(self, xyz):
         """
         Set point coordinates.
@@ -245,6 +237,15 @@ class Point(gp_Pnt, Geometry):
 
         self.Translate(v)
         return True
+
+    def copy(self):
+        """
+        Return a new copy of the point.
+
+        :return: New point.
+        :rtype: afem.geometry.entities.Point
+        """
+        return Point(*self.xyz)
 
 
 class Point2D(gp_Pnt2d, Geometry):
@@ -349,15 +350,6 @@ class Point2D(gp_Pnt2d, Geometry):
     def y(self, y):
         self.SetY(y)
 
-    def copy(self):
-        """
-        Return a new copy of the point.
-
-        :return: New point.
-        :rtype: afem.geometry.entities.Point2D
-        """
-        return Point2D(*self.xy)
-
     def set_xy(self, xy):
         """
         Set point coordinates.
@@ -412,6 +404,15 @@ class Point2D(gp_Pnt2d, Geometry):
             other = Point2D(*other)
             return self.IsEqual(other, tol)
         return False
+
+    def copy(self):
+        """
+        Return a new copy of the point.
+
+        :return: New point.
+        :rtype: afem.geometry.entities.Point2D
+        """
+        return Point2D(*self.xy)
 
 
 class Direction(gp_Dir, Geometry):
@@ -881,6 +882,15 @@ class Line(Geom_Line, Curve):
         super(Line, self).__init__(*args)
         Curve.__init__(self)
 
+    def copy(self):
+        """
+        Return a new copy of the line.
+
+        :return: New line.
+        :rtype: afem.geometry.entities.Line
+        """
+        return Line(self.Lin())
+
 
 class NurbsCurve(Geom_BSplineCurve, Curve):
     """
@@ -1034,6 +1044,26 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
             return False
         self.Segment(u1, u2)
         return True
+
+    def copy(self):
+        """
+        Return a new copy of the curve.
+
+        :return: New curve.
+        :rtype: afem.geometry.entities.NurbsCurve
+        """
+        tcol_poles = TColgp_Array1OfPnt(1, self.NbPoles())
+        self.Poles(tcol_poles)
+        tcol_weights = TColStd_Array1OfReal(1, self.NbPoles())
+        self.Weights(tcol_weights)
+        tcol_knots = TColStd_Array1OfReal(1, self.NbKnots())
+        self.Knots(tcol_knots)
+        tcol_mult = TColStd_Array1OfInteger(1, self.NbKnots())
+        self.Multiplicities(tcol_mult)
+        p = self.Degree()
+        is_periodic = self.IsPeriodic()
+        return NurbsCurve(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
+                          is_periodic)
 
 
 class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
@@ -1232,6 +1262,27 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
             return False
         self.Segment(u1, u2)
         return True
+
+    def copy(self):
+        """
+        Return a new copy of the 2-D curve.
+
+        :return: New 2-d curve.
+        :rtype: afem.geometry.entities.NurbsCurve2D
+        """
+        tcol_poles = TColgp_Array1OfPnt2d(1, self.NbPoles())
+        self.Poles(tcol_poles)
+        tcol_weights = TColStd_Array1OfReal(1, self.NbPoles())
+        self.Weights(tcol_weights)
+        tcol_knots = TColStd_Array1OfReal(1, self.NbKnots())
+        self.Knots(tcol_knots)
+        tcol_mult = TColStd_Array1OfInteger(1, self.NbKnots())
+        self.Multiplicities(tcol_mult)
+        p = self.Degree()
+        is_periodic = self.IsPeriodic()
+
+        return NurbsCurve2D(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
+                            is_periodic)
 
 
 class Surface(Geom_Surface, Geometry):
@@ -1620,6 +1671,35 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
             return False
         self.CheckAndSegment(u1, u2, v1, v2)
         return True
+
+    def copy(self):
+        """
+        Return a new copy of the surface.
+
+        :return: New surface.
+        :rtype: afem.geometry.entities.NurbsSurface
+        """
+        tcol_poles = TColgp_Array2OfPnt(1, self.NbUPoles(), 1, self.NbVPoles())
+        self.Poles(tcol_poles)
+        tcol_weights = TColStd_Array2OfReal(1, self.NbUPoles(), 1,
+                                            self.NbVPoles())
+        self.Weights(tcol_weights)
+        tcol_uknots = TColStd_Array1OfReal(1, self.NbUKnots())
+        self.UKnots(tcol_uknots)
+        tcol_vknots = TColStd_Array1OfReal(1, self.NbVKnots())
+        self.VKnots(tcol_vknots)
+        tcol_umult = TColStd_Array1OfInteger(1, self.NbUKnots())
+        self.UMultiplicities(tcol_umult)
+        tcol_vmult = TColStd_Array1OfInteger(1, self.NbVKnots())
+        self.VMultiplicities(tcol_vmult)
+        p = self.UDegree()
+        q = self.VDegree()
+        is_u_periodic = self.IsUPeriodic()
+        is_v_periodic = self.IsVPeriodic()
+
+        return NurbsSurface(tcol_poles, tcol_weights, tcol_uknots, tcol_vknots,
+                            tcol_umult, tcol_vmult, p, q, is_u_periodic,
+                            is_v_periodic)
 
 
 if __name__ == "__main__":
