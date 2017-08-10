@@ -4,9 +4,9 @@ from OCC.BRepAlgoAPI import BRepAlgoAPI_Common, BRepAlgoAPI_Cut, \
     BRepAlgoAPI_Fuse, BRepAlgoAPI_Section
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 
-from afem.occ.utils import (to_lst_from_toptools_listofshape,
-                            to_toptools_listofshape)
-from afem.topology.check import CheckShape
+from afem.occ.occ_utils import (to_lst_from_toptools_listofshape,
+                                to_toptools_listofshape)
+from afem.topology.topo_check import CheckShape
 
 __all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes"]
@@ -221,7 +221,7 @@ class FuseShapes(BopAlgo):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
     >>> bop = FuseShapes(e1, e2)
@@ -263,7 +263,7 @@ class CutShapes(BopAlgo):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
     >>> bop = CutShapes(e1, e2)
@@ -305,7 +305,7 @@ class CommonShapes(BopAlgo):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
     >>> bop = CommonShapes(e1, e2)
@@ -347,7 +347,7 @@ class IntersectShapes(BopAlgo):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
     >>> bop = IntersectShapes(e1, e2)
@@ -386,7 +386,7 @@ class SplitShapes(BopAlgo):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
     >>> bop = SplitShapes(e1, e2)

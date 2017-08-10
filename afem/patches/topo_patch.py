@@ -4,7 +4,7 @@ from OCC.ShapeAnalysis import ShapeAnalysis_Edge
 from OCC.TopoDS import TopoDS_Shape
 from OCC.gce import gce_MakeMirror
 
-from afem.topology.check import CheckShape
+from afem.topology.topo_check import CheckShape
 
 _analysis_edge = ShapeAnalysis_Edge()
 

@@ -14,7 +14,7 @@ from OCC.TopTools import TopTools_ListOfShape
 from OCC.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
-from afem.utils.check import is_array_like
+from afem.misc.misc_check import is_array_like
 
 __all__ = ["to_gp_pnt", "to_gp_pnt2d", "to_np_from_tcolgp_array1_pnt",
            "to_np_from_tcolgp_array2_pnt",

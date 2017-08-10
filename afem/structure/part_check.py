@@ -1,8 +1,4 @@
-from .part import Part
-from .rib import Rib
-from .spar import Spar
-from .surface_part import SurfacePart
-from .wing_part import WingPart
+from afem.structure.part_entities import *
 
 __all__ = ["CheckPart"]
 

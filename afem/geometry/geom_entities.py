@@ -15,16 +15,18 @@ from OCC.gp import gp_Ax1, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec, gp_XYZ
 from numpy import add, array, float64, ndarray, subtract
 
 from afem.config import Settings
-from afem.geometry.utils import (global_to_local_param, homogenize_array1d,
-                                 homogenize_array2d, local_to_global_param,
-                                 reparameterize_knots)
-from afem.graphics.viewer import ViewableItem
-from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
-                            to_np_from_tcolgp_array2_pnt,
-                            to_np_from_tcolstd_array1_integer,
-                            to_np_from_tcolstd_array1_real,
-                            to_np_from_tcolstd_array2_real)
-from afem.utils.check import is_array_like
+from afem.geometry.geom_utils import (global_to_local_param,
+                                      homogenize_array1d,
+                                      homogenize_array2d,
+                                      local_to_global_param,
+                                      reparameterize_knots)
+from afem.graphics.graphics_viewer import ViewableItem
+from afem.misc.misc_check import is_array_like
+from afem.occ.occ_utils import (to_np_from_tcolgp_array1_pnt,
+                                to_np_from_tcolgp_array2_pnt,
+                                to_np_from_tcolstd_array1_integer,
+                                to_np_from_tcolstd_array1_real,
+                                to_np_from_tcolstd_array2_real)
 
 __all__ = ["Geometry", "Point", "Point2D", "Direction", "Vector", "Axis1",
            "Axis3", "Curve", "Line", "NurbsCurve", "NurbsCurve2D", "Surface",
@@ -50,7 +52,7 @@ class Point(gp_Pnt, Geometry):
 
     Usage:
 
-    >>> from afem.geometry import Point
+    >>> from afem.geom_patch import Point
     >>> Point()
     Point(0.0, 0.0, 0.0)
     >>> Point(1., 2., 3.)
@@ -243,7 +245,7 @@ class Point(gp_Pnt, Geometry):
         Return a new copy of the point.
 
         :return: New point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return Point(*self.xyz)
 
@@ -258,7 +260,7 @@ class Point2D(gp_Pnt2d, Geometry):
 
     Usage:
 
-    >>> from afem.geometry import Point2D
+    >>> from afem.geom_patch import Point2D
     >>> Point2D()
     Point2D(0.0, 0.0)
     >>> Point2D(1., 2.)
@@ -410,7 +412,7 @@ class Point2D(gp_Pnt2d, Geometry):
         Return a new copy of the point.
 
         :return: New point.
-        :rtype: afem.geometry.entities.Point2D
+        :rtype: afem.geometry.geom_entities.Point2D
         """
         return Point2D(*self.xy)
 
@@ -425,7 +427,7 @@ class Direction(gp_Dir, Geometry):
 
     Usage:
 
-    >>> from afem.geometry import Direction, Vector
+    >>> from afem.geom_patch import Direction, Vector
     >>> Direction(10., 0., 0.)
     Direction(1.0, 0.0, 0.0)
     >>> v = Vector(10., 0., 0.)
@@ -545,7 +547,7 @@ class Vector(gp_Vec, Geometry):
 
     Usage:
 
-    >>> from afem.geometry import Direction, Point, Vector
+    >>> from afem.geom_patch import Direction, Point, Vector
     >>> Vector(1., 2., 3.)
     Vector(1.0, 2.0, 3.0)
     >>> d = Direction(1., 0., 0.)
@@ -693,7 +695,7 @@ class Axis1(gp_Ax1):
 
     Usage:
 
-    >>> from afem.geometry import Axis1, Direction, Point
+    >>> from afem.geom_patch import Axis1, Direction, Point
     >>> ax1 = Axis1()
     >>> p = Point()
     >>> d = Direction(1., 0., 0.)
@@ -714,7 +716,7 @@ class Axis3(gp_Ax3):
 
     Usage:
 
-    >>> from afem.geometry import Axis3, Direction, Point
+    >>> from afem.geom_patch import Axis3, Direction, Point
     >>> p = Point()
     >>> n = Direction(0., 0., 1.)
     >>> vx = Direction(1., 0., 0.)
@@ -790,7 +792,7 @@ class Curve(Geom_Curve, Geometry):
     def p1(self):
         """
         :return: The first point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return self.eval(self.u1)
 
@@ -798,7 +800,7 @@ class Curve(Geom_Curve, Geometry):
     def p2(self):
         """
         :return: The last point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return self.eval(self.u2)
 
@@ -809,7 +811,7 @@ class Curve(Geom_Curve, Geometry):
         :param float u: Curve parameter.
 
         :return: Curve point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         p = Point()
         self.D0(u, p)
@@ -823,7 +825,7 @@ class Curve(Geom_Curve, Geometry):
         :param int d: Derivative to evaluate.
 
         :return: Curve derivative.
-        :rtype: afem.geometry.entities.Vector
+        :rtype: afem.geometry.geom_entities.Vector
         """
         return Vector(self.DN(u, d).XYZ())
 
@@ -872,7 +874,7 @@ class Line(Geom_Line, Curve):
 
     Usage:
 
-    >>> from afem.geometry import Direction, Line, Point
+    >>> from afem.geom_patch import Direction, Line, Point
     >>> p = Point()
     >>> d = Direction(1., 0., 0.)
     >>> line = Line(p, d)
@@ -887,7 +889,7 @@ class Line(Geom_Line, Curve):
         Return a new copy of the line.
 
         :return: New line.
-        :rtype: afem.geometry.entities.Line
+        :rtype: afem.geometry.geom_entities.Line
         """
         return Line(self.Lin())
 
@@ -1050,7 +1052,7 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         Return a new copy of the curve.
 
         :return: New curve.
-        :rtype: afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.geom_entities.NurbsCurve
         """
         tcol_poles = TColgp_Array1OfPnt(1, self.NbPoles())
         self.Poles(tcol_poles)
@@ -1223,7 +1225,7 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
         :param float u: Curve parameter.
 
         :return: Curve point.
-        :rtype: afem.geometry.entities.Point2D
+        :rtype: afem.geometry.geom_entities.Point2D
         """
         p = Point2D()
         self.D0(u, p)
@@ -1268,7 +1270,7 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
         Return a new copy of the 2-D curve.
 
         :return: New 2-d curve.
-        :rtype: afem.geometry.entities.NurbsCurve2D
+        :rtype: afem.geometry.geom_entities.NurbsCurve2D
         """
         tcol_poles = TColgp_Array1OfPnt2d(1, self.NbPoles())
         self.Poles(tcol_poles)
@@ -1361,7 +1363,7 @@ class Surface(Geom_Surface, Geometry):
         :param float v: Surface v-parameter.
 
         :return: Surface point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         p = Point()
         self.D0(u, v, p)
@@ -1377,7 +1379,7 @@ class Surface(Geom_Surface, Geometry):
         :param int nv: Derivative in v-direction.
 
         :return: Surface derivative.
-        :rtype: afem.geometry.entities.Vector
+        :rtype: afem.geometry.geom_entities.Vector
         """
         return Vector(self.DN(u, v, nu, nv).XYZ())
 
@@ -1389,7 +1391,7 @@ class Surface(Geom_Surface, Geometry):
         :param float v: Surface v-parameter.
 
         :return: Surface normal.
-        :rtype: afem.geometry.entities.Vector
+        :rtype: afem.geometry.geom_entities.Vector
         """
         du = self.deriv(u, v, 1, 0)
         dv = self.deriv(u, v, 0, 1)
@@ -1677,7 +1679,7 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         Return a new copy of the surface.
 
         :return: New surface.
-        :rtype: afem.geometry.entities.NurbsSurface
+        :rtype: afem.geometry.geom_entities.NurbsSurface
         """
         tcol_poles = TColgp_Array2OfPnt(1, self.NbUPoles(), 1, self.NbVPoles())
         self.Poles(tcol_poles)

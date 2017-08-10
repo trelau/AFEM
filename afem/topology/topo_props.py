@@ -3,8 +3,8 @@ from OCC.BRepGProp import brepgprop_LinearProperties, \
 from OCC.GProp import GProp_GProps
 from numpy import array
 
-from afem.geometry.entities import Point
-from afem.topology.check import CheckShape
+from afem.geometry.geom_entities import Point
+from afem.topology.topo_check import CheckShape
 
 __all__ = ["ShapeProps", "LinearProps", "SurfaceProps", "VolumeProps",
            "LengthOfShapes", "AreaOfShapes"]
@@ -32,7 +32,7 @@ class ShapeProps(object):
     def cg(self):
         """
         :return: The center of gravity.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         gp_pnt = self._props.CentreOfMass()
         return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
@@ -64,7 +64,7 @@ class ShapeProps(object):
         """
         Compute the moment of inertia about the axis.
 
-        :param afem.geometry.entities.Axis1 axis: The axis.
+        :param afem.geometry.geom_entities.Axis1 axis: The axis.
 
         :return: The moment of inertia.
         :rtype: float
@@ -80,7 +80,7 @@ class LinearProps(ShapeProps):
 
     Usage:
 
-    >>> from afem.topology import EdgeByPoints, LinearProps
+    >>> from afem.topo_patch import EdgeByPoints, LinearProps
     >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
     >>> props = LinearProps(e)
     >>> props.length
@@ -110,7 +110,7 @@ class SurfaceProps(ShapeProps):
 
     Usage:
 
-    >>> from afem.topology import EdgeByPoints, FaceByDrag, SurfaceProps
+    >>> from afem.topo_patch import EdgeByPoints, FaceByDrag, SurfaceProps
     >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
     >>> f = FaceByDrag(e, (0., 1., 0.)).face
     >>> props = SurfaceProps(f)
@@ -141,7 +141,7 @@ class VolumeProps(ShapeProps):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
     >>> f = FaceByDrag(e, (0., 1., 0.)).face
     >>> solid = SolidByDrag(f, (0., 0., 1.)).solid

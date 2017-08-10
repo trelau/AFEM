@@ -15,7 +15,7 @@ be used instead.
 
 Bounding Box
 ~~~~~~~~~~~~
-.. autoclass:: afem.topology.entities.BBox
+.. autoclass:: afem.topology.topo_entities.BBox
 
 TopoDS_Shape
 ~~~~~~~~~~~~
@@ -55,18 +55,7 @@ TopoDS_Compound
 
 Create
 ------
-.. py:currentmodule:: afem.topology.create
-
-ShapeTools
-~~~~~~~~~~
-This class was never meant to be this big. It will be broken out in the near
-future.
-
-.. autoclass:: afem.topology.tools.ShapeTools
-
-CreateShape
-~~~~~~~~~~~
-.. autoclass:: CreateShape
+.. py:currentmodule:: afem.topology.topo_create
 
 VertexByPoint
 ~~~~~~~~~~~~~
@@ -186,7 +175,7 @@ PlaneByEdges
 
 Explore
 -------
-.. py:currentmodule:: afem.topology.explore
+.. py:currentmodule:: afem.topology.topo_explore
 
 ExploreShape
 ~~~~~~~~~~~~
@@ -202,7 +191,7 @@ ExploreFreeEdges
 
 Modify
 ------
-.. py:currentmodule:: afem.topology.modify
+.. py:currentmodule:: afem.topology.topo_modify
 
 FixShape
 ~~~~~~~~
@@ -234,7 +223,7 @@ RebuildShapeByTool
 
 Boolean
 -------
-.. py:currentmodule:: afem.topology.bop
+.. py:currentmodule:: afem.topology.topo_bop
 
 BopAlgo
 ~~~~~~~
@@ -262,7 +251,7 @@ SplitShapes
 
 Offset
 ------
-.. py:currentmodule:: afem.topology.offset
+.. py:currentmodule:: afem.topology.topo_offset
 
 ProjectShape
 ~~~~~~~~~~~~
@@ -286,7 +275,7 @@ SweepShapeWithNormal
 
 Distance
 --------
-.. py:currentmodule:: afem.topology.distance
+.. py:currentmodule:: afem.topology.topo_distance
 
 DistanceShapeToShape
 ~~~~~~~~~~~~~~~~~~~~
@@ -298,7 +287,7 @@ DistanceShapeToShapes
 
 Properties
 ----------
-.. py:currentmodule:: afem.topology.props
+.. py:currentmodule:: afem.topology.topo_props
 
 ShapeProps
 ~~~~~~~~~~
@@ -326,7 +315,7 @@ AreaOfShapes
 
 Check
 -----
-.. py:currentmodule:: afem.topology.check
+.. py:currentmodule:: afem.topology.topo_check
 
 CheckShape
 ~~~~~~~~~~
@@ -335,7 +324,3 @@ CheckShape
 ClassifyPointInSolid
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ClassifyPointInSolid
-
-Utilities
----------
-.. automodule:: afem.occ.utils

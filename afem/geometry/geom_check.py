@@ -2,7 +2,7 @@ from OCC.Geom import Geom_Curve, Geom_Surface
 from OCC.gp import gp_Pnt, gp_Vec
 from numpy import ndarray
 
-from afem.geometry.entities import *
+from afem.geometry.geom_entities import *
 
 __all__ = ["CheckGeom"]
 
@@ -73,7 +73,7 @@ class CheckGeom(object):
 
         :return: The entity if already a Point, or a new Point if it is
             array_like. Returns *None* otherwise.
-        :rtype: afem.geometry.entities.Point or None
+        :rtype: afem.geometry.geom_entities.Point or None
         """
         if isinstance(geom, Point):
             return geom
@@ -91,7 +91,7 @@ class CheckGeom(object):
         :param list[point_like] geoms: List of entities.
 
         :return: List of points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list[afem.geometry.geom_entities.Point]
         """
         return [CheckGeom.to_point(p) for p in geoms if
                 CheckGeom.is_point_like(p)]
@@ -116,7 +116,7 @@ class CheckGeom(object):
 
         :return: The entity if already a Vector, or a new Vector if it is
             array_like. Returns *None* otherwise.
-        :rtype: afem.geometry.entities.Vector or None
+        :rtype: afem.geometry.geom_entities.Vector or None
         """
         if isinstance(geom, Vector):
             return geom
@@ -148,7 +148,7 @@ class CheckGeom(object):
 
         :return: The entity if already a Direction, or a new Direction if it is
             array_like. Returns *None* otherwise.
-        :rtype: afem.geometry.entities.Direction or None
+        :rtype: afem.geometry.geom_entities.Direction or None
         """
         if isinstance(geom, Direction):
             return geom

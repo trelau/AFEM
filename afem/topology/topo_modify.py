@@ -6,8 +6,8 @@ from OCC.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                               ShapeUpgrade_UnifySameDomain)
 from OCC.TopoDS import topods_Edge
 
-from afem.topology.create import CompoundByShapes
-from afem.topology.explore import ExploreShape
+from afem.topology.topo_create import CompoundByShapes
+from afem.topology.topo_explore import ExploreShape
 
 __all__ = ["FixShape", "DivideClosedShape", "DivideC0Shape", "UnifyShape",
            "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool"]
@@ -141,7 +141,7 @@ class SewShape(object):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> p1 = (0., 0., 0.)
     >>> p2 = (1., 0., 0.)
     >>> p3 = (1., 1., 0.)
@@ -405,8 +405,8 @@ class RebuildShapeByTool(object):
 
     Usage:
 
-    >>> from afem.geometry import *
-    >>> from afem.topology import *
+    >>> from afem.geom_patch import *
+    >>> from afem.topo_patch import *
     >>> pln1 = PlaneByAxes(axes='xy').plane
     >>> box1 = SolidByPlane(pln1, 10., 10., 10.).solid
     >>> pln2 = PlaneByAxes((1., 1., 1.), 'xy').plane

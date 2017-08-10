@@ -7,7 +7,7 @@ tools can be imported by::
 
 Entities
 --------
-.. py:currentmodule:: afem.oml.entities
+.. py:currentmodule:: afem.oml.oml_entities
 
 Body
 ~~~~
@@ -26,4 +26,4 @@ Check
 
 CheckOML
 ~~~~~~~~
-.. autoclass:: afem.oml.check.CheckOML
+.. autoclass:: afem.oml.oml_check.CheckOML

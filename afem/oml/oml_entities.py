@@ -1,15 +1,16 @@
 from OCC.TopoDS import TopoDS_Solid
 
-from afem.geometry.create import CurveByUIso, CurveByVIso, PlaneByPoints
-from afem.geometry.entities import NurbsCurve, NurbsSurface
-from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
-from afem.graphics.viewer import ViewableItem
+from afem.geometry.geom_create import CurveByUIso, CurveByVIso, PlaneByPoints
+from afem.geometry.geom_entities import NurbsCurve, NurbsSurface
+from afem.geometry.geom_project import (ProjectPointToCurve,
+                                        ProjectPointToSurface)
+from afem.graphics.graphics_viewer import ViewableItem
 from afem.topology import ExploreShape
-from afem.topology.bop import IntersectShapes
-from afem.topology.check import CheckShape
-from afem.topology.create import WiresByConnectedEdges, FaceBySurface
-from afem.topology.modify import DivideC0Shape, DivideClosedShape
-from afem.topology.distance import DistancePointToShapes
+from afem.topology.topo_bop import IntersectShapes
+from afem.topology.topo_check import CheckShape
+from afem.topology.topo_create import FaceBySurface, WiresByConnectedEdges
+from afem.topology.topo_distance import DistancePointToShapes
+from afem.topology.topo_modify import DivideC0Shape, DivideClosedShape
 
 __all__ = ["Body", "Wing", "Fuselage"]
 
@@ -137,7 +138,7 @@ class Wing(Body):
     def sref(self):
         """
         :return: The reference surface.
-        :rtype: afem.geometry.entities.NurbsSurface
+        :rtype: afem.geometry.geom_entities.NurbsSurface
         """
         return self._sref
 
@@ -201,7 +202,7 @@ class Wing(Body):
         """
         Set the wing reference surface.
 
-        :param afem.geometry.entities.NurbsSurface srf: The surface.
+        :param afem.geometry.geom_entities.NurbsSurface srf: The surface.
         :param bool divide_closed: Option to divide the surface if closed
             when creating the reference shape.
         :param bool divide_c0: Option to divide the surface at C0 boundaries
@@ -232,7 +233,7 @@ class Wing(Body):
         :param float v: Parameter in v-direction.
 
         :return: Point on reference surface.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return self.sref.eval(u, v)
 
@@ -244,7 +245,7 @@ class Wing(Body):
         :param float v: Parameter in v-direction.
 
         :return: Reference surface normal.
-        :rtype: afem.geometry.entities.Vector
+        :rtype: afem.geometry.geom_entities.Vector
         """
         return self.sref.norm(u, v)
 
@@ -281,7 +282,7 @@ class Wing(Body):
         :param float v2: Second v-parameter.
 
         :return: The plane.
-        :rtype: afem.geometry.entities.Plane
+        :rtype: afem.geometry.geom_entities.Plane
         """
         p1 = self.eval(u1, v1)
         p2 = self.eval(u2, v2)
@@ -312,7 +313,7 @@ class Wing(Body):
             shape.
 
         :return: The curve.
-        :rtype: afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.geom_entities.NurbsCurve
 
         :raise RuntimeError: If method fails.
         """
@@ -373,7 +374,7 @@ class Wing(Body):
         :param float v: Constant v-parameter.
 
         :return: The iso-curve.
-        :rtype: afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.geom_entities.NurbsCurve
 
         :raise TypeError: If both *u* and *v* are None.
         """

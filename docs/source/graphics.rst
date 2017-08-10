@@ -1,3 +1,3 @@
 Graphics
 ========
-.. automodule:: afem.graphics.viewer
+.. automodule:: afem.graphics.graphics_viewer

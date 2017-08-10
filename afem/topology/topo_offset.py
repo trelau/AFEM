@@ -9,10 +9,10 @@ from OCC.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
 from OCC.GeomAbs import GeomAbs_C2
 from OCC.TopAbs import TopAbs_EDGE, TopAbs_VERTEX, TopAbs_WIRE
 
-from afem.occ.utils import (occ_continuity, occ_join_type, occ_parm_type,
-                            occ_transition_mode)
-from afem.topology.check import CheckShape
-from afem.topology.explore import ExploreShape
+from afem.occ.occ_utils import (occ_continuity, occ_join_type, occ_parm_type,
+                                occ_transition_mode)
+from afem.topology.topo_check import CheckShape
+from afem.topology.topo_explore import ExploreShape
 
 __all__ = ["ProjectShape", "OffsetShape", "LoftShape", "SweepShape",
            "SweepShapeWithNormal"]
@@ -43,8 +43,8 @@ class ProjectShape(object):
 
     Usage:
 
-    >>> from afem.geometry import *
-    >>> from afem.topology import *
+    >>> from afem.geom_patch import *
+    >>> from afem.topo_patch import *
     >>> pln = PlaneByAxes().plane
     >>> face = FaceByPlane(pln, -5., 5., -5., 5.).face
     >>> edge = EdgeByPoints((0., 1., 15.), (0., 1., -15.)).edge
@@ -149,8 +149,8 @@ class OffsetShape(object):
 
     Usage:
 
-    >>> from afem.geometry import *
-    >>> from afem.topology import *
+    >>> from afem.geom_patch import *
+    >>> from afem.topo_patch import *
     >>> pln = PlaneByAxes().plane
     >>> face = FaceByPlane(pln, -5., 5., -5., 5.).face
     >>> tool = OffsetShape(face, 5.)
@@ -213,7 +213,7 @@ class LoftShape(object):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> pnts1 = [(0., 0., 0.), (5., 0., 5.), (10., 0., 0.)]
     >>> wire1 = WireByPoints(pnts1).wire
     >>> pnts2 = [(0., 10., 0.), (5., 10., -5.), (10., 10., 0.)]

@@ -10,9 +10,9 @@ from OCC.TopAbs import TopAbs_VERTEX
 from numpy import float64, inf, mean, sqrt, zeros
 from scipy.spatial import KDTree
 
-from afem.geometry.check import CheckGeom
-from afem.geometry.create import create_nurbs_curve_from_occ
-from afem.geometry.entities import Line, Point
+from afem.geometry.geom_check import CheckGeom
+from afem.geometry.geom_create import create_nurbs_curve_from_occ
+from afem.geometry.geom_entities import Line, Point
 
 __all__ = ["CurveIntersector", "IntersectCurveCurve",
            "IntersectCurveSurface", "SurfaceIntersector",
@@ -64,7 +64,7 @@ class CurveIntersector(object):
     def points(self):
         """
         :return: List of intersection points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list[afem.geometry.geom_entities.Point]
         """
         if self._npts <= 0:
             return []
@@ -92,7 +92,7 @@ class CurveIntersector(object):
         :param int indx: Index for point.
 
         :return: Intersection point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return self._results[indx - 1][1]
 
@@ -131,7 +131,7 @@ class IntersectCurveCurve(CurveIntersector):
 
     Usage:
 
-    >>> from afem.geometry import *
+    >>> from afem.geom_patch import *
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(5., 0., 0.), (5., 5., 0.)]).curve
     >>> cci = IntersectCurveCurve(c1, c2)
@@ -194,7 +194,7 @@ class IntersectCurveSurface(CurveIntersector):
 
     Usage:
 
-    >>> from afem.geometry import *
+    >>> from afem.geom_patch import *
     >>> c = NurbsCurveByPoints([(5., 5., 10.), (5., 5., -10.)]).curve
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
@@ -264,7 +264,7 @@ class SurfaceIntersector(object):
     def curves(self):
         """
         :return: The intersection curves.
-        :rtype: list[afem.geometry.entities.Curve]
+        :rtype: list[afem.geometry.geom_entities.Curve]
         """
         return self._crvs
 
@@ -275,7 +275,7 @@ class SurfaceIntersector(object):
         :param int indx: Index of intersection curve.
 
         :return: Intersection curve.
-        :rtype: afem.geometry.entities.Curve
+        :rtype: afem.geometry.geom_entities.Curve
         """
         return self._crvs[indx - 1]
 
@@ -306,7 +306,7 @@ class IntersectSurfaceSurface(SurfaceIntersector):
 
     Usage:
 
-    >>> from afem.geometry import *
+    >>> from afem.geom_patch import *
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
     >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve

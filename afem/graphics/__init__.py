@@ -1,1 +1,1 @@
-from .viewer import *
+from afem.graphics.graphics_viewer import Viewer

@@ -7,7 +7,7 @@ imported by::
 
 Entities
 --------
-.. py:currentmodule:: afem.geometry.entities
+.. py:currentmodule:: afem.geometry.geom_entities
 
 Geometry
 ~~~~~~~~
@@ -67,15 +67,7 @@ NurbsSurface
 
 Create
 ------
-.. py:currentmodule:: afem.geometry.create
-
-CreateGeom
-~~~~~~~~~~
-.. autoclass:: CreateGeom
-
-CreatedPoints
-~~~~~~~~~~~~~
-.. autoclass:: CreatedPoints
+.. py:currentmodule:: afem.geometry.geom_create
 
 PointByXYZ
 ~~~~~~~~~~
@@ -203,11 +195,7 @@ NurbsSurfaceByApprox
 
 Project
 -------
-.. py:currentmodule:: afem.geometry.project
-
-ProjectGeom
-~~~~~~~~~~~
-.. autoclass:: ProjectGeom
+.. py:currentmodule:: afem.geometry.geom_project
 
 PointProjector
 ~~~~~~~~~~~~~~
@@ -235,11 +223,7 @@ ProjectCurveToSurface
 
 Intersect
 ---------
-.. py:currentmodule:: afem.geometry.intersect
-
-IntersectGeom
-~~~~~~~~~~~~~
-.. autoclass:: IntersectGeom
+.. py:currentmodule:: afem.geometry.geom_intersect
 
 CurveIntersector
 ~~~~~~~~~~~~~~~~
@@ -261,18 +245,14 @@ IntersectSurfaceSurface
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: IntersectSurfaceSurface
 
-IntersectError
-~~~~~~~~~~~~~~
-.. autoclass:: IntersectError
-
 Check
 -----
 
 CheckGeom
 ~~~~~~~~~
-.. py:currentmodule:: afem.geometry.check
+.. py:currentmodule:: afem.geometry.geom_check
 .. autoclass:: CheckGeom
 
 Utilities
 ---------
-.. automodule:: afem.geometry.utils
+.. automodule:: afem.geometry.geom_utils

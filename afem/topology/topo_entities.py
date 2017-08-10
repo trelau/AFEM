@@ -3,8 +3,8 @@ from math import sqrt
 from OCC.BRepBndLib import brepbndlib_Add
 from OCC.Bnd import Bnd_Box
 
-from afem.geometry.check import CheckGeom
-from afem.geometry.entities import Point
+from afem.geometry.geom_check import CheckGeom
+from afem.geometry.geom_entities import Point
 
 __all__ = ["BBox"]
 
@@ -19,7 +19,7 @@ class BBox(Bnd_Box):
 
     Usage:
 
-    >>> from afem.topology import *
+    >>> from afem.topo_patch import *
     >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> bbox = BBox()
     >>> bbox.add_shape(e)
@@ -49,7 +49,7 @@ class BBox(Bnd_Box):
     def pmin(self):
         """
         :return: Lower corner of bounding box. *None* if empty.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         if self.is_void:
             return None
@@ -59,7 +59,7 @@ class BBox(Bnd_Box):
     def pmax(self):
         """
         :return: Upper corner of bounding box. *None* if empty.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         if self.is_void:
             return None
@@ -226,7 +226,7 @@ class BBox(Bnd_Box):
         """
         Check to see if the line intersects the box.
 
-        :param afem.geometry.entities.Line line: The line.
+        :param afem.geometry.geom_entities.Line line: The line.
 
         :return: *True* if outside, *False* if it intersects.
         :rtype: bool
@@ -244,7 +244,7 @@ class BBox(Bnd_Box):
         """
         Check to see if the plane intersects the box.
 
-        :param afem.geometry.entities.Plane pln: The plane.
+        :param afem.geometry.geom_entities.Plane pln: The plane.
 
         :return: *True* if outside, *False* if it intersects.
         :rtype: bool
@@ -262,7 +262,7 @@ class BBox(Bnd_Box):
         """
         Check to see if the bounding box intersects this one.
 
-        :param afem.topology.entities.BBox bbox: The other box.
+        :param afem.topology.topo_entities.BBox bbox: The other box.
 
         :return: *True* if outside, *False* if it intersects or is inside.
         :rtype: bool

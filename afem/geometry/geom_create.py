@@ -20,19 +20,19 @@ from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
 
-from afem.geometry.check import CheckGeom
-from afem.geometry.entities import *
-from afem.geometry.utils import (basis_funs, centripetal_parameters,
-                                 chord_parameters, dehomogenize_array2d,
-                                 find_span, homogenize_array1d,
-                                 uniform_parameters)
-from afem.occ.utils import (occ_continuity, occ_parm_type,
-                            to_np_from_tcolgp_array1_pnt,
-                            to_np_from_tcolstd_array1_real,
-                            to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
-                            to_tcolgp_harray1_pnt,
-                            to_tcolstd_array1_integer, to_tcolstd_array1_real,
-                            to_tcolstd_array2_real)
+from afem.geometry.geom_check import CheckGeom
+from afem.geometry.geom_entities import *
+from afem.geometry.geom_utils import (basis_funs, centripetal_parameters,
+                                      chord_parameters, dehomogenize_array2d,
+                                      find_span, homogenize_array1d,
+                                      uniform_parameters)
+from afem.occ.occ_utils import (occ_continuity, occ_parm_type,
+                                to_np_from_tcolgp_array1_pnt,
+                                to_np_from_tcolstd_array1_real,
+                                to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
+                                to_tcolgp_harray1_pnt,
+                                to_tcolstd_array1_integer, to_tcolstd_array1_real,
+                                to_tcolstd_array2_real)
 
 __all__ = ["PointByXYZ", "PointByArray",
            "PointFromParameter", "PointsAlongCurveByNumber",
@@ -57,7 +57,7 @@ def create_line_from_occ(lin):
     :param OCC.Geom.Geom_Line lin: The OCC line.
 
     :return: The Line.
-    :rtype: afem.geometry.entities.Line
+    :rtype: afem.geometry.geom_entities.Line
     """
     return Line(lin.Lin())
 
@@ -69,7 +69,7 @@ def create_nurbs_curve_from_occ(crv):
     :param OCC.Geom.Geom_BSplineCurve crv: The OCC curve.
 
     :return: The NurbsCurve.
-    :rtype: afem.geometry.entities.NurbsCurve
+    :rtype: afem.geometry.geom_entities.NurbsCurve
     """
     tcol_poles = TColgp_Array1OfPnt(1, crv.NbPoles())
     crv.Poles(tcol_poles)
@@ -92,7 +92,7 @@ def create_nurbs_curve_from_occ2d(crv2d):
     :param OCC.Geom.Geom2d_BSplineCurve crv2d: The OCC curve.
 
     :return: The NurbsCurve2D.
-    :rtype: afem.geometry.entities.NurbsCurve2D
+    :rtype: afem.geometry.geom_entities.NurbsCurve2D
     """
     tcol_poles = TColgp_Array1OfPnt2d(1, crv2d.NbPoles())
     crv2d.Poles(tcol_poles)
@@ -116,7 +116,7 @@ def create_nurbs_surface_from_occ(srf):
     :param OCC.Geom.Geom_BSplineSurface srf: The OCC Surface.
 
     :return: The NurbsSurface.
-    :rtype: afem.geometry.entities.NurbsSurface
+    :rtype: afem.geometry.geom_entities.NurbsSurface
     """
     # Gather OCC data.
     tcol_poles = TColgp_Array2OfPnt(1, srf.NbUPoles(), 1, srf.NbVPoles())
@@ -153,7 +153,7 @@ class PointByXYZ(object):
 
     Usage:
 
-    >>> from afem.geometry import PointByXYZ
+    >>> from afem.geom_patch import PointByXYZ
     >>> PointByXYZ(1., 2., 3.).point
     Point(1.0, 2.0, 3.0)
     """
@@ -166,7 +166,7 @@ class PointByXYZ(object):
     def point(self):
         """
         :return: The created point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return self._p
 
@@ -181,7 +181,7 @@ class PointByArray(PointByXYZ):
 
     Usage:
 
-    >>> from afem.geometry import PointByArray
+    >>> from afem.geom_patch import PointByArray
     >>> PointByArray([1., 2., 3.]).point
     Point(1.0, 2.0, 3.0)
     """
@@ -207,7 +207,7 @@ class PointFromParameter(object):
 
     Usage:
 
-    >>> from afem.geometry import LineByPoints, Point, PointFromParameter
+    >>> from afem.geom_patch import LineByPoints, Point, PointFromParameter
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -235,7 +235,7 @@ class PointFromParameter(object):
     def point(self):
         """
         :return: The created point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return self._p
 
@@ -271,7 +271,7 @@ class PointsAlongCurveByNumber(object):
 
     Usage:
 
-    >>> from afem.geometry import LineByPoints, Point, PointsAlongCurveByNumber
+    >>> from afem.geom_patch import LineByPoints, Point, PointsAlongCurveByNumber
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -347,7 +347,7 @@ class PointsAlongCurveByNumber(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list[afem.geometry.geom_entities.Point]
         """
         return self._pnts
 
@@ -391,7 +391,7 @@ class PointsAlongCurveByDistance(object):
 
     Usage:
 
-    >>> from afem.geometry import LineByPoints, Point, PointsAlongCurveByDistance
+    >>> from afem.geom_patch import LineByPoints, Point, PointsAlongCurveByDistance
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -477,7 +477,7 @@ class PointsAlongCurveByDistance(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list[afem.geometry.geom_entities.Point]
         """
         return self._pnts
 
@@ -511,7 +511,7 @@ class DirectionByXYZ(object):
 
     Usage:
 
-    >>> from afem.geometry import DirectionByXYZ
+    >>> from afem.geom_patch import DirectionByXYZ
     >>> DirectionByXYZ(10., 0., 0.).direction
     Direction(1.0, 0.0, 0.0)
     """
@@ -524,7 +524,7 @@ class DirectionByXYZ(object):
     def direction(self):
         """
         :return: The direction.
-        :rtype: afem.geometry.entities.Direction
+        :rtype: afem.geometry.geom_entities.Direction
         """
         return self._d
 
@@ -539,7 +539,7 @@ class DirectionByArray(DirectionByXYZ):
 
     Usage:
 
-    >>> from afem.geometry import DirectionByArray
+    >>> from afem.geom_patch import DirectionByArray
     >>> DirectionByArray([10., 0., 0.]).direction
     Direction(1.0, 0.0, 0.0)
     """
@@ -561,7 +561,7 @@ class DirectionByPoints(DirectionByArray):
 
     Usage:
 
-    >>> from afem.geometry import DirectionByPoints, Point
+    >>> from afem.geom_patch import DirectionByPoints, Point
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> DirectionByPoints(p1, p2).direction
@@ -586,7 +586,7 @@ class VectorByXYZ(object):
 
     Usage:
 
-    >>> from afem.geometry import VectorByXYZ
+    >>> from afem.geom_patch import VectorByXYZ
     >>> VectorByXYZ(1., 2., 3.).vector
     Vector(1.0, 2.0, 3.0)
     """
@@ -599,7 +599,7 @@ class VectorByXYZ(object):
     def vector(self):
         """
         :return: The vector.
-        :rtype: afem.geometry.entities.Vector
+        :rtype: afem.geometry.geom_entities.Vector
         """
         return self._v
 
@@ -614,7 +614,7 @@ class VectorByArray(VectorByXYZ):
 
     Usage:
 
-    >>> from afem.geometry import VectorByArray
+    >>> from afem.geom_patch import VectorByArray
     >>> VectorByArray([1., 2., 3.]).vector
     Vector(1.0, 2.0, 3.0)
     """
@@ -636,7 +636,7 @@ class VectorByPoints(object):
 
     :raise TypeError: If *p1* or *p2* cannot be converted to a :class:`.Point`.
 
-    >>> from afem.geometry import Point, VectorByPoints
+    >>> from afem.geom_patch import Point, VectorByPoints
     >>> p1 = Point()
     >>> p2 = Point(1., 2., 3.)
     >>> VectorByPoints(p1, p2).vector
@@ -657,7 +657,7 @@ class VectorByPoints(object):
     def vector(self):
         """
         :return: The vector.
-        :rtype: afem.geometry.entities.Vector
+        :rtype: afem.geometry.geom_entities.Vector
         """
         return self._v
 
@@ -680,7 +680,7 @@ class CurveByUIso(object):
 
     Usage:
 
-    >>> from afem.geometry import CurveByUIso, Direction, Plane, Point
+    >>> from afem.geom_patch import CurveByUIso, Direction, Plane, Point
     >>> p0 = Point()
     >>> vn = Direction(0., 0., 1.)
     >>> pln = Plane(p0, vn)
@@ -729,7 +729,7 @@ class CurveByUIso(object):
     def curve(self):
         """
         :return: The curve.
-        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.geom_entities.Line or afem.geometry.geom_entities.NurbsCurve
         """
         return self._c
 
@@ -750,7 +750,7 @@ class CurveByVIso(object):
 
     Usage:
 
-    >>> from afem.geometry import CurveByVIso, Direction, Plane, Point
+    >>> from afem.geom_patch import CurveByVIso, Direction, Plane, Point
     >>> p0 = Point()
     >>> vn = Direction(0., 0., 1.)
     >>> pln = Plane(p0, vn)
@@ -799,7 +799,7 @@ class CurveByVIso(object):
     def curve(self):
         """
         :return: The curve.
-        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.geom_entities.Line or afem.geometry.geom_entities.NurbsCurve
         """
         return self._c
 
@@ -818,7 +818,7 @@ class LineByVector(object):
 
     Usage:
 
-    >>> from afem.geometry import Point, LineByVector
+    >>> from afem.geom_patch import Point, LineByVector
     >>> p = Point()
     >>> d = Direction(1., 0., 0.)
     >>> builder = LineByVector(p, d)
@@ -842,7 +842,7 @@ class LineByVector(object):
     def line(self):
         """
         :return: The line.
-        :rtype: afem.geometry.entities.Line
+        :rtype: afem.geometry.geom_entities.Line
         """
         return self._line
 
@@ -858,7 +858,7 @@ class LineByPoints(object):
 
     Usage:
 
-    >>> from afem.geometry import LineByPoints, Point
+    >>> from afem.geom_patch import LineByPoints, Point
     >>> p1 = Point()
     >>> p2 = Point(10., 0. ,0.)
     >>> builder = LineByPoints(p1, p2)
@@ -884,7 +884,7 @@ class LineByPoints(object):
     def line(self):
         """
         :return: The line.
-        :rtype: afem.geometry.entities.Line
+        :rtype: afem.geometry.geom_entities.Line
         """
         return self._line
 
@@ -904,7 +904,7 @@ class NurbsCurveByData(object):
 
     Usage:
 
-    >>> from afem.geometry import NurbsCurveByData, Point
+    >>> from afem.geom_patch import NurbsCurveByData, Point
     >>> cp = [Point(), Point(10., 0., 0.)]
     >>> knots = [0., 1.]
     >>> mult = [2, 2]
@@ -936,7 +936,7 @@ class NurbsCurveByData(object):
     def curve(self):
         """
         :return: The NURBS curve.
-        :rtype: afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.geom_entities.NurbsCurve
         """
         return self._c
 
@@ -961,7 +961,7 @@ class NurbsCurveByInterp(object):
 
     Usage:
 
-    >>> from afem.geometry import NurbsCurveByInterp, Point
+    >>> from afem.geom_patch import NurbsCurveByInterp, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByInterp(qp)
     >>> c = builder.curve
@@ -999,7 +999,7 @@ class NurbsCurveByInterp(object):
     def curve(self):
         """
         :return: The NURBS curve.
-        :rtype: afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.geom_entities.NurbsCurve
         """
         return self._c
 
@@ -1027,7 +1027,7 @@ class NurbsCurveByApprox(object):
 
     Usage:
 
-    >>> from afem.geometry import NurbsCurveByApprox, Point
+    >>> from afem.geom_patch import NurbsCurveByApprox, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByApprox(qp)
     >>> c = builder.curve
@@ -1071,7 +1071,7 @@ class NurbsCurveByApprox(object):
     def curve(self):
         """
         :return: The NURBS curve.
-        :rtype: afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.geom_entities.NurbsCurve
         """
         return self._c
 
@@ -1085,7 +1085,7 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
 
     Usage:
 
-    >>> from afem.geometry import NurbsCurveByPoints, Point
+    >>> from afem.geom_patch import NurbsCurveByPoints, Point
     >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
     >>> builder = NurbsCurveByPoints(qp)
     >>> c = builder.curve
@@ -1117,7 +1117,7 @@ class PlaneByNormal(object):
 
     Usage:
 
-    >>> from afem.geometry import PlaneByNormal
+    >>> from afem.geom_patch import PlaneByNormal
     >>> builder = PlaneByNormal((0., 0., 0.), (0., 0., 1.))
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
@@ -1141,7 +1141,7 @@ class PlaneByNormal(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.entities.Plane
+        :rtype: afem.geometry.geom_entities.Plane
         """
         return self._pln
 
@@ -1158,7 +1158,7 @@ class PlaneByAxes(object):
 
     Usage:
 
-    >>> from afem.geometry import PlaneByAxes
+    >>> from afem.geom_patch import PlaneByAxes
     >>> builder = PlaneByAxes((0., 0., 0.), 'xz')
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
@@ -1191,7 +1191,7 @@ class PlaneByAxes(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.entities.Plane
+        :rtype: afem.geometry.geom_entities.Plane
         """
         return self._pln
 
@@ -1211,7 +1211,7 @@ class PlaneByPoints(object):
 
     Usage:
 
-    >>> from afem.geometry import PlaneByPoints, Point
+    >>> from afem.geom_patch import PlaneByPoints, Point
     >>> p1 = Point()
     >>> p2 = Point(1., 0., 0.)
     >>> p3 = Point(0., 1., 0.)
@@ -1253,7 +1253,7 @@ class PlaneByPoints(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.entities.Plane
+        :rtype: afem.geometry.geom_entities.Plane
         """
         return self._pln
 
@@ -1274,7 +1274,7 @@ class PlaneByApprox(object):
 
     Usage:
 
-    >>> from afem.geometry import PlaneByApprox, Point
+    >>> from afem.geom_patch import PlaneByApprox, Point
     >>> pnts = [Point(), Point(1., 0., 0.), Point(0., 1., 0.)]
     >>> builder = PlaneByApprox(pnts)
     >>> pln = builder.plane
@@ -1308,7 +1308,7 @@ class PlaneByApprox(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.entities.Plane
+        :rtype: afem.geometry.geom_entities.Plane
         """
         return self._pln
 
@@ -1333,7 +1333,7 @@ class PlaneFromParameter(object):
 
     Usage:
 
-    >>> from afem.geometry import LineByPoints, Point, PlaneFromParameter
+    >>> from afem.geom_patch import LineByPoints, Point, PlaneFromParameter
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -1365,7 +1365,7 @@ class PlaneFromParameter(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.entities.Plane
+        :rtype: afem.geometry.geom_entities.Plane
         """
         return self._pln
 
@@ -1402,7 +1402,7 @@ class PlanesAlongCurveByNumber(object):
 
     Usage:
 
-    >>> from afem.geometry import LineByPoints, PlanesAlongCurveByNumber
+    >>> from afem.geom_patch import LineByPoints, PlanesAlongCurveByNumber
     >>> line = LineByPoints((0., 0., 0.), (10., 0., 0.)).line
     >>> builder = PlanesAlongCurveByNumber(line, 3, u1=0., u2=10.)
     >>> builder.nplanes
@@ -1459,7 +1459,7 @@ class PlanesAlongCurveByNumber(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list[afem.geometry.geom_entities.Plane]
         """
         return self._plns
 
@@ -1509,7 +1509,7 @@ class PlanesAlongCurveByDistance(object):
 
     Usage:
 
-    >>> from afem.geometry import LineByPoints, Point, PlanesAlongCurveByDistance
+    >>> from afem.geom_patch import LineByPoints, Point, PlanesAlongCurveByDistance
     >>> p1 = Point()
     >>> p2 = Point(10., 0., 0.)
     >>> line = LineByPoints(p1, p2).line
@@ -1567,7 +1567,7 @@ class PlanesAlongCurveByDistance(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list[afem.geometry.geom_entities.Plane]
         """
         return self._plns
 
@@ -1611,7 +1611,7 @@ class PlanesBetweenPlanesByNumber(object):
 
     Usage:
 
-    >>> from afem.geometry import PlaneByNormal, PlanesBetweenPlanesByNumber
+    >>> from afem.geom_patch import PlaneByNormal, PlanesBetweenPlanesByNumber
     >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
     >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
     >>> builder = PlanesBetweenPlanesByNumber(pln1, pln2, 3)
@@ -1682,7 +1682,7 @@ class PlanesBetweenPlanesByNumber(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list[afem.geometry.geom_entities.Plane]
         """
         return self._plns
 
@@ -1720,7 +1720,7 @@ class PlanesBetweenPlanesByDistance(object):
 
     Usage:
 
-    >>> from afem.geometry import PlaneByNormal, PlanesBetweenPlanesByDistance
+    >>> from afem.geom_patch import PlaneByNormal, PlanesBetweenPlanesByDistance
     >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
     >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
     >>> builder = PlanesBetweenPlanesByDistance(pln1, pln2, 2.)
@@ -1789,7 +1789,7 @@ class PlanesBetweenPlanesByDistance(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list[afem.geometry.geom_entities.Plane]
         """
         return self._plns
 
@@ -1823,7 +1823,7 @@ class NurbsSurfaceByData(object):
 
     Usage:
 
-    >>> from afem.geometry import NurbsSurfaceByData, Point
+    >>> from afem.geom_patch import NurbsSurfaceByData, Point
     >>> cp = [[Point(), Point(10., 0., 0.)], [Point(0., 10., 0.), Point(10., 10., 0.)]]
     >>> uknots = [0., 1.]
     >>> vknots = [0., 1.]
@@ -1864,7 +1864,7 @@ class NurbsSurfaceByData(object):
     def surface(self):
         """
         :return: The NURBS surface.
-        :rtype: afem.geometry.entities.NurbsSurface
+        :rtype: afem.geometry.geom_entities.NurbsSurface
         """
         return self._s
 
@@ -1884,7 +1884,7 @@ class NurbsSurfaceByInterp(object):
 
     Usage:
 
-    >>> from afem.geometry import *
+    >>> from afem.geom_patch import *
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
     >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
@@ -1997,7 +1997,7 @@ class NurbsSurfaceByInterp(object):
     def surface(self):
         """
         :return: The NURBS surface.
-        :rtype: afem.geometry.entities.NurbsSurface
+        :rtype: afem.geometry.geom_entities.NurbsSurface
         """
         return self._s
 
@@ -2026,7 +2026,7 @@ class NurbsSurfaceByApprox(object):
 
     Usage:
 
-    >>> from afem.geometry import *
+    >>> from afem.geom_patch import *
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
     >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
@@ -2102,7 +2102,7 @@ class NurbsSurfaceByApprox(object):
     def surface(self):
         """
         :return: The NURBS surface.
-        :rtype: afem.geometry.entities.NurbsSurface
+        :rtype: afem.geometry.geom_entities.NurbsSurface
         """
         return self._s
 

@@ -7,7 +7,7 @@ imported by::
 
 Entities
 --------
-.. py:currentmodule:: afem.structure.entities
+.. py:currentmodule:: afem.structure.part_entities
 
 Part
 ~~~~
@@ -71,16 +71,11 @@ Stringer
 
 Assembly
 ~~~~~~~~
-.. autoclass:: afem.structure.assembly.Assembly
+.. autoclass:: afem.structure.part_assembly.Assembly
 
 Create
 ------
-
-Create Part Module
-~~~~~~~~~~~~~~~~~~
-.. automodule:: afem.structure.creator
-
-.. py:currentmodule:: afem.structure.create
+.. py:currentmodule:: afem.structure.part_create
 
 CurvePartByShape
 ~~~~~~~~~~~~~~~~
@@ -227,8 +222,8 @@ Modify
 Tools
 -----
 
-.. autoclass:: afem.structure.tools.PartTools
+.. autoclass:: afem.structure.part_tools.PartTools
 
 Check
 -----
-.. autoclass:: afem.structure.checker.CheckPart
+.. autoclass:: afem.structure.part_check.CheckPart

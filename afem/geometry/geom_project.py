@@ -7,9 +7,9 @@ from OCC.GeomAPI import (GeomAPI_ExtremaCurveCurve,
 from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve, GeomAbs_Line
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 
-from afem.geometry.check import CheckGeom
-from afem.geometry.create import (create_line_from_occ,
-                                  create_nurbs_curve_from_occ)
+from afem.geometry.geom_check import CheckGeom
+from afem.geometry.geom_create import (create_line_from_occ,
+                                       create_nurbs_curve_from_occ)
 
 __all__ = ["PointProjector", "ProjectPointToCurve",
            "ProjectPointToSurface", "CurveProjector", "ProjectCurveToPlane",
@@ -45,7 +45,7 @@ class PointProjector(object):
     def points(self):
         """
         :return: Projected points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list[afem.geometry.geom_entities.Point]
         """
         if self.npts <= 0:
             return []
@@ -65,7 +65,7 @@ class PointProjector(object):
     def nearest_point(self):
         """
         :return: Nearest projection result to original point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return self._results[0][0]
 
@@ -92,7 +92,7 @@ class PointProjector(object):
         :param int indx: Index for point.
 
         :return: Projected point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
         """
         return self._results[indx - 1][0]
 
@@ -139,7 +139,7 @@ class ProjectPointToCurve(PointProjector):
 
     Usage:
 
-    >>> from afem.geometry import Direction, Line, Point, ProjectPointToCurve
+    >>> from afem.geom_patch import Direction, Line, Point, ProjectPointToCurve
     >>> p0 = Point()
     >>> v = Direction(1., 0., 0.)
     >>> line = Line(p0, v)
@@ -208,7 +208,7 @@ class ProjectPointToSurface(PointProjector):
 
     Usage:
 
-    >>> from afem.geometry import *
+    >>> from afem.geom_patch import *
     >>> p0 = Point()
     >>> n = Direction(0., 0., 1.)
     >>> pln = Plane(p0, n)
@@ -280,7 +280,7 @@ class CurveProjector(object):
     def curve(self):
         """
         :return: The projected curve.
-        :rtype: afem.geometry.entities.Curve
+        :rtype: afem.geometry.geom_entities.Curve
         """
         return self._crv
 
@@ -303,7 +303,7 @@ class ProjectCurveToPlane(CurveProjector):
 
     Usage:
 
-    >>> from afem.geometry import *
+    >>> from afem.geom_patch import *
     >>> qp = [Point(), Point(5., 5., 1.), Point(10., 5., 1.)]
     >>> c = NurbsCurveByInterp(qp).curve
     >>> pln = Plane(Point(), Direction(0., 0., 1.))
@@ -364,7 +364,7 @@ class ProjectCurveToSurface(CurveProjector):
 
     Usage:
 
-    >>> from afem.geometry import *
+    >>> from afem.geom_patch import *
     >>> c = NurbsCurveByPoints([(0., 5., 6.), (10., 5., 6.)]).curve
     >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
     >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve

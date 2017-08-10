@@ -4,21 +4,21 @@ from numpy import mean
 
 from afem.fem.elements import Elm2D
 from afem.fem.meshes import MeshData
-from afem.geometry.check import CheckGeom
-from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
-                                  PointFromParameter)
-from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
-from afem.graphics.viewer import ViewableItem
-from afem.topology.bop import CutShapes, FuseShapes, SplitShapes
-from afem.topology.check import CheckShape, ClassifyPointInSolid
-from afem.topology.create import (CompoundByShapes, FaceBySurface,
-                                  HalfspaceByShape, PointsAlongShapeByDistance,
-                                  PointsAlongShapeByNumber)
-from afem.topology.distance import DistanceShapeToShape
-from afem.topology.explore import ExploreShape
-from afem.topology.modify import (FixShape, RebuildShapeByTool,
-                                  RebuildShapeWithShapes, SewShape, UnifyShape)
-from afem.topology.props import LinearProps, SurfaceProps
+from afem.geometry.geom_check import CheckGeom
+from afem.geometry.geom_create import (PlaneByNormal, PlaneFromParameter,
+                                       PointFromParameter)
+from afem.geometry.geom_project import ProjectPointToCurve, ProjectPointToSurface
+from afem.graphics.graphics_viewer import ViewableItem
+from afem.topology.topo_bop import CutShapes, FuseShapes, SplitShapes
+from afem.topology.topo_check import CheckShape, ClassifyPointInSolid
+from afem.topology.topo_create import (CompoundByShapes, FaceBySurface,
+                                       HalfspaceByShape, PointsAlongShapeByDistance,
+                                       PointsAlongShapeByNumber)
+from afem.topology.topo_distance import DistanceShapeToShape
+from afem.topology.topo_explore import ExploreShape
+from afem.topology.topo_modify import (FixShape, RebuildShapeByTool,
+                                       RebuildShapeWithShapes, SewShape, UnifyShape)
+from afem.topology.topo_props import LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
            "Rib", "FuselagePart", "Bulkhead", "Floor", "Frame", "Skin",
@@ -32,9 +32,9 @@ class Part(TopoDS_Shape, ViewableItem):
     :param str label: The label.
     :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -133,7 +133,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def subparts(self):
         """
         :return: List of sub-parts associated to this part.
-        :rtype: list[afem.structure.entities.Part]
+        :rtype: list[afem.structure.part_entities.Part]
         """
         return self._subparts.values()
 
@@ -141,7 +141,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def cref(self):
         """
         :return: The part reference curve.
-        :rtype: afem.geometry.entities.Curve
+        :rtype: afem.geometry.geom_entities.Curve
         """
         return self._cref
 
@@ -149,7 +149,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def sref(self):
         """
         :return: The part reference surface.
-        :rtype: afem.geometry.entities.Surface
+        :rtype: afem.geometry.geom_entities.Surface
         """
         return self._sref
 
@@ -173,7 +173,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def p1(self):
         """
         :return: The first point of the part reference curve.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
 
         :raises ValueError: If the part has no reference curve.
         """
@@ -186,7 +186,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def p2(self):
         """
         :return: The last point of the part reference curve.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
 
         :raises ValueError: If the part has no reference curve.
         """
@@ -231,7 +231,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Set the part reference curve.
 
-        :param afem.geometry.entities.Curve cref: The curve.
+        :param afem.geometry.geom_entities.Curve cref: The curve.
 
         :return: None.
 
@@ -246,7 +246,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Set the part reference surface.
 
-        :param afem.geometry.entities.Surface sref: The surface.
+        :param afem.geometry.geom_entities.Surface sref: The surface.
 
         :return: None.
 
@@ -295,7 +295,7 @@ class Part(TopoDS_Shape, ViewableItem):
         Add a sub-part to the part.
 
         :param str key: The key.
-        :param afem.structure.entities.Part subpart: The sub-part.
+        :param afem.structure.part_entities.Part subpart: The sub-part.
 
         :return: None.
 
@@ -313,7 +313,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :param str key: The key.
 
         :return: The sub-part. Returns *None* if the key is not present.
-        :rtype: afem.structure.entities.Part or None
+        :rtype: afem.structure.part_entities.Part or None
         """
         try:
             return self._subparts[key]
@@ -364,7 +364,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :param float u: The parameter.
 
         :return: The point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -381,7 +381,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :param float v: The v-parameter.
 
         :return: The point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
 
         :raise AttributeError: If part does not have a reference surface.
         """
@@ -401,7 +401,7 @@ class Part(TopoDS_Shape, ViewableItem):
             global.
 
         :return: The point.
-        :rtype: afem.geometry.entities.Point
+        :rtype: afem.geometry.geom_entities.Point
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -433,7 +433,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :param float tol: Tolerance.
 
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list[afem.geometry.geom_entities.Point]
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -467,7 +467,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :param float tol: Tolerance.
 
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list[afem.geometry.geom_entities.Point]
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -484,7 +484,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Project a point to reference curve.
 
-        :param afem.geometry.entities.Point pnt: The point. Position will be
+        :param afem.geometry.geom_entities.Point pnt: The point. Position will be
             updated.
         :param vector_like direction: Projection direction.
 
@@ -509,7 +509,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Project points to the reference curve.
 
-        :param list[afem.geometry.entities.Point] pnts: The points. Position
+        :param list[afem.geometry.geom_entities.Point] pnts: The points. Position
             will be updated.
         :param vector_like direction: Projection direction.
 
@@ -532,7 +532,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Project a point to reference surface.
 
-        :param afem.geometry.entities.Point pnt: The point. Position will be
+        :param afem.geometry.geom_entities.Point pnt: The point. Position will be
             updated.
         :param vector_like direction: Projection direction.
 
@@ -557,7 +557,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Project points to reference surface.
 
-        :param list[afem.geometry.entities.Point] pnts: The points. Position
+        :param list[afem.geometry.geom_entities.Point] pnts: The points. Position
             will be updated.
         :param vector_like direction: Projection direction.
 
@@ -582,14 +582,14 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :param float u0: The initial parameter.
         :param float ds: The distance along the curve from the given parameter.
-        :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+        :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
             will be used to define the normal of the new plane. If no plane is
             provided, then the first derivative of the curve will define the
             plane normal.
         :param float tol: Tolerance.
 
         :return: The plane.
-        :rtype: afem.geometry.entities.Plane
+        :rtype: afem.geometry.geom_entities.Plane
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -646,7 +646,7 @@ class Part(TopoDS_Shape, ViewableItem):
         Find the minimum distance between the part and other shape.
 
         :param other: Other part or shape.
-        :type other: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+        :type other: OCC.TopoDS.TopoDS_Shape or afem.structure.part_entities.Part
 
         :return: The minimum distance.
         :rtype: float
@@ -679,7 +679,7 @@ class Part(TopoDS_Shape, ViewableItem):
         Cut the part shape and rebuild this part.
 
         :param cutter: The cutter.
-        :type cutter: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+        :type cutter: OCC.TopoDS.TopoDS_Shape or afem.structure.part_entities.Part
 
         :return: *True* if shape was cut, *False* if not.
         :rtype: bool
@@ -712,7 +712,7 @@ class Part(TopoDS_Shape, ViewableItem):
         edge).
 
         :param splitter: The splitter.
-        :type splitter: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+        :type splitter: OCC.TopoDS.TopoDS_Shape or afem.structure.part_entities.Part
         :param bool rebuild_both: Option to rebuild both if *splitter* is a
             part.
 
@@ -867,7 +867,7 @@ class CurvePart(Part):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -893,7 +893,7 @@ class Beam(CurvePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -911,9 +911,9 @@ class SurfacePart(Part):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -934,7 +934,7 @@ class SurfacePart(Part):
     def stiffeners(self):
         """
         :return: List of stiffeners associated to the part.
-        :rtype: list[afem.structure.entities.Stiffener1D]
+        :rtype: list[afem.structure.part_entities.Stiffener1D]
         """
         return [part for part in self.subparts]
 
@@ -983,7 +983,7 @@ class SurfacePart(Part):
         """
         Fuse with other surface parts and rebuild both.
 
-        :param afem.structure.entities.SurfacePart other_parts: The other
+        :param afem.structure.part_entities.SurfacePart other_parts: The other
             part(s).
 
         :return: *True* if fused, *False* if not.
@@ -1010,7 +1010,7 @@ class SurfacePart(Part):
         """
         Sew with other parts and rebuild all parts.
 
-        :param afem.structure.entities.SurfacePart other_parts: The other
+        :param afem.structure.part_entities.SurfacePart other_parts: The other
             part(s).
 
         :return: *True* if sewed, *False* if not.
@@ -1124,7 +1124,7 @@ class SurfacePart(Part):
         Get edges shared between the two parts.
 
         :param other: The other part or shape.
-        :type other: afem.structure.entities.Part or OCC.TopoDS.TopoDS_Shape
+        :type other: afem.structure.part_entities.Part or OCC.TopoDS.TopoDS_Shape
 
         :return: Shared edges.
         :rtype: list[OCC.TopoDS.TopoDS_Edge]
@@ -1135,7 +1135,7 @@ class SurfacePart(Part):
         """
         Get nodes shared between the two parts.
 
-        :param afem.structure.entities.SurfacePart other: The other part.
+        :param afem.structure.part_entities.SurfacePart other: The other part.
 
         :return: Shared nodes.
         :rtype: list[afem.fem.entities.Node]
@@ -1153,9 +1153,9 @@ class WingPart(SurfacePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1173,9 +1173,9 @@ class Spar(WingPart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1193,9 +1193,9 @@ class Rib(WingPart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1213,9 +1213,9 @@ class FuselagePart(SurfacePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1233,9 +1233,9 @@ class Bulkhead(FuselagePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1253,9 +1253,9 @@ class Floor(FuselagePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1273,9 +1273,9 @@ class Frame(FuselagePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1293,9 +1293,9 @@ class Skin(SurfacePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1313,7 +1313,7 @@ class Stiffener1D(CurvePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -1331,9 +1331,9 @@ class Stiffener2D(SurfacePart):
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
+    :type cref: afem.geometry.geom_entities.Curve or None
     :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
+    :type sref: afem.geometry.geom_entities.Surface or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.

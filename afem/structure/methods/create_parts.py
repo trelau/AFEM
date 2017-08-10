@@ -20,7 +20,7 @@ from ..surface_part import SurfacePart
 from ...geometry import CheckGeom, CreateGeom, IntersectGeom
 from ...oml import CheckOML
 from ...topology import ShapeTools
-from ...utils import pairwise
+from ...misc import pairwise
 
 __all__ = []
 
