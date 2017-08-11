@@ -10,6 +10,7 @@ from OCC.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
                                 BRepBuilderAPI_MakeSolid,
                                 BRepBuilderAPI_MakeVertex,
                                 BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
+from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset)
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
@@ -1525,6 +1526,7 @@ class PlaneByIntersectingShapes(object):
             edges = ExploreShape.get_edges(shape)
             pnts = [pnt]
             for edge in edges:
+                BRepMesh_IncrementalMesh(edge, 0.001)
                 hndl_poly3d = BRep_Tool().Polygon3D(edge, edge.Location())
                 if hndl_poly3d.IsNull():
                     continue

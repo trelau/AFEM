@@ -11,6 +11,7 @@ from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
+from afem.structure.assembly import AssemblyData
 from afem.topology.bop import CutShapes, FuseShapes, SplitShapes
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, FaceBySurface,
@@ -66,6 +67,9 @@ class Part(TopoDS_Shape, ViewableItem):
             self.set_cref(cref)
         if sref is not None:
             self.set_sref(sref)
+
+        # Add to active assembly
+        AssemblyData.add_parts(None, self)
 
         msg = ' '.join(['Creating part:', label])
         logger.info(msg)
@@ -238,6 +242,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The length of all the edges of the part.
         :rtype: float
         """
+        # TODO Reevaluate using this for all shapes like this
         return LinearProps(self).length
 
     def set_cref(self, cref):
@@ -433,7 +438,7 @@ class Part(TopoDS_Shape, ViewableItem):
             u0 = self.local_to_global_u(u0)
 
         if is_rel:
-            ds *= self.length
+            ds *= self.cref.length
 
         return PointFromParameter(self.cref, u0, ds).point
 
@@ -713,17 +718,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not cut.is_done:
             return False
 
-        # Rebuild the parts
-        if isinstance(self, CurvePart):
-            rebuild = RebuildShapeByTool(self, cut, 'edge')
-        elif isinstance(self, SurfacePart):
-            rebuild = RebuildShapeByTool(self, cut, 'face')
-        else:
-            msg = 'Invalid part type in split operation.'
-            raise TypeError(msg)
-
-        new_shape = rebuild.new_shape
-        self.set_shape(new_shape)
+        self.rebuild(cut)
 
         return True
 
@@ -759,23 +754,14 @@ class Part(TopoDS_Shape, ViewableItem):
         if rebuild_both:
             parts += [splitter]
         for part in parts:
-            if isinstance(part, CurvePart):
-                rebuild = RebuildShapeByTool(part, split, 'edge')
-            elif isinstance(part, SurfacePart):
-                rebuild = RebuildShapeByTool(part, split, 'face')
-            else:
-                msg = 'Invalid part type in split operation.'
-                raise TypeError(msg)
-            new_shape = rebuild.new_shape
-            part.set_shape(new_shape)
+            part.rebuild(split)
         return True
 
     def rebuild(self, tool):
         """
         Rebuild the part shape with a supported tool.
 
-        :param tool: The tool. It should provide the typical generated,
-            modified, and deleted methods.
+        :param afem.topology.bop.BopAlgo tool: The tool.
 
         :return: *True* if modified, *False* if not.
         :rtype: bool
@@ -784,10 +770,10 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         if isinstance(self, CurvePart):
             rebuild = RebuildShapeByTool(self, tool, 'edge')
-        elif isinstance(self, SurfaceProps):
+        elif isinstance(self, SurfacePart):
             rebuild = RebuildShapeByTool(self, tool, 'face')
         else:
-            msg = 'Invalid part type in split operation.'
+            msg = 'Invalid part type in rebuild operation.'
             raise TypeError(msg)
 
         new_shape = rebuild.new_shape
@@ -1005,7 +991,7 @@ class SurfacePart(Part):
         :rtype: bool
         """
         # Putting the other parts in a compound avoids fusing them to each
-        # other.
+        # other
         other_parts = list(other_parts)
         other_compound = CompoundByShapes(other_parts).compound
 
@@ -1015,9 +1001,7 @@ class SurfacePart(Part):
 
         # Rebuild the parts
         for part in [self] + other_parts:
-            rebuild = RebuildShapeByTool(part, fuse)
-            new_shape = rebuild.new_shape
-            part.set_shape(new_shape)
+            part.rebuild(fuse)
 
         return True
 
@@ -1102,6 +1086,7 @@ class SurfacePart(Part):
 
         :raise AttributeError: If part does not have a reference curve.
         """
+        # TODO Can this be possible for curve part too?
         if not self.has_cref:
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)

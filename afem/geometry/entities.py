@@ -804,6 +804,14 @@ class Curve(Geom_Curve, Geometry):
         """
         return self.eval(self.u2)
 
+    @property
+    def length(self):
+        """
+        :return: Curve length.
+        :rtype: float
+        """
+        return self.arc_length(self.u1, self.u2)
+
     def eval(self, u):
         """
         Evaluate a point on the curve.
@@ -981,14 +989,6 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :rtype: numpy.ndarray
         """
         return homogenize_array1d(self.cp, self.w)
-
-    @property
-    def length(self):
-        """
-        :return: Curve length.
-        :rtype: float
-        """
-        return self.arc_length(self.u1, self.u2)
 
     def set_domain(self, u1=0., u2=1.):
         """

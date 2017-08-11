@@ -33,6 +33,7 @@ This documentation is for the proprietary Airframe Finite Element Modeler
    fem
    io
    graphics
+   license
 
 
 Indices and tables

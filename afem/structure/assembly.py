@@ -102,18 +102,27 @@ class Assembly(object):
                 return part
         return None
 
-    def get_parts(self, include_subassy=True):
+    def get_parts(self, include_subassy=True, filter=None):
         """
         Get all the parts from the assembly and its sub-assemblies.
 
         :param include_subassy:
+        :param afem.structure.entities.Part bool filter: Option to gather only
+            parts of a certain type.
 
         :return:
         """
-        parts = self.parts
+        parts = []
+        for part in self.parts:
+            if filter is None:
+                parts.append(part)
+            else:
+                if isinstance(part, filter):
+                    parts.append(part)
+
         if include_subassy:
             for assy in self._children:
-                parts += assy.get_parts(True)
+                parts += assy.get_parts(True, filter)
         return parts
 
     def prepare_shape_to_mesh(self, include_subassy=True):
@@ -239,19 +248,22 @@ class AssemblyData(object):
         return assy.get_part(label)
 
     @classmethod
-    def get_parts(cls, assy=None, include_subassy=True):
+    def get_parts(cls, assy=None, include_subassy=True, filter=None):
         """
         Get parts from assembly.
 
         :param assy:
         :param include_subassy
+        :param afem.structure.entities.Part bool filter: Option to gather only
+            parts of a certain type.
 
-        :return:
+        :return: The parts.
+        :rtype: list[afem.structure.entities.Part]
         """
         assy = cls.get_assy(assy)
         if not isinstance(assy, Assembly):
-            return False
-        return assy.get_parts(include_subassy)
+            return []
+        return assy.get_parts(include_subassy, filter)
 
     @classmethod
     def prepare_shape_to_mesh(cls, assy=None):

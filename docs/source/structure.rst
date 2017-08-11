@@ -216,14 +216,25 @@ StringersBySections
 Explore
 -------
 
+Join
+----
+.. py:currentmodule:: afem.structure.join
+
+FuseSurfaceParts
+~~~~~~~~~~~~~~~~
+.. autoclass:: FuseSurfaceParts
+
+FuseSurfacePartsByCref
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: FuseSurfacePartsByCref
+
 Modify
 ------
-
-Tools
------
-
-.. autoclass:: afem.structure.tools.PartTools
 
 Check
 -----
 .. autoclass:: afem.structure.check.CheckPart
+
+Utilities
+---------
+.. automodule:: afem.structure.utils
