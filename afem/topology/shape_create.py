@@ -167,7 +167,7 @@ class EdgeByCurve(object):
     """
     Create an edge using a curve.
 
-    :param curve_like crv: The curve.
+    :param afem.geometry.geom_entities.Curve crv: The curve.
 
     Usage:
 
@@ -607,7 +607,7 @@ class FaceBySurface(object):
     """
     Create a face from a surface.
 
-    :param surface_like srf: The surface.
+    :param afem.geometry.geom_entities.Surface srf: The surface.
     :param float tol: Tolerance for resolution of degenerate edges.
 
     Usage:
@@ -635,7 +635,7 @@ class FaceByPlane(object):
     """
     Create a finite face from a plane.
 
-    :param afem.geometry.geom_entities.Plane: The plane.
+    :param afem.geometry.geom_entities.Plane pln: The plane.
     :param float umin: Minimum u-parameter.
     :param float umax: Maximum u-parameter.
     :param float vmin: Minimum v-parameter.
@@ -748,7 +748,7 @@ class ShellBySurface(object):
     """
     Create a shell from a surface.
 
-    :param surface_like srf: The surface.
+    :param afem.geometry.geom_entities.Surface srf: The surface.
 
     Usage:
 

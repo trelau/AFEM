@@ -121,8 +121,8 @@ class IntersectCurveCurve(CurveIntersector):
     performs the intersections that way. This proved to be more robust than
     OpenCASCADE's native curve-curve intersection tool.
 
-    :param curve_like crv1: The first curve.
-    :param curve_like crv2: The second curve.
+    :param afem.geometry.geom_entities.Curve crv1: The first curve.
+    :param afem.geometry.geom_entities.Curve crv2: The second curve.
     :param float itol: The intersection tolerance.
 
     For more information see IntTools_EdgeEdge_.
@@ -185,8 +185,8 @@ class IntersectCurveSurface(CurveIntersector):
     """
     Curve-surface intersection.
 
-    :param curve_like crv: The curve.
-    :param surface_like srf: The surface.
+    :param afem.geometry.geom_entities.Curve crv: The curve.
+    :param afem.geometry.geom_entities.Surface srf: The surface.
 
     For more information see GeomAPI_IntCS_.
 
@@ -296,8 +296,8 @@ class IntersectSurfaceSurface(SurfaceIntersector):
     """
     Surface-surface intersection.
 
-    :param surface_like srf1: The first surface.
-    :param surface_like srf2: The second surface.
+    :param afem.geometry.geom_entities.Surface srf1: The first surface.
+    :param afem.geometry.geom_entities.Surface srf2: The second surface.
     :param float itol: Intersection tolerance.
 
     For more information see GeomAPI_IntSS_.

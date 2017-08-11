@@ -199,7 +199,7 @@ class PointFromParameter(object):
     """
     Create a point along a curve at a specified distance from a parameter.
 
-    :param curve_like c: The curve.
+    :param afem.geometry.geom_entities.Curve c: The curve.
     :param float u0: The initial parameter.
     :param float ds: The distance along the curve from the given parameter.
     :param float tol: Tolerance.
@@ -254,7 +254,7 @@ class PointsAlongCurveByNumber(object):
     Create a specified number of points along a curve. The points will be
     equidistant.
 
-    :param curve_like c: The curve.
+    :param afem.geometry.geom_entities.Curve c: The curve.
     :param int n: Number of points to create (*n* > 0).
     :param float u1: The parameter of the first point (default=c.u1).
     :param float u2: The parameter of the last point (default=c.u2).
@@ -376,7 +376,7 @@ class PointsAlongCurveByDistance(object):
     be equidistant. This method calculates the number of points given the
     curve length and then uses :class:`.PointsAlongCurveByNumber`.
 
-    :param curve_like c: The curve.
+    :param afem.geometry.geom_entities.Curve c: The curve.
     :param float maxd: The maximum allowed spacing between points. The
         actual spacing will be adjusted to not to exceed this value.
     :param float u1: The parameter of the first point (default=c.u1).
@@ -669,7 +669,7 @@ class CurveByUIso(object):
     """
     Create an isocurve from a surface at a constant u-parameter.
 
-    :param surface_like s: The surface.
+    :param afem.geometry.geom_entities.Surface s: The surface.
     :param float u: The parameter.
 
     :raise RuntimeError: If an unsupported curve type is created.
@@ -739,7 +739,7 @@ class CurveByVIso(object):
     """
     Create an isocurve from a surface at a constant v-parameter.
 
-    :param surface_like s: The surface.
+    :param afem.geometry.geom_entities.Surface s: The surface.
     :param float v: The parameter.
 
     :raise RuntimeError: If an unsupported curve type is created.
@@ -1318,7 +1318,7 @@ class PlaneFromParameter(object):
     """
     Create a plane along a curve at a specified distance from a parameter.
 
-    :param curve_like c: The curve.
+    :param afem.geometry.geom_entities.Curve c: The curve.
     :param float u0: The initial parameter.
     :param float ds: The distance along the curve from the given parameter.
     :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
@@ -1384,7 +1384,7 @@ class PlanesAlongCurveByNumber(object):
     Create planes along a curve using a specified number. The origin of the
     planes will be equidistant along the curve.
 
-    :param curve_like c: The curve.
+    :param afem.geometry.geom_entities.Curve c: The curve.
     :param int n: Number of planes to create (*n* > 0).
     :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1489,7 +1489,7 @@ class PlanesAlongCurveByDistance(object):
     number of points given the curve length and then uses
     :class:`.PlanesAlongCurveByNumber`.
 
-    :param curve_like c: The curve.
+    :param afem.geometry.geom_entities.Curve c: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane

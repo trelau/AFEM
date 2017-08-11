@@ -306,7 +306,7 @@ class Wing(Body):
             should create points that are on or very near the intersection
             between these two shapes. If they are not they will be projected to
             the intersection which could yield unanticipated results.
-        :type basis_shape: surface_like or OCC.TopoDS.TopoDS_Shape
+        :type basis_shape: afem.geometry.geom_entities.Surface or OCC.TopoDS.TopoDS_Shape
         :param bool refine_edges: Option to refine the edges after the
             Boolean operation between the wing reference shape and the basis
             shape.

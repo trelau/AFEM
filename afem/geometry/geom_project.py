@@ -127,7 +127,7 @@ class ProjectPointToCurve(PointProjector):
     Project a point to a curve.
 
     :param point_like pnt: Point to project.
-    :param curve_like crv: Curve to project to.
+    :param afem.geometry.geom_entities.Curve crv: Curve to project to.
     :param array_like direction: Direction of projection. If *None* then a
         normal projection will be performed. By providing a direction the
         tool actually performs a line-curve intersection. This is generally
@@ -196,7 +196,7 @@ class ProjectPointToSurface(PointProjector):
     Project a point to a surface.
 
     :param point_like pnt: Point to project.
-    :param surface_like srf: Surface to project to.
+    :param afem.geometry.geom_entities.Surface srf: Surface to project to.
     :param array_like direction: Direction of projection. If *None* then a
         normal projection will be performed. By providing a direction the
         tool actually performs a line-surface intersection. This is generally
@@ -289,7 +289,7 @@ class ProjectCurveToPlane(CurveProjector):
     """
     Project a curve to a plane along a direction.
 
-    :param curve_like crv: Curve to project.
+    :param afem.geometry.geom_entities.Curve crv: Curve to project.
     :param afem.geometry.geom_entities.Plane pln: Plane to project to.
     :param array_like direction: Direction of projection. If *None* is
         provided, then the curve is projected normal to the plane.
@@ -352,8 +352,8 @@ class ProjectCurveToSurface(CurveProjector):
     """
     Project a curve to a surface. Only normal projections are supported.
 
-    :param curve_like crv: Curve to project.
-    :param surface_like srf: Surface to project to.
+    :param afem.geometry.geom_entities.Curve crv: Curve to project.
+    :param afem.geometry.geom_entities.Surface srf: Surface to project to.
 
     :raise RuntimeError: If the OCC method fails to project the curve to the
         plane.
