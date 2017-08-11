@@ -43,7 +43,8 @@ class CurvePartByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :type shape: afem.geometry.entities.Curve or OCC.TopoDS.TopoDS_Edge or
+        OCC.TopoDS.TopoDS_Wire
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
 
@@ -56,8 +57,11 @@ class CurvePartByShape(object):
     """
 
     def __init__(self, label, shape, cref=None):
-        _validate_type(shape, (TopoDS_Edge, TopoDS_Wire))
+        _validate_type(shape, (Curve, TopoDS_Edge, TopoDS_Wire))
         _validate_type(cref, Curve, False)
+
+        if isinstance(shape, Curve):
+            shape = EdgeByCurve(shape).edge
 
         if cref is None:
             cref = ExploreShape.curve_of_shape(shape)
@@ -81,7 +85,8 @@ class BeamByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :type shape: afem.geometry.entities.Curve or OCC.TopoDS.TopoDS_Edge or
+        OCC.TopoDS.TopoDS_Wire
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
 
@@ -94,8 +99,11 @@ class BeamByShape(object):
     """
 
     def __init__(self, label, shape, cref=None):
-        _validate_type(shape, (TopoDS_Edge, TopoDS_Wire))
+        _validate_type(shape, (Curve, TopoDS_Edge, TopoDS_Wire))
         _validate_type(cref, Curve, False)
+
+        if isinstance(shape, Curve):
+            shape = EdgeByCurve(shape).edge
 
         if cref is None:
             cref = ExploreShape.curve_of_shape(shape)
@@ -168,7 +176,8 @@ class SurfacePartByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :type shape: afem.geometry.entities.Surface or OCC.TopoDS.TopoDS_Face or
+        OCC.TopoDS.TopoDS_Shell
     :param afem.geometry.entities.Curve cref: The reference curve.
     :param afem.geometry.entities.Surface sref: The reference surface. If
         not provided then the basis surface of the largest face of the shape
@@ -186,9 +195,12 @@ class SurfacePartByShape(object):
     """
 
     def __init__(self, label, shape, cref=None, sref=None):
-        _validate_type(shape, (TopoDS_Face, TopoDS_Shell))
+        _validate_type(shape, (Surface, TopoDS_Face, TopoDS_Shell))
         _validate_type(cref, Curve, False)
         _validate_type(sref, Surface, False)
+
+        if isinstance(shape, Curve):
+            shape = EdgeByCurve(shape).edge
 
         if sref is None:
             sref = ExploreShape.surface_of_shape(shape)
@@ -220,7 +232,8 @@ class SparByParameters(object):
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
-    :type basis_shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :type basis_shape: afem.geometry.entities.Surface or
+        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
@@ -234,13 +247,17 @@ class SparByParameters(object):
 
     def __init__(self, label, u1, v1, u2, v2, wing, basis_shape=None):
         _validate_type(wing, Wing)
-        _validate_type(basis_shape, (TopoDS_Face, TopoDS_Shell), False)
+        _validate_type(basis_shape, (Surface, TopoDS_Face, TopoDS_Shell),
+                       False)
 
         # Determine reference surface and basis shape
         if basis_shape is None:
             pln = wing.extract_plane(u1, v1, u2, v2)
             sref = pln
             basis_shape = FaceBySurface(pln).face
+        elif isinstance(basis_shape, Surface):
+            sref = basis_shape
+            basis_shape = FaceBySurface(sref).face
         else:
             sref = ExploreShape.surface_of_shape(basis_shape)
 
@@ -281,7 +298,8 @@ class SparByPoints(SparByParameters):
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
-    :type basis_shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :type basis_shape: afem.geometry.entities.Surface or
+        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
 
     .. note::
 
@@ -380,14 +398,19 @@ class SparBetweenShapes(SparByPoints):
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
     :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape.
-    :type basis_shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :type basis_shape: afem.geometry.entities.Surface or
+        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     """
 
     def __init__(self, label, shape1, shape2, wing, basis_shape):
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
         _validate_type(wing, Wing)
-        _validate_type(basis_shape, (TopoDS_Face, TopoDS_Shell), False)
+        _validate_type(basis_shape, (Surface, TopoDS_Face, TopoDS_Shell),
+                       False)
+
+        if isinstance(basis_shape, Surface):
+            basis_shape = FaceBySurface(basis_shape).face
 
         wing_basis_edges = IntersectShapes(basis_shape, wing.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
@@ -442,7 +465,8 @@ class RibByParameters(object):
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
-    :type basis_shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :type basis_shape: afem.geometry.entities.Surface or
+        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
 
     .. note::
 
@@ -453,13 +477,17 @@ class RibByParameters(object):
 
     def __init__(self, label, u1, v1, u2, v2, wing, basis_shape=None):
         _validate_type(wing, Wing)
-        _validate_type(basis_shape, (TopoDS_Face, TopoDS_Shell), False)
+        _validate_type(basis_shape, (Surface, TopoDS_Face, TopoDS_Shell),
+                       False)
 
         # Determine reference surface and basis shape
         if basis_shape is None:
             pln = wing.extract_plane(u1, v1, u2, v2)
             sref = pln
             basis_shape = FaceBySurface(pln).face
+        elif isinstance(basis_shape, Surface):
+            sref = basis_shape
+            basis_shape = FaceBySurface(sref).face
         else:
             sref = ExploreShape.surface_of_shape(basis_shape)
 
@@ -500,7 +528,8 @@ class RibByPoints(RibByParameters):
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
-    :type basis_shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :type basis_shape: afem.geometry.entities.Surface or
+        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
 
     .. note::
 
@@ -599,14 +628,19 @@ class RibBetweenShapes(RibByPoints):
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
     :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape.
-    :type basis_shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :type basis_shape: afem.geometry.entities.Surface or
+        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     """
 
     def __init__(self, label, shape1, shape2, wing, basis_shape):
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
         _validate_type(wing, Wing)
-        _validate_type(basis_shape, (TopoDS_Face, TopoDS_Shell), False)
+        _validate_type(basis_shape, (Surface, TopoDS_Face, TopoDS_Shell),
+                       False)
+
+        if isinstance(basis_shape, Surface):
+            basis_shape = FaceBySurface(basis_shape).face
 
         wing_basis_edges = IntersectShapes(basis_shape, wing.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
