@@ -165,6 +165,10 @@ HalfspaceBySurface
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: HalfspaceBySurface
 
+ShapeByFaces
+~~~~~~~~~~~~
+.. autoclass:: ShapeByFaces
+
 PointsAlongShapeByNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PointsAlongShapeByNumber

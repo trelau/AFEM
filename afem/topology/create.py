@@ -23,10 +23,10 @@ from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE,
                         TopAbs_SHELL, TopAbs_WIRE)
 from OCC.TopTools import (Handle_TopTools_HSequenceOfShape,
                           TopTools_HSequenceOfShape)
-from OCC.TopoDS import (TopoDS_Compound, TopoDS_Shape,
-                        TopoDS_Shell, topods_Edge, topods_Face,
-                        topods_Shell,
-                        topods_Solid, topods_Vertex, topods_Wire)
+from OCC.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
+                        TopoDS_Shell, topods_Edge, topods_Face, topods_Shell,
+                        topods_Solid,
+                        topods_Vertex, topods_Wire)
 from numpy import ceil
 
 from afem.geometry.check import CheckGeom
@@ -45,7 +45,7 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "ShellByFaces", "ShellBySewing",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
            "CompoundByShapes", "HalfspaceByShape", "HalfspaceBySurface",
-           "PointsAlongShapeByNumber",
+           "ShapeByFaces", "PointsAlongShapeByNumber",
            "PointsAlongShapeByDistance", "PlaneByEdges",
            "PlaneByIntersectingShapes"]
 
@@ -1162,6 +1162,77 @@ class HalfspaceBySurface(HalfspaceByShape):
     def __init__(self, srf, pnt):
         face = FaceBySurface(srf).face
         super(HalfspaceBySurface, self).__init__(face, pnt)
+
+
+# SHAPE -----------------------------------------------------------------------
+
+class ShapeByFaces(object):
+    """
+    Create either a face or a shell from a list of faces.
+
+    :param list[OCC.TopoDS.TopoDS_Face] faces: The faces.
+    :param bool sew: Option to sew the faces if more than one face is provided.
+    :param float tol: Sewing tolerance. If *None* the maximum tolerance of all
+        the faces is used.
+    :param bool cut_free_edges: Option for cutting of free edges.
+    :param bool non_manifold: Option for non-manifold processing.
+    """
+
+    def __init__(self, faces, sew=False, tol=None, cut_free_edges=False,
+                 non_manifold=False):
+
+        if len(faces) == 1:
+            self._shape = faces[0]
+        elif len(faces) > 1 and not sew:
+            self._shape = ShellByFaces(faces).shell
+        elif len(faces) > 1 and sew:
+            builder = ShellBySewing(faces, tol, cut_free_edges, non_manifold)
+            if builder.nshells > 1:
+                self._shape = CompoundByShapes(builder.shells).compound
+            elif builder.nshells == 1:
+                self._shape = builder.shell
+            else:
+                msg = 'Failed to create any shells.'
+                raise RuntimeError(msg)
+        else:
+            msg = 'No faces provided.'
+            raise ValueError(msg)
+
+    @property
+    def shape(self):
+        """
+        :return: The shape. Will be a face if there was only one face in the
+            list, it will be a shell if only one shell was formed, or it will
+            be a compound of shells if more than one shell was found after
+            sewing.
+        :rtype: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell or
+            OCC.TopoDS.TopoDS_Compound
+        """
+        return self._shape
+
+    @property
+    def is_face(self):
+        """
+        :return: *True* if the shape is a face, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.shape, TopoDS_Face)
+
+    @property
+    def is_shell(self):
+        """
+        :return: *True* if the shape is a shell, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.shape, TopoDS_Shell)
+
+    @property
+    def is_compound(self):
+        """
+        :return: *True* if the shape is a compound, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.shape, TopoDS_Compound)
 
 
 # GEOMETRY --------------------------------------------------------------------
