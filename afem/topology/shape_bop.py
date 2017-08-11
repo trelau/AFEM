@@ -6,7 +6,7 @@ from OCC.GEOMAlgo import GEOMAlgo_Splitter
 
 from afem.occ.occ_utils import (to_lst_from_toptools_listofshape,
                                 to_toptools_listofshape)
-from afem.topology.topo_check import CheckShape
+from afem.topology.shape_check import CheckShape
 
 __all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes"]

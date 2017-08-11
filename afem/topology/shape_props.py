@@ -5,7 +5,7 @@ from OCC.GProp import GProp_GProps
 from numpy import array
 
 from afem.geometry.geom_entities import Point
-from afem.topology.topo_check import CheckShape
+from afem.topology.shape_check import CheckShape
 
 __all__ = ["ShapeProps", "LinearProps", "SurfaceProps", "VolumeProps",
            "LengthOfShapes", "AreaOfShapes"]

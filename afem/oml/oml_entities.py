@@ -6,11 +6,11 @@ from afem.geometry.geom_project import (ProjectPointToCurve,
                                         ProjectPointToSurface)
 from afem.graphics.graphics_viewer import ViewableItem
 from afem.topology import ExploreShape
-from afem.topology.topo_bop import IntersectShapes
-from afem.topology.topo_check import CheckShape
-from afem.topology.topo_create import FaceBySurface, WiresByConnectedEdges
-from afem.topology.topo_distance import DistancePointToShapes
-from afem.topology.topo_modify import DivideC0Shape, DivideClosedShape
+from afem.topology.shape_bop import IntersectShapes
+from afem.topology.shape_check import CheckShape
+from afem.topology.shape_create import FaceBySurface, WiresByConnectedEdges
+from afem.topology.shape_distance import DistancePointToShapes
+from afem.topology.shape_modify import DivideC0Shape, DivideClosedShape
 
 __all__ = ["Body", "Wing", "Fuselage"]
 

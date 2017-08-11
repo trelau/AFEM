@@ -28,10 +28,10 @@ from afem.geometry.geom_create import (CurveByVIso, NurbsSurfaceByInterp,
                                        create_nurbs_surface_from_occ)
 from afem.geometry.geom_entities import NurbsSurface
 from afem.oml.oml_entities import Body, Fuselage, Wing
-from afem.topology.topo_check import CheckShape
-from afem.topology.topo_create import CompoundByShapes
-from afem.topology.topo_explore import ExploreShape
-from afem.topology.topo_props import LinearProps
+from afem.topology.shape_check import CheckShape
+from afem.topology.shape_create import CompoundByShapes
+from afem.topology.shape_explore import ExploreShape
+from afem.topology.shape_props import LinearProps
 
 __all__ = ["ImportVSP"]
 

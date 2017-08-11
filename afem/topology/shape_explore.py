@@ -23,7 +23,7 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
 from afem.geometry.geom_create import (create_nurbs_curve_from_occ,
                                        create_nurbs_surface_from_occ)
 from afem.geometry.geom_entities import Line, Plane, Point
-from afem.topology.topo_props import AreaOfShapes
+from afem.topology.shape_props import AreaOfShapes
 
 __all__ = ["ExploreShape", "ExploreWire", "ExploreFreeEdges"]
 

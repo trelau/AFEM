@@ -2,7 +2,7 @@ from OCC.SMESH import SMESH_Gen_get
 
 from afem.fem.hypotheses import HypothesisData
 from afem.fem.nodes import Node
-from afem.topology.topo_check import CheckShape
+from afem.topology.shape_check import CheckShape
 
 _mesh_gen = SMESH_Gen_get()
 

@@ -262,7 +262,7 @@ class BBox(Bnd_Box):
         """
         Check to see if the bounding box intersects this one.
 
-        :param afem.topology.topo_entities.BBox bbox: The other box.
+        :param afem.topology.shape_entities.BBox bbox: The other box.
 
         :return: *True* if outside, *False* if it intersects or is inside.
         :rtype: bool

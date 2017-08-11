@@ -11,18 +11,18 @@ from afem.geometry.geom_create import (PlaneByNormal, PlaneFromParameter,
 from afem.geometry.geom_project import (ProjectPointToCurve,
                                         ProjectPointToSurface)
 from afem.graphics.graphics_viewer import ViewableItem
-from afem.topology.topo_bop import CutShapes, FuseShapes, SplitShapes
-from afem.topology.topo_check import CheckShape, ClassifyPointInSolid
-from afem.topology.topo_create import (CompoundByShapes, FaceBySurface,
-                                       HalfspaceByShape,
-                                       PointsAlongShapeByDistance,
-                                       PointsAlongShapeByNumber)
-from afem.topology.topo_distance import DistanceShapeToShape
-from afem.topology.topo_explore import ExploreShape
-from afem.topology.topo_modify import (FixShape, RebuildShapeByTool,
-                                       RebuildShapeWithShapes, SewShape,
-                                       UnifyShape)
-from afem.topology.topo_props import LinearProps, SurfaceProps
+from afem.topology.shape_bop import CutShapes, FuseShapes, SplitShapes
+from afem.topology.shape_check import CheckShape, ClassifyPointInSolid
+from afem.topology.shape_create import (CompoundByShapes, FaceBySurface,
+                                        HalfspaceByShape,
+                                        PointsAlongShapeByDistance,
+                                        PointsAlongShapeByNumber)
+from afem.topology.shape_distance import DistanceShapeToShape
+from afem.topology.shape_explore import ExploreShape
+from afem.topology.shape_modify import (FixShape, RebuildShapeByTool,
+                                        RebuildShapeWithShapes, SewShape,
+                                        UnifyShape)
+from afem.topology.shape_props import LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
            "Rib", "FuselagePart", "Bulkhead", "Floor", "Frame", "Skin",

@@ -6,11 +6,11 @@ from afem.geometry.geom_create import *
 from afem.geometry.geom_entities import *
 from afem.oml.oml_entities import Body, Fuselage, Wing
 from afem.structure.part_entities import *
-from afem.topology.topo_bop import *
-from afem.topology.topo_check import CheckShape
-from afem.topology.topo_create import *
-from afem.topology.topo_explore import ExploreFreeEdges, ExploreShape
-from afem.topology.topo_props import *
+from afem.topology.shape_bop import *
+from afem.topology.shape_check import CheckShape
+from afem.topology.shape_create import *
+from afem.topology.shape_explore import ExploreFreeEdges, ExploreShape
+from afem.topology.shape_props import *
 
 __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SurfacePartByShape", "SparByParameters", "SparByPoints",

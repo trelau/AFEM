@@ -1,4 +1,4 @@
-from afem.topology.topo_create import CompoundByShapes
+from afem.topology.shape_create import CompoundByShapes
 
 __all__ = ["Assembly", "AssemblyData"]
 

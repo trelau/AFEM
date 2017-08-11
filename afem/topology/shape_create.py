@@ -30,8 +30,8 @@ from numpy import ceil
 
 from afem.geometry import CheckGeom
 from afem.geometry.geom_entities import Plane, Point
-from afem.topology.topo_check import CheckShape
-from afem.topology.topo_explore import ExploreShape
+from afem.topology.shape_check import CheckShape
+from afem.topology.shape_explore import ExploreShape
 
 __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "EdgeByDrag", "EdgeByWireConcat", "WireByEdges",
