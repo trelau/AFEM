@@ -1,11 +1,11 @@
 from OCC.BRepPrimAPI import BRepPrimAPI_MakeCylinder
 
-from afem.geometry import CreateGeom
-from afem.graphics import Viewer
-from afem.oml.fuselage import Fuselage
-from afem.structure import CreatePart, PartTools, AssemblyData
-from afem.topology import ShapeTools
 from afem.fem import MeshData
+from afem.geometry import *
+from afem.graphics import Viewer
+from afem.oml import *
+from afem.structure import *
+from afem.topology import *
 
 # Inputs
 diameter = 244
@@ -24,61 +24,73 @@ cylinder = BRepPrimAPI_MakeCylinder(radius, length).Shape()
 fuselage = Fuselage(cylinder)
 
 # Skin
-skin = CreatePart.skin.from_body('skin', fuselage)
+skin = SkinByBody('skin', fuselage).skin
 
 # Trim off closed ends of skin since it came from a solid cylinder.
-pln1 = CreateGeom.plane_by_axes([0, 0, 0], 'xy')
-box = ShapeTools.box_from_plane(pln1, 1e6, 1e6, -1e6)
+pln1 = PlaneByAxes(axes='xy').plane
+box = SolidByPlane(pln1, 1e6, 1e6, -1e6).solid
+
 skin.cut(box)
 
-pln2 = CreateGeom.plane_by_axes([0, 0, length], 'xy')
-box = ShapeTools.box_from_plane(pln2, 1e6, 1e6, 1e6)
+pln2 = PlaneByAxes((0., 0., length), 'xy').plane
+box = SolidByPlane(pln2, 1e6, 1e6, -1e6).solid
 skin.cut(box)
 
 # Floor
-pln = CreateGeom.plane_by_axes([0, main_floor_yloc, 0], 'xz')
-main_floor = CreatePart.floor.by_sref('main floor', fuselage, pln)
+pln = PlaneByAxes((0., main_floor_yloc, 0.), 'xz').plane
+main_floor = FloorBySurface('main floor', pln, fuselage).floor
 
-pln = CreateGeom.plane_by_axes([0, cargo_floor_yloc, 0], 'xz')
-cargo_floor = CreatePart.floor.by_sref('cargo floor', fuselage, pln)
+pln = PlaneByAxes((0., cargo_floor_yloc, 0.), 'xz').plane
+cargo_floor = FloorBySurface('cargo floor', pln, fuselage).floor
 
 # Frames
-frames = CreatePart.frame.between_planes('frame', fuselage, [pln1, pln2],
-                                         frame_height, frame_spacing)
+frames = FramesBetweenPlanesByDistance('frame', pln1, pln2, frame_spacing,
+                                       fuselage, frame_height).frames
 
 # Floor beams and posts
 rev_cylinder = cylinder.Reversed()
-above_floor = ShapeTools.make_prism(main_floor, [0, 2 * diameter, 0])
-below_cargo_floor = ShapeTools.make_prism(cargo_floor, [0, -60, 0])
-pln1 = CreateGeom.plane_by_axes([-.667 * radius, 0, 0], 'yz')
-face1 = ShapeTools.face_from_plane(pln1, -diameter, diameter, 0, length)
-pln2 = CreateGeom.plane_by_axes([.667 * radius, 0, 0], 'yz')
-face2 = ShapeTools.face_from_plane(pln2, -diameter, diameter, 0, length)
+above_floor = SolidByDrag(main_floor, (0., 2. * diameter, 0.)).solid
+
+below_cargo_floor = SolidByDrag(cargo_floor, (0., -60., 0.)).solid
+
+pln1 = PlaneByAxes((-.667 * radius, 0., 0.), 'yz').plane
+face1 = FaceByPlane(pln1, -diameter, diameter, 0., length).face
+
+pln2 = PlaneByAxes((.667 * radius, 0., 0.), 'yz').plane
+face2 = FaceByPlane(pln1, -diameter, diameter, 0., length).face
+
 i = 1
 for frame in frames:
     # Beam
-    shape = ShapeTools.bsection(main_floor, frame.sref)
-    shape = ShapeTools.make_prism(shape, [0, -floor_beam_height, 0])
+    shape = IntersectShapes(main_floor, frame).shape
+    shape = SolidByDrag(shape, (0., -floor_beam_height, 0.)).solid
     name = ' '.join(['floor beam', str(i)])
-    beam = CreatePart.surface_part(name, shape)
+    beam = SurfacePart(name, shape)
     beam.cut(rev_cylinder)
     # Post
     name = ' '.join(['left floor post', str(i)])
-    post = CreatePart.curve_part(name, shape1=face1, shape2=frame.sref)
+    shape = IntersectShapes(face1, frame).shape
+    post = CurvePart(name, shape)
     post.cut(above_floor)
     post.cut(rev_cylinder)
     name = ' '.join(['right floor post', str(i)])
-    post = CreatePart.curve_part(name, shape1=face2, shape2=frame.sref)
+    shape = IntersectShapes(face2, frame).shape
+    post = CurvePart(name, shape)
     post.cut(above_floor)
     post.cut(rev_cylinder)
     # Create segment beneath cargo floor and merge with frame.
-    shape = ShapeTools.bcommon(below_cargo_floor, frame.sref)
-    shape = ShapeTools.bcut(shape, rev_cylinder)
+    shape = CommonShapes(below_cargo_floor, frame).shape
+    shape = CutShapes(shape, rev_cylinder).shape
     frame.merge(shape, True)
     i += 1
 
 main_floor.set_transparency(0.5)
 cargo_floor.set_transparency(0.5)
+
+all_parts = AssemblyData.get_parts()
+
+Viewer.add(*all_parts)
+Viewer.show()
 
 # Cut the main floor with post planes.
 main_floor.cut(pln1)

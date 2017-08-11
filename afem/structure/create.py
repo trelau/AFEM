@@ -271,10 +271,10 @@ class SparByParameters(object):
             raise RuntimeError(msg)
         shape = common.shape
         faces = ExploreShape.get_faces(shape)
-        shell = ShellByFaces(faces).shell
+        shape = ShapeByFaces(faces).shape
 
         # Create the part
-        self._spar = Spar(label, shell, cref, sref)
+        self._spar = Spar(label, shape, cref, sref)
 
     @property
     def spar(self):
@@ -373,10 +373,10 @@ class SparBySurface(object):
             raise RuntimeError(msg)
         shape = common.shape
         faces = ExploreShape.get_faces(shape)
-        shell = ShellByFaces(faces).shell
+        shape = ShapeByFaces(faces).shape
 
         # Create the part
-        self._spar = Spar(label, shell, cref, srf)
+        self._spar = Spar(label, shape, cref, srf)
 
     @property
     def spar(self):
@@ -501,10 +501,10 @@ class RibByParameters(object):
             raise RuntimeError(msg)
         shape = common.shape
         faces = ExploreShape.get_faces(shape)
-        shell = ShellByFaces(faces).shell
+        shape = ShapeByFaces(faces).shape
 
         # Create the part
-        self._rib = Rib(label, shell, cref, sref)
+        self._rib = Rib(label, shape, cref, sref)
 
     @property
     def rib(self):
@@ -603,10 +603,10 @@ class RibBySurface(object):
             raise RuntimeError(msg)
         shape = common.shape
         faces = ExploreShape.get_faces(shape)
-        shell = ShellByFaces(faces).shell
+        shape = ShapeByFaces(faces).shape
 
         # Create the part
-        self._rib = Rib(label, shell, cref, srf)
+        self._rib = Rib(label, shape, cref, srf)
 
     @property
     def rib(self):
@@ -1029,10 +1029,10 @@ class BulkheadBySurface(object):
             raise RuntimeError(msg)
         shape = common.shape
         faces = ExploreShape.get_faces(shape)
-        shell = ShellByFaces(faces).shell
+        shape = ShapeByFaces(faces).shape
 
         # Create the part
-        self._bh = Bulkhead(label, shell, sref=srf)
+        self._bh = Bulkhead(label, shape, sref=srf)
 
     @property
     def bulkhead(self):
@@ -1070,10 +1070,10 @@ class FloorBySurface(object):
             raise RuntimeError(msg)
         shape = common.shape
         faces = ExploreShape.get_faces(shape)
-        shell = ShellByFaces(faces).shell
+        shape = ShapeByFaces(faces).shape
 
         # Create the part
-        self._floor = Floor(label, shell, sref=srf)
+        self._floor = Floor(label, shape, sref=srf)
 
     @property
     def floor(self):
@@ -1134,10 +1134,10 @@ class FrameByPlane(object):
         shape = cut.shape
 
         faces = ExploreShape.get_faces(shape)
-        shell = ShellByFaces(faces).shell
+        shape = ShapeByFaces(faces).shape
 
         # Create the part
-        self._frame = Frame(label, shell, sref=pln)
+        self._frame = Frame(label, shape, sref=pln)
 
     @property
     def frame(self):
