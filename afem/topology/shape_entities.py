@@ -165,7 +165,7 @@ class BBox(Bnd_Box):
         """
         Add the other box to this one.
 
-        :param afem.geometry.entities.BBox bbox: The other box.
+        :param afem.geometry.geom_entities.BBox bbox: The other box.
 
         :return: None.
 
@@ -279,7 +279,7 @@ class BBox(Bnd_Box):
         """
         Calculate distance to other box.
 
-        :param afem.geometry.entities.BBox bbox: The other box.
+        :param afem.geometry.geom_entities.BBox bbox: The other box.
 
         :return: Distance to other box.
         :rtype: float

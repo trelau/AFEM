@@ -1321,14 +1321,14 @@ class PlaneFromParameter(object):
     :param curve_like c: The curve.
     :param float u0: The initial parameter.
     :param float ds: The distance along the curve from the given parameter.
-    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+    :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of the new plane. If no plane is
         provided, then the first derivative of the curve will define the
         plane normal.
     :param float tol: Tolerance.
 
     :return: The plane.
-    :rtype: afem.geometry.entities.Plane
+    :rtype: afem.geometry.geom_entities.Plane
 
     :raise RuntimeError: If OCC method fails.
 
@@ -1386,7 +1386,7 @@ class PlanesAlongCurveByNumber(object):
 
     :param curve_like c: The curve.
     :param int n: Number of planes to create (*n* > 0).
-    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+    :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
         define the plane normal.
@@ -1492,7 +1492,7 @@ class PlanesAlongCurveByDistance(object):
     :param curve_like c: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
-    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+    :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
         define the plane normal.
@@ -1598,9 +1598,9 @@ class PlanesBetweenPlanesByNumber(object):
     using :class:`.PlanesAlongCurveByNumber`. Planes are not generated at
     the same location as the boundary planes.
 
-    :param afem.geometry.entities.Plane pln1: The first plane. This will be
+    :param afem.geometry.geom_entities.Plane pln1: The first plane. This will be
         the reference plane to define the orientation of the new planes.
-    :param afem.geometry.entities.Plane pln2: The last plane.
+    :param afem.geometry.geom_entities.Plane pln2: The last plane.
     :param int n: The number of planes.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1705,9 +1705,9 @@ class PlanesBetweenPlanesByDistance(object):
     using :class:`.PlanesAlongCurveByNumber`. Planes are not generated at
     the same location as the boundary planes.
 
-    :param afem.geometry.entities.Plane pln1: The first plane. This will be
+    :param afem.geometry.geom_entities.Plane pln1: The first plane. This will be
         the reference plane to define the orientation of the new planes.
-    :param afem.geometry.entities.Plane pln2: The last plane.
+    :param afem.geometry.geom_entities.Plane pln2: The last plane.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param float d1: An offset distance for the first plane. This is typically

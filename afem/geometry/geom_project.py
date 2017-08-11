@@ -290,7 +290,7 @@ class ProjectCurveToPlane(CurveProjector):
     Project a curve to a plane along a direction.
 
     :param curve_like crv: Curve to project.
-    :param afem.geometry.entities.Plane pln: Plane to project to.
+    :param afem.geometry.geom_entities.Plane pln: Plane to project to.
     :param array_like direction: Direction of projection. If *None* is
         provided, then the curve is projected normal to the plane.
 

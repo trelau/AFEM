@@ -635,7 +635,7 @@ class FaceByPlane(object):
     """
     Create a finite face from a plane.
 
-    :param afem.geometry.entities.Plane: The plane.
+    :param afem.geometry.geom_entities.Plane: The plane.
     :param float umin: Minimum u-parameter.
     :param float umax: Maximum u-parameter.
     :param float vmin: Minimum v-parameter.
@@ -989,7 +989,7 @@ class SolidByPlane(object):
     direction of the plane's normal. The solid's width and height will be
     centered at the plane's origin.
 
-    :param afem.geometry.entities.Plane pln: The plane.
+    :param afem.geometry.geom_entities.Plane pln: The plane.
     :param float width: Width of the box.
     :param float height: Height of the box.
     :param float depth: Depth of the box.

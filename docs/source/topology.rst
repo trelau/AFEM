@@ -15,7 +15,7 @@ be used instead.
 
 Bounding Box
 ~~~~~~~~~~~~
-.. autoclass:: afem.topology.topo_entities.BBox
+.. autoclass:: afem.topology.shape_entities.BBox
 
 TopoDS_Shape
 ~~~~~~~~~~~~
@@ -55,7 +55,7 @@ TopoDS_Compound
 
 Create
 ------
-.. py:currentmodule:: afem.topology.topo_create
+.. py:currentmodule:: afem.topology.shape_create
 
 VertexByPoint
 ~~~~~~~~~~~~~

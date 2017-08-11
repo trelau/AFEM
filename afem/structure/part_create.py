@@ -44,7 +44,7 @@ class CurvePartByShape(object):
     :param str label: Part label.
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
-    :param afem.geometry.entities.Curve cref: The reference curve. If not
+    :param afem.geometry.geom_entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
 
     Usage:
@@ -82,7 +82,7 @@ class BeamByShape(object):
     :param str label: Part label.
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
-    :param afem.geometry.entities.Curve cref: The reference curve. If not
+    :param afem.geometry.geom_entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
 
     Usage:
@@ -116,7 +116,7 @@ class BeamByCurve(BeamByShape):
     Create a beam using a curve.
 
     :param str label: Part label.
-    :param afem.geometry.entities.Curve crv: The curve.
+    :param afem.geometry.geom_entities.Curve crv: The curve.
 
     Usage:
 
@@ -169,8 +169,8 @@ class SurfacePartByShape(object):
     :param str label: Part label.
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
-    :param afem.geometry.entities.Curve cref: The reference curve.
-    :param afem.geometry.entities.Surface sref: The reference surface. If
+    :param afem.geometry.geom_entities.Curve cref: The reference curve.
+    :param afem.geometry.geom_entities.Surface sref: The reference surface. If
         not provided then the basis surface of the largest face of the shape
         will be used.
 
