@@ -232,6 +232,14 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         return ExploreShape.get_faces(self)
 
+    @property
+    def length(self):
+        """
+        :return: The length of all the edges of the part.
+        :rtype: float
+        """
+        return LinearProps(self).length
+
     def set_cref(self, cref):
         """
         Set the part reference curve.
@@ -395,13 +403,17 @@ class Part(TopoDS_Shape, ViewableItem):
             raise AttributeError(msg)
         return self._sref.eval(u, v)
 
-    def point_from_parameter(self, ds, u0=None, is_local=False):
+    def point_from_parameter(self, ds, u0=None, is_rel=False, is_local=False):
         """
         Evaluate point on reference curve at a distance from a parameter.
 
         :param float ds: The distance.
         :param float u0: The parameter. If not provided the first parameter
             of the reference curve will be used.
+        :param bool is_rel: Option specifying if the distance is absolute or
+            a relative to the length of the reference curve. If relative, then
+            *ds* is multiplied by the curve length to get the absolute value
+            for the :class:`.PointFromParameter` method.
         :param bool is_local: Option specifying if the parameter is local or
             global.
 
@@ -413,10 +425,16 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_cref:
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
+
         if u0 is None:
             u0 = self.cref.u1
+
         if is_local:
             u0 = self.local_to_global_u(u0)
+
+        if is_rel:
+            ds *= self.length
+
         return PointFromParameter(self.cref, u0, ds).point
 
     def points_by_number(self, n, d1=None, d2=None, shape1=None,
@@ -880,14 +898,6 @@ class CurvePart(Part):
 
     def __init__(self, label, shape, cref=None):
         super(CurvePart, self).__init__(label, shape, cref, None)
-
-    @property
-    def length(self):
-        """
-        :return: The length of all the edges of the part.
-        :rtype: float
-        """
-        return LinearProps(self).length
 
 
 class Beam(CurvePart):
