@@ -30,6 +30,7 @@ from numpy import ceil
 
 from afem.geometry import CheckGeom
 from afem.geometry.entities import Plane, Point
+from afem.topology.bop import IntersectShapes
 from afem.topology.check import CheckShape
 from afem.topology.explore import ExploreShape
 
@@ -42,7 +43,8 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "ShellByFaces", "ShellBySewing",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
            "CompoundByShapes", "HalfspaceByShape", "PointsAlongShapeByNumber",
-           "PointsAlongShapeByDistance", "PlaneByEdges"]
+           "PointsAlongShapeByDistance", "PlaneByEdges",
+           "PlaneByIntersectingShapes"]
 
 _occ_join = {'a': GeomAbs_Arc,
              'arc': GeomAbs_Arc,
@@ -1471,6 +1473,24 @@ class PlaneByEdges(object):
         :rtype: afem.geometry.entities.Plane
         """
         return self._pln
+
+
+class PlaneByIntersectingShapes(PlaneByEdges):
+    """
+    Create a plane by intersection two shapes and then using
+    :class:`.PlaneByEdges`.
+
+    :param OCC.TopoDS.TopoDS_Shape shape1: The first shape.
+    :param OCC.TopoDS.TopoDS_Shape shape2: The second shape.
+    :param float tol: Edges must be within this planar tolerance. The
+        tolerance is the largest value between the value provided or the
+        largest tolerance of any one of the edges in the shape.
+    """
+
+    def __init__(self, shape1, shape2, tol=-1.):
+        shape = IntersectShapes(shape1, shape2).shape
+
+        super(PlaneByIntersectingShapes, self).__init__(shape, tol)
 
 
 if __name__ == "__main__":
