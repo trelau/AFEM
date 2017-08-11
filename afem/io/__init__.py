@@ -1,3 +1,3 @@
-from afem.io.io_step import StepExport, StepImport
-from afem.io.io_stl import StlExport
-from afem.io.io_vsp import ImportVSP
+from afem.io.step import StepExport, StepImport
+from afem.io.stl import StlExport
+from afem.io.vsp import ImportVSP

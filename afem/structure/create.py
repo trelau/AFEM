@@ -1,16 +1,16 @@
 from OCC.TopoDS import (TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell,
                         TopoDS_Solid, TopoDS_Wire)
 
-from afem.geometry.geom_check import CheckGeom
-from afem.geometry.geom_create import *
-from afem.geometry.geom_entities import *
-from afem.oml.oml_entities import Body, Fuselage, Wing
-from afem.structure.part_entities import *
-from afem.topology.shape_bop import *
-from afem.topology.shape_check import CheckShape
-from afem.topology.shape_create import *
-from afem.topology.shape_explore import ExploreFreeEdges, ExploreShape
-from afem.topology.shape_props import *
+from afem.geometry.check import CheckGeom
+from afem.geometry.create import *
+from afem.geometry.entities import *
+from afem.oml.entities import Body, Fuselage, Wing
+from afem.structure.entities import *
+from afem.topology.bop import *
+from afem.topology.check import CheckShape
+from afem.topology.create import *
+from afem.topology.explore import ExploreFreeEdges, ExploreShape
+from afem.topology.props import *
 
 __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SurfacePartByShape", "SparByParameters", "SparByPoints",
@@ -44,7 +44,7 @@ class CurvePartByShape(object):
     :param str label: Part label.
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
-    :param afem.geometry.geom_entities.Curve cref: The reference curve. If not
+    :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
 
     Usage:
@@ -68,7 +68,7 @@ class CurvePartByShape(object):
     def curve_part(self):
         """
         :return: The curve part.
-        :rtype: afem.structure.part_entities.CurvePart
+        :rtype: afem.structure.entities.CurvePart
         """
         return self._curve_part
 
@@ -82,7 +82,7 @@ class BeamByShape(object):
     :param str label: Part label.
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
-    :param afem.geometry.geom_entities.Curve cref: The reference curve. If not
+    :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
 
     Usage:
@@ -106,7 +106,7 @@ class BeamByShape(object):
     def beam(self):
         """
         :return: The beam.
-        :rtype: afem.structure.part_entities.Beam
+        :rtype: afem.structure.entities.Beam
         """
         return self._beam
 
@@ -116,7 +116,7 @@ class BeamByCurve(BeamByShape):
     Create a beam using a curve.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Curve crv: The curve.
+    :param afem.geometry.entities.Curve crv: The curve.
 
     Usage:
 
@@ -169,8 +169,8 @@ class SurfacePartByShape(object):
     :param str label: Part label.
     :param shape: The shape.
     :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
-    :param afem.geometry.geom_entities.Curve cref: The reference curve.
-    :param afem.geometry.geom_entities.Surface sref: The reference surface. If
+    :param afem.geometry.entities.Curve cref: The reference curve.
+    :param afem.geometry.entities.Surface sref: The reference surface. If
         not provided then the basis surface of the largest face of the shape
         will be used.
 
@@ -199,7 +199,7 @@ class SurfacePartByShape(object):
     def surface_part(self):
         """
         :return: The surface part.
-        :rtype: afem.structure.part_entities.SurfacePart
+        :rtype: afem.structure.entities.SurfacePart
         """
         return self._surface_part
 
@@ -215,7 +215,7 @@ class SparByParameters(object):
     :param float v1: Starting point v-parameter.
     :param float u2: Ending point u-parameter.
     :param float v2: Ending point v-parameter.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape to define the shape of the part. If
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
@@ -263,7 +263,7 @@ class SparByParameters(object):
     def spar(self):
         """
         :return: The spar.
-        :rtype: afem.structure.part_entities.Spar
+        :rtype: afem.structure.entities.Spar
         """
         return self._spar
 
@@ -276,7 +276,7 @@ class SparByPoints(SparByParameters):
     :param str label: Part label.
     :param point_like p1: Starting point.
     :param point_like p2: End point.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape to define the shape of the part. If
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
@@ -314,8 +314,8 @@ class SparBySurface(object):
     Create a spar using a surface.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Surface srf: The surface.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.geometry.entities.Surface srf: The surface.
+    :param afem.oml.entities.Wing wing: The wing.
 
     .. note::
 
@@ -364,7 +364,7 @@ class SparBySurface(object):
     def spar(self):
         """
         :return: The spar.
-        :rtype: afem.structure.part_entities.Spar
+        :rtype: afem.structure.entities.Spar
         """
         return self._spar
 
@@ -378,7 +378,7 @@ class SparBetweenShapes(SparByPoints):
     :param str label: Part label.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape.
     :type basis_shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     """
@@ -437,7 +437,7 @@ class RibByParameters(object):
     :param float v1: Starting point v-parameter.
     :param float u2: Ending point u-parameter.
     :param float v2: Ending point v-parameter.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape to define the shape of the part. If
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
@@ -482,7 +482,7 @@ class RibByParameters(object):
     def rib(self):
         """
         :return: The rib.
-        :rtype: afem.structure.part_entities.Rib
+        :rtype: afem.structure.entities.Rib
         """
         return self._rib
 
@@ -495,7 +495,7 @@ class RibByPoints(RibByParameters):
     :param str label: Part label.
     :param point_like p1: Starting point.
     :param point_like p2: End point.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape to define the shape of the part. If
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
@@ -533,8 +533,8 @@ class RibBySurface(object):
     Create a rib using a surface.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Surface srf: The surface.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.geometry.entities.Surface srf: The surface.
+    :param afem.oml.entities.Wing wing: The wing.
 
     .. note::
 
@@ -583,7 +583,7 @@ class RibBySurface(object):
     def rib(self):
         """
         :return: The rib.
-        :rtype: afem.structure.part_entities.Rib
+        :rtype: afem.structure.entities.Rib
         """
         return self._rib
 
@@ -597,7 +597,7 @@ class RibBetweenShapes(RibByPoints):
     :param str label: Part label.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape.
     :type basis_shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
     """
@@ -626,12 +626,12 @@ class RibsBetweenPlanesByNumber(object):
     uses :class:`.PlanesBetweenPlanesByNumber` and :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Plane pln1: The first plane.
-    :param afem.geometry.geom_entities.Plane pln2: The second plane.
+    :param afem.geometry.entities.Plane pln1: The first plane.
+    :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.oml.entities.Wing wing: The wing.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
@@ -680,7 +680,7 @@ class RibsBetweenPlanesByNumber(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.part_entities.Rib]
+        :rtype: list[afem.structure.entities.Rib]
         """
         return self._ribs
 
@@ -708,13 +708,13 @@ class RibsBetweenPlanesByDistance(object):
     :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Plane pln1: The first plane.
-    :param afem.geometry.geom_entities.Plane pln2: The second plane.
+    :param afem.geometry.entities.Plane pln1: The first plane.
+    :param afem.geometry.entities.Plane pln2: The second plane.
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.oml_entities.Wing wing: The wing.
+    :param afem.oml.entities.Wing wing: The wing.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
@@ -763,7 +763,7 @@ class RibsBetweenPlanesByDistance(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.part_entities.Rib]
+        :rtype: list[afem.structure.entities.Rib]
         """
         return self._ribs
 
@@ -790,12 +790,12 @@ class RibsAlongCurveByNumber(object):
     uses :class:`.PlanesAlongCurveByNumber` and :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Curve crv: The curve.
+    :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.oml_entities.Wing wing: The wing.
-    :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
+    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
         define the plane normal.
@@ -852,7 +852,7 @@ class RibsAlongCurveByNumber(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.part_entities.Rib]
+        :rtype: list[afem.structure.entities.Rib]
         """
         return self._ribs
 
@@ -879,13 +879,13 @@ class RibsAlongCurveByDistance(object):
     uses :class:`.PlanesAlongCurveByDistance` and :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Curve crv: The curve.
+    :param afem.geometry.entities.Curve crv: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.oml_entities.Wing wing: The wing.
-    :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
+    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
         define the plane normal.
@@ -942,7 +942,7 @@ class RibsAlongCurveByDistance(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.part_entities.Rib]
+        :rtype: list[afem.structure.entities.Rib]
         """
         return self._ribs
 
@@ -975,8 +975,8 @@ class BulkheadBySurface(object):
     Create a bulkhead using a surface.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Surface srf: The surface.
-    :param afem.oml.oml_entities.Fuselage fuselage: The fuselage.
+    :param afem.geometry.entities.Surface srf: The surface.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
@@ -1004,7 +1004,7 @@ class BulkheadBySurface(object):
     def bulkhead(self):
         """
         :return: The bulkhead.
-        :rtype: afem.structure.part_entities.Bulkhead
+        :rtype: afem.structure.entities.Bulkhead
         """
         return self._bh
 
@@ -1016,8 +1016,8 @@ class FloorBySurface(object):
     Create a floor using a surface.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Surface srf: The surface.
-    :param afem.oml.oml_entities.Fuselage fuselage: The fuselage.
+    :param afem.geometry.entities.Surface srf: The surface.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
@@ -1045,7 +1045,7 @@ class FloorBySurface(object):
     def floor(self):
         """
         :return: The floor.
-        :rtype: afem.structure.part_entities.Floor
+        :rtype: afem.structure.entities.Floor
         """
         return self._floor
 
@@ -1058,8 +1058,8 @@ class FrameByPlane(object):
     frame is formed using an offset algorithm that requires planar shapes.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Plane pln: The plane.
-    :param afem.oml.oml_entities.Fuselage fuselage: The fuselage.
+    :param afem.geometry.entities.Plane pln: The plane.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
     :param float height: The height. The absolute value is used.
 
     :raise TypeError: If an input type is invalid.
@@ -1109,7 +1109,7 @@ class FrameByPlane(object):
     def frame(self):
         """
         :return: The frame.
-        :rtype: afem.structure.part_entities.Frame
+        :rtype: afem.structure.entities.Frame
         """
         return self._frame
 
@@ -1120,10 +1120,10 @@ class FramesBetweenPlanesByNumber(object):
     :class:`.PlanesBetweenPlanesByNumber` and :class:`.FrameByPlane`.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Plane pln1: The first plane.
-    :param afem.geometry.geom_entities.Plane pln2: The second plane.
+    :param afem.geometry.entities.Plane pln1: The first plane.
+    :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
-    :param afem.oml.oml_entities.Fuselage fuselage: The fuselage.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
     :param float height: The height.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1169,7 +1169,7 @@ class FramesBetweenPlanesByNumber(object):
     def frames(self):
         """
         :return: The frames.
-        :rtype: list[afem.structure.part_entities.Frame]
+        :rtype: list[afem.structure.entities.Frame]
         """
         return self._frames
 
@@ -1196,11 +1196,11 @@ class FramesBetweenPlanesByDistance(object):
     :class:`.PlanesBetweenPlanesByDistance` and :class:`.FrameByPlane`.
 
     :param str label: Part label.
-    :param afem.geometry.geom_entities.Plane pln1: The first plane.
-    :param afem.geometry.geom_entities.Plane pln2: The second plane.
+    :param afem.geometry.entities.Plane pln1: The first plane.
+    :param afem.geometry.entities.Plane pln2: The second plane.
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
-    :param afem.oml.oml_entities.Fuselage fuselage: The fuselage.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
     :param float height: The height.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1246,7 +1246,7 @@ class FramesBetweenPlanesByDistance(object):
     def frames(self):
         """
         :return: The frames.
-        :rtype: list[afem.structure.part_entities.Frame]
+        :rtype: list[afem.structure.entities.Frame]
         """
         return self._frames
 
@@ -1273,8 +1273,8 @@ class FramesByPlanes(object):
     :class:`.FrameByPlane`.
 
     :param str label: Part label.
-    :param list[afem.geometry.geom_entities.Plane] plns: The planes.
-    :param afem.oml.oml_entities.Fuselage fuselage: The fuselage.
+    :param list[afem.geometry.entities.Plane] plns: The planes.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
     :param float height: The height.
     :param int first_index: The first index appended to the part label as
         parts are created successively.
@@ -1318,7 +1318,7 @@ class FramesByPlanes(object):
     def frames(self):
         """
         :return: The frames.
-        :rtype: list[afem.structure.part_entities.Frame]
+        :rtype: list[afem.structure.entities.Frame]
         """
         return self._frames
 
@@ -1363,7 +1363,7 @@ class SkinBySolid(object):
     def skin(self):
         """
         :return: The skin.
-        :rtype: afem.structure.part_entities.Skin
+        :rtype: afem.structure.entities.Skin
         """
         return self._skin
 
@@ -1373,7 +1373,7 @@ class SkinByBody(SkinBySolid):
     Create a skin part from the outer shell of a body.
 
     :param str label: Part label.
-    :param afem.oml.oml_entities.Body body: The body.
+    :param afem.oml.entities.Body body: The body.
     :param bool copy: Option to copy the outer shell.
     """
 

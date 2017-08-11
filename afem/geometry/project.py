@@ -7,9 +7,9 @@ from OCC.GeomAPI import (GeomAPI_ExtremaCurveCurve,
 from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve, GeomAbs_Line
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 
-from afem.geometry.geom_check import CheckGeom
-from afem.geometry.geom_create import (create_line_from_occ,
-                                       create_nurbs_curve_from_occ)
+from afem.geometry.check import CheckGeom
+from afem.geometry.create import (create_line_from_occ,
+                                  create_nurbs_curve_from_occ)
 
 __all__ = ["PointProjector", "ProjectPointToCurve",
            "ProjectPointToSurface", "CurveProjector", "ProjectCurveToPlane",
@@ -45,7 +45,7 @@ class PointProjector(object):
     def points(self):
         """
         :return: Projected points.
-        :rtype: list[afem.geometry.geom_entities.Point]
+        :rtype: list[afem.geometry.entities.Point]
         """
         if self.npts <= 0:
             return []
@@ -65,7 +65,7 @@ class PointProjector(object):
     def nearest_point(self):
         """
         :return: Nearest projection result to original point.
-        :rtype: afem.geometry.geom_entities.Point
+        :rtype: afem.geometry.entities.Point
         """
         return self._results[0][0]
 
@@ -92,7 +92,7 @@ class PointProjector(object):
         :param int indx: Index for point.
 
         :return: Projected point.
-        :rtype: afem.geometry.geom_entities.Point
+        :rtype: afem.geometry.entities.Point
         """
         return self._results[indx - 1][0]
 
@@ -127,7 +127,7 @@ class ProjectPointToCurve(PointProjector):
     Project a point to a curve.
 
     :param point_like pnt: Point to project.
-    :param afem.geometry.geom_entities.Curve crv: Curve to project to.
+    :param afem.geometry.entities.Curve crv: Curve to project to.
     :param array_like direction: Direction of projection. If *None* then a
         normal projection will be performed. By providing a direction the
         tool actually performs a line-curve intersection. This is generally
@@ -196,7 +196,7 @@ class ProjectPointToSurface(PointProjector):
     Project a point to a surface.
 
     :param point_like pnt: Point to project.
-    :param afem.geometry.geom_entities.Surface srf: Surface to project to.
+    :param afem.geometry.entities.Surface srf: Surface to project to.
     :param array_like direction: Direction of projection. If *None* then a
         normal projection will be performed. By providing a direction the
         tool actually performs a line-surface intersection. This is generally
@@ -280,7 +280,7 @@ class CurveProjector(object):
     def curve(self):
         """
         :return: The projected curve.
-        :rtype: afem.geometry.geom_entities.Curve
+        :rtype: afem.geometry.entities.Curve
         """
         return self._crv
 
@@ -289,8 +289,8 @@ class ProjectCurveToPlane(CurveProjector):
     """
     Project a curve to a plane along a direction.
 
-    :param afem.geometry.geom_entities.Curve crv: Curve to project.
-    :param afem.geometry.geom_entities.Plane pln: Plane to project to.
+    :param afem.geometry.entities.Curve crv: Curve to project.
+    :param afem.geometry.entities.Plane pln: Plane to project to.
     :param array_like direction: Direction of projection. If *None* is
         provided, then the curve is projected normal to the plane.
 
@@ -352,8 +352,8 @@ class ProjectCurveToSurface(CurveProjector):
     """
     Project a curve to a surface. Only normal projections are supported.
 
-    :param afem.geometry.geom_entities.Curve crv: Curve to project.
-    :param afem.geometry.geom_entities.Surface srf: Surface to project to.
+    :param afem.geometry.entities.Curve crv: Curve to project.
+    :param afem.geometry.entities.Surface srf: Surface to project to.
 
     :raise RuntimeError: If the OCC method fails to project the curve to the
         plane.

@@ -9,10 +9,10 @@ from OCC.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
 from OCC.GeomAbs import GeomAbs_C2
 from OCC.TopAbs import TopAbs_EDGE, TopAbs_VERTEX, TopAbs_WIRE
 
-from afem.occ.occ_utils import (occ_continuity, occ_join_type, occ_parm_type,
-                                occ_transition_mode)
-from afem.topology.shape_check import CheckShape
-from afem.topology.shape_explore import ExploreShape
+from afem.occ.utils import (occ_continuity, occ_join_type, occ_parm_type,
+                            occ_transition_mode)
+from afem.topology.check import CheckShape
+from afem.topology.explore import ExploreShape
 
 __all__ = ["ProjectShape", "OffsetShape", "LoftShape", "SweepShape",
            "SweepShapeWithNormal"]

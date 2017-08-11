@@ -10,9 +10,9 @@ from OCC.TopAbs import TopAbs_VERTEX
 from numpy import float64, inf, mean, sqrt, zeros
 from scipy.spatial import KDTree
 
-from afem.geometry.geom_check import CheckGeom
-from afem.geometry.geom_create import create_nurbs_curve_from_occ
-from afem.geometry.geom_entities import Line, Point
+from afem.geometry.check import CheckGeom
+from afem.geometry.create import create_nurbs_curve_from_occ
+from afem.geometry.entities import Line, Point
 
 __all__ = ["CurveIntersector", "IntersectCurveCurve",
            "IntersectCurveSurface", "SurfaceIntersector",
@@ -64,7 +64,7 @@ class CurveIntersector(object):
     def points(self):
         """
         :return: List of intersection points.
-        :rtype: list[afem.geometry.geom_entities.Point]
+        :rtype: list[afem.geometry.entities.Point]
         """
         if self._npts <= 0:
             return []
@@ -92,7 +92,7 @@ class CurveIntersector(object):
         :param int indx: Index for point.
 
         :return: Intersection point.
-        :rtype: afem.geometry.geom_entities.Point
+        :rtype: afem.geometry.entities.Point
         """
         return self._results[indx - 1][1]
 
@@ -121,8 +121,8 @@ class IntersectCurveCurve(CurveIntersector):
     performs the intersections that way. This proved to be more robust than
     OpenCASCADE's native curve-curve intersection tool.
 
-    :param afem.geometry.geom_entities.Curve crv1: The first curve.
-    :param afem.geometry.geom_entities.Curve crv2: The second curve.
+    :param afem.geometry.entities.Curve crv1: The first curve.
+    :param afem.geometry.entities.Curve crv2: The second curve.
     :param float itol: The intersection tolerance.
 
     For more information see IntTools_EdgeEdge_.
@@ -185,8 +185,8 @@ class IntersectCurveSurface(CurveIntersector):
     """
     Curve-surface intersection.
 
-    :param afem.geometry.geom_entities.Curve crv: The curve.
-    :param afem.geometry.geom_entities.Surface srf: The surface.
+    :param afem.geometry.entities.Curve crv: The curve.
+    :param afem.geometry.entities.Surface srf: The surface.
 
     For more information see GeomAPI_IntCS_.
 
@@ -264,7 +264,7 @@ class SurfaceIntersector(object):
     def curves(self):
         """
         :return: The intersection curves.
-        :rtype: list[afem.geometry.geom_entities.Curve]
+        :rtype: list[afem.geometry.entities.Curve]
         """
         return self._crvs
 
@@ -275,7 +275,7 @@ class SurfaceIntersector(object):
         :param int indx: Index of intersection curve.
 
         :return: Intersection curve.
-        :rtype: afem.geometry.geom_entities.Curve
+        :rtype: afem.geometry.entities.Curve
         """
         return self._crvs[indx - 1]
 
@@ -296,8 +296,8 @@ class IntersectSurfaceSurface(SurfaceIntersector):
     """
     Surface-surface intersection.
 
-    :param afem.geometry.geom_entities.Surface srf1: The first surface.
-    :param afem.geometry.geom_entities.Surface srf2: The second surface.
+    :param afem.geometry.entities.Surface srf1: The first surface.
+    :param afem.geometry.entities.Surface srf2: The second surface.
     :param float itol: Intersection tolerance.
 
     For more information see GeomAPI_IntSS_.

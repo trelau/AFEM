@@ -4,7 +4,7 @@ from OCC.STEPControl import (STEPControl_AsIs, STEPControl_Reader,
                              STEPControl_Writer)
 
 from afem.config import Settings, units_dict
-from afem.topology.shape_check import CheckShape
+from afem.topology.check import CheckShape
 
 __all__ = ["StepExport", "StepImport"]
 

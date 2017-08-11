@@ -6,8 +6,8 @@ from OCC.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                               ShapeUpgrade_UnifySameDomain)
 from OCC.TopoDS import topods_Edge
 
-from afem.topology.shape_create import CompoundByShapes
-from afem.topology.shape_explore import ExploreShape
+from afem.topology.create import CompoundByShapes
+from afem.topology.explore import ExploreShape
 
 __all__ = ["FixShape", "DivideClosedShape", "DivideC0Shape", "UnifyShape",
            "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool"]

@@ -20,20 +20,20 @@ from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
 
-from afem.geometry.geom_check import CheckGeom
-from afem.geometry.geom_entities import *
-from afem.geometry.geom_utils import (basis_funs, centripetal_parameters,
-                                      chord_parameters, dehomogenize_array2d,
-                                      find_span, homogenize_array1d,
-                                      uniform_parameters)
-from afem.occ.occ_utils import (occ_continuity, occ_parm_type,
-                                to_np_from_tcolgp_array1_pnt,
-                                to_np_from_tcolstd_array1_real,
-                                to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
-                                to_tcolgp_harray1_pnt,
-                                to_tcolstd_array1_integer,
-                                to_tcolstd_array1_real,
-                                to_tcolstd_array2_real)
+from afem.geometry.check import CheckGeom
+from afem.geometry.entities import *
+from afem.geometry.utils import (basis_funs, centripetal_parameters,
+                                 chord_parameters, dehomogenize_array2d,
+                                 find_span, homogenize_array1d,
+                                 uniform_parameters)
+from afem.occ.utils import (occ_continuity, occ_parm_type,
+                            to_np_from_tcolgp_array1_pnt,
+                            to_np_from_tcolstd_array1_real,
+                            to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
+                            to_tcolgp_harray1_pnt,
+                            to_tcolstd_array1_integer,
+                            to_tcolstd_array1_real,
+                            to_tcolstd_array2_real)
 
 __all__ = ["PointByXYZ", "PointByArray",
            "PointFromParameter", "PointsAlongCurveByNumber",
@@ -58,7 +58,7 @@ def create_line_from_occ(lin):
     :param OCC.Geom.Geom_Line lin: The OCC line.
 
     :return: The Line.
-    :rtype: afem.geometry.geom_entities.Line
+    :rtype: afem.geometry.entities.Line
     """
     return Line(lin.Lin())
 
@@ -70,7 +70,7 @@ def create_nurbs_curve_from_occ(crv):
     :param OCC.Geom.Geom_BSplineCurve crv: The OCC curve.
 
     :return: The NurbsCurve.
-    :rtype: afem.geometry.geom_entities.NurbsCurve
+    :rtype: afem.geometry.entities.NurbsCurve
     """
     tcol_poles = TColgp_Array1OfPnt(1, crv.NbPoles())
     crv.Poles(tcol_poles)
@@ -93,7 +93,7 @@ def create_nurbs_curve_from_occ2d(crv2d):
     :param OCC.Geom.Geom2d_BSplineCurve crv2d: The OCC curve.
 
     :return: The NurbsCurve2D.
-    :rtype: afem.geometry.geom_entities.NurbsCurve2D
+    :rtype: afem.geometry.entities.NurbsCurve2D
     """
     tcol_poles = TColgp_Array1OfPnt2d(1, crv2d.NbPoles())
     crv2d.Poles(tcol_poles)
@@ -117,7 +117,7 @@ def create_nurbs_surface_from_occ(srf):
     :param OCC.Geom.Geom_BSplineSurface srf: The OCC Surface.
 
     :return: The NurbsSurface.
-    :rtype: afem.geometry.geom_entities.NurbsSurface
+    :rtype: afem.geometry.entities.NurbsSurface
     """
     # Gather OCC data.
     tcol_poles = TColgp_Array2OfPnt(1, srf.NbUPoles(), 1, srf.NbVPoles())
@@ -167,7 +167,7 @@ class PointByXYZ(object):
     def point(self):
         """
         :return: The created point.
-        :rtype: afem.geometry.geom_entities.Point
+        :rtype: afem.geometry.entities.Point
         """
         return self._p
 
@@ -199,7 +199,7 @@ class PointFromParameter(object):
     """
     Create a point along a curve at a specified distance from a parameter.
 
-    :param afem.geometry.geom_entities.Curve c: The curve.
+    :param afem.geometry.entities.Curve c: The curve.
     :param float u0: The initial parameter.
     :param float ds: The distance along the curve from the given parameter.
     :param float tol: Tolerance.
@@ -236,7 +236,7 @@ class PointFromParameter(object):
     def point(self):
         """
         :return: The created point.
-        :rtype: afem.geometry.geom_entities.Point
+        :rtype: afem.geometry.entities.Point
         """
         return self._p
 
@@ -254,7 +254,7 @@ class PointsAlongCurveByNumber(object):
     Create a specified number of points along a curve. The points will be
     equidistant.
 
-    :param afem.geometry.geom_entities.Curve c: The curve.
+    :param afem.geometry.entities.Curve c: The curve.
     :param int n: Number of points to create (*n* > 0).
     :param float u1: The parameter of the first point (default=c.u1).
     :param float u2: The parameter of the last point (default=c.u2).
@@ -348,7 +348,7 @@ class PointsAlongCurveByNumber(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.geom_entities.Point]
+        :rtype: list[afem.geometry.entities.Point]
         """
         return self._pnts
 
@@ -376,7 +376,7 @@ class PointsAlongCurveByDistance(object):
     be equidistant. This method calculates the number of points given the
     curve length and then uses :class:`.PointsAlongCurveByNumber`.
 
-    :param afem.geometry.geom_entities.Curve c: The curve.
+    :param afem.geometry.entities.Curve c: The curve.
     :param float maxd: The maximum allowed spacing between points. The
         actual spacing will be adjusted to not to exceed this value.
     :param float u1: The parameter of the first point (default=c.u1).
@@ -478,7 +478,7 @@ class PointsAlongCurveByDistance(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.geom_entities.Point]
+        :rtype: list[afem.geometry.entities.Point]
         """
         return self._pnts
 
@@ -525,7 +525,7 @@ class DirectionByXYZ(object):
     def direction(self):
         """
         :return: The direction.
-        :rtype: afem.geometry.geom_entities.Direction
+        :rtype: afem.geometry.entities.Direction
         """
         return self._d
 
@@ -600,7 +600,7 @@ class VectorByXYZ(object):
     def vector(self):
         """
         :return: The vector.
-        :rtype: afem.geometry.geom_entities.Vector
+        :rtype: afem.geometry.entities.Vector
         """
         return self._v
 
@@ -658,7 +658,7 @@ class VectorByPoints(object):
     def vector(self):
         """
         :return: The vector.
-        :rtype: afem.geometry.geom_entities.Vector
+        :rtype: afem.geometry.entities.Vector
         """
         return self._v
 
@@ -669,7 +669,7 @@ class CurveByUIso(object):
     """
     Create an isocurve from a surface at a constant u-parameter.
 
-    :param afem.geometry.geom_entities.Surface s: The surface.
+    :param afem.geometry.entities.Surface s: The surface.
     :param float u: The parameter.
 
     :raise RuntimeError: If an unsupported curve type is created.
@@ -730,7 +730,7 @@ class CurveByUIso(object):
     def curve(self):
         """
         :return: The curve.
-        :rtype: afem.geometry.geom_entities.Line or afem.geometry.geom_entities.NurbsCurve
+        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
         """
         return self._c
 
@@ -739,7 +739,7 @@ class CurveByVIso(object):
     """
     Create an isocurve from a surface at a constant v-parameter.
 
-    :param afem.geometry.geom_entities.Surface s: The surface.
+    :param afem.geometry.entities.Surface s: The surface.
     :param float v: The parameter.
 
     :raise RuntimeError: If an unsupported curve type is created.
@@ -800,7 +800,7 @@ class CurveByVIso(object):
     def curve(self):
         """
         :return: The curve.
-        :rtype: afem.geometry.geom_entities.Line or afem.geometry.geom_entities.NurbsCurve
+        :rtype: afem.geometry.entities.Line or afem.geometry.entities.NurbsCurve
         """
         return self._c
 
@@ -843,7 +843,7 @@ class LineByVector(object):
     def line(self):
         """
         :return: The line.
-        :rtype: afem.geometry.geom_entities.Line
+        :rtype: afem.geometry.entities.Line
         """
         return self._line
 
@@ -885,7 +885,7 @@ class LineByPoints(object):
     def line(self):
         """
         :return: The line.
-        :rtype: afem.geometry.geom_entities.Line
+        :rtype: afem.geometry.entities.Line
         """
         return self._line
 
@@ -937,7 +937,7 @@ class NurbsCurveByData(object):
     def curve(self):
         """
         :return: The NURBS curve.
-        :rtype: afem.geometry.geom_entities.NurbsCurve
+        :rtype: afem.geometry.entities.NurbsCurve
         """
         return self._c
 
@@ -1000,7 +1000,7 @@ class NurbsCurveByInterp(object):
     def curve(self):
         """
         :return: The NURBS curve.
-        :rtype: afem.geometry.geom_entities.NurbsCurve
+        :rtype: afem.geometry.entities.NurbsCurve
         """
         return self._c
 
@@ -1072,7 +1072,7 @@ class NurbsCurveByApprox(object):
     def curve(self):
         """
         :return: The NURBS curve.
-        :rtype: afem.geometry.geom_entities.NurbsCurve
+        :rtype: afem.geometry.entities.NurbsCurve
         """
         return self._c
 
@@ -1142,7 +1142,7 @@ class PlaneByNormal(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.geom_entities.Plane
+        :rtype: afem.geometry.entities.Plane
         """
         return self._pln
 
@@ -1192,7 +1192,7 @@ class PlaneByAxes(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.geom_entities.Plane
+        :rtype: afem.geometry.entities.Plane
         """
         return self._pln
 
@@ -1254,7 +1254,7 @@ class PlaneByPoints(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.geom_entities.Plane
+        :rtype: afem.geometry.entities.Plane
         """
         return self._pln
 
@@ -1309,7 +1309,7 @@ class PlaneByApprox(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.geom_entities.Plane
+        :rtype: afem.geometry.entities.Plane
         """
         return self._pln
 
@@ -1318,17 +1318,17 @@ class PlaneFromParameter(object):
     """
     Create a plane along a curve at a specified distance from a parameter.
 
-    :param afem.geometry.geom_entities.Curve c: The curve.
+    :param afem.geometry.entities.Curve c: The curve.
     :param float u0: The initial parameter.
     :param float ds: The distance along the curve from the given parameter.
-    :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of the new plane. If no plane is
         provided, then the first derivative of the curve will define the
         plane normal.
     :param float tol: Tolerance.
 
     :return: The plane.
-    :rtype: afem.geometry.geom_entities.Plane
+    :rtype: afem.geometry.entities.Plane
 
     :raise RuntimeError: If OCC method fails.
 
@@ -1366,7 +1366,7 @@ class PlaneFromParameter(object):
     def plane(self):
         """
         :return: The plane.
-        :rtype: afem.geometry.geom_entities.Plane
+        :rtype: afem.geometry.entities.Plane
         """
         return self._pln
 
@@ -1384,9 +1384,9 @@ class PlanesAlongCurveByNumber(object):
     Create planes along a curve using a specified number. The origin of the
     planes will be equidistant along the curve.
 
-    :param afem.geometry.geom_entities.Curve c: The curve.
+    :param afem.geometry.entities.Curve c: The curve.
     :param int n: Number of planes to create (*n* > 0).
-    :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
         define the plane normal.
@@ -1460,7 +1460,7 @@ class PlanesAlongCurveByNumber(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.geom_entities.Plane]
+        :rtype: list[afem.geometry.entities.Plane]
         """
         return self._plns
 
@@ -1489,10 +1489,10 @@ class PlanesAlongCurveByDistance(object):
     number of points given the curve length and then uses
     :class:`.PlanesAlongCurveByNumber`.
 
-    :param afem.geometry.geom_entities.Curve c: The curve.
+    :param afem.geometry.entities.Curve c: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
-    :param afem.geometry.geom_entities.Plane ref_pln: The normal of this plane
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
         define the plane normal.
@@ -1568,7 +1568,7 @@ class PlanesAlongCurveByDistance(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.geom_entities.Plane]
+        :rtype: list[afem.geometry.entities.Plane]
         """
         return self._plns
 
@@ -1598,9 +1598,9 @@ class PlanesBetweenPlanesByNumber(object):
     using :class:`.PlanesAlongCurveByNumber`. Planes are not generated at
     the same location as the boundary planes.
 
-    :param afem.geometry.geom_entities.Plane pln1: The first plane. This will be
+    :param afem.geometry.entities.Plane pln1: The first plane. This will be
         the reference plane to define the orientation of the new planes.
-    :param afem.geometry.geom_entities.Plane pln2: The last plane.
+    :param afem.geometry.entities.Plane pln2: The last plane.
     :param int n: The number of planes.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1683,7 +1683,7 @@ class PlanesBetweenPlanesByNumber(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.geom_entities.Plane]
+        :rtype: list[afem.geometry.entities.Plane]
         """
         return self._plns
 
@@ -1705,9 +1705,9 @@ class PlanesBetweenPlanesByDistance(object):
     using :class:`.PlanesAlongCurveByNumber`. Planes are not generated at
     the same location as the boundary planes.
 
-    :param afem.geometry.geom_entities.Plane pln1: The first plane. This will be
+    :param afem.geometry.entities.Plane pln1: The first plane. This will be
         the reference plane to define the orientation of the new planes.
-    :param afem.geometry.geom_entities.Plane pln2: The last plane.
+    :param afem.geometry.entities.Plane pln2: The last plane.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param float d1: An offset distance for the first plane. This is typically
@@ -1790,7 +1790,7 @@ class PlanesBetweenPlanesByDistance(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.geom_entities.Plane]
+        :rtype: list[afem.geometry.entities.Plane]
         """
         return self._plns
 
@@ -1865,7 +1865,7 @@ class NurbsSurfaceByData(object):
     def surface(self):
         """
         :return: The NURBS surface.
-        :rtype: afem.geometry.geom_entities.NurbsSurface
+        :rtype: afem.geometry.entities.NurbsSurface
         """
         return self._s
 
@@ -1998,7 +1998,7 @@ class NurbsSurfaceByInterp(object):
     def surface(self):
         """
         :return: The NURBS surface.
-        :rtype: afem.geometry.geom_entities.NurbsSurface
+        :rtype: afem.geometry.entities.NurbsSurface
         """
         return self._s
 
@@ -2103,7 +2103,7 @@ class NurbsSurfaceByApprox(object):
     def surface(self):
         """
         :return: The NURBS surface.
-        :rtype: afem.geometry.geom_entities.NurbsSurface
+        :rtype: afem.geometry.entities.NurbsSurface
         """
         return self._s
 

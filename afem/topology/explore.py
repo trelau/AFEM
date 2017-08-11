@@ -20,10 +20,10 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                         TopoDS_Wire, topods_Compound, topods_Edge, topods_Face,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 
-from afem.geometry.geom_create import (create_nurbs_curve_from_occ,
-                                       create_nurbs_surface_from_occ)
-from afem.geometry.geom_entities import Line, Plane, Point
-from afem.topology.shape_props import AreaOfShapes
+from afem.geometry.create import (create_nurbs_curve_from_occ,
+                                  create_nurbs_surface_from_occ)
+from afem.geometry.entities import Line, Plane, Point
+from afem.topology.props import AreaOfShapes
 
 __all__ = ["ExploreShape", "ExploreWire", "ExploreFreeEdges"]
 
@@ -258,7 +258,7 @@ class ExploreShape(object):
         :param OCC.TopoDS.TopoDS_Vertex vertex: The vertex.
 
         :return: The point.
-        :rtype: afem.geometry.geom_entities.Point
+        :rtype: afem.geometry.entities.Point
         """
         gp_pnt = BRep_Tool.Pnt(vertex)
         return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
@@ -271,7 +271,7 @@ class ExploreShape(object):
         :param OCC.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: Underlying curve of edge.
-        :rtype: afem.geometry.geom_entities.Curve
+        :rtype: afem.geometry.entities.Curve
 
         :raise RuntimeError: If an unsupported curve type is found.
         """
@@ -298,7 +298,7 @@ class ExploreShape(object):
         :param OCC.TopoDS.TopoDS_Wire wire: The wire.
 
         :return: Concatenated curve of wire.
-        :rtype: afem.geometry.geom_entities.Curve
+        :rtype: afem.geometry.entities.Curve
 
         :raise RuntimeError: If an unsupported curve type is found.
         """
@@ -330,7 +330,7 @@ class ExploreShape(object):
         :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
 
         :return: The underlying curve of the edge or wire.
-        :rtype: afem.geometry.geom_entities.Curve
+        :rtype: afem.geometry.entities.Curve
 
         :raise TypeError: If *shape* is not an edge or wire.
         """
@@ -350,7 +350,7 @@ class ExploreShape(object):
         :param OCC.TopoDS.TopoDS_Face face: The face.
 
         :return: Underlying surface of face.
-        :rtype: afem.geometry.geom_entities.Surface
+        :rtype: afem.geometry.entities.Surface
 
         :raise RuntimeError: If unsupported surface type is found.
         """

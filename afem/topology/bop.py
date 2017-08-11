@@ -4,9 +4,9 @@ from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 
-from afem.occ.occ_utils import (to_lst_from_toptools_listofshape,
-                                to_toptools_listofshape)
-from afem.topology.shape_check import CheckShape
+from afem.occ.utils import (to_lst_from_toptools_listofshape,
+                            to_toptools_listofshape)
+from afem.topology.check import CheckShape
 
 __all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes"]

@@ -24,14 +24,14 @@ from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
 from afem.config import Settings, logger
-from afem.geometry.geom_create import (CurveByVIso, NurbsSurfaceByInterp,
-                                       create_nurbs_surface_from_occ)
-from afem.geometry.geom_entities import NurbsSurface
-from afem.oml.oml_entities import Body, Fuselage, Wing
-from afem.topology.shape_check import CheckShape
-from afem.topology.shape_create import CompoundByShapes
-from afem.topology.shape_explore import ExploreShape
-from afem.topology.shape_props import LinearProps
+from afem.geometry.create import (CurveByVIso, NurbsSurfaceByInterp,
+                                  create_nurbs_surface_from_occ)
+from afem.geometry.entities import NurbsSurface
+from afem.oml.entities import Body, Fuselage, Wing
+from afem.topology.check import CheckShape
+from afem.topology.create import CompoundByShapes
+from afem.topology.explore import ExploreShape
+from afem.topology.props import LinearProps
 
 __all__ = ["ImportVSP"]
 
@@ -74,7 +74,7 @@ class ImportVSP(object):
         :param str name: Body name.
 
         :return: OML body.
-        :rtype: afem.oml.oml_entities.Body
+        :rtype: afem.oml.entities.Body
         """
         return cls._bodies[name]
 

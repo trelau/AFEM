@@ -1,4 +1,4 @@
-from afem.structure.part_entities import *
+from afem.structure.entities import *
 
 __all__ = ["CheckPart"]
 

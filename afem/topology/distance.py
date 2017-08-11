@@ -2,8 +2,8 @@ from warnings import warn
 
 from OCC.BRepExtrema import BRepExtrema_DistShapeShape
 
-from afem.geometry.geom_check import CheckGeom
-from afem.topology.shape_check import CheckShape
+from afem.geometry.check import CheckGeom
+from afem.topology.check import CheckShape
 
 __all__ = ["DistanceShapeToShape", "DistanceShapeToShapes",
            "DistancePointToShapes"]

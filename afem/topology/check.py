@@ -19,7 +19,7 @@ from OCC.TopoDS import (TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 from OCC.gp import gp_Pnt
 
-from afem.geometry.geom_check import CheckGeom
+from afem.geometry.check import CheckGeom
 
 __all__ = ["CheckShape", "ClassifyPointInSolid"]
 

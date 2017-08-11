@@ -29,9 +29,9 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Shape,
 from numpy import ceil
 
 from afem.geometry import CheckGeom
-from afem.geometry.geom_entities import Plane, Point
-from afem.topology.shape_check import CheckShape
-from afem.topology.shape_explore import ExploreShape
+from afem.geometry.entities import Plane, Point
+from afem.topology.check import CheckShape
+from afem.topology.explore import ExploreShape
 
 __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "EdgeByDrag", "EdgeByWireConcat", "WireByEdges",
@@ -167,7 +167,7 @@ class EdgeByCurve(object):
     """
     Create an edge using a curve.
 
-    :param afem.geometry.geom_entities.Curve crv: The curve.
+    :param afem.geometry.entities.Curve crv: The curve.
 
     Usage:
 
@@ -607,7 +607,7 @@ class FaceBySurface(object):
     """
     Create a face from a surface.
 
-    :param afem.geometry.geom_entities.Surface srf: The surface.
+    :param afem.geometry.entities.Surface srf: The surface.
     :param float tol: Tolerance for resolution of degenerate edges.
 
     Usage:
@@ -635,7 +635,7 @@ class FaceByPlane(object):
     """
     Create a finite face from a plane.
 
-    :param afem.geometry.geom_entities.Plane pln: The plane.
+    :param afem.geometry.entities.Plane pln: The plane.
     :param float umin: Minimum u-parameter.
     :param float umax: Maximum u-parameter.
     :param float vmin: Minimum v-parameter.
@@ -748,7 +748,7 @@ class ShellBySurface(object):
     """
     Create a shell from a surface.
 
-    :param afem.geometry.geom_entities.Surface srf: The surface.
+    :param afem.geometry.entities.Surface srf: The surface.
 
     Usage:
 
@@ -989,7 +989,7 @@ class SolidByPlane(object):
     direction of the plane's normal. The solid's width and height will be
     centered at the plane's origin.
 
-    :param afem.geometry.geom_entities.Plane pln: The plane.
+    :param afem.geometry.entities.Plane pln: The plane.
     :param float width: Width of the box.
     :param float height: Height of the box.
     :param float depth: Depth of the box.
@@ -1268,7 +1268,7 @@ class PointsAlongShapeByNumber(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.geom_entities.Point]
+        :rtype: list[afem.geometry.entities.Point]
         """
         return self._pnts
 
@@ -1411,7 +1411,7 @@ class PointsAlongShapeByDistance(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.geom_entities.Point]
+        :rtype: list[afem.geometry.entities.Point]
         """
         return self._pnts
 
@@ -1468,7 +1468,7 @@ class PlaneByEdges(object):
     def plane(self):
         """
         :return: The plane. Returns *None* if no plane was found.
-        :rtype: afem.geometry.geom_entities.Plane
+        :rtype: afem.geometry.entities.Plane
         """
         return self._pln
 

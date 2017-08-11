@@ -4,8 +4,8 @@ from OCC.BRepGProp import (brepgprop_LinearProperties,
 from OCC.GProp import GProp_GProps
 from numpy import array
 
-from afem.geometry.geom_entities import Point
-from afem.topology.shape_check import CheckShape
+from afem.geometry.entities import Point
+from afem.topology.check import CheckShape
 
 __all__ = ["ShapeProps", "LinearProps", "SurfaceProps", "VolumeProps",
            "LengthOfShapes", "AreaOfShapes"]
@@ -33,7 +33,7 @@ class ShapeProps(object):
     def cg(self):
         """
         :return: The center of gravity.
-        :rtype: afem.geometry.geom_entities.Point
+        :rtype: afem.geometry.entities.Point
         """
         gp_pnt = self._props.CentreOfMass()
         return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
@@ -65,7 +65,7 @@ class ShapeProps(object):
         """
         Compute the moment of inertia about the axis.
 
-        :param afem.geometry.geom_entities.Axis1 axis: The axis.
+        :param afem.geometry.entities.Axis1 axis: The axis.
 
         :return: The moment of inertia.
         :rtype: float

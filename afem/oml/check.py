@@ -1,4 +1,4 @@
-from afem.oml.oml_entities import Body, Fuselage, Wing
+from afem.oml.entities import Body, Fuselage, Wing
 
 __all__ = ["CheckOML"]
 

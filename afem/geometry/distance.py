@@ -3,7 +3,7 @@ from math import sqrt
 
 from OCC.Extrema import Extrema_ExtPC
 
-from afem.geometry.geom_check import CheckGeom
+from afem.geometry.check import CheckGeom
 
 __all__ = ["DistancePointToCurve"]
 
@@ -13,7 +13,7 @@ class DistancePointToCurve(object):
     Calculate the extrema between a point and a curve.
 
     :param point_like pnt: The point.
-    :param afem.geometry.geom_entities.Curve crv: The curve.
+    :param afem.geometry.entities.Curve crv: The curve.
     :param float tol: The tolerance.
 
     :raise RuntimeError: If the extrema algorithm fails.
@@ -89,7 +89,7 @@ class DistancePointToCurve(object):
     def points(self):
         """
         :return: Sorted points on curve.
-        :rtype: list[afem.geometry.geom_entities.Point]
+        :rtype: list[afem.geometry.entities.Point]
         """
         return self._pnts
 
