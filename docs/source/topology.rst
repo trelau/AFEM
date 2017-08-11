@@ -175,7 +175,7 @@ PlaneByEdges
 
 Explore
 -------
-.. py:currentmodule:: afem.topology.topo_explore
+.. py:currentmodule:: afem.topology.shape_explore
 
 ExploreShape
 ~~~~~~~~~~~~
@@ -191,7 +191,7 @@ ExploreFreeEdges
 
 Modify
 ------
-.. py:currentmodule:: afem.topology.topo_modify
+.. py:currentmodule:: afem.topology.shape_modify
 
 FixShape
 ~~~~~~~~
@@ -223,7 +223,7 @@ RebuildShapeByTool
 
 Boolean
 -------
-.. py:currentmodule:: afem.topology.topo_bop
+.. py:currentmodule:: afem.topology.shape_bop
 
 BopAlgo
 ~~~~~~~
@@ -251,7 +251,7 @@ SplitShapes
 
 Offset
 ------
-.. py:currentmodule:: afem.topology.topo_offset
+.. py:currentmodule:: afem.topology.shape_offset
 
 ProjectShape
 ~~~~~~~~~~~~
@@ -275,7 +275,7 @@ SweepShapeWithNormal
 
 Distance
 --------
-.. py:currentmodule:: afem.topology.topo_distance
+.. py:currentmodule:: afem.topology.shape_distance
 
 DistanceShapeToShape
 ~~~~~~~~~~~~~~~~~~~~
@@ -287,7 +287,7 @@ DistanceShapeToShapes
 
 Properties
 ----------
-.. py:currentmodule:: afem.topology.topo_props
+.. py:currentmodule:: afem.topology.shape_props
 
 ShapeProps
 ~~~~~~~~~~
@@ -315,7 +315,7 @@ AreaOfShapes
 
 Check
 -----
-.. py:currentmodule:: afem.topology.topo_check
+.. py:currentmodule:: afem.topology.shape_check
 
 CheckShape
 ~~~~~~~~~~
