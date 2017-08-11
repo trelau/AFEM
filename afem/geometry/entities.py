@@ -165,7 +165,7 @@ class Point(gp_Pnt, Geometry):
         """
         Set point coordinates.
 
-        :param array_like xyz: Point coordinates.
+        :param point_like xyz: Point coordinates.
 
         :return: *True* if set, *False* if not.
         :rtype: bool

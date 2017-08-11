@@ -369,6 +369,16 @@ class PointsAlongCurveByNumber(object):
         """
         return self._ds
 
+    @property
+    def interior_points(self):
+        """
+        :return: The points between the first and last points.
+        :rtype: list[afem.geometry.entities.Point]
+        """
+        if self.npts < 3:
+            return []
+        return self._pnts[1:-1]
+
 
 class PointsAlongCurveByDistance(object):
     """
@@ -498,6 +508,16 @@ class PointsAlongCurveByDistance(object):
         :rtype: float or None
         """
         return self._ds
+
+    @property
+    def interior_points(self):
+        """
+        :return: The points between the first and last points.
+        :rtype: list[afem.geometry.entities.Point]
+        """
+        if self.npts < 3:
+            return []
+        return self._pnts[1:-1]
 
 
 # DIRECTION -------------------------------------------------------------------
@@ -1481,6 +1501,16 @@ class PlanesAlongCurveByNumber(object):
         """
         return self._ds
 
+    @property
+    def interior_planes(self):
+        """
+        :return: The planes between the first and last planes.
+        :rtype: list[afem.geometry.entities.Plane]
+        """
+        if self.nplanes < 3:
+            return []
+        return self._plns[1:-1]
+
 
 class PlanesAlongCurveByDistance(object):
     """
@@ -1589,6 +1619,16 @@ class PlanesAlongCurveByDistance(object):
         """
         return self._ds
 
+    @property
+    def interior_planes(self):
+        """
+        :return: The planes between the first and last planes.
+        :rtype: list[afem.geometry.entities.Plane]
+        """
+        if self.nplanes < 3:
+            return []
+        return self._plns[1:-1]
+
 
 class PlanesBetweenPlanesByNumber(object):
     """
@@ -1696,6 +1736,16 @@ class PlanesBetweenPlanesByNumber(object):
         """
         return self._ds
 
+    @property
+    def interior_planes(self):
+        """
+        :return: The planes between the first and last planes.
+        :rtype: list[afem.geometry.entities.Plane]
+        """
+        if self.nplanes < 3:
+            return []
+        return self._plns[1:-1]
+
 
 class PlanesBetweenPlanesByDistance(object):
     """
@@ -1802,6 +1852,16 @@ class PlanesBetweenPlanesByDistance(object):
         :rtype: float or None
         """
         return self._ds
+
+    @property
+    def interior_planes(self):
+        """
+        :return: The planes between the first and last planes.
+        :rtype: list[afem.geometry.entities.Plane]
+        """
+        if self.nplanes < 3:
+            return []
+        return self._plns[1:-1]
 
 
 # NURBSSURFACE ----------------------------------------------------------------

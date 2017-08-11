@@ -43,7 +43,8 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "FaceByPlane", "FaceByPlanarWire", "FaceByDrag", "ShellBySurface",
            "ShellByFaces", "ShellBySewing",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
-           "CompoundByShapes", "HalfspaceByShape", "PointsAlongShapeByNumber",
+           "CompoundByShapes", "HalfspaceByShape", "HalfspaceBySurface",
+           "PointsAlongShapeByNumber",
            "PointsAlongShapeByDistance", "PlaneByEdges",
            "PlaneByIntersectingShapes"]
 
@@ -1134,6 +1135,7 @@ class HalfspaceByShape(object):
 
     def __init__(self, shape, pnt):
         pnt = CheckGeom.to_point(pnt)
+
         if shape.ShapeType() not in [TopAbs_FACE, TopAbs_SHELL]:
             msg = 'Invalid shape for creating half-space.'
             raise RuntimeError(msg)
@@ -1146,6 +1148,19 @@ class HalfspaceByShape(object):
         :rtype: OCC.TopoDS.TopoDS_Solid
         """
         return self._solid
+
+
+class HalfspaceBySurface(HalfspaceByShape):
+    """
+    Create a half-space using a surface.
+
+    :param afem.geometry.entities.Surface: The surface.
+    :param point_like pnt: The reference point where the matter is located.
+    """
+
+    def __init__(self, srf, pnt):
+        face = FaceBySurface(srf).face
+        super(HalfspaceBySurface, self).__init__(face, pnt)
 
 
 # GEOMETRY --------------------------------------------------------------------

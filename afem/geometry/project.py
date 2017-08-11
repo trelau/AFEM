@@ -132,6 +132,8 @@ class ProjectPointToCurve(PointProjector):
         normal projection will be performed. By providing a direction the
         tool actually performs a line-curve intersection. This is generally
         not recommended but provided by request.
+    :param bool update: Option to update the point's location to match the
+        nearest point.
 
     For more information see GeomAPI_ProjectPointOnCurve_.
 
@@ -156,7 +158,7 @@ class ProjectPointToCurve(PointProjector):
     5.0
     """
 
-    def __init__(self, pnt, crv, direction=None):
+    def __init__(self, pnt, crv, direction=None, update=False):
         super(ProjectPointToCurve, self).__init__()
 
         # Perform
@@ -190,6 +192,9 @@ class ProjectPointToCurve(PointProjector):
         if self._results:
             self._results.sort(key=lambda lst: lst[2])
 
+        if update:
+            pnt.set_xyz(self.nearest_point)
+
 
 class ProjectPointToSurface(PointProjector):
     """
@@ -201,6 +206,8 @@ class ProjectPointToSurface(PointProjector):
         normal projection will be performed. By providing a direction the
         tool actually performs a line-surface intersection. This is generally
         not recommended but provided by request.
+    :param bool update: Option to update the point's location to match the
+        nearest point.
 
     For more information see GeomAPI_ProjectPointOnSurf_.
 
@@ -225,7 +232,7 @@ class ProjectPointToSurface(PointProjector):
     1.0
     """
 
-    def __init__(self, pnt, srf, direction=None):
+    def __init__(self, pnt, srf, direction=None, update=False):
         super(ProjectPointToSurface, self).__init__()
 
         # Perform
@@ -258,6 +265,9 @@ class ProjectPointToSurface(PointProjector):
         # Sort by distance and return.
         if self._results:
             self._results.sort(key=lambda lst: lst[2])
+
+        if update:
+            pnt.set_xyz(self.nearest_point)
 
 
 class CurveProjector(object):
