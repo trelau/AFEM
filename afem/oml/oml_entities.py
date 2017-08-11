@@ -49,8 +49,7 @@ class Body(TopoDS_Solid, ViewableItem):
         return self
 
     @property
-    def shell(self):
-        # TODO Rename to outer_shell
+    def outer_shell(self):
         """
         :return: The outer shell.
         :rtype: OCC.TopoDS.TopoDS_Shell
