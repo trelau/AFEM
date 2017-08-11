@@ -245,6 +245,14 @@ IntersectSurfaceSurface
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: IntersectSurfaceSurface
 
+Distance
+--------
+.. py:currentmodule:: afem.geometry.geom_distance
+
+DistancePointToCurve
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: DistancePointToCurve
+
 Check
 -----
 
