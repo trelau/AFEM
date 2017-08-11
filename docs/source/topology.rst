@@ -169,6 +169,10 @@ ShapeByFaces
 ~~~~~~~~~~~~
 .. autoclass:: ShapeByFaces
 
+ShapeByDrag
+~~~~~~~~~~~
+.. autoclass:: ShapeByDrag
+
 PointsAlongShapeByNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PointsAlongShapeByNumber

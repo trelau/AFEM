@@ -19,8 +19,8 @@ from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
 from OCC.ShapeAnalysis import ShapeAnalysis_FreeBounds_ConnectEdgesToWires
 from OCC.ShapeBuild import ShapeBuild_ReShape
-from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE,
-                        TopAbs_SHELL, TopAbs_WIRE)
+from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
+                        TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_WIRE)
 from OCC.TopTools import (Handle_TopTools_HSequenceOfShape,
                           TopTools_HSequenceOfShape)
 from OCC.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
@@ -45,7 +45,7 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "ShellByFaces", "ShellBySewing",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
            "CompoundByShapes", "HalfspaceByShape", "HalfspaceBySurface",
-           "ShapeByFaces", "PointsAlongShapeByNumber",
+           "ShapeByFaces", "ShapeByDrag", "PointsAlongShapeByNumber",
            "PointsAlongShapeByDistance", "PlaneByEdges",
            "PlaneByIntersectingShapes"]
 
@@ -1233,6 +1233,94 @@ class ShapeByFaces(object):
         :rtype: bool
         """
         return isinstance(self.shape, TopoDS_Compound)
+
+
+class ShapeByDrag(object):
+    """
+    Create a shape by dragging another shape along a vector.
+
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param vector_like v: The vector to drag the shape.
+    """
+
+    def __init__(self, shape, v):
+        v = CheckGeom.to_vector(v)
+        builder = BRepPrimAPI_MakePrism(shape, v)
+        self._shape = builder.Shape()
+        self._s1 = builder.FirstShape()
+        self._s2 = builder.LastShape()
+
+    @property
+    def shape(self):
+        """
+        :return: The shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._shape
+
+    @property
+    def first_shape(self):
+        """
+        :return: The shape at the bottom.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._s1
+
+    @property
+    def last_shape(self):
+        """
+        :return: The shape at the top.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._s2
+
+    @property
+    def is_edge(self):
+        """
+        :return: *True* if shape is an edge, *False* if not.
+        :rtype: bool
+        """
+        return self.shape.ShapeType() == TopAbs_EDGE
+
+    @property
+    def is_face(self):
+        """
+        :return: *True* if shape is a face, *False* if not.
+        :rtype: bool
+        """
+        return self.shape.ShapeType() == TopAbs_FACE
+
+    @property
+    def is_shell(self):
+        """
+        :return: *True* if shape is a shell, *False* if not.
+        :rtype: bool
+        """
+        return self.shape.ShapeType() == TopAbs_SHELL
+
+    @property
+    def is_solid(self):
+        """
+        :return: *True* if shape is a solid, *False* if not.
+        :rtype: bool
+        """
+        return self.shape.ShapeType() == TopAbs_SOLID
+
+    @property
+    def is_compsolid(self):
+        """
+        :return: *True* if shape is a compsolid, *False* if not.
+        :rtype: bool
+        """
+        return self.shape.ShapeType() == TopAbs_COMPSOLID
+
+    @property
+    def is_compound(self):
+        """
+        :return: *True* if shape is a compound, *False* if not.
+        :rtype: bool
+        """
+        return self.shape.ShapeType() == TopAbs_COMPOUND
 
 
 # GEOMETRY --------------------------------------------------------------------
