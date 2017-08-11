@@ -28,7 +28,8 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Shape,
                         topods_Solid, topods_Vertex, topods_Wire)
 from numpy import ceil
 
-from afem.geometry import CheckGeom
+from afem.geometry.check import CheckGeom
+from afem.geometry.create import PlaneByApprox
 from afem.geometry.entities import Plane, Point
 from afem.topology.bop import IntersectShapes
 from afem.topology.check import CheckShape
@@ -1475,22 +1476,75 @@ class PlaneByEdges(object):
         return self._pln
 
 
-class PlaneByIntersectingShapes(PlaneByEdges):
+class PlaneByIntersectingShapes(object):
     """
-    Create a plane by intersection two shapes and then using
-    :class:`.PlaneByEdges`.
+    Create a plane by intersection two shapes. If no additional point is
+    provided, then :class:`.PlaneByEdges`. is used. If a point is provided,
+    then the edges are tessellated and the point is added to this list. Then
+    the tool :class:`.PlaneByApprox` is used.
 
     :param OCC.TopoDS.TopoDS_Shape shape1: The first shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: The second shape.
+    :param afem.geometry.entities.Point pnt: Additional point to add to the
+        edges since they might be collinear.
     :param float tol: Edges must be within this planar tolerance. The
         tolerance is the largest value between the value provided or the
         largest tolerance of any one of the edges in the shape.
+
+    :raises ValueError: If there are less than three points after
+        tessellating the edges.
     """
 
-    def __init__(self, shape1, shape2, tol=-1.):
+    def __init__(self, shape1, shape2, pnt=None, tol=-1.):
         shape = IntersectShapes(shape1, shape2).shape
 
-        super(PlaneByIntersectingShapes, self).__init__(shape, tol)
+        pnt = CheckGeom.to_point(pnt)
+
+        self._found = False
+        self._pln = None
+        if pnt is None:
+            tool = PlaneByEdges(shape, tol)
+            self._found = tool.found
+            self._pln = tool.plane
+        elif CheckGeom.is_point(pnt):
+            edges = ExploreShape.get_edges(shape)
+            pnts = [pnt]
+            for edge in edges:
+                hndl_poly3d = BRep_Tool().Polygon3D(edge, edge.Location())
+                if hndl_poly3d.IsNull():
+                    continue
+                tcol_pnts = hndl_poly3d.GetObject().Nodes()
+                for i in range(1, tcol_pnts.Length() + 1):
+                    gp_pnt = tcol_pnts.Value(i)
+                    pnt = CheckGeom.to_point(gp_pnt)
+                    pnts.append(pnt)
+            if len(pnts) < 3:
+                msg = 'Less than three points to fit a plane.'
+                raise ValueError(msg)
+            if tol < 0.:
+                tol = 1.0e-7
+            tool = PlaneByApprox(pnts, tol)
+            self._found = True
+            self._pln = tool.plane
+        else:
+            msg = 'Invalid input.'
+            raise TypeError(msg)
+
+    @property
+    def found(self):
+        """
+        :return: *True* if plane was found, *False* if not.
+        :rtype: bool
+        """
+        return self._found
+
+    @property
+    def plane(self):
+        """
+        :return: The plane. Returns *None* if no plane was found.
+        :rtype: afem.geometry.entities.Plane
+        """
+        return self._pln
 
 
 if __name__ == "__main__":

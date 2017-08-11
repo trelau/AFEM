@@ -173,6 +173,10 @@ PlaneByEdges
 ~~~~~~~~~~~~
 .. autoclass:: PlaneByEdges
 
+PlaneByIntersectingShapes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlaneByIntersectingShapes
+
 Explore
 -------
 .. py:currentmodule:: afem.topology.explore
