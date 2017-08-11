@@ -253,6 +253,22 @@ DistancePointToCurve
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: DistancePointToCurve
 
+DistancePointToSurface
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: DistancePointToSurface
+
+DistanceCurveToCurve
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: DistanceCurveToCurve
+
+DistanceCurveToSurface
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: DistanceCurveToSurface
+
+DistanceSurfaceToSurface
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: DistanceSurfaceToSurface
+
 Check
 -----
 
