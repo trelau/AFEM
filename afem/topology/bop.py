@@ -55,7 +55,7 @@ class BopAlgo(object):
         if self._is_splitter:
             for shape in shapes:
                 self._bop.AddArgument(shape)
-                return None
+            return None
         args = to_toptools_listofshape(shapes)
         self._bop.SetArguments(args)
 
@@ -70,7 +70,7 @@ class BopAlgo(object):
         if self._is_splitter:
             for shape in shapes:
                 self._bop.AddTool(shape)
-                return None
+            return None
         tools = to_toptools_listofshape(shapes)
         self._bop.SetTools(tools)
 
