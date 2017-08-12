@@ -54,7 +54,7 @@ rspar = SparByPoints('rear spar', p1, p2, wing).spar
 
 # Front inboard spar
 u = root_rib.local_to_global_u(0.15)
-p1 = root_rib.eval_cref(u)
+p1 = root_rib.point_on_cref(u)
 v = wing.vknots[1]
 p2 = wing.eval(0.15, v)
 inbd_fspar = SparByPoints('inbd front spar', p1, p2, wing).spar
@@ -62,7 +62,7 @@ inbd_fspar = SparByPoints('inbd front spar', p1, p2, wing).spar
 # Front outboard spar
 p1 = inbd_fspar.p2
 u = tip_rib.local_to_global_u(0.15)
-p2 = tip_rib.eval_cref(u)
+p2 = tip_rib.point_on_cref(u)
 outbd_fspar = SparByPoints('outbd front spar', p1, p2, wing).spar
 
 # Kink rib

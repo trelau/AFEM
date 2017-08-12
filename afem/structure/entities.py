@@ -364,7 +364,7 @@ class Part(TopoDS_Shape, ViewableItem):
             raise AttributeError(msg)
         return self._cref.local_to_global_param(u)
 
-    def eval_cref(self, u):
+    def point_on_cref(self, u):
         """
         Evaluate point on reference curve.
 
@@ -380,7 +380,7 @@ class Part(TopoDS_Shape, ViewableItem):
             raise AttributeError(msg)
         return self._cref.eval(u)
 
-    def eval_sref(self, u, v):
+    def point_on_sref(self, u, v):
         """
         Evaluate point on reference surface.
 

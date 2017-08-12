@@ -126,8 +126,8 @@ class TestStructure(unittest.TestCase):
         rspar = builder.spar
         root = RibByPoints('root', fspar.p1, rspar.p1, self.wing).rib
         tip = RibByPoints('root', fspar.p2, rspar.p2, self.wing).rib
-        p1 = root.eval_cref(0.5 * (root.cref.u1 + root.cref.u2))
-        p2 = tip.eval_cref(0.5 * (tip.cref.u1 + tip.cref.u2))
+        p1 = root.point_on_cref(0.5 * (root.cref.u1 + root.cref.u2))
+        p2 = tip.point_on_cref(0.5 * (tip.cref.u1 + tip.cref.u2))
         curve = NurbsCurveByPoints([p1, p2]).curve
         builder = RibsAlongCurveByNumber('rib', curve, 10, fspar, rspar,
                                          self.wing)
@@ -143,8 +143,8 @@ class TestStructure(unittest.TestCase):
         rspar = builder.spar
         root = RibByPoints('root', fspar.p1, rspar.p1, self.wing).rib
         tip = RibByPoints('root', fspar.p2, rspar.p2, self.wing).rib
-        p1 = root.eval_cref(0.5 * (root.cref.u1 + root.cref.u2))
-        p2 = tip.eval_cref(0.5 * (tip.cref.u1 + tip.cref.u2))
+        p1 = root.point_on_cref(0.5 * (root.cref.u1 + root.cref.u2))
+        p2 = tip.point_on_cref(0.5 * (tip.cref.u1 + tip.cref.u2))
         curve = NurbsCurveByPoints([p1, p2]).curve
         builder = RibsAlongCurveByDistance('rib', curve, 36., fspar, rspar,
                                            self.wing)

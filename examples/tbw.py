@@ -82,14 +82,14 @@ tip_rib = CreatePart.rib.by_parameters('tip rib', wing, 0.15, 0.99, 0.70, 0.99)
 
 # Inboard front spar
 u = strut_rib.local_to_global_u(0.15)
-p2 = strut_rib.eval_cref(u)
+p2 = strut_rib.point_on_cref(u)
 pln = ShapeTools.plane_from_section(root_rib, fc_spar, p2)
 inbd_fspar = CreatePart.spar.by_points('inbd front spar', wing, root_rib.p1,
                                        p2, pln)
 
 # Inboard rear spar
 u = strut_rib.local_to_global_u(0.70)
-p2 = strut_rib.eval_cref(u)
+p2 = strut_rib.point_on_cref(u)
 pln = ShapeTools.plane_from_section(root_rib, rc_spar, p2)
 inbd_rspar = CreatePart.spar.by_points('inbd rear spar', wing, root_rib.p2,
                                        p2, pln)
