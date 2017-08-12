@@ -39,8 +39,12 @@ class BopAlgo(object):
             self._bop = bop(shape1, shape2)
         else:
             self._bop = bop()
+
         if parallel:
             self._bop.SetRunParallel(True)
+        else:
+            self._bop.SetRunParallel(False)
+
         if fuzzy_val is not None:
             self._bop.SetFuzzyValue(fuzzy_val)
 
