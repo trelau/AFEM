@@ -242,7 +242,11 @@ def build_wingbox(wing, params):
     skin = SkinByBody('wing skin', wing, False).skin
 
     # Join the wing skin and internal structure
-    skin.fuse(*internal_parts)
+    all_parts = AssemblyData.get_parts(order=True)
+    # TODO Fuse algorithm fails, but split seems to work?
+    # skin.fuse(*internal_parts)
+    SplitParts(all_parts)
+    skin.check()
 
     # Discard faces touching reference surface.
     skin.discard_by_dmin(wing.sref_shape, 0.1)
@@ -250,8 +254,6 @@ def build_wingbox(wing, params):
     # Fix skin since it's not a single shell anymore, but a compound of two
     # shells (upper and lower skin).
     skin.fix()
-    # TODO Why is this check failing?
-    # skin.check()
 
     # Viewing
     skin.set_transparency(0.5)
@@ -259,11 +261,16 @@ def build_wingbox(wing, params):
     Viewer.add(*AssemblyData.get_parts())
     Viewer.show()
 
+    # Check free edges.
+    cmp = CompoundByShapes(all_parts).compound
+    tool = ExploreFreeEdges(cmp)
+    wing.set_transparency(0.5)
+    Viewer.add(wing, *tool.free_edges)
+    Viewer.show()
+
     # VOLUMES -----------------------------------------------------------------
     # Demonstrate creating volumes from shapes (i.e., parts). Do not use the
     # intersect option since shapes should be topologically connected already.
-
-    all_parts = AssemblyData.get_parts()
 
     # Volumes using all parts. This generates multiple solids.
     shape1 = VolumesFromShapes(all_parts).shape
@@ -284,11 +291,14 @@ def build_wingbox(wing, params):
     # Create a semi-infinite box to cut volume with.
     p0 = wing.eval(0.5, 0.1)
     pln = PlaneByAxes(p0, 'xy').plane
-    face = FaceByPlane(pln, -1e6, 1e6, -1e6, 1e6).face
+    face = FaceByPlane(pln, -1500, 1500, -1500, 1500).face
     cut_space = ShapeByDrag(face, (0., 0., 500.)).shape
 
     # Cut the volume with an infinite plane (use a large box for robustness).
     new_shape = CutShapes(shape1, cut_space).shape
+    cut_space.set_transparency(0.5)
+    Viewer.add(new_shape, cut_space)
+    Viewer.show()
 
     # Calculate cg of cut shape.
     cg = VolumeProps(new_shape).cg
