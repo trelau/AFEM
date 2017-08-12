@@ -463,7 +463,7 @@ class VolumesFromShapes(BopAlgo):
     :param float fuzzy_val: Fuzzy tolerance value.
     """
 
-    def __init__(self, shapes, intersect=True, parallel=True,
+    def __init__(self, shapes, intersect=False, parallel=True,
                  fuzzy_val=None):
         super(VolumesFromShapes, self).__init__(None, None, parallel,
                                                 fuzzy_val, BOPAlgo_MakerVolume)
@@ -472,6 +472,8 @@ class VolumesFromShapes(BopAlgo):
 
         if intersect:
             self._bop.SetIntersect(True)
+        else:
+            self._bop.SetIntersect(False)
 
         self.build()
 
