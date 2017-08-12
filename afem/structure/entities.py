@@ -21,8 +21,8 @@ from afem.topology.create import (CompoundByShapes, FaceBySurface,
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import (FixShape, RebuildShapeByTool,
-                                  RebuildShapeWithShapes, SewShape,
-                                  UnifyShape)
+                                  RebuildShapeWithShapes, RebuildShapesByTool,
+                                  SewShape, UnifyShape)
 from afem.topology.props import LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
@@ -1001,9 +1001,11 @@ class SurfacePart(Part):
             return False
 
         # Rebuild the parts
-        # TODO Rebuild mutiple shapes
-        for part in [self] + other_parts:
-            part.rebuild(fuse)
+        parts = [self] + other_parts
+        rebuild = RebuildShapesByTool(parts, fuse)
+        for part in parts:
+            new_shape = rebuild.new_shape(part)
+            part.set_shape(new_shape)
 
         return True
 
