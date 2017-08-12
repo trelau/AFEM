@@ -4,6 +4,7 @@ from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 
+from afem.geometry.check import CheckGeom
 from afem.occ.utils import (to_lst_from_toptools_listofshape,
                             to_toptools_listofshape)
 from afem.topology.check import CheckShape
@@ -330,9 +331,9 @@ class IntersectShapes(BopAlgo):
     Boolean intersect operation.
 
     :param shape1: The first shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or None
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     :param shape2: The second shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or None
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
 
@@ -363,8 +364,26 @@ class IntersectShapes(BopAlgo):
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
                  fuzzy_val=None):
-        super(IntersectShapes, self).__init__(shape1, shape2, parallel,
+        super(IntersectShapes, self).__init__(None, None, parallel,
                                               fuzzy_val, BRepAlgoAPI_Section)
+
+        build1, build2 = False, False
+        if CheckShape.is_shape(shape1):
+            self._bop.Init1(shape1)
+            build1 = True
+        elif CheckGeom.is_surface_like(shape1):
+            self._bop.Init1(shape1.handle)
+            build1 = True
+
+        if CheckShape.is_shape(shape2):
+            self._bop.Init2(shape2)
+            build2 = True
+        elif CheckGeom.is_surface_like(shape2):
+            self._bop.Init2(shape2.handle)
+            build2 = True
+
+        if build1 and build2:
+            self._bop.Build()
 
 
 class SplitShapes(BopAlgo):

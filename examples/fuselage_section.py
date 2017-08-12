@@ -60,9 +60,7 @@ face2 = FaceByPlane(pln2, 0., length, -diameter, diameter).face
 i = 1
 for frame in frames:
     # Beam
-    # TODO Allow geometry in Boolean ops?
-    frame_pln_face = FaceBySurface(frame.sref).face
-    shape = IntersectShapes(main_floor, frame_pln_face).shape
+    shape = IntersectShapes(main_floor, frame.sref).shape
     shape = ShapeByDrag(shape, (0., -floor_beam_height, 0.)).shape
     name = ' '.join(['floor beam', str(i)])
     beam = SurfacePart(name, shape)
@@ -70,18 +68,19 @@ for frame in frames:
 
     # Post
     name = ' '.join(['left floor post', str(i)])
-    shape = IntersectShapes(face1, frame_pln_face).shape
+    shape = IntersectShapes(face1, frame.sref).shape
     post = CurvePart(name, shape)
     post.cut(above_floor)
     post.cut(rev_cylinder)
 
     name = ' '.join(['right floor post', str(i)])
-    shape = IntersectShapes(face2, frame_pln_face).shape
+    shape = IntersectShapes(face2, frame.sref).shape
     post = CurvePart(name, shape)
     post.cut(above_floor)
     post.cut(rev_cylinder)
 
     # Create segment beneath cargo floor and merge with frame.
+    frame_pln_face = FaceBySurface(frame.sref).face
     shape = CommonShapes(below_cargo_floor, frame_pln_face).shape
     shape = CutShapes(shape, rev_cylinder).shape
     frame.merge(shape, True)

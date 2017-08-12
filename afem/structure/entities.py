@@ -695,14 +695,16 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Cut the part shape and rebuild this part.
 
-        :param cutter: The cutter.
+        :param cutter: The cutter. If geometry is provided it will be
+            converted to a shape before the Boolean operation.
         :type cutter: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+            or afem.geometry.entities.Geometry
 
         :return: *True* if shape was cut, *False* if not.
         :rtype: bool
-
-        :raise TypeError: If this part is not a curve or surface part.
         """
+        cutter = CheckShape.to_shape(cutter)
+
         cut = CutShapes(self, cutter)
         if not cut.is_done:
             return False
