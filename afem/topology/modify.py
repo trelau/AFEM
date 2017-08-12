@@ -4,13 +4,16 @@ from OCC.ShapeFix import ShapeFix_Shape
 from OCC.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                               ShapeUpgrade_ShapeDivideContinuity,
                               ShapeUpgrade_UnifySameDomain)
+from OCC.TopTools import (TopTools_DataMapOfShapeShape,
+                          TopTools_IndexedMapOfShape)
 from OCC.TopoDS import topods_Edge
 
 from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
 
 __all__ = ["FixShape", "DivideClosedShape", "DivideC0Shape", "UnifyShape",
-           "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool"]
+           "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool",
+           "RebuildShapesByTool"]
 
 
 class FixShape(object):
@@ -390,7 +393,7 @@ class RebuildShapeByTool(object):
     """
     Rebuild a shape using a supported tool.
 
-    :param OCC.TopoDS.TopoDS_Shape: The shape.
+    :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopAlgo
     :param str replace_type: The level of shape to replace ('vertex',
@@ -398,6 +401,8 @@ class RebuildShapeByTool(object):
     :param bool fix: Option to use :class:`.FixShape` on the new shape in
         case the substitutions caused errors (e.g., like a solid is now a
         shell).
+
+    :raise ValueError: If there are no sub-shapes to substitute.
 
     For more information see ShapeBuild_ReShape_.
 
@@ -427,16 +432,23 @@ class RebuildShapeByTool(object):
         # TODO Consider iterating through all shapes?
 
         # Old shapes
-        replace_type = replace_type.lower()
-        if replace_type in ['v', 'vertex', 'vertices']:
-            old_shapes = ExploreShape.get_vertices(old_shape)
-        elif replace_type in ['e', 'edge', 'edges']:
+        # replace_type = replace_type.lower()
+        # if replace_type in ['v', 'vertex', 'vertices']:
+        #     old_shapes = ExploreShape.get_vertices(old_shape)
+        # elif replace_type in ['e', 'edge', 'edges']:
+        #     old_shapes = ExploreShape.get_edges(old_shape)
+        # elif replace_type in ['f', 'face', 'faces']:
+        #     old_shapes = ExploreShape.get_faces(old_shape)
+        # else:
+        #     msg = 'Invalid replace type.'
+        #     raise TypeError(msg)
+        old_shapes = ExploreShape.get_faces(old_shape)
+        if not old_shapes:
             old_shapes = ExploreShape.get_edges(old_shape)
-        elif replace_type in ['f', 'face', 'faces']:
-            old_shapes = ExploreShape.get_faces(old_shape)
-        else:
-            msg = 'Invalid replace type.'
-            raise TypeError(msg)
+        if not old_shapes:
+            old_shapes = ExploreShape.get_vertices(old_shape)
+        if not old_shapes:
+            raise ValueError('No sub-shapes to substitute.')
 
         # Delete and replace
         for shape in old_shapes:
@@ -464,6 +476,95 @@ class RebuildShapeByTool(object):
         :rtype: OCC.TopoDS.TopoDS_Shape
         """
         return self._new_shape
+
+
+class RebuildShapesByTool(object):
+    """
+    Rebuild multiple shapes using a supported tool. This method is intended
+    to address the case where modified shapes from an old shape are not
+    duplicated in adjacent shapes, like what would happen if rebuilding a
+    single shape at a time without any context. If a modified shape has
+    already been replaced in an old shape and is encountered again,
+    it is not substituted in the later shape.
+
+    :param list[OCC.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
+    :param tool: The tool.
+    :type tool: afem.topology.bop.BopAlgo
+    :param str replace_type: The level of shape to replace ('vertex',
+        'edge', 'face').
+    :param bool fix: Option to use :class:`.FixShape` on the new shape in
+        case the substitutions caused errors (e.g., like a solid is now a
+        shell).
+    """
+
+    def __init__(self, old_shapes, tool, replace_type='face', fix=False):
+        reshape = ShapeBuild_ReShape()
+
+        self._new_shapes = TopTools_DataMapOfShapeShape()
+        index_map = TopTools_IndexedMapOfShape()
+
+        for old_shape in old_shapes:
+            # Old shapes
+            # replace_type = replace_type.lower()
+            # if replace_type in ['v', 'vertex', 'vertices']:
+            #     shapes = ExploreShape.get_vertices(old_shape)
+            # elif replace_type in ['e', 'edge', 'edges']:
+            #     shapes = ExploreShape.get_edges(old_shape)
+            # elif replace_type in ['f', 'face', 'faces']:
+            #     shapes = ExploreShape.get_faces(old_shape)
+            # else:
+            #     msg = 'Invalid replace type.'
+            #     raise TypeError(msg)
+            shapes = ExploreShape.get_faces(old_shape)
+            if not shapes:
+                shapes = ExploreShape.get_edges(old_shape)
+            if not shapes:
+                shapes = ExploreShape.get_vertices(old_shape)
+            if not shapes:
+                continue
+
+            # Delete and replace
+            for shape in shapes:
+                # Deleted
+                if tool.is_deleted(shape):
+                    reshape.Remove(shape)
+                    continue
+
+                # Modified considering shapes already used
+                mod_shapes = tool.modified(shape)
+                replace_shapes = []
+                for mod_shape in mod_shapes:
+                    if index_map.Contains(mod_shape):
+                        continue
+                    replace_shapes.append(mod_shape)
+                    index_map.Add(mod_shape)
+
+                if replace_shapes:
+                    new_shape = CompoundByShapes(replace_shapes).compound
+                    reshape.Replace(shape, new_shape)
+
+            new_shape = reshape.Apply(old_shape)
+            if fix:
+                new_shape = FixShape(new_shape).shape
+            else:
+                new_shape = new_shape
+
+            self._new_shapes.Bind(old_shape, new_shape)
+
+    def new_shape(self, old_shape):
+        """
+        Get the new shape from the old shape.
+
+        :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape provided in
+            the initial inputs.
+
+        :return: The new shape after substitutions.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+
+        :raises RuntimeError: If the old shape is not a key in the final
+            results.
+        """
+        return self._new_shapes.Find(old_shape)
 
 
 if __name__ == "__main__":

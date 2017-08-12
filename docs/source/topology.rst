@@ -237,6 +237,10 @@ RebuildShapeByTool
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: RebuildShapeByTool
 
+RebuildShapesByTool
+~~~~~~~~~~~~~~~~~~~
+.. autoclass:: RebuildShapesByTool
+
 Boolean
 -------
 .. py:currentmodule:: afem.topology.bop

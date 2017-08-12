@@ -753,6 +753,7 @@ class Part(TopoDS_Shape, ViewableItem):
         parts = [self]
         if rebuild_both:
             parts += [splitter]
+        # Rebuild with multiple parts.
         for part in parts:
             part.rebuild(split)
         return True
@@ -1000,6 +1001,7 @@ class SurfacePart(Part):
             return False
 
         # Rebuild the parts
+        # TODO Rebuild mutiple shapes
         for part in [self] + other_parts:
             part.rebuild(fuse)
 

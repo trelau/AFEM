@@ -1,10 +1,10 @@
 from afem.geometry.intersect import IntersectCurveCurve
 from afem.structure.entities import SurfacePart
-from afem.topology.bop import FuseShapes
+from afem.topology.bop import FuseShapes, SplitShapes
 from afem.topology.explore import ExploreShape
-from afem.topology.modify import RebuildShapeByTool
+from afem.topology.modify import RebuildShapesByTool
 
-__all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref"]
+__all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "SplitParts"]
 
 
 class FuseSurfaceParts(object):
@@ -22,9 +22,9 @@ class FuseSurfaceParts(object):
         bop.set_args(parts)
         bop.build()
 
+        # TODO Rebuild with multiple parts
         for part in parts:
-            rebuild = RebuildShapeByTool(part, bop, 'face')
-            part.set_shape(rebuild.new_shape)
+            part.rebuild(bop)
 
         self._is_done = bop.is_done
         self._fused_shape = bop.shape
@@ -115,4 +115,47 @@ class SewParts(object):
 
 
 class SplitParts(object):
-    pass
+    """
+    Split part shapes and rebuild in place.
+
+    :param list[afem.structure.entities.Part] parts: The parts that will be
+        split and rebuilt.
+    :param tools: The parts or shapes used to split the parts but are not
+        modified.
+    :type tools: list[OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part]
+    :param float fuzzy_val: Fuzzy tolerance value.
+    """
+
+    def __init__(self, parts, tools=None, fuzzy_val=None):
+        bop = SplitShapes(fuzzy_val=fuzzy_val)
+
+        bop.set_args(parts)
+
+        if tools is not None:
+            bop.set_tools(tools)
+
+        bop.build()
+
+        rebuild = RebuildShapesByTool(parts, bop)
+        for part in parts:
+            new_shape = rebuild.new_shape(part)
+            part.set_shape(new_shape)
+
+        self._is_done = bop.is_done
+        self._split_shape = bop.shape
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if operation is done, *False* if not.
+        :rtype: bool
+        """
+        return self._is_done
+
+    @property
+    def split_shape(self):
+        """
+        :return: The split shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._split_shape

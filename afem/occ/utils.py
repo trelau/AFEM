@@ -10,7 +10,15 @@ from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                          TColStd_Array2OfReal)
 from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
                         TColgp_Array2OfPnt, TColgp_HArray1OfPnt)
+from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
+                        TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID,
+                        TopAbs_VERTEX,
+                        TopAbs_WIRE)
 from OCC.TopTools import TopTools_ListOfShape
+from OCC.TopoDS import (topods_CompSolid, topods_Compound,
+                        topods_Edge, topods_Face, topods_Shell, topods_Solid,
+                        topods_Vertex,
+                        topods_Wire)
 from OCC.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
@@ -356,3 +364,34 @@ def to_lst_from_toptools_listofshape(toptools_list):
         lst.append(shp)
         toptools_list.RemoveFirst()
     return lst
+
+
+def downcast_shape(shape):
+    """
+    Downcast a shape to its specific type.
+
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+    :return: The downcasted shape.
+    :rtype: OCC.TopoDS.TopoDS_Vertex or OCC.TopoDS.TopoDS_Edge or
+        OCC.TopoDS.TopoDS_Wire or OCC.TopoDS.TopoDS_Face or
+        OCC.TopoDS.TopoDS_Shell or OCC.TopoDS.TopoDS_CompSolid or
+        OCC.TopoDS.TopoDS_Compound
+    """
+    if shape.ShapeType() == TopAbs_VERTEX:
+        return topods_Vertex(shape)
+    if shape.ShapeType() == TopAbs_EDGE:
+        return topods_Edge(shape)
+    if shape.ShapeType() == TopAbs_WIRE:
+        return topods_Wire(shape)
+    if shape.ShapeType() == TopAbs_FACE:
+        return topods_Face(shape)
+    if shape.ShapeType() == TopAbs_SHELL:
+        return topods_Shell(shape)
+    if shape.ShapeType() == TopAbs_SOLID:
+        return topods_Solid(shape)
+    if shape.ShapeType() == TopAbs_COMPSOLID:
+        return topods_CompSolid(shape)
+    if shape.ShapeType() == TopAbs_COMPOUND:
+        return topods_Compound(shape)
+    raise ValueError('Could not downcast shape.')

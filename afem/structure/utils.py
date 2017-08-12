@@ -1,7 +1,7 @@
-__all__ = ["order_parts"]
+__all__ = ["order_parts_by_id"]
 
 
-def order_parts(parts):
+def order_parts_by_id(parts):
     """
     Order the list of parts by id.
 
