@@ -667,14 +667,26 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         return DistanceShapeToShape(self, other).dmin
 
-    def check(self):
+    def check(self, raise_error=True):
         """
         Check the shape of the part.
 
+        :param bool raise_error: Option to raise an error if the shape is
+            not valid.
+
         :return: *True* if shape is valid, *False* if not.
         :rtype: bool
+
+        :raise RuntimeError: If the check fails and *raise_error* is ``True``.
         """
-        return CheckShape.is_valid(self)
+        check = CheckShape.is_valid(self)
+
+        if not raise_error:
+            return check
+
+        if check:
+            return True
+        raise RuntimeError('The shape of the part is not valid.')
 
     def fix(self, min_tol=None, max_tol=None):
         """
