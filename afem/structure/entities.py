@@ -234,15 +234,6 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         return ExploreShape.get_faces(self)
 
-    @property
-    def length(self):
-        """
-        :return: The length of all the edges of the part.
-        :rtype: float
-        """
-        # TODO Reevaluate using this for all shapes like this
-        return LinearProps(self).length
-
     def set_cref(self, cref):
         """
         Set the part reference curve.
@@ -927,6 +918,14 @@ class CurvePart(Part):
     def __init__(self, label, shape, cref=None):
         super(CurvePart, self).__init__(label, shape, cref, None)
 
+    @property
+    def length(self):
+        """
+        :return: The length of all the edges of the part.
+        :rtype: float
+        """
+        return LinearProps(self).length
+
 
 class Beam(CurvePart):
     """
@@ -964,6 +963,17 @@ class SurfacePart(Part):
 
     def __init__(self, label, shape, cref=None, sref=None):
         super(SurfacePart, self).__init__(label, shape, cref, sref)
+
+    @property
+    def length(self):
+        """
+        :return: The length of the reference curve if available. Otherwise
+            it returns the length of all edges of the part.
+        :rtype: float
+        """
+        if self.has_cref:
+            return self.cref.length
+        return LinearProps(self).length
 
     @property
     def area(self):
