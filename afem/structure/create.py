@@ -1363,7 +1363,7 @@ class SkinBySolid(object):
     :param bool copy: Option to copy the outer shell.
     """
 
-    def __init__(self, label, solid, copy=True):
+    def __init__(self, label, solid, copy=False):
         _validate_type(solid, TopoDS_Solid)
 
         shell = ExploreShape.outer_shell(solid)
@@ -1390,7 +1390,7 @@ class SkinByBody(SkinBySolid):
     :param bool copy: Option to copy the outer shell.
     """
 
-    def __init__(self, label, body, copy=True):
+    def __init__(self, label, body, copy=False):
         _validate_type(body, Body)
         super(SkinByBody, self).__init__(label, body, copy)
 

@@ -4,11 +4,14 @@ import time
 
 from afem.config import Settings
 from afem.fem import MeshData
-from afem.geometry import CreateGeom, ProjectGeom
+from afem.geometry import *
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-from afem.structure import AssemblyData, CreatePart, PartTools
-from afem.topology import ShapeTools
+from afem.structure import *
+from afem.topology import *
+
+
+Settings.log_to_console(True)
 
 
 def build_wingbox(wing, params):
@@ -53,14 +56,12 @@ def build_wingbox(wing, params):
     AssemblyData.create_assy(assy_name)
 
     # Front spar
-    fspar = CreatePart.spar.by_parameters('front spar', wing,
-                                          fspar_chord, root_span,
-                                          fspar_chord, tip_span)
+    fspar = SparByParameters('front spar', fspar_chord, root_span,
+                             fspar_chord, tip_span, wing).spar
 
     # Rear spar
-    rspar = CreatePart.spar.by_parameters('rear spar', wing,
-                                          rspar_chord, root_span,
-                                          rspar_chord, tip_span)
+    rspar = SparByParameters('rear spar', rspar_chord, root_span,
+                             rspar_chord, tip_span, wing).spar
 
     # Root rib
     p1 = fspar.p1
@@ -68,15 +69,16 @@ def build_wingbox(wing, params):
         p2 = rspar.p1
     else:
         p2 = wing.eval(aux_spar_xloc, root_span)
-    root = CreatePart.rib.by_points('root rib', wing, p1, p2)
+    root = RibByPoints('root rib', p1, p2, wing).rib
 
     # Tip rib
     p1 = fspar.p2
     p2 = rspar.p2
-    tip = CreatePart.rib.by_points('tip rib', wing, p1, p2)
+    tip = RibByPoints('tip rib', p1, p2, wing).rib
 
     # Generate points along rear spar and project to front spar to define ribs.
-    prear = rspar.spaced_points(rib_spacing, rib_spacing, -rib_spacing)
+    prear = rspar.points_by_distance(rib_spacing, d1=rib_spacing,
+                                     d2=-rib_spacing)
     pfront = [p.copy() for p in prear]
     rspar_norm = rspar.sref.norm(0, 0)
     fspar.points_to_cref(pfront, rspar_norm)
@@ -86,9 +88,7 @@ def build_wingbox(wing, params):
         if pf.is_equal(pr):
             continue
         name = ' '.join(['rib', str(i)])
-        rib = CreatePart.rib.by_points(name, wing, pf, pr)
-        if not rib:
-            continue
+        rib = RibByPoints(name, pf, pr, wing).rib
         ribs.append(rib)
         i += 1
 
@@ -98,39 +98,40 @@ def build_wingbox(wing, params):
         u1 = root.cref.u1
         u2 = root.invert_cref(rspar.p1)
         dx = root.cref.arc_length(u1, u2)
-        p1 = root.eval_dx(dx / 2.)
+        p1 = root.point_from_parameter(dx / 2.)
         rib = ribs[mid_spar_rib - 1]
-        p2 = rib.eval_dx(0.5, is_local=True)
-        mspar = CreatePart.spar.by_points('mid spar', wing, p1, p2)
+        p2 = rib.point_from_parameter(0.5, is_rel=True)
+        mspar = SparByPoints('mid spar', p1, p2, wing).spar
 
     # Aux spar.
     aspar = None
     if build_aux_spar:
         p1 = root.p2
-        p2 = rspar.eval_dx(0.25, is_local=True)
+        p2 = rspar.point_from_parameter(0.25, is_rel=True)
         # Find nearest rib point and set equal to aux spar.
         pnts = [rib.p2 for rib in ribs]
-        p2 = CreateGeom.nearest_point(p2, pnts)
+        p2 = CheckGeom.nearest_point(p2, pnts)
         indx = pnts.index(p2)
         rib = ribs[indx]
         # Use intersection of the rib and rear spar to define plane for aux
         # spar.
-        sref = ShapeTools.plane_from_section(rspar, rib, p1)
-        aspar = CreatePart.spar.by_points('aux spar', wing, p1, p2, sref)
+        sref = PlaneByIntersectingShapes(rspar, rib, p1).plane
+        aspar = SparByPoints('aux spar', p1, p2, wing, sref).spar
 
     # Build ribs from root rib to front spar.
     root_ribs = []
     if mspar:
         # Fwd of mid spar
         u2 = root.invert_cref(mspar.p1)
-        prib = root.spaced_points(3, u2=u2)[1:-1]
+        builder = PointsAlongCurveByNumber(root.cref, 3, u2=u2)
+        prib = builder.interior_points
         pfront = [p.copy() for p in prib]
         fspar.points_to_cref(pfront, rspar_norm)
         for pf, pr in zip(pfront, prib):
             if pf.is_equal(pr):
                 continue
             name = ' '.join(['rib', str(i)])
-            rib = CreatePart.rib.by_points(name, wing, pf, pr)
+            rib = RibByPoints(name, pf, pr, wing).rib
             if not rib:
                 continue
             ribs.append(rib)
@@ -140,14 +141,15 @@ def build_wingbox(wing, params):
         # Aft of mid spar
         u1 = root.invert_cref(mspar.p1)
         u2 = root.invert_cref(rspar.p1)
-        prib = root.spaced_points(3, u1=u1, u2=u2)[1:-1]
+        builder = PointsAlongCurveByNumber(root.cref, 3, u1=u1, u2=u2)
+        prib = builder.interior_points
         pfront = [p.copy() for p in prib]
         fspar.points_to_cref(pfront, rspar_norm)
         for pf, pr in zip(pfront, prib):
             if pf.is_equal(pr):
                 continue
             name = ' '.join(['rib', str(i)])
-            rib = CreatePart.rib.by_points(name, wing, pf, pr)
+            rib = RibByPoints(name, pf, pr, wing).rib
             if not rib:
                 continue
             ribs.append(rib)
@@ -159,39 +161,39 @@ def build_wingbox(wing, params):
     p2 = rspar.p1
     p1 = p2.copy()
     fspar.point_to_cref(p1, rspar_norm)
-    sref = ShapeTools.plane_from_section(root, rspar, p1)
-    CreatePart.rib.by_points('corner rib', wing, p1, p2, sref)
+    sref = PlaneByIntersectingShapes(root, rspar, p1).plane
+    RibByPoints('corner rib', p1, p2, wing, sref)
 
     # Construction geom for center structure.
-    root_chord = wing.extract_curve((0, 0), (1, 0))
+    root_chord = wing.extract_curve(0, 0, 1, 0)
 
     # Front center spar.
     p2 = fspar.p1
     p1 = p2.copy()
-    ProjectGeom.point_to_geom(p1, root_chord, True)
-    CreatePart.spar.by_points('fc spar', wing, p1, p2)
+    ProjectPointToCurve(p1, root_chord, update=True)
+    SparByPoints('fc spar', p1, p2, wing)
 
     # Rear center spar.
     p2 = rspar.p1
     p1 = p2.copy()
-    ProjectGeom.point_to_geom(p1, root_chord, True)
-    CreatePart.spar.by_points('rc spar', wing, p1, p2)
+    ProjectPointToCurve(p1, root_chord, update=True)
+    SparByPoints('rc spar', p1, p2, wing)
 
     # Mid center spar
     if mid_spar_rib > 0:
         p2 = mspar.p1
         p1 = p2.copy()
-        ProjectGeom.point_to_geom(p1, root_chord, True)
-        CreatePart.spar.by_points('center mid spar', wing, p1, p2)
+        ProjectPointToCurve(p1, root_chord, update=True)
+        SparByPoints('center mid spar', p1, p2, wing)
 
     # Center spar at each root rib intersection
     i = 1
     for rib in root_ribs:
         p2 = rib.p2
         p1 = p2.copy()
-        ProjectGeom.point_to_geom(p1, root_chord, True)
         name = ' '.join(['center spar', str(i)])
-        CreatePart.spar.by_points(name, wing, p1, p2)
+        ProjectPointToCurve(p1, root_chord, update=True)
+        SparByPoints(name, p1, p2, wing)
         i += 1
 
     # Aux ribs
@@ -206,40 +208,50 @@ def build_wingbox(wing, params):
             # Since the structure is not joined yet, intersect the rear spar
             # and rib shapes to find the edge(s). Use this edge to define a
             # plane so the aux ribs will line up with the main ribs.
-            edges = ShapeTools.bsection(rspar, rib, 'e')
-            if not edges:
-                continue
-            edge = edges[0]
-            pnts = ShapeTools.points_along_edge(edge, 3)
             p1 = rib.p2
             p2 = p1.copy()
-            aspar.points_to_cref([p2])
-            sref = CreateGeom.fit_plane([p2] + pnts)
-            if not sref:
-                continue
+            aspar.point_to_cref(p2)
+            sref = PlaneByIntersectingShapes(rspar, rib, p2).plane
+
+            # edges = ShapeTools.bsection(rspar, rib, 'e')
+            # if not edges:
+            #     continue
+            # edge = edges[0]
+            # pnts = ShapeTools.points_along_edge(edge, 3)
+            # p1 = rib.p2
+            # p2 = p1.copy()
+            # aspar.points_to_cref([p2])
+            # sref = CreateGeom.fit_plane([p2] + pnts)
+            # if not sref:
+            #     continue
             aux_rib_name = ' '.join(['aux rib', str(aux_rib_id)])
-            CreatePart.rib.by_points(aux_rib_name, wing, p1, p2, sref)
+            RibByPoints(aux_rib_name, p1, p2, wing, sref)
             aux_rib_id += 1
 
     # JOIN --------------------------------------------------------------------
     # Fuse internal structure and discard faces
-    internal_parts = AssemblyData.get_parts()
-    PartTools.fuse_wing_parts(internal_parts)
+    internal_parts = AssemblyData.get_parts(order=True)
+    FuseSurfacePartsByCref(internal_parts)
     for part in internal_parts:
-        part.discard()
+        part.discard_by_cref()
+
+    for part in internal_parts:
+        part.check()
 
     # SKIN --------------------------------------------------------------------
-    skin = CreatePart.surface_part('wing skin', wing.shell)
+    skin = SkinByBody('wing skin', wing, False).skin
 
     # Join the wing skin and internal structure
     skin.fuse(*internal_parts)
 
     # Discard faces touching reference surface.
-    skin.discard(wing.sref)
+    skin.discard_by_dmin(wing.sref_shape, 0.1)
 
     # Fix skin since it's not a single shell anymore, but a compound of two
     # shells (upper and lower skin).
     skin.fix()
+    # TODO Why is this check failing?
+    # skin.check()
 
     # Viewing
     skin.set_transparency(0.5)
@@ -251,18 +263,19 @@ def build_wingbox(wing, params):
     # Demonstrate creating volumes from shapes (i.e., parts). Do not use the
     # intersect option since shapes should be topologically connected already.
 
+    all_parts = AssemblyData.get_parts()
+
     # Volumes using all parts. This generates multiple solids.
-    shape1 = ShapeTools.make_volume(AssemblyData.get_parts())
-    for solid in ShapeTools.get_solids(shape1):
-        Viewer.add(solid)
+    shape1 = VolumesFromShapes(all_parts).shape
+    Viewer.add(shape1)
     Viewer.show()
 
     # Volume using front spar, rear spar, root rib, tip rib, and upper and
     # lower skins. This should produce a single solid since no internal ribs
     #  are provided.
-    shape2 = ShapeTools.make_volume([rspar, fspar, root, tip, skin])
+    shape2 = VolumesFromShapes([rspar, fspar, root, tip, skin]).shape
     # Calculate volume.
-    print('Volume is ', ShapeTools.shape_volume(shape2))
+    print('Volume is ', VolumeProps(shape2).volume)
     # You can also use TopoDS_Shape.volume property (i.e., shape.volume).
 
     Viewer.add(shape2)
@@ -270,31 +283,30 @@ def build_wingbox(wing, params):
 
     # Create a semi-infinite box to cut volume with.
     p0 = wing.eval(0.5, 0.1)
-    pln = CreateGeom.plane_by_axes(p0, 'xy')
-    face = ShapeTools.face_from_plane(pln, -1e6, 1e6, -1e6, 1e6)
-    cut_space = ShapeTools.make_prism(face, [0, 0, 500])
+    pln = PlaneByAxes(p0, 'xy').plane
+    face = FaceByPlane(pln, -1e6, 1e6, -1e6, 1e6).face
+    cut_space = ShapeByDrag(face, (0., 0., 500.)).shape
 
     # Cut the volume with an infinite plane (use a large box for robustness).
-    new_shape = ShapeTools.bcut(shape1, cut_space)
+    new_shape = CutShapes(shape1, cut_space).shape
 
     # Calculate cg of cut shape.
-    cg = ShapeTools.center_of_mass(new_shape)
+    cg = VolumeProps(new_shape).cg
     print('Centroid of cut shape is ', cg)
-    print('Volume of cut shape is ', ShapeTools.shape_volume(new_shape))
-    # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
+    print('Volume of cut shape is ', VolumeProps(new_shape).volume)
 
-    for solid in ShapeTools.get_solids(new_shape):
+    for solid in ExploreShape.get_solids(new_shape):
         Viewer.add(solid)
     Viewer.add(cg)
     Viewer.show()
 
     # Cut the volume with an infinite plane (use a large box for robustness).
-    new_shape = ShapeTools.bcut(shape2, cut_space)
+    new_shape = CutShapes(shape2, cut_space).shape
 
     # Calculate cg of cut shape.
-    cg = ShapeTools.center_of_mass(new_shape)
+    cg = VolumeProps(new_shape).cg
     print('Centroid of cut shape is ', cg)
-    print('Volume of cut shape is ', ShapeTools.shape_volume(new_shape))
+    print('Volume of cut shape is ', VolumeProps(new_shape).volume)
     # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
 
     Viewer.add(new_shape)
@@ -345,7 +357,7 @@ if __name__ == '__main__':
 
     Viewer.add(*assy.parts)
 
-    xz_pln = CreateGeom.plane_by_axes(axes='xz')
+    xz_pln = PlaneByAxes().plane
     for part in assy.parts:
         part.set_mirror(xz_pln)
 

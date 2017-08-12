@@ -686,7 +686,9 @@ class Part(TopoDS_Shape, ViewableItem):
 
         if check:
             return True
-        raise RuntimeError('The shape of the part is not valid.')
+        msg = ' '.join(['The shape of the part is not valid. Label:',
+                        self.label])
+        raise RuntimeError(msg)
 
     def fix(self, min_tol=None, max_tol=None):
         """
