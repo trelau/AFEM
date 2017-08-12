@@ -6,18 +6,16 @@ from afem.config import logger
 from afem.fem.elements import Elm2D
 from afem.fem.meshes import MeshData
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
-                                  PointFromParameter)
+from afem.geometry.create import PlaneByNormal, PlaneFromParameter, \
+    PointFromParameter
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
 from afem.structure.assembly import AssemblyData
 from afem.topology.bop import CutShapes, FuseShapes, SplitShapes
 from afem.topology.check import CheckShape, ClassifyPointInSolid
-from afem.topology.create import (CompoundByShapes, FaceBySurface,
-                                  HalfspaceByShape,
-                                  PointsAlongShapeByDistance,
-                                  PointsAlongShapeByNumber)
+from afem.topology.create import CompoundByShapes, HalfspaceBySurface, \
+    PointsAlongShapeByDistance, PointsAlongShapeByNumber
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import (FixShape, RebuildShapeByTool,
@@ -868,6 +866,49 @@ class Part(TopoDS_Shape, ViewableItem):
         self.set_shape(new_shape)
         return True
 
+    def discard_by_cref(self):
+        """
+        Discard shapes of the part by using the reference curve. An infinite
+        solid is created at each end of the reference curve using the curve
+        tangent. Any shape that has a centroid in these solids is removed.
+        For a curve part edges are discarded, for a SurfacePart faces are
+        discarded.
+
+        :return: *True* if shapes were discard, *False* if not.
+        :rtype: bool
+
+        :raise AttributeError: If part does not have a reference curve.
+        """
+        if not self.has_cref:
+            msg = 'Part does not have a reference curve.'
+            raise AttributeError(msg)
+
+        # Create vectors at each end of the reference curve pointing "out" of
+        # the part
+        u1, u2 = self.cref.u1, self.cref.u2
+        v1 = self.cref.deriv(u1, 1)
+        v2 = self.cref.deriv(u2, 1)
+        # Reverse v1 so it's "out" of the part
+        v1.reverse()
+
+        # Create planes at each end
+        p1 = self.cref.eval(u1)
+        p2 = self.cref.eval(u2)
+        pln1 = PlaneByNormal(p1, v1).plane
+        pln2 = PlaneByNormal(p2, v2).plane
+
+        # Translate points to define half space
+        pref1 = p1 + 100. * v1.xyz
+        pref2 = p2 + 100. * v2.xyz
+        hs1 = HalfspaceBySurface(pln1, pref1).solid
+        hs2 = HalfspaceBySurface(pln2, pref2).solid
+
+        # Discard by solid
+        status1 = self.discard_by_solid(hs1)
+        status2 = self.discard_by_solid(hs2)
+
+        return status1 or status2
+
 
 class CurvePart(Part):
     """
@@ -1078,50 +1119,6 @@ class SurfacePart(Part):
         unify = UnifyShape(self, edges, faces, bsplines)
         new_shape = unify.shape
         self.set_shape(new_shape)
-
-    def discard_by_cref(self):
-        """
-        Discard faces of the part by using the reference curve. An infinite
-        solid is created at each end of the reference curve using the curve
-        tangent. Any face that has a centroid in these solids is removed.
-
-        :return: *True* if faces were discard, *False* if not.
-        :rtype: bool
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        # TODO Can this be possible for curve part too?
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        # Create vectors at each end of the reference curve pointing "out" of
-        # the part
-        u1, u2 = self.cref.u1, self.cref.u2
-        v1 = self.cref.deriv(u1, 1)
-        v2 = self.cref.deriv(u2, 1)
-        # Reverse v1 so it's "out" of the part
-        v1.reverse()
-
-        # Create planes at each end
-        p1 = self.cref.eval(u1)
-        p2 = self.cref.eval(u2)
-        pln1 = PlaneByNormal(p1, v1).plane
-        pln2 = PlaneByNormal(p2, v2).plane
-
-        # Translate points to define half space
-        pref1 = p1 + 100. * v1.xyz
-        pref2 = p2 + 100. * v2.xyz
-        f1 = FaceBySurface(pln1).face
-        f2 = FaceBySurface(pln2).face
-        hs1 = HalfspaceByShape(f1, pref1).solid
-        hs2 = HalfspaceByShape(f2, pref2).solid
-
-        # Discard by solid
-        status1 = self.discard_by_solid(hs1)
-        status2 = self.discard_by_solid(hs2)
-
-        return status1 or status2
 
     def shared_edges(self, other):
         """
