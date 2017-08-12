@@ -391,13 +391,13 @@ class RebuildShapeWithShapes(object):
 
 class RebuildShapeByTool(object):
     """
-    Rebuild a shape using a supported tool.
+    Rebuild a shape using a supported tool. This method will first try to make
+    substitutions on the faces of the shape. If not faces exist it will try
+    the edges. If no edges exist it will try the vertices.
 
     :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopAlgo
-    :param str replace_type: The level of shape to replace ('vertex',
-        'edge', 'face').
     :param bool fix: Option to use :class:`.FixShape` on the new shape in
         case the substitutions caused errors (e.g., like a solid is now a
         shell).
@@ -426,22 +426,12 @@ class RebuildShapeByTool(object):
     True
     """
 
-    def __init__(self, old_shape, tool, replace_type='face', fix=False):
+    def __init__(self, old_shape, tool, fix=False):
         reshape = ShapeBuild_ReShape()
 
         # TODO Consider iterating through all shapes?
 
         # Old shapes
-        # replace_type = replace_type.lower()
-        # if replace_type in ['v', 'vertex', 'vertices']:
-        #     old_shapes = ExploreShape.get_vertices(old_shape)
-        # elif replace_type in ['e', 'edge', 'edges']:
-        #     old_shapes = ExploreShape.get_edges(old_shape)
-        # elif replace_type in ['f', 'face', 'faces']:
-        #     old_shapes = ExploreShape.get_faces(old_shape)
-        # else:
-        #     msg = 'Invalid replace type.'
-        #     raise TypeError(msg)
         old_shapes = ExploreShape.get_faces(old_shape)
         if not old_shapes:
             old_shapes = ExploreShape.get_edges(old_shape)
@@ -485,19 +475,19 @@ class RebuildShapesByTool(object):
     duplicated in adjacent shapes, like what would happen if rebuilding a
     single shape at a time without any context. If a modified shape has
     already been replaced in an old shape and is encountered again,
-    it is not substituted in the later shape.
+    it is not substituted in the later shape. This method will first try to
+    make substitutions on the faces of the shape. If not faces exist it will
+    try the edges. If no edges exist it will try the vertices.
 
     :param list[OCC.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopAlgo
-    :param str replace_type: The level of shape to replace ('vertex',
-        'edge', 'face').
     :param bool fix: Option to use :class:`.FixShape` on the new shape in
         case the substitutions caused errors (e.g., like a solid is now a
         shell).
     """
 
-    def __init__(self, old_shapes, tool, replace_type='face', fix=False):
+    def __init__(self, old_shapes, tool, fix=False):
         reshape = ShapeBuild_ReShape()
 
         self._new_shapes = TopTools_DataMapOfShapeShape()
@@ -505,16 +495,6 @@ class RebuildShapesByTool(object):
 
         for old_shape in old_shapes:
             # Old shapes
-            # replace_type = replace_type.lower()
-            # if replace_type in ['v', 'vertex', 'vertices']:
-            #     shapes = ExploreShape.get_vertices(old_shape)
-            # elif replace_type in ['e', 'edge', 'edges']:
-            #     shapes = ExploreShape.get_edges(old_shape)
-            # elif replace_type in ['f', 'face', 'faces']:
-            #     shapes = ExploreShape.get_faces(old_shape)
-            # else:
-            #     msg = 'Invalid replace type.'
-            #     raise TypeError(msg)
             shapes = ExploreShape.get_faces(old_shape)
             if not shapes:
                 shapes = ExploreShape.get_edges(old_shape)
