@@ -269,6 +269,10 @@ SplitShapes
 ~~~~~~~~~~~~
 .. autoclass:: SplitShapes
 
+VolumesFromShapes
+~~~~~~~~~~~~~~~~~
+.. autoclass:: VolumesFromShapes
+
 Offset
 ------
 .. py:currentmodule:: afem.topology.offset

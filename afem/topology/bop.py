@@ -1,16 +1,19 @@
 from warnings import warn
 
+from OCC.BOPAlgo import BOPAlgo_MakerVolume
 from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
+from OCC.TopoDS import topods_Solid
 
 from afem.geometry.check import CheckGeom
 from afem.occ.utils import (to_lst_from_toptools_listofshape,
                             to_toptools_listofshape)
 from afem.topology.check import CheckShape
+from afem.topology.explore import ExploreShape
 
 __all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
-           "IntersectShapes", "SplitShapes"]
+           "IntersectShapes", "SplitShapes", "VolumesFromShapes"]
 
 
 class BopAlgo(object):
@@ -41,10 +44,6 @@ class BopAlgo(object):
         if fuzzy_val is not None:
             self._bop.SetFuzzyValue(fuzzy_val)
 
-    @property
-    def _is_splitter(self):
-        return isinstance(self._bop, GEOMAlgo_Splitter)
-
     def set_args(self, shapes):
         """
         Set the arguments.
@@ -53,7 +52,7 @@ class BopAlgo(object):
 
         :return: None.
         """
-        if self._is_splitter:
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
             for shape in shapes:
                 self._bop.AddArgument(shape)
             return None
@@ -68,10 +67,15 @@ class BopAlgo(object):
 
         :return: None.
         """
-        if self._is_splitter:
+        if isinstance(self._bop, BOPAlgo_MakerVolume):
+            warn('Setting tools not available. Doing nothing.', RuntimeWarning)
+            return None
+
+        if isinstance(self._bop, GEOMAlgo_Splitter):
             for shape in shapes:
                 self._bop.AddTool(shape)
             return None
+
         tools = to_toptools_listofshape(shapes)
         self._bop.SetTools(tools)
 
@@ -81,7 +85,7 @@ class BopAlgo(object):
 
         :return: None.
         """
-        if self._is_splitter:
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
             self._bop.Perform()
         else:
             self._bop.Build()
@@ -92,7 +96,7 @@ class BopAlgo(object):
         :return: *True* if operation is done, *False* if not.
         :rtype: bool
         """
-        if self._is_splitter:
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
             return self._bop.ErrorStatus() == 0
         return self._bop.IsDone()
 
@@ -110,8 +114,8 @@ class BopAlgo(object):
 
         :return: None.
         """
-        if self._is_splitter:
-            warn('Refine edges not implemented for GEOMAlgo_Splitter.',
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+            warn('Refining edges not available. Doing nothing.',
                  RuntimeWarning)
         else:
             self._bop.RefineEdges()
@@ -122,7 +126,7 @@ class BopAlgo(object):
         :return: The result flag of edge refining.
         :rtype: bool
         """
-        if self._is_splitter:
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
             return False
         else:
             return self._bop.FuseEdges()
@@ -134,10 +138,9 @@ class BopAlgo(object):
             the shapes.
         :rtype: list[OCC.TopoDS.TopoDS_Edge]
         """
-        if self._is_splitter:
-            warn('Section edges not implemented for GEOMAlgo_Splitter. '
-                 'Returning empty list.',
-                 RuntimeWarning)
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+            warn('Getting section edges not available. Returning an empty '
+                 'list.', RuntimeWarning)
             return []
         else:
             return to_lst_from_toptools_listofshape(self._bop.SectionEdges())
@@ -447,6 +450,58 @@ class SplitShapes(BopAlgo):
         :return: None.
         """
         self._bop.AddTool(shape)
+
+
+class VolumesFromShapes(BopAlgo):
+    """
+    Build solids from a list of shapes.
+
+    :param list[OCC.TopoDS.TopoDS_Shape] shapes: The shapes.
+    :param bool intersect: Option to intersect the shapes before building
+        solids.
+    :param bool parallel: Option to run in parallel mode.
+    :param float fuzzy_val: Fuzzy tolerance value.
+    """
+
+    def __init__(self, shapes, intersect=True, parallel=True,
+                 fuzzy_val=None):
+        super(VolumesFromShapes, self).__init__(None, None, parallel,
+                                                fuzzy_val, BOPAlgo_MakerVolume)
+
+        self.set_args(shapes)
+
+        if intersect:
+            self._bop.SetIntersect(True)
+
+        self.build()
+
+        self._solids = []
+        for solid in ExploreShape.get_solids(self.shape):
+            self._solids.append(topods_Solid(solid))
+
+    @property
+    def box(self):
+        """
+        :return: The bounding box of all provided shapes.
+        :rtype: OCC.TopoDS.TopoDS_Solid
+        """
+        return self._bop.Box()
+
+    @property
+    def nsolids(self):
+        """
+        :return: The number of solids in the shape.
+        :rtype: int
+        """
+        return len(self.solids)
+
+    @property
+    def solids(self):
+        """
+        :return: The list of solids.
+        :rtype: list[OCC.TopoDS.TopoDS_Solid]
+        """
+        return self._solids
 
 
 if __name__ == "__main__":
