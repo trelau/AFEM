@@ -1,3 +1,4 @@
+from afem.structure.utils import order_parts_by_id
 from afem.topology.create import CompoundByShapes
 
 __all__ = ["Assembly", "AssemblyData"]
@@ -102,28 +103,32 @@ class Assembly(object):
                 return part
         return None
 
-    def get_parts(self, include_subassy=True, filter=None):
+    def get_parts(self, include_subassy=True, rtype=None, order=False):
         """
         Get all the parts from the assembly and its sub-assemblies.
 
         :param include_subassy:
-        :param afem.structure.entities.Part bool filter: Option to gather only
+        :param afem.structure.entities.Part rtype: Option to return only
             parts of a certain type.
+        :param bool order: Option to order parts by their ID.
 
         :return:
         """
         parts = []
         for part in self.parts:
-            if filter is None:
+            if rtype is None:
                 parts.append(part)
             else:
-                if isinstance(part, filter):
+                if isinstance(part, rtype):
                     parts.append(part)
 
         if include_subassy:
             for assy in self._children:
-                parts += assy.get_parts(True, filter)
-        return parts
+                parts += assy.get_parts(True, rtype)
+
+        if not order:
+            return parts
+        return order_parts_by_id(parts)
 
     def prepare_shape_to_mesh(self, include_subassy=True):
         """
@@ -248,14 +253,16 @@ class AssemblyData(object):
         return assy.get_part(label)
 
     @classmethod
-    def get_parts(cls, assy=None, include_subassy=True, filter=None):
+    def get_parts(cls, assy=None, include_subassy=True, rtype=None,
+                  order=False):
         """
         Get parts from assembly.
 
         :param assy:
         :param include_subassy
-        :param afem.structure.entities.Part bool filter: Option to gather only
+        :param afem.structure.entities.Part rtype: Option to return only
             parts of a certain type.
+        :param bool order: Option to order parts by their ID.
 
         :return: The parts.
         :rtype: list[afem.structure.entities.Part]
@@ -263,7 +270,7 @@ class AssemblyData(object):
         assy = cls.get_assy(assy)
         if not isinstance(assy, Assembly):
             return []
-        return assy.get_parts(include_subassy, filter)
+        return assy.get_parts(include_subassy, rtype, order)
 
     @classmethod
     def prepare_shape_to_mesh(cls, assy=None):

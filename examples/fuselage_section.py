@@ -90,14 +90,9 @@ for frame in frames:
 main_floor.set_transparency(0.5)
 cargo_floor.set_transparency(0.5)
 
-all_parts = AssemblyData.get_parts()
+all_parts = AssemblyData.get_parts(order=True)
 
 # Split all parts together
-# TODO Option to order shapes when returned from assembly?
-from afem.structure.utils import order_parts_by_id
-all_parts = order_parts_by_id(all_parts)
-
-# TODO Support 1- and 2-d rebuilding in same context
 join = SplitParts(all_parts)
 
 Viewer.add(*all_parts)

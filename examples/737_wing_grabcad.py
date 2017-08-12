@@ -111,7 +111,7 @@ for p in tool.interior_points:
     center_ribs.append(rib)
     i += 1
 
-wing_parts = AssemblyData.get_parts(filter=SurfacePart)
+wing_parts = AssemblyData.get_parts(rtype=SurfacePart)
 
 # Fuse wing parts and discard faces
 FuseSurfacePartsByCref(wing_parts)
