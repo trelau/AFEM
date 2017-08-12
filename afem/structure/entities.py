@@ -908,8 +908,7 @@ class CurvePart(Part):
     Base class for curve parts.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
 
@@ -934,8 +933,7 @@ class Beam(CurvePart):
     Beam.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
 
@@ -952,8 +950,7 @@ class SurfacePart(Part):
     Base class for surface parts.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1163,8 +1160,7 @@ class WingPart(SurfacePart):
     Base class for wing parts.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1183,8 +1179,7 @@ class Spar(WingPart):
     Wing spar.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1203,8 +1198,7 @@ class Rib(WingPart):
     Wing rib.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1223,8 +1217,7 @@ class FuselagePart(SurfacePart):
     Base class for fuselage parts.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1243,8 +1236,7 @@ class Bulkhead(FuselagePart):
     Bulkhead.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1263,8 +1255,7 @@ class Floor(FuselagePart):
     Floor.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1283,8 +1274,7 @@ class Frame(FuselagePart):
     Frame.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1303,8 +1293,7 @@ class Skin(SurfacePart):
     Skin.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1323,8 +1312,7 @@ class Stiffener1D(CurvePart):
     1-D stiffener for surface parts.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
 
@@ -1341,8 +1329,7 @@ class Stiffener2D(SurfacePart):
     2-D stiffener for surface parts.
 
     :param str label: The label.
-    :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1359,6 +1346,16 @@ class Stiffener2D(SurfacePart):
 class Stringer(SurfacePart):
     """
     Stringer.
+
+    :param str label: The label.
+    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param cref: The reference curve.
+    :type cref: afem.geometry.entities.Curve or None
+    :param sref: The reference surface.
+    :type sref: afem.geometry.entities.Surface or None
+
+    :raise RuntimeError: If *shape* is not a valid shape or cannot be
+            converted to a shape.
     """
 
     def __init__(self, label, shape, cref=None, sref=None):

@@ -1,5 +1,4 @@
-from OCC.TopoDS import (TopoDS_Edge, TopoDS_Face, TopoDS_Shape, TopoDS_Shell,
-                        TopoDS_Solid, TopoDS_Wire)
+from OCC.TopoDS import TopoDS_Shape, TopoDS_Solid
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import *
@@ -43,8 +42,7 @@ class CurvePartByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Curve or OCC.TopoDS.TopoDS_Edge or
-        OCC.TopoDS.TopoDS_Wire
+    :type shape: afem.geometry.entities.Curve or OCC.TopoDS.TopoDS_Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
 
@@ -57,10 +55,11 @@ class CurvePartByShape(object):
     """
 
     def __init__(self, label, shape, cref=None):
-        _validate_type(shape, (Curve, TopoDS_Edge, TopoDS_Wire))
+        _validate_type(shape, (Curve, TopoDS_Shape))
         _validate_type(cref, Curve, False)
 
         if isinstance(shape, Curve):
+            cref = shape
             shape = EdgeByCurve(shape).edge
 
         if cref is None:
@@ -85,8 +84,7 @@ class BeamByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Curve or OCC.TopoDS.TopoDS_Edge or
-        OCC.TopoDS.TopoDS_Wire
+    :type shape: afem.geometry.entities.Curve or OCC.TopoDS.TopoDS_Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
 
@@ -99,7 +97,7 @@ class BeamByShape(object):
     """
 
     def __init__(self, label, shape, cref=None):
-        _validate_type(shape, (Curve, TopoDS_Edge, TopoDS_Wire))
+        _validate_type(shape, (Curve, TopoDS_Shape))
         _validate_type(cref, Curve, False)
 
         if isinstance(shape, Curve):
@@ -176,8 +174,7 @@ class SurfacePartByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Surface or OCC.TopoDS.TopoDS_Face or
-        OCC.TopoDS.TopoDS_Shell
+    :type shape: afem.geometry.entities.Surface or OCC.TopoDS.TopoDS_Shape
     :param afem.geometry.entities.Curve cref: The reference curve.
     :param afem.geometry.entities.Surface sref: The reference surface. If
         not provided then the basis surface of the largest face of the shape
@@ -195,12 +192,13 @@ class SurfacePartByShape(object):
     """
 
     def __init__(self, label, shape, cref=None, sref=None):
-        _validate_type(shape, (Surface, TopoDS_Face, TopoDS_Shell))
+        _validate_type(shape, (Surface, TopoDS_Shape))
         _validate_type(cref, Curve, False)
         _validate_type(sref, Surface, False)
 
-        if isinstance(shape, Curve):
-            shape = EdgeByCurve(shape).edge
+        if isinstance(shape, Surface):
+            sref = shape
+            shape = FaceBySurface(shape).face
 
         if sref is None:
             sref = ExploreShape.surface_of_shape(shape)
@@ -233,7 +231,7 @@ class SparByParameters(object):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+        OCC.TopoDS.TopoDS_Shape
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
@@ -247,8 +245,7 @@ class SparByParameters(object):
 
     def __init__(self, label, u1, v1, u2, v2, wing, basis_shape=None):
         _validate_type(wing, Wing)
-        _validate_type(basis_shape, (Surface, TopoDS_Face, TopoDS_Shell),
-                       False)
+        _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         # Determine reference surface and basis shape
         if basis_shape is None:
@@ -270,8 +267,6 @@ class SparByParameters(object):
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
         shape = common.shape
-        faces = ExploreShape.get_faces(shape)
-        shape = ShapeByFaces(faces).shape
 
         # Create the part
         self._spar = Spar(label, shape, cref, sref)
@@ -299,7 +294,7 @@ class SparByPoints(SparByParameters):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+        OCC.TopoDS.TopoDS_Shape
 
     .. note::
 
@@ -372,8 +367,6 @@ class SparBySurface(object):
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
         shape = common.shape
-        faces = ExploreShape.get_faces(shape)
-        shape = ShapeByFaces(faces).shape
 
         # Create the part
         self._spar = Spar(label, shape, cref, srf)
@@ -399,15 +392,14 @@ class SparBetweenShapes(SparByPoints):
     :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+        OCC.TopoDS.TopoDS_Shape
     """
 
     def __init__(self, label, shape1, shape2, wing, basis_shape):
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
         _validate_type(wing, Wing)
-        _validate_type(basis_shape, (Surface, TopoDS_Face, TopoDS_Shell),
-                       False)
+        _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         if isinstance(basis_shape, Surface):
             basis_shape = FaceBySurface(basis_shape).face
@@ -466,7 +458,7 @@ class RibByParameters(object):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+        OCC.TopoDS.TopoDS_Shape
 
     .. note::
 
@@ -477,8 +469,7 @@ class RibByParameters(object):
 
     def __init__(self, label, u1, v1, u2, v2, wing, basis_shape=None):
         _validate_type(wing, Wing)
-        _validate_type(basis_shape, (Surface, TopoDS_Face, TopoDS_Shell),
-                       False)
+        _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         # Determine reference surface and basis shape
         if basis_shape is None:
@@ -500,8 +491,6 @@ class RibByParameters(object):
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
         shape = common.shape
-        faces = ExploreShape.get_faces(shape)
-        shape = ShapeByFaces(faces).shape
 
         # Create the part
         self._rib = Rib(label, shape, cref, sref)
@@ -529,7 +518,7 @@ class RibByPoints(RibByParameters):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+        OCC.TopoDS.TopoDS_Shape
 
     .. note::
 
@@ -602,8 +591,6 @@ class RibBySurface(object):
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
         shape = common.shape
-        faces = ExploreShape.get_faces(shape)
-        shape = ShapeByFaces(faces).shape
 
         # Create the part
         self._rib = Rib(label, shape, cref, srf)
@@ -629,15 +616,14 @@ class RibBetweenShapes(RibByPoints):
     :param afem.oml.entities.Wing wing: The wing.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+        OCC.TopoDS.TopoDS_Shape
     """
 
     def __init__(self, label, shape1, shape2, wing, basis_shape):
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
         _validate_type(wing, Wing)
-        _validate_type(basis_shape, (Surface, TopoDS_Face, TopoDS_Shell),
-                       False)
+        _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         if isinstance(basis_shape, Surface):
             basis_shape = FaceBySurface(basis_shape).face
@@ -1028,8 +1014,6 @@ class BulkheadBySurface(object):
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
         shape = common.shape
-        faces = ExploreShape.get_faces(shape)
-        shape = ShapeByFaces(faces).shape
 
         # Create the part
         self._bh = Bulkhead(label, shape, sref=srf)
@@ -1069,8 +1053,6 @@ class FloorBySurface(object):
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
         shape = common.shape
-        faces = ExploreShape.get_faces(shape)
-        shape = ShapeByFaces(faces).shape
 
         # Create the part
         self._floor = Floor(label, shape, sref=srf)
@@ -1132,9 +1114,6 @@ class FrameByPlane(object):
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
         shape = cut.shape
-
-        faces = ExploreShape.get_faces(shape)
-        shape = ShapeByFaces(faces).shape
 
         # Create the part
         self._frame = Frame(label, shape, sref=pln)
