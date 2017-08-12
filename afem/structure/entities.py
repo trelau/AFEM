@@ -514,12 +514,9 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        proj = ProjectPointToCurve(pnt, self.cref, direction)
+        proj = ProjectPointToCurve(pnt, self.cref, direction, update=True)
         if not proj.success:
             return False
-
-        p = proj.nearest_point
-        pnt.set_xyz(p.xyz)
         return True
 
     def points_to_cref(self, pnts, direction=None):
@@ -820,15 +817,15 @@ class Part(TopoDS_Shape, ViewableItem):
         self.set_shape(new_shape)
         return True
 
-    def discard_by_distance(self, shape, dmax):
+    def discard_by_dmax(self, shape, dmax):
         """
         Discard shapes of the part using a shape and a distance. If the
         distance between a shape of the part and the given shape is greater
-        than the tolerance, then the shape is removed. Edges are checked
+        than *dmax*, then the shape is removed. Edges are checked
         for curve parts and faces are checked for surface parts.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param float dmax: The maximum distance allowed.
+        :param float dmax: The maximum distance.
 
         :return: *True* if shapes were discarded, *False* if not.
         :rtype: bool
@@ -848,8 +845,47 @@ class Part(TopoDS_Shape, ViewableItem):
         modified = False
         for part_shape in shapes:
             dmin = DistanceShapeToShape(shape, part_shape).dmin
-            if dmin <= dmax:
-                rebuild.remove(shape)
+            if dmin > dmax:
+                rebuild.remove(part_shape)
+                modified = True
+
+        if not modified:
+            return False
+
+        new_shape = rebuild.apply()
+        self.set_shape(new_shape)
+        return True
+
+    def discard_by_dmin(self, shape, dmin):
+        """
+        Discard shapes of the part using a shape and a distance. If the
+        distance between a shape of the part and the given shape is less
+        than *dmin*, then the shape is removed. Edges are checked
+        for curve parts and faces are checked for surface parts.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param float dmin: The minimum distance.
+
+        :return: *True* if shapes were discarded, *False* if not.
+        :rtype: bool
+
+        :raise TypeError: If this part is not a curve or surface part.
+        """
+        if isinstance(self, CurvePart):
+            shapes = ExploreShape.get_edges(self)
+        elif isinstance(self, SurfacePart):
+            shapes = ExploreShape.get_faces(self)
+        else:
+            msg = 'Invalid part type in discard operation.'
+            raise TypeError(msg)
+
+        rebuild = RebuildShapeWithShapes(self)
+
+        modified = False
+        for part_shape in shapes:
+            dmin_ = DistanceShapeToShape(shape, part_shape).dmin
+            if dmin > dmin_:
+                rebuild.remove(part_shape)
                 modified = True
 
         if not modified:
