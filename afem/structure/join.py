@@ -22,9 +22,10 @@ class FuseSurfaceParts(object):
         bop.set_args(parts)
         bop.build()
 
-        # TODO Rebuild with multiple parts
+        rebuild = RebuildShapesByTool(parts, bop)
         for part in parts:
-            part.rebuild(bop)
+            new_shape = rebuild.new_shape(part)
+            part.set_shape(new_shape)
 
         self._is_done = bop.is_done
         self._fused_shape = bop.shape
