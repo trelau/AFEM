@@ -246,3 +246,26 @@ class CheckGeom(object):
         :rtype: bool
         """
         return isinstance(geom, Axis3)
+
+    @staticmethod
+    def nearest_point(p, pnts):
+        """
+        Find the point nearest to a given point.
+
+        :param point_like p: The point.
+        :param  list[point_like] pnts: List of points.
+
+        :return: The nearest point.
+        :rtype: afem.geometry.entities.Point
+        """
+        p = CheckGeom.to_point(p)
+        pnts = [CheckGeom.to_point(pi) for pi in pnts]
+
+        dmin = p.distance(pnts[0])
+        pmin = pnts[0]
+        for pi in pnts[1:]:
+            di = p.distance(pi)
+            if di < dmin:
+                dmin = di
+                pmin = pi
+        return pmin
