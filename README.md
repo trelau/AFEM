@@ -23,13 +23,13 @@ for Python 3.5 Windows 32- and 64-bit. It is recommended that a designated
 environment be created and used for AFEM. An example of creating this
 environment for Anaconda Python within an Anaconda command prompt is:
 
-    conda create -n asap python=3.5
+    conda create -n afem python=3.5
 
-This will create an environment named "asap" with Python 3.5. Make sure this
+This will create an environment named "afem" with Python 3.5. Make sure this
 environment is active when using AFEM. For Anaconda Python, activating this
 environment may look like:
 
-    activate asap
+    activate afem
 
 within an Anaconda command prompt. At this point the prerequisites can be
 installed using specified channels on the Anaconda cloud:
