@@ -340,7 +340,7 @@ class Wing(Body):
         else:
             dist = DistancePointToShapes(p1, builder.wires)
             wire = dist.nearest_shape
-        crv = ExploreShape.curve_of_wire(wire)
+        crv = ExploreShape.curve_of_shape(wire)
         if not isinstance(crv, NurbsCurve):
             msg = 'Unsupported curve type created.'
             raise RuntimeError(msg)
