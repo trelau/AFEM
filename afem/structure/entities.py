@@ -166,7 +166,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: *True* if part has a reference curve, *False* if not.
         :rtype: bool
         """
-        return CheckGeom.is_curve_like(self._cref)
+        return CheckGeom.is_curve(self._cref)
 
     @property
     def has_sref(self):
@@ -174,7 +174,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: *True* if part has a reference surface, *False* if not.
         :rtype: bool
         """
-        return CheckGeom.is_surface_like(self._sref)
+        return CheckGeom.is_surface(self._sref)
 
     @property
     def p1(self):
@@ -244,7 +244,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :raise TypeError: If *cref* is an invalid curve.
         """
-        if not CheckGeom.is_curve_like(cref):
+        if not CheckGeom.is_curve(cref):
             msg = 'Invalid curve type.'
             raise TypeError(msg)
         self._cref = cref
@@ -259,7 +259,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :raise TypeError: If *sref* is an invalid surface.
         """
-        if not CheckGeom.is_surface_like(sref):
+        if not CheckGeom.is_surface(sref):
             msg = 'Invalid surface type.'
             raise TypeError(msg)
         self._sref = sref
