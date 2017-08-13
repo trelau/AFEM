@@ -49,7 +49,7 @@ class DistancePointToCurve(object):
 
         results.sort(key=lambda tup: tup[0])
 
-        # TODO Remove duplicate points
+        # FIXME Remove duplicate points
         self._dmin = results[0][0]
         self._dmax = results[-1][0]
         self._dist = [row[0] for row in results]

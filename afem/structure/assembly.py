@@ -260,8 +260,8 @@ class AssemblyData(object):
 
         :param assy:
         :param include_subassy
-        :param afem.structure.entities.Part rtype: Option to return only
-            parts of a certain type.
+        :param rtype: Option to return only parts of a certain type. Provide a
+            class to check if the part is of the given type.
         :param bool order: Option to order parts by their ID.
 
         :return: The parts.

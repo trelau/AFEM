@@ -335,7 +335,6 @@ class Wing(Body):
             msg = 'Failed to extract any curves.'
             raise RuntimeError(msg)
 
-        # TODO Support other curve types.
         if builder.nwires == 1:
             wire = builder.wires[0]
         else:
