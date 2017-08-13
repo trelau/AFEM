@@ -4,9 +4,11 @@ from warnings import warn
 import OCC.BSplCLib as CLib
 from OCC.Approx import (Approx_ChordLength)
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
+from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Line,
+                      Geom_Plane)
 from OCC.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                          GeomAPI_PointsToBSpline)
-from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_C2, GeomAbs_Line)
+from OCC.GeomAbs import (GeomAbs_C2)
 from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
                           GeomFill_SectionGenerator)
@@ -714,8 +716,7 @@ class LineByVector(object):
             msg = "Invalid direction."
             raise TypeError(msg)
 
-        line = Line(p, d)
-        self._line = line
+        self._line = Line(Geom_Line(p, d).GetHandle())
 
     @property
     def line(self):
@@ -756,8 +757,7 @@ class LineByPoints(object):
 
         d = DirectionByArray(p2 - p1).direction
 
-        line = Line(p1, d)
-        self._line = line
+        self._line = Line(Geom_Line(p1, d).GetHandle())
 
     @property
     def line(self):
@@ -807,9 +807,9 @@ class NurbsCurveByData(object):
             weights = [1.] * tcol_cp.Length()
         tcol_weights = to_tcolstd_array1_real(weights)
 
-        c = NurbsCurve(tcol_cp, tcol_weights, tcol_knots, tcol_mult, p,
-                       is_periodic)
-        self._c = c
+        c = Geom_BSplineCurve(tcol_cp, tcol_weights, tcol_knots, tcol_mult, p,
+                              is_periodic)
+        self._c = NurbsCurve(c.GetHandle())
 
     @property
     def curve(self):
@@ -870,9 +870,7 @@ class NurbsCurveByInterp(object):
             msg = "GeomAPI_Interpolate failed."
             raise RuntimeError(msg)
 
-        occ_crv = interp.Curve().GetObject()
-        c = create_nurbs_curve_from_occ(occ_crv)
-        self._c = c
+        self._c = NurbsCurve(interp.Curve())
 
     @property
     def curve(self):
@@ -942,9 +940,7 @@ class NurbsCurveByApprox(object):
             msg = "GeomAPI_PointsToBSpline failed."
             raise RuntimeError(msg)
 
-        occ_crv = fit.Curve().GetObject()
-        c = create_nurbs_curve_from_occ(occ_crv)
-        self._c = c
+        self._c = NurbsCurve(fit.Curve())
 
     @property
     def curve(self):
@@ -1013,8 +1009,7 @@ class PlaneByNormal(object):
             msg = 'Invalid normal vector.'
             raise TypeError(msg)
 
-        pln = Plane(p0, vn)
-        self._pln = pln
+        self._pln = Plane(Geom_Plane(p0, vn).GetHandle())
 
     @property
     def plane(self):
@@ -1055,16 +1050,16 @@ class PlaneByAxes(object):
             raise ValueError(msg)
 
         if axes in ['xy', 'yx']:
-            pln = Plane(origin, Direction(0., 0., 1))
+            pln = Geom_Plane(origin, Direction(0., 0., 1))
         elif axes in ['yz', 'zy']:
-            pln = Plane(origin, Direction(1., 0., 0))
+            pln = Geom_Plane(origin, Direction(1., 0., 0))
         elif axes in ['xz', 'zx']:
-            pln = Plane(origin, Direction(0., 1., 0))
+            pln = Geom_Plane(origin, Direction(0., 1., 0))
         else:
             msg = 'Unknown axes.'
             raise RuntimeError(msg)
 
-        self._pln = pln
+        self._pln = Plane(pln.GetHandle())
 
     @property
     def plane(self):
@@ -1124,9 +1119,8 @@ class PlaneByPoints(object):
         n = Direction(*vn)
         vx = Direction(*vx)
         ax = Axis3(p1, n, vx)
-        pln = Plane(gp_Pln(ax))
 
-        self._pln = pln
+        self._pln = Plane(Geom_Plane(gp_Pln(ax)).GetHandle())
 
     @property
     def plane(self):
@@ -1179,9 +1173,8 @@ class PlaneByApprox(object):
         gp_pln = avg_pln.Plane().GetObject().Pln()
         pcg = Point(*mean(pnts, axis=0))
         gp_pln.SetLocation(pcg)
-        pln = Plane(gp_pln)
 
-        self._pln = pln
+        self._pln = Plane(Geom_Plane(gp_pln).GetHandle())
 
     @property
     def plane(self):
@@ -1232,10 +1225,10 @@ class PlaneFromParameter(object):
         self._u = u
         p = c.eval(u)
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.Pln()
+            gp_pln = ref_pln.object.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
-            self._pln = Plane(p, dn)
+            self._pln = Plane(Geom_Plane(p, dn).GetHandle())
         else:
             v = c.deriv(u, 1)
             self._pln = PlaneByNormal(p, v)
@@ -1306,11 +1299,11 @@ class PlanesAlongCurveByNumber(object):
 
         plns = []
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.Pln()
+            gp_pln = ref_pln.object.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             for p in pnts:
-                pln = Plane(p, dn)
+                pln = Plane(Geom_Plane(p, dn).GetHandle())
                 plns.append(pln)
         else:
             for i in range(npts):
@@ -1318,7 +1311,7 @@ class PlanesAlongCurveByNumber(object):
                 u = prms[i]
                 vn = c.deriv(u, 1)
                 dn = Direction(vn)
-                pln = Plane(p, dn)
+                pln = Plane(Geom_Plane(p, dn).GetHandle())
                 plns.append(pln)
 
         self._plns = plns
@@ -1424,11 +1417,11 @@ class PlanesAlongCurveByDistance(object):
 
         plns = []
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.Pln()
+            gp_pln = ref_pln.object.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             for p in pnts:
-                pln = Plane(p, dn)
+                pln = Plane(Geom_Plane(p, dn).GetHandle())
                 plns.append(pln)
         else:
             for i in range(npts):
@@ -1436,7 +1429,7 @@ class PlanesAlongCurveByDistance(object):
                 u = prms[i]
                 vn = c.deriv(u, 1)
                 dn = Direction(vn)
-                pln = Plane(p, dn)
+                pln = Plane(Geom_Plane(p, dn).GetHandle())
                 plns.append(pln)
 
         self._plns = plns
@@ -1768,16 +1761,16 @@ class NurbsSurfaceByData(object):
             weights = ones((tcol_cp.ColLength(), tcol_cp.RowLength()))
         tcol_weights = to_tcolstd_array2_real(weights)
 
-        s = NurbsSurface(tcol_cp, tcol_uknots, tcol_vknots,
-                         tcol_umult, tcol_vmult, p, q, is_u_periodic,
-                         is_v_periodic)
+        s = Geom_BSplineSurface(tcol_cp, tcol_uknots, tcol_vknots,
+                                tcol_umult, tcol_vmult, p, q, is_u_periodic,
+                                is_v_periodic)
 
         # Set the weights since using in construction causes an error.
         for i in range(1, tcol_weights.ColLength() + 1):
             for j in range(1, tcol_weights.RowLength() + 1):
                 s.SetWeight(i, j, tcol_weights.Value(i, j))
 
-        self._s = s
+        self._s = NurbsSurface(s.GetHandle())
 
     @property
     def surface(self):
@@ -1907,10 +1900,11 @@ class NurbsSurfaceByInterp(object):
         cp, w = dehomogenize_array2d(cpw)
         tcol_poles = to_tcolgp_array2_pnt(cp)
         tcol_weights = to_tcolstd_array2_real(w)
-        s = NurbsSurface(tcol_poles, tcol_weights, tcol_uknots, tcol_vknots,
-                         tcol_umult, tcol_vmult, p, q, is_u_periodic, False)
+        s = Geom_BSplineSurface(tcol_poles, tcol_weights, tcol_uknots,
+                                tcol_vknots, tcol_umult, tcol_vmult, p, q,
+                                is_u_periodic, False)
 
-        self._s = s
+        self._s = NurbsSurface(s.GetHandle())
 
     @property
     def surface(self):
@@ -2008,12 +2002,12 @@ class NurbsSurfaceByApprox(object):
         q = app_tool.VDegree()
         is_u_periodic = sec_gen.IsPeriodic()
         is_v_periodic = False
-        s = NurbsSurface(tcol_poles, tcol_weights, tcol_uknots, tcol_vknots,
-                         tcol_umult, tcol_vmult, p, q, is_u_periodic,
-                         is_v_periodic)
+        s = Geom_BSplineSurface(tcol_poles, tcol_weights, tcol_uknots,
+                                tcol_vknots, tcol_umult, tcol_vmult, p, q,
+                                is_u_periodic, is_v_periodic)
 
         tol3d_reached, tol2d_reached = app_tool.TolReached()
-        self._s = s
+        self._s = NurbsSurface(s.GetHandle())
         self._tol3d_reached = tol3d_reached
         self._tol2d_reached = tol2d_reached
 
