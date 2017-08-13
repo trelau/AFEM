@@ -375,8 +375,7 @@ def _process_wing(compound, divide_closed):
     wing = Wing(solid)
 
     if vsp_surf:
-        # TODO Remove assert statement
-        assert isinstance(vsp_surf, NurbsSurface)
+        vsp_surf = NurbsSurface.downcast(vsp_surf)
         wing.add_metadata('vsp surface', vsp_surf)
         upr_srf = vsp_surf.copy()
         v_le = vsp_surf.local_to_global_param('v', 0.5)
@@ -443,8 +442,7 @@ def _process_unsplit_wing(compound, divide_closed):
 
     # Get the surface.
     master_surf = ExploreShape.surface_of_face(face)
-    # TODO Remove assert
-    assert isinstance(master_surf, NurbsSurface)
+    master_surf = NurbsSurface.downcast(master_surf)
     uknots, vknots = master_surf.uknots, master_surf.vknots
     vsplit = master_surf.local_to_global_param('v', 0.5)
 
