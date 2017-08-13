@@ -4,13 +4,11 @@ from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.GProp import GProp_GProps
 from OCC.Geom import (Handle_Geom_BSplineCurve, Handle_Geom_BSplineSurface,
                       Handle_Geom_Line, Handle_Geom_Plane)
-from OCC.Geom2d import Geom2d_BSplineCurve
 from OCC.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                          TColStd_Array2OfReal)
-from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
-                        TColgp_Array2OfPnt)
+from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array2OfPnt)
 from OCC.gp import gp_Ax1, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec, gp_XYZ
 from numpy import add, array, float64, ndarray, subtract
 
@@ -28,10 +26,414 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolstd_array1_real,
                             to_np_from_tcolstd_array2_real)
 
-__all__ = ["Geometry", "Point", "Point2D", "Direction", "Vector", "Axis1",
-           "Axis3", "Curve", "Line", "NurbsCurve", "NurbsCurve2D", "Surface",
-           "Plane", "NurbsSurface"]
+__all__ = ["Geometry2D", "Point2D", "NurbsCurve2D", "Geometry", "Point",
+           "Direction", "Vector", "Axis1", "Axis3", "Curve", "Line",
+           "NurbsCurve", "Surface", "Plane", "NurbsSurface"]
 
+
+# 2-D -------------------------------------------------------------------------
+
+class Geometry2D(ViewableItem):
+    """
+    Base class for 2-D geometry.
+
+    :param OCC.Geom2d.Handle_Geom2d_Geometry the_handle: The geometry handle.
+    """
+
+    def __init__(self, the_handle=None):
+        super(Geometry2D, self).__init__()
+        self._handle = the_handle
+        self._object = None
+        if the_handle is not None:
+            self._object = the_handle.GetObject()
+
+
+class Point2D(gp_Pnt2d, Geometry2D):
+    """
+    A 2-D Cartesian point. Supports NumPy array methods.
+
+    For more information see gp_Pnt2d_.
+
+    .. _gp_Pnt2d: https://www.opencascade.com/doc/occt-7.1.0/refman/htmlclassgp___pnt2d.html
+
+    Usage:
+
+    >>> from afem.geometry import Point2D
+    >>> Point2D()
+    Point2D(0.0, 0.0)
+    >>> Point2D(1., 2.)
+    Point2D(1.0, 2.0)
+    >>> from numpy import array
+    >>> array(Point2D(1., 2.))
+    array([ 1.,  2.])
+    >>> p1 = Point2D(1., 2.)
+    >>> p2 = Point2D(4., 5.)
+    >>> p1[0]
+    1.0
+    >>> p1[1]
+    2.0
+    >>> p1 + p2
+    array([ 5.,  7.])
+    >>> p2 - p1
+    array([ 3.,  3.])
+    >>> array([p1, p2])
+    array([[ 1.,  2.],
+           [ 4.,  5.]])
+    """
+
+    def __init__(self, *args):
+        super(Point2D, self).__init__(*args)
+        Geometry2D.__init__(self)
+
+    def __str__(self):
+        return 'Point2D({0}, {1})'.format(*self.xy)
+
+    def __repr__(self):
+        return 'Point2D({0}, {1})'.format(*self.xy)
+
+    def __array__(self, dtype=float64, copy=True, order=None, subok=False,
+                  ndmin=0):
+        return array(self.xy, dtype=dtype, copy=copy, order=order,
+                     subok=subok, ndmin=ndmin)
+
+    def __iter__(self):
+        for elm in self.xy:
+            yield elm
+
+    def __len__(self):
+        return 2
+
+    def __getitem__(self, item):
+        return self.xy[item]
+
+    def __add__(self, other):
+        return add(self, other)
+
+    def __sub__(self, other):
+        return subtract(self, other)
+
+    @property
+    def xy(self):
+        """
+        :return: The point xy-location.
+        :rtype: numpy.ndarray
+        """
+        return array([self.X(), self.Y()], dtype=float64)
+
+    @property
+    def x(self):
+        return self.X()
+
+    @x.setter
+    def x(self, x):
+        """
+        The point x-location.
+
+        :getter: Returns the x-location.
+        :setter: Sets the x-location.
+        :type: float
+        """
+        self.SetX(x)
+
+    @property
+    def y(self):
+        """
+        The point y-location.
+
+        :getter: Returns the y-location.
+        :setter: Sets the y-location.
+        :type: float
+        """
+        return self.Y()
+
+    @y.setter
+    def y(self, y):
+        self.SetY(y)
+
+    def set_xy(self, xy):
+        """
+        Set point coordinates.
+
+        :param array_like xy: Point coordinates.
+
+        :return: *True* if set, *False* if not.
+        :rtype: bool
+        """
+        if isinstance(xy, gp_Pnt):
+            self.SetXY(xy.XYZ())
+            return True
+        if isinstance(xy, gp_XYZ):
+            self.SetXY(xy)
+            return True
+        if is_array_like(xy) and len(xy) == 2:
+            self.x, self.y = xy
+            return True
+        return False
+
+    def distance(self, other):
+        """
+        Compute the distance between two points.
+
+        :param point_like other: The other point.
+
+        :return: Distance to the other point.
+        :rtype: float
+        """
+        if isinstance(other, gp_Pnt2d):
+            return self.Distance(other)
+        if is_array_like(other) and len(other) == 2:
+            other = Point2D(*other)
+            return self.Distance(other)
+        return None
+
+    def is_equal(self, other, tol=None):
+        """
+        Check for coincident points.
+
+        :param point_like other: The other point.
+        :param float tol: Tolerance for coincidence.
+
+        :return: *True* if coincident, *False* if not.
+        :rtype: bool
+        """
+        if tol is None:
+            tol = Settings.gtol
+        if isinstance(other, gp_Pnt2d):
+            return self.IsEqual(other, tol)
+        if is_array_like(other) and len(other) == 2:
+            other = Point2D(*other)
+            return self.IsEqual(other, tol)
+        return False
+
+    def copy(self):
+        """
+        Return a new copy of the point.
+
+        :return: New point.
+        :rtype: afem.geometry.entities.Point2D
+        """
+        return Point2D(*self.xy)
+
+
+class NurbsCurve2D(Geometry2D):
+    """
+    NURBS curve in 2-D space.
+
+    :param OCC.Geom2d.Handle_Geom2d_BSplineCurve the_handle: The curve handle.
+
+    For more information see Geom2d_BSplineCurve_.
+
+    .. _Geom2d_BSplineCurve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom2d___b_spline_curve.html
+    """
+
+    def __init__(self, the_handle):
+        super(NurbsCurve2D, self).__init__(the_handle)
+
+    @property
+    def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom2d.Handle_Geom2d_BSplineCurve
+        """
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom2d.Geom2d_BSplineCurve
+        """
+        return self._object
+
+    @property
+    def adaptor(self):
+        """
+        :return: A curve adaptor.
+        :rtype: OCC.Geom2dAdaptor.Geom2dAdaptor_Curve
+        """
+        return Geom2dAdaptor_Curve(self.handle)
+
+    @property
+    def u1(self):
+        """
+        :return: The first parameter.
+        :rtype: float
+        """
+        return self.object.FirstParameter()
+
+    @property
+    def u2(self):
+        """
+        :return: The last parameter.
+        :rtype: float
+        """
+        return self.object.LastParameter()
+
+    @property
+    def p(self):
+        """
+        :return: Degree of curve.
+        :rtype: int
+        """
+        return self.object.Degree()
+
+    @property
+    def n(self):
+        """
+        :return: Number of control points - 1.
+        :rtype: int
+        """
+        return self.object.NbPoles() - 1
+
+    @property
+    def knots(self):
+        """
+        :return: Knot vector.
+        :rtype: numpy.ndarray
+        """
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbKnots())
+        self.object.Knots(tcol_array)
+        return to_np_from_tcolstd_array1_real(tcol_array)
+
+    @property
+    def mult(self):
+        """
+        :return: Multiplicity of knot vector.
+        :rtype: numpy.ndarray
+        """
+        tcol_array = TColStd_Array1OfInteger(1, self.object.NbKnots())
+        self.object.Multiplicities(tcol_array)
+        return to_np_from_tcolstd_array1_integer(tcol_array)
+
+    @property
+    def uk(self):
+        """
+        :return: Knot sequence.
+        :rtype: numpy.ndarray
+        """
+        tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbPoles() +
+                                             self.object.Degree() + 1)
+        self.object.KnotSequence(tcol_knot_seq)
+        return to_np_from_tcolstd_array1_real(tcol_knot_seq)
+
+    @property
+    def is_closed(self):
+        """
+        :return: *True* if curve is closed, *False* if not.
+        :rtype: bool
+        """
+        return self.object.IsClosed()
+
+    @property
+    def is_periodic(self):
+        """
+        :return: *True* if curve is periodic, *False* if not.
+        :rtype: bool
+        """
+        return self.object.IsPeriodic()
+
+    def set_domain(self, u1=0., u2=1.):
+        """
+        Reparameterize the knot vector between *u1* and *u2*.
+
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
+
+        :return: *True* if successful, *False* if not.
+        :rtype: bool
+        """
+        if u1 > u2:
+            return False
+        tcol_knots = TColStd_Array1OfReal(1, self.object.NbKnots())
+        self.object.Knots(tcol_knots)
+        reparameterize_knots(u1, u2, tcol_knots)
+        self.object.SetKnots(tcol_knots)
+        return True
+
+    def local_to_global_param(self, *args):
+        """
+        Convert parameter(s) from local domain 0. <= u <= 1. to global domain
+        a <= u <= b.
+
+        :param float args: Local parameter(s).
+
+        :return: Global parameter(s).
+        :rtype: float or list[float]
+        """
+        return local_to_global_param(self.u1, self.u2, *args)
+
+    def global_to_local_param(self, *args):
+        """
+        Convert parameter(s) from global domain a <= u <= b to local domain
+        0. <= u <= 1.
+
+        :param float args: Global parameter(s).
+
+        :return: Local parameter(s).
+        :rtype: float or list[float]
+        """
+        return global_to_local_param(self.u1, self.u2, *args)
+
+    def eval(self, u):
+        """
+        Evaluate a point on the curve.
+
+        :param float u: Curve parameter.
+
+        :return: Curve point.
+        :rtype: afem.geometry.entities.Point2D
+        """
+        p = Point2D()
+        self.object.D0(u, p)
+        return p
+
+    def reverse(self):
+        """
+        Reverse curve direction.
+
+        :return: None.
+        """
+        self.object.Reverse()
+
+    def reversed_u(self, u):
+        """
+        Calculate the parameter on the reversed curve.
+
+        :param float u: Curve parameter.
+
+        :return: Reversed parameter.
+        :rtype: float
+        """
+        return self.object.ReversedParameter(u)
+
+    def segment(self, u1, u2):
+        """
+        Segment the curve between parameters.
+
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
+
+        :return: *True* if segmented, *False* if not.
+        :rtype: bool
+        """
+        if u1 > u2:
+            return False
+        self.object.Segment(u1, u2)
+        return True
+
+    def copy(self):
+        """
+        Return a new copy of the curve.
+
+        :return: New curve.
+        :rtype: afem.geometry.entities.NurbsCurve2D
+        """
+        h_geom = self.object.Copy()
+        h_crv = self.handle.DownCast(h_geom)
+        return NurbsCurve2D(h_crv)
+
+
+# 3-D -------------------------------------------------------------------------
 
 class Geometry(ViewableItem):
     """
@@ -254,173 +656,6 @@ class Point(gp_Pnt, Geometry):
         :rtype: afem.geometry.entities.Point
         """
         return Point(*self.xyz)
-
-
-class Point2D(gp_Pnt2d, Geometry):
-    """
-    A 2-D Cartesian point. Supports NumPy array methods.
-
-    For more information see gp_Pnt2d_.
-
-    .. _gp_Pnt2d: https://www.opencascade.com/doc/occt-7.1.0/refman/htmlclassgp___pnt2d.html
-
-    Usage:
-
-    >>> from afem.geometry import Point2D
-    >>> Point2D()
-    Point2D(0.0, 0.0)
-    >>> Point2D(1., 2.)
-    Point2D(1.0, 2.0)
-    >>> from numpy import array
-    >>> array(Point2D(1., 2.))
-    array([ 1.,  2.])
-    >>> p1 = Point2D(1., 2.)
-    >>> p2 = Point2D(4., 5.)
-    >>> p1[0]
-    1.0
-    >>> p1[1]
-    2.0
-    >>> p1 + p2
-    array([ 5.,  7.])
-    >>> p2 - p1
-    array([ 3.,  3.])
-    >>> array([p1, p2])
-    array([[ 1.,  2.],
-           [ 4.,  5.]])
-    """
-
-    def __init__(self, *args):
-        super(Point2D, self).__init__(*args)
-        Geometry.__init__(self)
-
-    def __str__(self):
-        return 'Point2D({0}, {1})'.format(*self.xy)
-
-    def __repr__(self):
-        return 'Point2D({0}, {1})'.format(*self.xy)
-
-    def __array__(self, dtype=float64, copy=True, order=None, subok=False,
-                  ndmin=0):
-        return array(self.xy, dtype=dtype, copy=copy, order=order,
-                     subok=subok, ndmin=ndmin)
-
-    def __iter__(self):
-        for elm in self.xy:
-            yield elm
-
-    def __len__(self):
-        return 2
-
-    def __getitem__(self, item):
-        return self.xy[item]
-
-    def __add__(self, other):
-        return add(self, other)
-
-    def __sub__(self, other):
-        return subtract(self, other)
-
-    @property
-    def xy(self):
-        """
-        :return: The point xy-location.
-        :rtype: numpy.ndarray
-        """
-        return array([self.X(), self.Y()], dtype=float64)
-
-    @property
-    def x(self):
-        return self.X()
-
-    @x.setter
-    def x(self, x):
-        """
-        The point x-location.
-
-        :getter: Returns the x-location.
-        :setter: Sets the x-location.
-        :type: float
-        """
-        self.SetX(x)
-
-    @property
-    def y(self):
-        """
-        The point y-location.
-
-        :getter: Returns the y-location.
-        :setter: Sets the y-location.
-        :type: float
-        """
-        return self.Y()
-
-    @y.setter
-    def y(self, y):
-        self.SetY(y)
-
-    def set_xy(self, xy):
-        """
-        Set point coordinates.
-
-        :param array_like xy: Point coordinates.
-
-        :return: *True* if set, *False* if not.
-        :rtype: bool
-        """
-        if isinstance(xy, gp_Pnt):
-            self.SetXY(xy.XYZ())
-            return True
-        if isinstance(xy, gp_XYZ):
-            self.SetXY(xy)
-            return True
-        if is_array_like(xy) and len(xy) == 2:
-            self.x, self.y = xy
-            return True
-        return False
-
-    def distance(self, other):
-        """
-        Compute the distance between two points.
-
-        :param point_like other: The other point.
-
-        :return: Distance to the other point.
-        :rtype: float
-        """
-        if isinstance(other, gp_Pnt2d):
-            return self.Distance(other)
-        if is_array_like(other) and len(other) == 2:
-            other = Point2D(*other)
-            return self.Distance(other)
-        return None
-
-    def is_equal(self, other, tol=None):
-        """
-        Check for coincident points.
-
-        :param point_like other: The other point.
-        :param float tol: Tolerance for coincidence.
-
-        :return: *True* if coincident, *False* if not.
-        :rtype: bool
-        """
-        if tol is None:
-            tol = Settings.gtol
-        if isinstance(other, gp_Pnt2d):
-            return self.IsEqual(other, tol)
-        if is_array_like(other) and len(other) == 2:
-            other = Point2D(*other)
-            return self.IsEqual(other, tol)
-        return False
-
-    def copy(self):
-        """
-        Return a new copy of the point.
-
-        :return: New point.
-        :rtype: afem.geometry.entities.Point2D
-        """
-        return Point2D(*self.xy)
 
 
 class Direction(gp_Dir, Geometry):
@@ -1138,225 +1373,6 @@ class NurbsCurve(Curve):
             return False
         self.object.Segment(u1, u2)
         return True
-
-
-class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
-    """
-    NURBS curve in 2-D space.
-
-    For more information see Geom2d_BSplineCurve_.
-
-    .. _Geom2d_BSplineCurve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom2d___b_spline_curve.html
-    """
-
-    def __init__(self, *args):
-        super(NurbsCurve2D, self).__init__(*args)
-        Geometry.__init__(self)
-
-    @property
-    def handle(self):
-        """
-        :return: The smart pointer.
-        :rtype: OCC.Geom2d.Handle_Geom2d_BSplineCurve
-        """
-        return self.GetHandle()
-
-    @property
-    def adaptor(self):
-        """
-        :return: A curve adaptor.
-        :rtype: OCC.Geom2dAdaptor.Geom2dAdaptor_Curve
-        """
-        return Geom2dAdaptor_Curve(self.handle)
-
-    @property
-    def u1(self):
-        """
-        :return: The first parameter.
-        :rtype: float
-        """
-        return self.FirstParameter()
-
-    @property
-    def u2(self):
-        """
-        :return: The last parameter.
-        :rtype: float
-        """
-        return self.LastParameter()
-
-    @property
-    def p(self):
-        """
-        :return: Degree of curve.
-        :rtype: int
-        """
-        return self.Degree()
-
-    @property
-    def n(self):
-        """
-        :return: Number of control points - 1.
-        :rtype: int
-        """
-        return self.NbPoles() - 1
-
-    @property
-    def knots(self):
-        """
-        :return: Knot vector.
-        :rtype: numpy.ndarray
-        """
-        tcol_array = TColStd_Array1OfReal(1, self.NbKnots())
-        self.Knots(tcol_array)
-        return to_np_from_tcolstd_array1_real(tcol_array)
-
-    @property
-    def mult(self):
-        """
-        :return: Multiplicity of knot vector.
-        :rtype: numpy.ndarray
-        """
-        tcol_array = TColStd_Array1OfInteger(1, self.NbKnots())
-        self.Multiplicities(tcol_array)
-        return to_np_from_tcolstd_array1_integer(tcol_array)
-
-    @property
-    def uk(self):
-        """
-        :return: Knot sequence.
-        :rtype: numpy.ndarray
-        """
-        tcol_knot_seq = TColStd_Array1OfReal(1, self.NbPoles() +
-                                             self.Degree() + 1)
-        self.KnotSequence(tcol_knot_seq)
-        return to_np_from_tcolstd_array1_real(tcol_knot_seq)
-
-    @property
-    def is_closed(self):
-        """
-        :return: *True* if curve is closed, *False* if not.
-        :rtype: bool
-        """
-        return self.IsClosed()
-
-    @property
-    def is_periodic(self):
-        """
-        :return: *True* if curve is periodic, *False* if not.
-        :rtype: bool
-        """
-        return self.IsPeriodic()
-
-    def set_domain(self, u1=0., u2=1.):
-        """
-        Reparameterize the knot vector between *u1* and *u2*.
-
-        :param float u1: First parameter.
-        :param float u2: Last parameter.
-
-        :return: *True* if successful, *False* if not.
-        :rtype: bool
-        """
-        if u1 > u2:
-            return False
-        tcol_knots = TColStd_Array1OfReal(1, self.NbKnots())
-        self.Knots(tcol_knots)
-        reparameterize_knots(u1, u2, tcol_knots)
-        self.SetKnots(tcol_knots)
-        return True
-
-    def local_to_global_param(self, *args):
-        """
-        Convert parameter(s) from local domain 0. <= u <= 1. to global domain
-        a <= u <= b.
-
-        :param float args: Local parameter(s).
-
-        :return: Global parameter(s).
-        :rtype: float or list[float]
-        """
-        return local_to_global_param(self.u1, self.u2, *args)
-
-    def global_to_local_param(self, *args):
-        """
-        Convert parameter(s) from global domain a <= u <= b to local domain
-        0. <= u <= 1.
-
-        :param float args: Global parameter(s).
-
-        :return: Local parameter(s).
-        :rtype: float or list[float]
-        """
-        return global_to_local_param(self.u1, self.u2, *args)
-
-    def eval(self, u):
-        """
-        Evaluate a point on the curve.
-
-        :param float u: Curve parameter.
-
-        :return: Curve point.
-        :rtype: afem.geometry.entities.Point2D
-        """
-        p = Point2D()
-        self.D0(u, p)
-        return p
-
-    def reverse(self):
-        """
-        Reverse curve direction.
-
-        :return: None.
-        """
-        self.Reverse()
-
-    def reversed_u(self, u):
-        """
-        Calculate the parameter on the reversed curve.
-
-        :param float u: Curve parameter.
-
-        :return: Reversed parameter.
-        :rtype: float
-        """
-        return self.ReversedParameter(u)
-
-    def segment(self, u1, u2):
-        """
-        Segment the curve between parameters.
-
-        :param float u1: First parameter.
-        :param float u2: Last parameter.
-
-        :return: *True* if segmented, *False* if not.
-        :rtype: bool
-        """
-        if u1 > u2:
-            return False
-        self.Segment(u1, u2)
-        return True
-
-    def copy(self):
-        """
-        Return a new copy of the 2-D curve.
-
-        :return: New 2-d curve.
-        :rtype: afem.geometry.entities.NurbsCurve2D
-        """
-        tcol_poles = TColgp_Array1OfPnt2d(1, self.NbPoles())
-        self.Poles(tcol_poles)
-        tcol_weights = TColStd_Array1OfReal(1, self.NbPoles())
-        self.Weights(tcol_weights)
-        tcol_knots = TColStd_Array1OfReal(1, self.NbKnots())
-        self.Knots(tcol_knots)
-        tcol_mult = TColStd_Array1OfInteger(1, self.NbKnots())
-        self.Multiplicities(tcol_mult)
-        p = self.Degree()
-        is_periodic = self.IsPeriodic()
-
-        return NurbsCurve2D(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
-                            is_periodic)
 
 
 class Surface(Geometry):
