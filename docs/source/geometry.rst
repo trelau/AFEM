@@ -113,14 +113,6 @@ VectorByPoints
 ~~~~~~~~~~~~~~
 .. autoclass:: VectorByPoints
 
-CurveByUIso
-~~~~~~~~~~~
-.. autoclass:: CurveByUIso
-
-CurveByVIso
-~~~~~~~~~~~
-.. autoclass:: CurveByVIso
-
 LineByVector
 ~~~~~~~~~~~~
 .. autoclass:: LineByVector

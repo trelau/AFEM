@@ -17,8 +17,7 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                         TopoDS_Wire, topods_Compound, topods_Edge, topods_Face,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 
-from afem.geometry.create import (create_nurbs_curve_from_occ)
-from afem.geometry.entities import Curve, Point, Surface
+from afem.geometry.entities import Curve, NurbsCurve, Point, Surface
 from afem.topology.props import AreaOfShapes
 
 __all__ = ["ExploreShape", "ExploreWire", "ExploreFreeEdges"]
@@ -268,8 +267,6 @@ class ExploreShape(object):
 
         :return: Underlying curve of edge.
         :rtype: afem.geometry.entities.Curve
-
-        :raise RuntimeError: If an unsupported curve type is found.
         """
         h_crv = BRep_Tool.Curve(edge)
         return Curve(h_crv[0])
@@ -299,11 +296,11 @@ class ExploreShape(object):
                                          GeomAbs_BezierCurve]:
                 continue
             geom_convert.Add(adp_crv.BSpline(), tol)
-        occ_crv = geom_convert.BSplineCurve().GetObject()
-        if not occ_crv:
+        h_crv = geom_convert.BSplineCurve()
+        if h_crv.IsNull():
             msg = 'Unsupported curve type.'
             raise RuntimeError(msg)
-        crv = create_nurbs_curve_from_occ(occ_crv)
+        crv = NurbsCurve(h_crv)
         return crv
 
     @classmethod
@@ -336,8 +333,6 @@ class ExploreShape(object):
 
         :return: Underlying surface of face.
         :rtype: afem.geometry.entities.Surface
-
-        :raise RuntimeError: If unsupported surface type is found.
         """
         hsrf = BRep_Tool.Surface(face)
         return Surface(hsrf)

@@ -13,10 +13,8 @@ from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
                           GeomFill_SectionGenerator)
 from OCC.GeomPlate import GeomPlate_BuildAveragePlane
-from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
-                         TColStd_Array2OfReal)
-from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
-                        TColgp_Array2OfPnt)
+from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal)
+from OCC.TColgp import (TColgp_Array1OfPnt)
 from OCC.gp import gp_Pln
 from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
@@ -49,99 +47,6 @@ __all__ = ["PointByXYZ", "PointByArray",
            "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
            "PlanesBetweenPlanesByDistance", "NurbsSurfaceByData",
            "NurbsSurfaceByInterp", "NurbsSurfaceByApprox"]
-
-
-# CONVERT ---------------------------------------------------------------------
-
-def create_line_from_occ(lin):
-    """
-    Create Line from an OCC Geom_Line.
-
-    :param OCC.Geom.Geom_Line lin: The OCC line.
-
-    :return: The Line.
-    :rtype: afem.geometry.entities.Line
-    """
-    return Line(lin.Lin())
-
-
-def create_nurbs_curve_from_occ(crv):
-    """
-    Create a NURBS curve from an OCC Geom_BSplineCurve.
-
-    :param OCC.Geom.Geom_BSplineCurve crv: The OCC curve.
-
-    :return: The NurbsCurve.
-    :rtype: afem.geometry.entities.NurbsCurve
-    """
-    tcol_poles = TColgp_Array1OfPnt(1, crv.NbPoles())
-    crv.Poles(tcol_poles)
-    tcol_weights = TColStd_Array1OfReal(1, crv.NbPoles())
-    crv.Weights(tcol_weights)
-    tcol_knots = TColStd_Array1OfReal(1, crv.NbKnots())
-    crv.Knots(tcol_knots)
-    tcol_mult = TColStd_Array1OfInteger(1, crv.NbKnots())
-    crv.Multiplicities(tcol_mult)
-    p = crv.Degree()
-    is_periodic = crv.IsPeriodic()
-    return NurbsCurve(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
-                      is_periodic)
-
-
-def create_nurbs_curve_from_occ2d(crv2d):
-    """
-    Create a 2-D NURBS curve from an OCC Geom2d_BSplineCurve.
-
-    :param OCC.Geom.Geom2d_BSplineCurve crv2d: The OCC curve.
-
-    :return: The NurbsCurve2D.
-    :rtype: afem.geometry.entities.NurbsCurve2D
-    """
-    tcol_poles = TColgp_Array1OfPnt2d(1, crv2d.NbPoles())
-    crv2d.Poles(tcol_poles)
-    tcol_weights = TColStd_Array1OfReal(1, crv2d.NbPoles())
-    crv2d.Weights(tcol_weights)
-    tcol_knots = TColStd_Array1OfReal(1, crv2d.NbKnots())
-    crv2d.Knots(tcol_knots)
-    tcol_mult = TColStd_Array1OfInteger(1, crv2d.NbKnots())
-    crv2d.Multiplicities(tcol_mult)
-    p = crv2d.Degree()
-    is_periodic = crv2d.IsPeriodic()
-
-    return NurbsCurve2D(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
-                        is_periodic)
-
-
-def create_nurbs_surface_from_occ(srf):
-    """
-    Create a NURBS surface from an OCC Geom_BSplineSurface.
-
-    :param OCC.Geom.Geom_BSplineSurface srf: The OCC Surface.
-
-    :return: The NurbsSurface.
-    :rtype: afem.geometry.entities.NurbsSurface
-    """
-    # Gather OCC data.
-    tcol_poles = TColgp_Array2OfPnt(1, srf.NbUPoles(), 1, srf.NbVPoles())
-    srf.Poles(tcol_poles)
-    tcol_weights = TColStd_Array2OfReal(1, srf.NbUPoles(), 1, srf.NbVPoles())
-    srf.Weights(tcol_weights)
-    tcol_uknots = TColStd_Array1OfReal(1, srf.NbUKnots())
-    srf.UKnots(tcol_uknots)
-    tcol_vknots = TColStd_Array1OfReal(1, srf.NbVKnots())
-    srf.VKnots(tcol_vknots)
-    tcol_umult = TColStd_Array1OfInteger(1, srf.NbUKnots())
-    srf.UMultiplicities(tcol_umult)
-    tcol_vmult = TColStd_Array1OfInteger(1, srf.NbVKnots())
-    srf.VMultiplicities(tcol_vmult)
-    p = srf.UDegree()
-    q = srf.VDegree()
-    is_u_periodic = srf.IsUPeriodic()
-    is_v_periodic = srf.IsVPeriodic()
-
-    return NurbsSurface(tcol_poles, tcol_weights, tcol_uknots, tcol_vknots,
-                        tcol_umult, tcol_vmult, p, q, is_u_periodic,
-                        is_v_periodic)
 
 
 # POINT -----------------------------------------------------------------------
