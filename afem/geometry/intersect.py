@@ -1,8 +1,6 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge
 from OCC.Extrema import Extrema_ExtPC
 from OCC.GeomAPI import GeomAPI_IntCS
-from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve, GeomAbs_Line
-from OCC.GeomAdaptor import GeomAdaptor_Curve
 from OCC.GeomInt import GeomInt_IntSS
 from OCC.IntTools import IntTools_EdgeEdge
 from OCC.ShapeFix import ShapeFix_ShapeTolerance
@@ -11,8 +9,7 @@ from numpy import float64, inf, mean, sqrt, zeros
 from scipy.spatial import KDTree
 
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import create_nurbs_curve_from_occ
-from afem.geometry.entities import Line, Point
+from afem.geometry.entities import Curve, Point
 
 __all__ = ["CurveIntersector", "IntersectCurveCurve",
            "IntersectCurveSurface", "SurfaceIntersector",
@@ -335,19 +332,7 @@ class IntersectSurfaceSurface(SurfaceIntersector):
         crvs = []
         for i in range(1, ncrvs + 1):
             hcrv = ssi.Line(i)
-            adp_crv = GeomAdaptor_Curve(hcrv)
-            if adp_crv.GetType() == GeomAbs_Line:
-                gp_lin = adp_crv.Line()
-                crv = Line(gp_lin)
-                crvs.append(crv)
-            elif adp_crv.GetType() in [GeomAbs_BezierCurve,
-                                       GeomAbs_BSplineCurve]:
-                crv = adp_crv.BSpline().GetObject()
-                crv = create_nurbs_curve_from_occ(crv)
-                crvs.append(crv)
-            else:
-                msg = 'Unsupported line created in IntersectSurfaceSurface.'
-                raise RuntimeError(msg)
+            crvs.append(Curve(hcrv))
 
         self._crvs = crvs
 
