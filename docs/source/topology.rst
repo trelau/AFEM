@@ -153,6 +153,10 @@ SolidByDrag
 ~~~~~~~~~~~
 .. autoclass:: SolidByDrag
 
+SolidByCylinder
+~~~~~~~~~~~~~~~
+.. autoclass:: SolidByCylinder
+
 CompoundByShapes
 ~~~~~~~~~~~~~~~~
 .. autoclass:: CompoundByShapes

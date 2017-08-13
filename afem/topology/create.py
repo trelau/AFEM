@@ -12,7 +12,8 @@ from OCC.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
                                 BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
 from OCC.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset)
-from OCC.BRepPrimAPI import BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism
+from OCC.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
+                             BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism)
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
@@ -44,6 +45,7 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "FaceByPlane", "FaceByPlanarWire", "FaceByDrag", "ShellBySurface",
            "ShellByFaces", "ShellBySewing",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
+           "SolidByCylinder",
            "CompoundByShapes", "HalfspaceByShape", "HalfspaceBySurface",
            "ShapeByFaces", "ShapeByDrag", "PointsAlongShapeByNumber",
            "PointsAlongShapeByDistance", "PlaneByEdges",
@@ -1080,6 +1082,40 @@ class SolidByDrag(object):
         :rtype: OCC.TopoDS.TopoDS_Face
         """
         return self._f2
+
+
+class SolidByCylinder(object):
+    """
+    Create a cylindrical solid.
+
+    :param float radius: The radius.
+    :param float height: The height.
+    :param axis2: Not yet implemented. Solid will be constructed in xy-plane.
+
+    :raise NotImplementedError: If an axis is provided.
+
+    Usage:
+
+    >>> from afem.topology import SolidByCylinder
+    >>> builder = SolidByCylinder(1., 1.)
+    >>> solid=builder.solid
+    """
+
+    def __init__(self, radius, height, axis2=None):
+        if axis2 is None:
+            builder = BRepPrimAPI_MakeCylinder(radius, height)
+        else:
+            raise NotImplementedError('Providing Axis2 not yet implemented.')
+
+        self._solid = builder.Solid()
+
+    @property
+    def solid(self):
+        """
+        :return: The solid.
+        :rtype: OCC.TopoDS.TopoDS_Solid
+        """
+        return self._solid
 
 
 # COMPOUND --------------------------------------------------------------------
