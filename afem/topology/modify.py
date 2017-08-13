@@ -26,6 +26,9 @@ class FixShape(object):
     """
 
     def __init__(self, shape, min_tol=None, max_tol=None):
+        # TODO Use context to fix sub-shapes
+        # TODO Option to set specific tools
+        # TODO Move to fix module
         fix = ShapeFix_Shape(shape)
         if min_tol is not None:
             fix.SetMinTolerance(min_tol)
