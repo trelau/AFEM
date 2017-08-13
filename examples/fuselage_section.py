@@ -87,7 +87,7 @@ for frame in frames:
 main_floor.set_transparency(0.5)
 cargo_floor.set_transparency(0.5)
 
-all_parts = AssemblyData.get_parts(order=True)
+all_parts = AssemblyAPI.get_parts(order=True)
 
 # Split all parts together
 join = SplitParts(all_parts)
@@ -96,7 +96,7 @@ Viewer.add(*all_parts)
 Viewer.show(False)
 
 # Mesh
-the_shape = AssemblyData.prepare_shape_to_mesh()
+the_shape = AssemblyAPI.prepare_shape_to_mesh()
 MeshData.create_mesh('the mesh', the_shape)
 MeshData.hypotheses.create_netgen_simple_2d('netgen', 4.)
 MeshData.hypotheses.create_netgen_algo_2d('netgen algo')

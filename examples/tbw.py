@@ -11,7 +11,7 @@ from afem.fem import MeshData
 from afem.geometry import CreateGeom
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.structure import AssemblyAPI, CreatePart, PartTools
 from afem.topology import ShapeTools
 
 # Import model
@@ -41,7 +41,7 @@ for name in ImportVSP.get_bodies():
 all_parts = []
 
 # WING ------------------------------------------------------------------------
-AssemblyData.create_assy('wing assy')
+AssemblyAPI.create_assy('wing assy')
 
 # Center wing structure will be based on the intersection between the wings
 # and fuselage.
@@ -127,7 +127,7 @@ outbd_ribs = CreatePart.rib.along_curve('outbd rib', wing, outbd_rspar.cref,
                                         30., s1=18., s2=-30.)
 
 # Join and discard internal structure.
-internal_parts = AssemblyData.get_parts()
+internal_parts = AssemblyAPI.get_parts()
 PartTools.fuse_wing_parts(internal_parts)
 PartTools.discard_faces(internal_parts)
 
@@ -145,10 +145,10 @@ wskin.discard(wing.sref)
 wskin.fix()
 
 # Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyData.get_parts()
+all_parts += AssemblyAPI.get_parts()
 
 # HTAIL -----------------------------------------------------------------------
-AssemblyData.create_assy('htail assy')
+AssemblyAPI.create_assy('htail assy')
 
 fspar = CreatePart.spar.by_parameters('htail fspar', htail, 0.15, 0.01,
                                       0.15, 0.99)
@@ -163,7 +163,7 @@ ribs = CreatePart.rib.along_curve('htail rib', htail, rspar.cref,
                                   fspar.sref, rspar.sref,
                                   12, s1=12., s2=-12)
 
-internal_parts = AssemblyData.get_parts()
+internal_parts = AssemblyAPI.get_parts()
 PartTools.fuse_wing_parts(internal_parts)
 PartTools.discard_faces(internal_parts)
 
@@ -173,10 +173,10 @@ skin.discard(htail.sref)
 skin.fix()
 
 # Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyData.get_parts()
+all_parts += AssemblyAPI.get_parts()
 
 # VTAIL -----------------------------------------------------------------------
-AssemblyData.create_assy('vtail assy')
+AssemblyAPI.create_assy('vtail assy')
 
 u, v = vtail.invert_point(fspar.p1)
 mspar = CreatePart.spar.by_parameters('vtail mspar', vtail, u, 0.05,
@@ -196,7 +196,7 @@ ribs = CreatePart.rib.along_curve('vtail rib', vtail, rspar.cref,
                                   fspar.sref, rspar.sref,
                                   18, s1=18., s2=-18)
 
-internal_parts = AssemblyData.get_parts()
+internal_parts = AssemblyAPI.get_parts()
 PartTools.fuse_wing_parts(internal_parts)
 PartTools.discard_faces(internal_parts)
 
@@ -206,10 +206,10 @@ skin.discard(vtail.sref)
 skin.fix()
 
 # Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyData.get_parts()
+all_parts += AssemblyAPI.get_parts()
 
 # FUSELAGE --------------------------------------------------------------------
-AssemblyData.create_assy('fuselage assy')
+AssemblyAPI.create_assy('fuselage assy')
 
 pln = CreateGeom.plane_by_axes([60, 0, 0], 'yz')
 bh1 = CreatePart.bulkhead.by_sref('bh 1', fuselage, pln)
@@ -254,10 +254,10 @@ skin = CreatePart.skin.from_body('fuselage skin', fuselage)
 plns = [bh1.sref, bh2.sref, bh3.sref, bh4.sref, bh5.sref, bh6.sref, bh7.sref]
 frames = CreatePart.frame.between_planes('frame', fuselage, plns, 3.5, 24.)
 
-PartTools.fuse_parts(AssemblyData.get_parts())
+PartTools.fuse_parts(AssemblyAPI.get_parts())
 
 # Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyData.get_parts()
+all_parts += AssemblyAPI.get_parts()
 
 # MIRROR ----------------------------------------------------------------------
 
@@ -268,14 +268,14 @@ trsf = gce_MakeMirror(xz_plane.Pln()).Value()
 
 transform = BRepBuilderAPI_Transform(trsf)
 
-parts = AssemblyData.get_parts('wing assy')
+parts = AssemblyAPI.get_parts('wing assy')
 compound = ShapeTools.make_compound(parts)
 transform.Perform(compound, True)
 shape = transform.Shape()
 # Viewer.display(shape)
 all_parts.append(shape)
 
-parts = AssemblyData.get_parts('htail assy')
+parts = AssemblyAPI.get_parts('htail assy')
 compound = ShapeTools.make_compound(parts)
 transform.Perform(compound, True)
 shape = transform.Shape()
@@ -283,7 +283,7 @@ shape = transform.Shape()
 all_parts.append(shape)
 
 # GEAR ------------------------------------------------------------------------
-AssemblyData.create_assy('gear assy')
+AssemblyAPI.create_assy('gear assy')
 
 p0 = gear.eval(0.15, 1.)
 pln = CreateGeom.plane_by_axes(p0, 'yz')
@@ -300,13 +300,13 @@ for pln in plns:
     CreatePart.rib.by_sref('gear rib', gear, pln)
     i += 1
 
-internal_parts = AssemblyData.get_parts()
+internal_parts = AssemblyAPI.get_parts()
 PartTools.fuse_wing_parts(internal_parts)
 skin = CreatePart.skin.from_body('gear skin', gear)
 skin.fuse(*internal_parts)
 
 # Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyData.get_parts()
+all_parts += AssemblyAPI.get_parts()
 
 # STRUTS ----------------------------------------------------------------------
 crv = strut.extract_curve((0.5, 0.), (0.5, 1.))

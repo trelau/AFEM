@@ -1,7 +1,7 @@
 from afem.structure.utils import order_parts_by_id
 from afem.topology.create import CompoundByShapes
 
-__all__ = ["Assembly", "AssemblyData"]
+__all__ = ["Assembly", "AssemblyAPI"]
 
 
 class Assembly(object):
@@ -79,7 +79,7 @@ class Assembly(object):
 
         :return:
         """
-        AssemblyData._active = self
+        AssemblyAPI._active = self
 
     def add_parts(self, *parts):
         """
@@ -145,9 +145,9 @@ class Assembly(object):
         return CompoundByShapes(parts).compound
 
 
-class AssemblyData(object):
+class AssemblyAPI(object):
     """
-    Assembly data.
+    Assembly API.
     """
     _master = Assembly('Model', None)
     _all = {'Model': _master}
@@ -259,7 +259,7 @@ class AssemblyData(object):
         Get parts from assembly.
 
         :param assy:
-        :param include_subassy
+        :param bool include_subassy:
         :param rtype: Option to return only parts of a certain type. Provide a
             class to check if the part is of the given type.
         :param bool order: Option to order parts by their ID.

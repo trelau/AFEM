@@ -11,7 +11,7 @@ from afem.geometry.create import PlaneByNormal, PlaneFromParameter, \
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
-from afem.structure.assembly import AssemblyData
+from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import CutShapes, FuseShapes, SplitShapes
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import CompoundByShapes, HalfspaceBySurface, \
@@ -67,7 +67,7 @@ class Part(TopoDS_Shape, ViewableItem):
             self.set_sref(sref)
 
         # Add to active assembly
-        AssemblyData.add_parts(None, self)
+        AssemblyAPI.add_parts(None, self)
 
         msg = ' '.join(['Creating part:', label])
         logger.info(msg)

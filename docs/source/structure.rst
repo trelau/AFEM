@@ -73,6 +73,10 @@ Assembly
 ~~~~~~~~
 .. autoclass:: afem.structure.assembly.Assembly
 
+AssemblyAPI
+~~~~~~~~~~~
+.. autoclass:: afem.structure.assembly.AssemblyAPI
+
 Create
 ------
 .. py:currentmodule:: afem.structure.create

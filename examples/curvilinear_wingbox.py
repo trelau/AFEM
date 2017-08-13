@@ -6,7 +6,7 @@ from afem.config import Settings
 from afem.geometry import CreateGeom, ProjectGeom
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.structure import AssemblyAPI, CreatePart, PartTools
 from afem.topology import ShapeTools
 
 
@@ -49,7 +49,7 @@ def build_wingbox(wing, params):
     Settings.set_part_tol(params['part tol'])
 
     # BUILD -------------------------------------------------------------------
-    AssemblyData.create_assy(assy_name)
+    AssemblyAPI.create_assy(assy_name)
 
     # Front spar
     fspar = CreatePart.spar.by_parameters('front spar', wing,
@@ -186,7 +186,7 @@ def build_wingbox(wing, params):
 
     # Aux ribs
     if build_aux_spar:
-        assy = AssemblyData.get_active()
+        assy = AssemblyAPI.get_active()
         aux_rib_id = 1
         for rib_id in aux_rib_list:
             rib_name = ' '.join(['rib', rib_id])
@@ -213,7 +213,7 @@ def build_wingbox(wing, params):
 
     # JOIN --------------------------------------------------------------------
     # Fuse internal structure and discard faces
-    internal_parts = AssemblyData.get_parts()
+    internal_parts = AssemblyAPI.get_parts()
     PartTools.fuse_wing_parts(internal_parts)
     for part in internal_parts:
         part.discard()
@@ -278,7 +278,7 @@ def build_wingbox(wing, params):
             if not ShapeTools.is_valid(stringer):
                 stringer.fix()
 
-    return AssemblyData.get_active()
+    return AssemblyAPI.get_active()
 
 
 if __name__ == '__main__':

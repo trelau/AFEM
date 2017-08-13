@@ -2,7 +2,7 @@ from afem.config import Settings
 from afem.geometry import CreateGeom
 from afem.graphics import Viewer
 from afem.io import ImportVSP, StepExport
-from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.structure import AssemblyAPI, CreatePart, PartTools
 from afem.topology import ShapeTools
 
 # Set units to inch.
@@ -139,11 +139,11 @@ for spar in spars:
     i += 1
 
 # Fuse internal structure
-wing_parts = AssemblyData.get_parts()
+wing_parts = AssemblyAPI.get_parts()
 PartTools.fuse_wing_parts(wing_parts)
 PartTools.discard_faces(wing_parts)
 
-Viewer.add(*AssemblyData.get_parts())
+Viewer.add(*AssemblyAPI.get_parts())
 Viewer.show()
 
 # Create skin. For now this replaces the center rib with wing skin since
@@ -156,14 +156,14 @@ skin.set_transparency(0.5)
 print(skin.fix())
 print(ShapeTools.is_valid(skin))
 
-for part in AssemblyData.get_parts():
+for part in AssemblyAPI.get_parts():
     print(part.label, ShapeTools.get_tolerance(part))
 
-Viewer.add(*AssemblyData.get_parts())
+Viewer.add(*AssemblyAPI.get_parts())
 Viewer.show()
 
 step = StepExport()
-shape = ShapeTools.make_compound(AssemblyData.get_parts())
+shape = ShapeTools.make_compound(AssemblyAPI.get_parts())
 step.transfer(shape)
 step.write('gt_supersonic_delta.stp')
 
@@ -173,7 +173,7 @@ from OCC.IGESControl import IGESControl_Writer, IGESControl_Controller_Init
 
 IGESControl_Controller_Init()
 iges = IGESControl_Writer('IN', 1)
-for part in AssemblyData.get_parts():
+for part in AssemblyAPI.get_parts():
     print(part.label, part, part.ShapeType())
     try:
         print(iges.AddShape(part))

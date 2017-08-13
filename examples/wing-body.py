@@ -7,7 +7,7 @@ from afem.fem import MeshData
 from afem.geometry import CreateGeom
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.structure import AssemblyAPI, CreatePart, PartTools
 from afem.topology import ShapeTools
 
 # Set units to inch.
@@ -27,7 +27,7 @@ other_wing = ImportVSP.get_body('Wing.2')
 other_htail = ImportVSP.get_body('Htail.1')
 
 # FUSELAGE --------------------------------------------------------------------
-AssemblyData.create_assy('fuselage assy')
+AssemblyAPI.create_assy('fuselage assy')
 
 # Fwd bulkhead at 25% wing chord
 p0 = wing.eval(0.25, 0.)
@@ -93,7 +93,7 @@ PartTools.cut_parts([fskin, fwd_bh, rear_bh, aft_bh, floor] + frames, cutter)
 PartTools.fuse_parts([fwd_bh, rear_bh, aft_bh, floor, fskin] + frames)
 
 # WING ------------------------------------------------------------------------
-AssemblyData.create_assy('wing assy')
+AssemblyAPI.create_assy('wing assy')
 
 # Root rib
 
@@ -190,7 +190,7 @@ center_ribs = CreatePart.rib.along_curve('center rib', wing, fc_spar.cref,
                                          ref_pln=xz_pln, s1=30., s2=-30.)
 
 # Fuse wing internal structure and discard faces
-internal_parts = AssemblyData.get_parts()
+internal_parts = AssemblyAPI.get_parts()
 PartTools.fuse_wing_parts(internal_parts)
 PartTools.discard_faces(internal_parts)
 
@@ -214,8 +214,8 @@ wskin.cut(frame_cut)
 PartTools.cut_parts([wskin, fc_spar, aux_spar], fuselage.shell)
 print('done cutting', time.time() - start)
 
-wing_parts = AssemblyData.get_parts('wing assy')
-fuselage_parts = AssemblyData.get_parts('fuselage assy')
+wing_parts = AssemblyAPI.get_parts('wing assy')
+fuselage_parts = AssemblyAPI.get_parts('fuselage assy')
 print('starting assy join')
 start = time.time()
 PartTools.sew_parts(wing_parts + fuselage_parts)
@@ -227,7 +227,7 @@ for part in wing_parts + fuselage_parts:
 Viewer.show(False)
 
 # Mesh
-shape_to_mesh = AssemblyData.prepare_shape_to_mesh()
+shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
 MeshData.create_mesh('wing-body mesh', shape_to_mesh)
 
 # Use a single global hypothesis based on local length.

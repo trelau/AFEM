@@ -4,7 +4,7 @@ from afem.fem import MeshData
 from afem.geometry import CreateGeom
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-from afem.structure import AssemblyData, CreatePart, PartTools
+from afem.structure import AssemblyAPI, CreatePart, PartTools
 from afem.topology import ShapeTools
 
 # Inputs
@@ -94,7 +94,7 @@ outbd_rspar = CreatePart.spar.by_points('outbd rear spar', wing,
 #                                         outbd_fspar.sref, outbd_rspar.sref,
 #                                         72., s1=30., s2=-30.)
 
-internal_parts = AssemblyData.get_parts()
+internal_parts = AssemblyAPI.get_parts()
 
 PartTools.fuse_wing_parts(internal_parts)
 PartTools.discard_faces(internal_parts)

@@ -53,7 +53,7 @@ def build_wingbox(wing, params):
     Settings.set_part_tol(params['part tol'])
 
     # BUILD -------------------------------------------------------------------
-    AssemblyData.create_assy(assy_name)
+    AssemblyAPI.create_assy(assy_name)
 
     # Front spar
     fspar = SparByParameters('front spar', fspar_chord, root_span,
@@ -198,7 +198,7 @@ def build_wingbox(wing, params):
 
     # Aux ribs
     if build_aux_spar:
-        assy = AssemblyData.get_active()
+        assy = AssemblyAPI.get_active()
         aux_rib_id = 1
         for rib_id in aux_rib_list:
             rib_name = ' '.join(['rib', rib_id])
@@ -230,7 +230,7 @@ def build_wingbox(wing, params):
 
     # JOIN --------------------------------------------------------------------
     # Fuse internal structure and discard faces
-    internal_parts = AssemblyData.get_parts(order=True)
+    internal_parts = AssemblyAPI.get_parts(order=True)
     FuseSurfacePartsByCref(internal_parts)
     for part in internal_parts:
         part.discard_by_cref()
@@ -242,7 +242,7 @@ def build_wingbox(wing, params):
     skin = SkinByBody('wing skin', wing, False).skin
 
     # Join the wing skin and internal structure
-    all_parts = AssemblyData.get_parts(order=True)
+    all_parts = AssemblyAPI.get_parts(order=True)
     # TODO Fuse algorithm fails, but split seems to work?
     # skin.fuse(*internal_parts)
     SplitParts(all_parts)
@@ -258,7 +258,7 @@ def build_wingbox(wing, params):
     # Viewing
     skin.set_transparency(0.5)
 
-    Viewer.add(*AssemblyData.get_parts())
+    Viewer.add(*AssemblyAPI.get_parts())
     Viewer.show()
 
     # Check free edges.
@@ -325,7 +325,7 @@ def build_wingbox(wing, params):
 
     # MESH --------------------------------------------------------------------
     # Initialize
-    shape_to_mesh = AssemblyData.prepare_shape_to_mesh()
+    shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
     MeshData.create_mesh('wing-box mesh', shape_to_mesh)
 
     # Use a single global hypothesis based on local length.
@@ -349,7 +349,7 @@ def build_wingbox(wing, params):
     # step.transfer(shape_to_mesh)
     # step.write('wingbox.step')
 
-    return AssemblyData.get_active()
+    return AssemblyAPI.get_active()
 
 
 if __name__ == '__main__':
