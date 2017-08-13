@@ -4,12 +4,9 @@ from OCC.GeomAPI import (GeomAPI_ExtremaCurveCurve,
                          GeomAPI_ExtremaCurveSurface,
                          GeomAPI_ProjectPointOnCurve,
                          GeomAPI_ProjectPointOnSurf)
-from OCC.GeomAbs import GeomAbs_BSplineCurve, GeomAbs_BezierCurve, GeomAbs_Line
-from OCC.GeomAdaptor import GeomAdaptor_Curve
 
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import (create_line_from_occ,
-                                  create_nurbs_curve_from_occ)
+from afem.geometry.entities import Curve
 
 __all__ = ["PointProjector", "ProjectPointToCurve",
            "ProjectPointToSurface", "CurveProjector", "ProjectCurveToPlane",
@@ -141,10 +138,10 @@ class ProjectPointToCurve(PointProjector):
 
     Usage:
 
-    >>> from afem.geometry import Direction, Line, Point, ProjectPointToCurve
+    >>> from afem.geometry import *
     >>> p0 = Point()
     >>> v = Direction(1., 0., 0.)
-    >>> line = Line(p0, v)
+    >>> line = LineByVector(p0, v).line
     >>> p = Point(5., 5., 0.)
     >>> proj = ProjectPointToCurve(p, line)
     >>> assert proj.success
@@ -179,7 +176,7 @@ class ProjectPointToCurve(PointProjector):
             # Use minimum distance between line and curve to project point
             # along a direction.
             geom_line = Geom_Line(pnt, direction)
-            extrema = GeomAPI_ExtremaCurveCurve(crv.GetHandle(),
+            extrema = GeomAPI_ExtremaCurveCurve(crv.handle,
                                                 geom_line.GetHandle())
             npts = extrema.NbExtrema()
             for i in range(1, npts + 1):
@@ -218,7 +215,7 @@ class ProjectPointToSurface(PointProjector):
     >>> from afem.geometry import *
     >>> p0 = Point()
     >>> n = Direction(0., 0., 1.)
-    >>> pln = Plane(p0, n)
+    >>> pln = PlaneByNormal(p0, n).plane
     >>> p = Point(1., 1., 1.)
     >>> proj = ProjectPointToSurface(p, pln)
     >>> assert proj.success
@@ -254,7 +251,7 @@ class ProjectPointToSurface(PointProjector):
             # along a direction.
             geom_line = Geom_Line(pnt, direction)
             extrema = GeomAPI_ExtremaCurveSurface(geom_line.GetHandle(),
-                                                  srf.GetHandle())
+                                                  srf.handle)
             npts = extrema.NbExtrema()
             for i in range(1, npts + 1):
                 _, ui, vi = extrema.Parameters(i)
@@ -316,7 +313,7 @@ class ProjectCurveToPlane(CurveProjector):
     >>> from afem.geometry import *
     >>> qp = [Point(), Point(5., 5., 1.), Point(10., 5., 1.)]
     >>> c = NurbsCurveByInterp(qp).curve
-    >>> pln = Plane(Point(), Direction(0., 0., 1.))
+    >>> pln = PlaneByNormal(Point(), Direction(0., 0., 1.)).plane
     >>> proj = ProjectCurveToPlane(c, pln, [0., 0., 1.])
     >>> assert proj.success
     >>> cnew = proj.curve
@@ -332,7 +329,7 @@ class ProjectCurveToPlane(CurveProjector):
         # Perform
         direction = CheckGeom.to_direction(direction)
         if not CheckGeom.is_direction(direction):
-            direction = pln.Pln().Axis().Direction()
+            direction = pln.object.Pln().Axis().Direction()
 
         # OCC projection.
         # TODO Consider ProjLib_ProjectOnPlane
@@ -343,19 +340,7 @@ class ProjectCurveToPlane(CurveProjector):
             msg = 'OCC failed to project the curve to the plane.'
             raise RuntimeError(msg)
 
-        # TODO Support other curve types.
-        adp_crv = GeomAdaptor_Curve(hcrv)
-        if adp_crv.GetType() == GeomAbs_Line:
-            lin = create_line_from_occ(adp_crv.Line())
-            proj_crv = create_line_from_occ(lin)
-        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
-            occ_crv = adp_crv.BSpline().GetObject()
-            proj_crv = create_nurbs_curve_from_occ(occ_crv)
-        else:
-            msg = 'Curve type not supported.'
-            raise RuntimeError(msg)
-
-        self._crv = proj_crv
+        self._crv = Curve(hcrv)
 
 
 class ProjectCurveToSurface(CurveProjector):
@@ -399,19 +384,7 @@ class ProjectCurveToSurface(CurveProjector):
             msg = 'OCC failed to project the curve to the plane.'
             raise RuntimeError(msg)
 
-        # TODO Support other curve types.
-        adp_crv = GeomAdaptor_Curve(hcrv)
-        if adp_crv.GetType() == GeomAbs_Line:
-            lin = create_line_from_occ(adp_crv.Line())
-            proj_crv = create_line_from_occ(lin)
-        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
-            occ_crv = adp_crv.BSpline().GetObject()
-            proj_crv = create_nurbs_curve_from_occ(occ_crv)
-        else:
-            msg = 'Curve type not supported.'
-            raise RuntimeError(msg)
-
-        self._crv = proj_crv
+        self._crv = Curve(hcrv)
 
 
 if __name__ == "__main__":
