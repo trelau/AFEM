@@ -1,6 +1,5 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCC.Display.SimpleGui import init_display
-from OCC.Geom import Geom_Geometry
 from OCC.MeshVS import (MeshVS_BP_Mesh, MeshVS_DA_DisplayNodes,
                         MeshVS_DA_EdgeColor, MeshVS_Drawer, MeshVS_Mesh,
                         MeshVS_MeshPrsBuilder)
@@ -98,8 +97,13 @@ class Viewer(object):
         """
         disp, start_display, _, _ = init_display()
         for item in cls._items:
-            disp.DisplayShape(item, color=item.color,
-                              transparency=item.transparency)
+            try:
+                disp.DisplayShape(item, color=item.color,
+                                  transparency=item.transparency)
+            except TypeError:
+                # Hack for some geometry items
+                disp.DisplayShape(item.object, color=item.color,
+                                  transparency=item.transparency)
             if item.mirror:
                 mirrored = item.get_mirrored()
                 disp.DisplayShape(mirrored, color=item.color,
@@ -140,7 +144,7 @@ class Viewer(object):
         :return:
         """
         for item in items:
-            if isinstance(item, (ViewableItem, TopoDS_Shape, Geom_Geometry)):
+            if isinstance(item, (ViewableItem, TopoDS_Shape)):
                 cls._items.append(item)
 
     @classmethod
