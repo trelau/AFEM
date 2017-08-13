@@ -2,6 +2,8 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace
 from OCC.BRepGProp import brepgprop_SurfaceProperties
 from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.GProp import GProp_GProps
+from OCC.Geom import (Handle_Geom_BSplineCurve, Handle_Geom_BSplineSurface,
+                      Handle_Geom_Line, Handle_Geom_Plane)
 from OCC.Geom2d import Geom2d_BSplineCurve
 from OCC.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
@@ -927,7 +929,8 @@ class Line(Curve):
         """
         return self._object
 
-    def downcast(self, crv):
+    @staticmethod
+    def downcast(crv):
         """
         Downcast the curve to this type.
 
@@ -936,7 +939,7 @@ class Line(Curve):
         :return: A line.
         :rtype: afem.geometry.entities.Line
         """
-        h_crv = self.handle.DownCast(crv.handle)
+        h_crv = Handle_Geom_Line.DownCast(crv.handle)
         return Line(h_crv)
 
     def copy(self):
@@ -1065,7 +1068,7 @@ class NurbsCurve(Curve):
         :return: A NURBS curve.
         :rtype: afem.geometry.entities.NurbsCurve
         """
-        h_crv = self.handle.DownCast(crv.handle)
+        h_crv = Handle_Geom_BSplineCurve.DownCast(crv.handle)
         return NurbsCurve(h_crv)
 
     def copy(self):
@@ -1561,6 +1564,19 @@ class Plane(Surface):
         """
         return self._object
 
+    @staticmethod
+    def downcast(srf):
+        """
+        Downcast the surface to this type.
+
+        :param afem.geometry.entities.Surface srf: The surface.
+
+        :return: A plane.
+        :rtype: afem.geometry.entities.Plane
+        """
+        h_srf = Handle_Geom_Plane.DownCast(srf.handle)
+        return Plane(h_srf)
+
     def copy(self):
         """
         Return a new copy of the plane.
@@ -1748,6 +1764,19 @@ class NurbsSurface(Surface):
         :rtype: numpy.ndarray
         """
         return homogenize_array2d(self.cp, self.w)
+
+    @staticmethod
+    def downcast(srf):
+        """
+        Downcast the surface to this type.
+
+        :param afem.geometry.entities.Surface srf: The surface.
+
+        :return: A surface.
+        :rtype: afem.geometry.entities.NurbsSurface
+        """
+        h_srf = Handle_Geom_BSplineSurface.DownCast(srf.handle)
+        return NurbsSurface(h_srf)
 
     def copy(self):
         """
