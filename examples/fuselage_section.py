@@ -1,5 +1,3 @@
-from OCC.BRepPrimAPI import BRepPrimAPI_MakeCylinder
-
 from afem.fem import MeshData
 from afem.geometry import *
 from afem.graphics import Viewer
@@ -20,7 +18,7 @@ floor_beam_height = 6
 radius = diameter / 2.
 
 # Create a solid cylinder to represent fuselage section.
-cylinder = BRepPrimAPI_MakeCylinder(radius, length).Shape()
+cylinder = SolidByCylinder(radius, length).solid
 fuselage = Fuselage(cylinder)
 
 # Skin
