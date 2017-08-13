@@ -1505,6 +1505,30 @@ class Surface(Geometry):
         brepgprop_SurfaceProperties(f, sprops, tol)
         return sprops.Mass()
 
+    def u_iso(self, u):
+        """
+        Get a iso-parametric curve at a constant u-parameter.
+
+        :param float u: The u-parameter.
+
+        :return: The curve.
+        :rtype: afem.geometry.entities.Curve
+        """
+        h_crv = self.object.UIso(u)
+        return Curve(h_crv)
+
+    def v_iso(self, v):
+        """
+        Get a iso-parametric curve at a constant v-parameter.
+
+        :param float v: The v-parameter.
+
+        :return: The curve.
+        :rtype: afem.geometry.entities.Curve
+        """
+        h_crv = self.object.VIso(v)
+        return Curve(h_crv)
+
 
 class Plane(Surface):
     """
