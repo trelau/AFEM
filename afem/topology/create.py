@@ -655,7 +655,8 @@ class FaceByPlane(object):
     """
 
     def __init__(self, pln, umin, umax, vmin, vmax):
-        builder = BRepBuilderAPI_MakeFace(pln.Pln(), umin, umax, vmin, vmax)
+        builder = BRepBuilderAPI_MakeFace(pln.object.Pln(), umin, umax, vmin,
+                                          vmax)
         self._f = builder.Face()
 
     @property
@@ -1010,7 +1011,7 @@ class SolidByPlane(object):
     def __init__(self, pln, width, height, depth):
         w = width / 2.
         h = height / 2.
-        gp_pln = pln.Pln()
+        gp_pln = pln.object.Pln()
         face = BRepBuilderAPI_MakeFace(gp_pln, -w, w, -h, h).Face()
         vn = pln.norm(0., 0.)
         vn.Normalize()
@@ -1631,8 +1632,7 @@ class PlaneByEdges(object):
         self._found = builder.Found()
         self._pln = None
         if self._found:
-            gp_pln = builder.Plane().GetObject().Pln()
-            self._pln = Plane(gp_pln)
+            self._pln = Plane(builder.Plane())
 
     @property
     def found(self):
