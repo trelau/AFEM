@@ -2,8 +2,6 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace
 from OCC.BRepGProp import brepgprop_SurfaceProperties
 from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.GProp import GProp_GProps
-from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Curve,
-                      Geom_Line, Geom_Plane, Geom_Surface)
 from OCC.Geom2d import Geom2d_BSplineCurve
 from OCC.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
@@ -36,10 +34,16 @@ __all__ = ["Geometry", "Point", "Point2D", "Direction", "Vector", "Axis1",
 class Geometry(ViewableItem):
     """
     Base class for geometry.
+
+    :param OCC.Geom.Handle_Geom_Geometry the_handle: The geometry handle.
     """
 
-    def __init__(self):
+    def __init__(self, the_handle=None):
         super(Geometry, self).__init__()
+        self._handle = the_handle
+        self._object = None
+        if the_handle is not None:
+            self._object = the_handle.GetObject()
 
 
 class Point(gp_Pnt, Geometry):
@@ -728,17 +732,19 @@ class Axis3(gp_Ax3):
         super(Axis3, self).__init__(*args)
 
 
-class Curve(Geom_Curve, Geometry):
+class Curve(Geometry):
     """
     Base class for curves.
+
+    :param OCC.Geom.Handle_Geom_Curve the_handle: The curve handle.
 
     For more information see Geom_Curve_.
 
     .. _Geom_Curve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___curve.html
     """
 
-    def __init__(self):
-        Geometry.__init__(self)
+    def __init__(self, the_handle):
+        super(Curve, self).__init__(the_handle)
 
     @property
     def handle(self):
@@ -746,7 +752,15 @@ class Curve(Geom_Curve, Geometry):
         :return: The smart pointer.
         :rtype: OCC.Geom.Handle_Geom_Curve
         """
-        return self.GetHandle()
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_Curve
+        """
+        return self._object
 
     @property
     def adaptor(self):
@@ -762,7 +776,7 @@ class Curve(Geom_Curve, Geometry):
         :return: The first parameter.
         :rtype: float
         """
-        return self.FirstParameter()
+        return self.object.FirstParameter()
 
     @property
     def u2(self):
@@ -770,7 +784,7 @@ class Curve(Geom_Curve, Geometry):
         :return: The last parameter.
         :rtype: float
         """
-        return self.LastParameter()
+        return self.object.LastParameter()
 
     @property
     def is_closed(self):
@@ -778,7 +792,7 @@ class Curve(Geom_Curve, Geometry):
         :return: *True* if curve is closed, *False* if not.
         :rtype: bool
         """
-        return self.IsClosed()
+        return self.object.IsClosed()
 
     @property
     def is_periodic(self):
@@ -786,7 +800,7 @@ class Curve(Geom_Curve, Geometry):
         :return: *True* if curve is periodic, *False* if not.
         :rtype: bool
         """
-        return self.IsPeriodic()
+        return self.object.IsPeriodic()
 
     @property
     def p1(self):
@@ -812,6 +826,17 @@ class Curve(Geom_Curve, Geometry):
         """
         return self.arc_length(self.u1, self.u2)
 
+    def copy(self):
+        """
+        Return a new copy of the curve.
+
+        :return: New curve.
+        :rtype: afem.geometry.entities.Curve
+        """
+        h_geom = self.object.Copy()
+        h_crv = self.handle.DownCast(h_geom)
+        return Curve(h_crv)
+
     def eval(self, u):
         """
         Evaluate a point on the curve.
@@ -822,7 +847,7 @@ class Curve(Geom_Curve, Geometry):
         :rtype: afem.geometry.entities.Point
         """
         p = Point()
-        self.D0(u, p)
+        self.object.D0(u, p)
         return p
 
     def deriv(self, u, d=1):
@@ -835,7 +860,7 @@ class Curve(Geom_Curve, Geometry):
         :return: Curve derivative.
         :rtype: afem.geometry.entities.Vector
         """
-        return Vector(self.DN(u, d).XYZ())
+        return Vector(self.object.DN(u, d).XYZ())
 
     def reverse(self):
         """
@@ -843,7 +868,7 @@ class Curve(Geom_Curve, Geometry):
 
         :return: None.
         """
-        self.Reverse()
+        self.object.Reverse()
 
     def reversed_u(self, u):
         """
@@ -854,7 +879,7 @@ class Curve(Geom_Curve, Geometry):
         :return: Reversed parameter.
         :rtype: float
         """
-        return self.ReversedParameter(u)
+        return self.object.ReversedParameter(u)
 
     def arc_length(self, u1, u2, tol=1.0e-7):
         """
@@ -872,48 +897,89 @@ class Curve(Geom_Curve, Geometry):
         return GCPnts_AbscissaPoint.Length(self.adaptor, u1, u2, tol)
 
 
-class Line(Geom_Line, Curve):
+class Line(Curve):
     """
     Infinite line.
+
+    :param OCC.Geom.Handle_Geom_Line the_handle: The line handle.
 
     For more information see Geom_Line_.
 
     .. _Geom_Line: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___line.html
-
-    Usage:
-
-    >>> from afem.geometry import Direction, Line, Point
-    >>> p = Point()
-    >>> d = Direction(1., 0., 0.)
-    >>> line = Line(p, d)
     """
 
-    def __init__(self, *args):
-        super(Line, self).__init__(*args)
-        Curve.__init__(self)
+    def __init__(self, the_handle):
+        super(Line, self).__init__(the_handle)
+
+    @property
+    def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_Line
+        """
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_Line
+        """
+        return self._object
+
+    def downcast(self, crv):
+        """
+        Downcast the curve to this type.
+
+        :param afem.geometry.entities.Curve crv: The curve.
+
+        :return: A line.
+        :rtype: afem.geometry.entities.Line
+        """
+        h_crv = self.handle.DownCast(crv.handle)
+        return Line(h_crv)
 
     def copy(self):
         """
-        Return a new copy of the line.
+        Return a new copy of the curve.
 
-        :return: New line.
+        :return: New curve.
         :rtype: afem.geometry.entities.Line
         """
-        return Line(self.Lin())
+        h_geom = self.object.Copy()
+        h_crv = self.handle.DownCast(h_geom)
+        return Line(h_crv)
 
 
-class NurbsCurve(Geom_BSplineCurve, Curve):
+class NurbsCurve(Curve):
     """
     NURBS curve in 3-D space.
+
+    :param OCC.Geom.Handle_Geom_BSplineCurve the_handle: The curve handle.
 
     For more information see Geom_BSplineCurve_.
 
     .. _Geom_BSplineCurve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___b_spline_curve.html
     """
 
-    def __init__(self, *args):
-        super(NurbsCurve, self).__init__(*args)
-        Curve.__init__(self)
+    def __init__(self, the_handle):
+        super(NurbsCurve, self).__init__(the_handle)
+
+    @property
+    def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_BSplineCurve
+        """
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_BSplineCurve
+        """
+        return self._object
 
     @property
     def p(self):
@@ -921,7 +987,7 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :return: Degree of curve.
         :rtype: int
         """
-        return self.Degree()
+        return self.object.Degree()
 
     @property
     def n(self):
@@ -929,7 +995,7 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :return: Number of control points - 1.
         :rtype: int
         """
-        return self.NbPoles() - 1
+        return self.object.NbPoles() - 1
 
     @property
     def knots(self):
@@ -937,8 +1003,8 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :return: Knot vector.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.NbKnots())
-        self.Knots(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbKnots())
+        self.object.Knots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -947,8 +1013,8 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :return: Multiplicity of knot vector.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfInteger(1, self.NbKnots())
-        self.Multiplicities(tcol_array)
+        tcol_array = TColStd_Array1OfInteger(1, self.object.NbKnots())
+        self.object.Multiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
@@ -957,9 +1023,9 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :return: Knot sequence.
         :rtype: numpy.ndarray
         """
-        tcol_knot_seq = TColStd_Array1OfReal(1, self.NbPoles() +
-                                             self.Degree() + 1)
-        self.KnotSequence(tcol_knot_seq)
+        tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbPoles() +
+                                             self.object.Degree() + 1)
+        self.object.KnotSequence(tcol_knot_seq)
         return to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
@@ -968,8 +1034,8 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :return: Control points.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColgp_Array1OfPnt(1, self.NbPoles())
-        self.Poles(tcol_array)
+        tcol_array = TColgp_Array1OfPnt(1, self.object.NbPoles())
+        self.object.Poles(tcol_array)
         return to_np_from_tcolgp_array1_pnt(tcol_array)
 
     @property
@@ -978,8 +1044,8 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :return: Weights of control points.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.NbPoles())
-        self.Weights(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbPoles())
+        self.object.Weights(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -989,6 +1055,29 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         :rtype: numpy.ndarray
         """
         return homogenize_array1d(self.cp, self.w)
+
+    def downcast(self, crv):
+        """
+        Downcast the curve to this type.
+
+        :param afem.geometry.entities.Curve crv: The curve.
+
+        :return: A NURBS curve.
+        :rtype: afem.geometry.entities.NurbsCurve
+        """
+        h_crv = self.handle.DownCast(crv.handle)
+        return NurbsCurve(h_crv)
+
+    def copy(self):
+        """
+        Return a new copy of the curve.
+
+        :return: New curve.
+        :rtype: afem.geometry.entities.NurbsCurve
+        """
+        h_geom = self.object.Copy()
+        h_crv = self.handle.DownCast(h_geom)
+        return NurbsCurve(h_crv)
 
     def set_domain(self, u1=0., u2=1.):
         """
@@ -1002,10 +1091,10 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         """
         if u1 > u2:
             return False
-        tcol_knots = TColStd_Array1OfReal(1, self.NbKnots())
-        self.Knots(tcol_knots)
+        tcol_knots = TColStd_Array1OfReal(1, self.object.NbKnots())
+        self.object.Knots(tcol_knots)
         reparameterize_knots(u1, u2, tcol_knots)
-        self.SetKnots(tcol_knots)
+        self.object.SetKnots(tcol_knots)
         return True
 
     def local_to_global_param(self, *args):
@@ -1044,28 +1133,8 @@ class NurbsCurve(Geom_BSplineCurve, Curve):
         """
         if u1 > u2:
             return False
-        self.Segment(u1, u2)
+        self.object.Segment(u1, u2)
         return True
-
-    def copy(self):
-        """
-        Return a new copy of the curve.
-
-        :return: New curve.
-        :rtype: afem.geometry.entities.NurbsCurve
-        """
-        tcol_poles = TColgp_Array1OfPnt(1, self.NbPoles())
-        self.Poles(tcol_poles)
-        tcol_weights = TColStd_Array1OfReal(1, self.NbPoles())
-        self.Weights(tcol_weights)
-        tcol_knots = TColStd_Array1OfReal(1, self.NbKnots())
-        self.Knots(tcol_knots)
-        tcol_mult = TColStd_Array1OfInteger(1, self.NbKnots())
-        self.Multiplicities(tcol_mult)
-        p = self.Degree()
-        is_periodic = self.IsPeriodic()
-        return NurbsCurve(tcol_poles, tcol_weights, tcol_knots, tcol_mult, p,
-                          is_periodic)
 
 
 class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
@@ -1287,17 +1356,19 @@ class NurbsCurve2D(Geom2d_BSplineCurve, Geometry):
                             is_periodic)
 
 
-class Surface(Geom_Surface, Geometry):
+class Surface(Geometry):
     """
     Base class for surfaces.
+
+    :param OCC.Geom.Handle_Geom_Surface the_handle: The surface handle.
 
     For more information see Geom_Surface_.
 
     .. _Geom_Surface: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom___surface.html
     """
 
-    def __init__(self):
-        Geometry.__init__(self)
+    def __init__(self, the_handle):
+        super(Surface, self).__init__(the_handle)
 
     @property
     def handle(self):
@@ -1305,7 +1376,15 @@ class Surface(Geom_Surface, Geometry):
         :return: The smart pointer.
         :rtype: OCC.Geom.Handle_Geom_Surface
         """
-        return self.GetHandle()
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_Surface
+        """
+        return self._object
 
     @property
     def adaptor(self):
@@ -1321,7 +1400,7 @@ class Surface(Geom_Surface, Geometry):
         :return: The first parameter in u-direction.
         :rtype: float
         """
-        return self.Bounds()[0]
+        return self.object.Bounds()[0]
 
     @property
     def u2(self):
@@ -1329,7 +1408,7 @@ class Surface(Geom_Surface, Geometry):
         :return: The last parameter in u-direction.
         :rtype: float
         """
-        return self.Bounds()[1]
+        return self.object.Bounds()[1]
 
     @property
     def v1(self):
@@ -1337,7 +1416,7 @@ class Surface(Geom_Surface, Geometry):
         :return: The first parameter in v-direction.
         :rtype: float
         """
-        return self.Bounds()[2]
+        return self.object.Bounds()[2]
 
     @property
     def v2(self):
@@ -1345,7 +1424,7 @@ class Surface(Geom_Surface, Geometry):
         :return: The last parameter in v-direction.
         :rtype: float
         """
-        return self.Bounds()[3]
+        return self.object.Bounds()[3]
 
     @property
     def area(self):
@@ -1354,6 +1433,17 @@ class Surface(Geom_Surface, Geometry):
         :rtype: float
         """
         return self.surface_area(self.u1, self.v1, self.u2, self.v1)
+
+    def copy(self):
+        """
+        Return a new copy of the surface.
+
+        :return: New surface.
+        :rtype: afem.geometry.entities.Surface
+        """
+        h_geom = self.object.Copy()
+        h_srf = self.handle.DownCast(h_geom)
+        return Surface(h_srf)
 
     def eval(self, u=0., v=0.):
         """
@@ -1366,7 +1456,7 @@ class Surface(Geom_Surface, Geometry):
         :rtype: afem.geometry.entities.Point
         """
         p = Point()
-        self.D0(u, v, p)
+        self.object.D0(u, v, p)
         return p
 
     def deriv(self, u, v, nu, nv):
@@ -1381,7 +1471,7 @@ class Surface(Geom_Surface, Geometry):
         :return: Surface derivative.
         :rtype: afem.geometry.entities.Vector
         """
-        return Vector(self.DN(u, v, nu, nv).XYZ())
+        return Vector(self.object.DN(u, v, nu, nv).XYZ())
 
     def norm(self, u, v):
         """
@@ -1416,9 +1506,11 @@ class Surface(Geom_Surface, Geometry):
         return sprops.Mass()
 
 
-class Plane(Geom_Plane, Surface):
+class Plane(Surface):
     """
     Infinite plane.
+
+    :param OCC.Geom.Handle_Geom_Plane the_handle: The plane handle.
 
     For more information see Geom_Plane_.
 
@@ -1426,9 +1518,35 @@ class Plane(Geom_Plane, Surface):
 
     """
 
-    def __init__(self, *args):
-        super(Plane, self).__init__(*args)
-        Surface.__init__(self)
+    def __init__(self, the_handle):
+        super(Plane, self).__init__(the_handle)
+
+    @property
+    def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_Plane
+        """
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_Plane
+        """
+        return self._object
+
+    def copy(self):
+        """
+        Return a new copy of the plane.
+
+        :return: New plane.
+        :rtype: afem.geometry.entities.Plane
+        """
+        h_geom = self.object.Copy()
+        h_srf = self.handle.DownCast(h_geom)
+        return Plane(h_srf)
 
     def distance(self, pnt):
         """
@@ -1449,12 +1567,14 @@ class Plane(Geom_Plane, Surface):
             msg = 'Invalid point type.'
             raise TypeError(msg)
 
-        return self.Pln().Distance(pnt)
+        return self.object.Pln().Distance(pnt)
 
 
-class NurbsSurface(Geom_BSplineSurface, Surface):
+class NurbsSurface(Surface):
     """
     NURBS surface in 3-D space.
+
+    :param OCC.Geom.Handle_Geom_BSplineSurface the_handle: The surface handle.
 
     For more information see Geom_BSplineSurface_.
 
@@ -1462,9 +1582,24 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
 
     """
 
-    def __init__(self, *args):
-        super(NurbsSurface, self).__init__(*args)
-        Surface.__init__(self)
+    def __init__(self, the_handle):
+        super(NurbsSurface, self).__init__(the_handle)
+
+    @property
+    def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_BSplineSurface
+        """
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_BSplineSurface
+        """
+        return self._object
 
     @property
     def p(self):
@@ -1472,7 +1607,7 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Degree in u-direction.
         :rtype: int
         """
-        return self.UDegree()
+        return self.object.UDegree()
 
     @property
     def q(self):
@@ -1480,7 +1615,7 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Degree in v-direction.
         :rtype: int
         """
-        return self.VDegree()
+        return self.object.VDegree()
 
     @property
     def n(self):
@@ -1488,7 +1623,7 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Number of control points - 1 in u-direction.
         :rtype: int
         """
-        return self.NbUPoles() - 1
+        return self.object.NbUPoles() - 1
 
     @property
     def m(self):
@@ -1496,7 +1631,7 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Number of control points - 1 in v-direction.
         :rtype: int
         """
-        return self.NbVPoles() - 1
+        return self.object.NbVPoles() - 1
 
     @property
     def uknots(self):
@@ -1504,8 +1639,8 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Knot vector in u-direction.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.NbUKnots())
-        self.UKnots(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbUKnots())
+        self.object.UKnots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -1514,8 +1649,8 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Multiplicity of knot vector in u-direction.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfInteger(1, self.NbUKnots())
-        self.UMultiplicities(tcol_array)
+        tcol_array = TColStd_Array1OfInteger(1, self.object.NbUKnots())
+        self.object.UMultiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
@@ -1524,9 +1659,9 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Knot sequence in u-direction.
         :rtype: numpy.ndarray
         """
-        tcol_knot_seq = TColStd_Array1OfReal(1, self.NbUPoles() +
-                                             self.UDegree() + 1)
-        self.UKnotSequence(tcol_knot_seq)
+        tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbUPoles() +
+                                             self.object.UDegree() + 1)
+        self.object.UKnotSequence(tcol_knot_seq)
         return to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
@@ -1535,8 +1670,8 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Knot vector in v-direction.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.NbVKnots())
-        self.VKnots(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbVKnots())
+        self.object.VKnots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -1545,8 +1680,8 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Multiplicity of knot vector in v-direction.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfInteger(1, self.NbVKnots())
-        self.VMultiplicities(tcol_array)
+        tcol_array = TColStd_Array1OfInteger(1, self.object.NbVKnots())
+        self.object.VMultiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
@@ -1555,9 +1690,9 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Knot sequence in v-direction.
         :rtype: numpy.ndarray
         """
-        tcol_knot_seq = TColStd_Array1OfReal(1, self.NbVPoles() +
-                                             self.VDegree() + 1)
-        self.VKnotSequence(tcol_knot_seq)
+        tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbVPoles() +
+                                             self.object.VDegree() + 1)
+        self.object.VKnotSequence(tcol_knot_seq)
         return to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
@@ -1566,8 +1701,9 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Control points.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColgp_Array2OfPnt(1, self.NbUPoles(), 1, self.NbVPoles())
-        self.Poles(tcol_array)
+        tcol_array = TColgp_Array2OfPnt(1, self.object.NbUPoles(),
+                                        1, self.object.NbVPoles())
+        self.object.Poles(tcol_array)
         return to_np_from_tcolgp_array2_pnt(tcol_array)
 
     @property
@@ -1576,9 +1712,9 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :return: Weights of control points.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array2OfReal(1, self.NbUPoles(),
-                                          1, self.NbVPoles())
-        self.Weights(tcol_array)
+        tcol_array = TColStd_Array2OfReal(1, self.object.NbUPoles(),
+                                          1, self.object.NbVPoles())
+        self.object.Weights(tcol_array)
         return to_np_from_tcolstd_array2_real(tcol_array)
 
     @property
@@ -1588,6 +1724,17 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         :rtype: numpy.ndarray
         """
         return homogenize_array2d(self.cp, self.w)
+
+    def copy(self):
+        """
+        Return a new copy of the surface.
+
+        :return: New surface.
+        :rtype: afem.geometry.entities.NurbsSurface
+        """
+        h_geom = self.object.Copy()
+        h_srf = self.handle.DownCast(h_geom)
+        return NurbsSurface(h_srf)
 
     def set_udomain(self, u1=0., u2=1.):
         """
@@ -1601,10 +1748,10 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         """
         if u1 > u2:
             return False
-        tcol_knots = TColStd_Array1OfReal(1, self.NbUKnots())
-        self.UKnots(tcol_knots)
+        tcol_knots = TColStd_Array1OfReal(1, self.object.NbUKnots())
+        self.object.UKnots(tcol_knots)
         reparameterize_knots(u1, u2, tcol_knots)
-        self.SetUKnots(tcol_knots)
+        self.object.SetUKnots(tcol_knots)
         return True
 
     def set_vdomain(self, v1=0., v2=1.):
@@ -1619,10 +1766,10 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         """
         if v1 > v2:
             return False
-        tcol_knots = TColStd_Array1OfReal(1, self.NbVKnots())
-        self.VKnots(tcol_knots)
+        tcol_knots = TColStd_Array1OfReal(1, self.object.NbVKnots())
+        self.object.VKnots(tcol_knots)
         reparameterize_knots(v1, v2, tcol_knots)
-        self.SetVKnots(tcol_knots)
+        self.object.SetVKnots(tcol_knots)
         return True
 
     def local_to_global_param(self, d, *args):
@@ -1671,37 +1818,8 @@ class NurbsSurface(Geom_BSplineSurface, Surface):
         """
         if u1 > u2 or v1 > v2:
             return False
-        self.CheckAndSegment(u1, u2, v1, v2)
+        self.object.CheckAndSegment(u1, u2, v1, v2)
         return True
-
-    def copy(self):
-        """
-        Return a new copy of the surface.
-
-        :return: New surface.
-        :rtype: afem.geometry.entities.NurbsSurface
-        """
-        tcol_poles = TColgp_Array2OfPnt(1, self.NbUPoles(), 1, self.NbVPoles())
-        self.Poles(tcol_poles)
-        tcol_weights = TColStd_Array2OfReal(1, self.NbUPoles(), 1,
-                                            self.NbVPoles())
-        self.Weights(tcol_weights)
-        tcol_uknots = TColStd_Array1OfReal(1, self.NbUKnots())
-        self.UKnots(tcol_uknots)
-        tcol_vknots = TColStd_Array1OfReal(1, self.NbVKnots())
-        self.VKnots(tcol_vknots)
-        tcol_umult = TColStd_Array1OfInteger(1, self.NbUKnots())
-        self.UMultiplicities(tcol_umult)
-        tcol_vmult = TColStd_Array1OfInteger(1, self.NbVKnots())
-        self.VMultiplicities(tcol_vmult)
-        p = self.UDegree()
-        q = self.VDegree()
-        is_u_periodic = self.IsUPeriodic()
-        is_v_periodic = self.IsVPeriodic()
-
-        return NurbsSurface(tcol_poles, tcol_weights, tcol_uknots, tcol_vknots,
-                            tcol_umult, tcol_vmult, p, q, is_u_periodic,
-                            is_v_periodic)
 
 
 if __name__ == "__main__":
