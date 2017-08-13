@@ -1,4 +1,3 @@
-from OCC.Geom import Geom_Curve, Geom_Surface
 from OCC.gp import gp_Pnt, gp_Vec
 from numpy import ndarray
 
@@ -189,18 +188,7 @@ class CheckGeom(object):
         :return: *True* if the entity is a curve, *False* if not.
         :rtype: bool
         """
-        return isinstance(geom, NurbsCurve)
-
-    @staticmethod
-    def is_curve_like(geom):
-        """
-        Check if the entity is an OpenCASCADE Geom_Curve.
-
-        :param geom: An entity.
-        :return: *True* if the entity is a Geom_Curve, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(geom, Geom_Curve)
+        return isinstance(geom, Curve)
 
     @staticmethod
     def is_curve2d(geom):
@@ -222,18 +210,7 @@ class CheckGeom(object):
         :return: *True* if the entity is a surface, *False* if not.
         :rtype: bool
         """
-        return isinstance(geom, NurbsSurface)
-
-    @staticmethod
-    def is_surface_like(geom):
-        """
-        Check if the entity is an OpenCASCADE Geom_Surface.
-
-        :param geom: An entity.
-        :return: *True* if the entity is a Geom_Surface, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(geom, Geom_Surface)
+        return isinstance(geom, Surface)
 
     @staticmethod
     def is_axis3(geom):
