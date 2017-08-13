@@ -4,8 +4,8 @@ from warnings import warn
 import OCC.BSplCLib as CLib
 from OCC.Approx import (Approx_ChordLength)
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Line,
-                      Geom_Plane)
+from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
+                      Geom_Line, Geom_Plane)
 from OCC.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                          GeomAPI_PointsToBSpline)
 from OCC.GeomAbs import (GeomAbs_C2)
@@ -15,6 +15,7 @@ from OCC.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
 from OCC.GeomPlate import GeomPlate_BuildAveragePlane
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal)
 from OCC.TColgp import (TColgp_Array1OfPnt)
+from OCC.gce import gce_MakeCirc
 from OCC.gp import gp_Pln
 from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
@@ -39,7 +40,8 @@ __all__ = ["PointByXYZ", "PointByArray",
            "PointFromParameter", "PointsAlongCurveByNumber",
            "PointsAlongCurveByDistance", "DirectionByXYZ", "DirectionByArray",
            "DirectionByPoints", "VectorByXYZ", "VectorByArray",
-           "VectorByPoints", "LineByVector", "LineByPoints",
+           "VectorByPoints", "LineByVector", "LineByPoints", "CircleByNormal",
+           "CircleByPlane",
            "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
            "NurbsCurveByPoints",
            "PlaneByNormal", "PlaneByAxes", "PlaneByPoints", "PlaneByApprox",
@@ -671,6 +673,86 @@ class LineByPoints(object):
         :rtype: afem.geometry.entities.Line
         """
         return self._line
+
+
+class CircleByNormal(object):
+    """
+    Create a circle using a center, normal, and radius.
+
+    :param point_like center: The center point.
+    :param vector_like normal: The normal of the plane.
+    :param float radius: The radius.
+
+    Usage:
+
+    >>> from afem.geometry import CircleByNormal
+    >>> builder = CircleByNormal((0., 0., 0.), (1., 0., 0.), 1.)
+    >>> c = builder.circle
+    >>> c.eval(0.)
+    Point(0.0, 0.0, 1.0)
+    """
+
+    def __init__(self, center, normal, radius):
+        center = CheckGeom.to_point(center)
+        normal = CheckGeom.to_direction(normal)
+        if not isinstance(center, Point):
+            msg = "Invalid center point."
+            raise TypeError(msg)
+        if not isinstance(normal, Direction):
+            msg = "Invalid normal direction."
+            raise TypeError(msg)
+
+        gp_circ = gce_MakeCirc(center, normal, radius).Value()
+
+        self._circle = Circle(Geom_Circle(gp_circ).GetHandle())
+
+    @property
+    def circle(self):
+        """
+        :return: The circle.
+        :rtype: afem.geometry.entities.Circle
+        """
+        return self._circle
+
+
+class CircleByPlane(object):
+    """
+    Create a circle using a center, plane, and radius.
+
+    :param point_like center: The center point.
+    :param afem.geometry.entities.Plane plane: The plane.
+    :param float radius: The radius.
+
+    Usage:
+
+    >>> from afem.geometry import CircleByPlane, PlaneByAxes
+    >>> pln = PlaneByAxes(axes='xy').plane
+    >>> builder = CircleByPlane((0., 0., 0.), pln, 1.)
+    >>> c = builder.circle
+    >>> c.eval(0.)
+    Point(1.0, 0.0, 0.0)
+    """
+
+    def __init__(self, center, plane, radius):
+        center = CheckGeom.to_point(center)
+        if not isinstance(center, Point):
+            msg = "Invalid center point."
+            raise TypeError(msg)
+        if not isinstance(plane, Plane):
+            msg = "Invalid plane."
+            raise TypeError(msg)
+
+        gp_circ = gce_MakeCirc(center, plane.object.Pln(), radius).Value()
+
+        self._circle = Circle(Geom_Circle(gp_circ).GetHandle())
+
+    @property
+    def circle(self):
+        """
+        :return: The circle.
+        :rtype: afem.geometry.entities.Circle
+        """
+        return self._circle
 
 
 # NURBSCURVE ------------------------------------------------------------------

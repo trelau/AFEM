@@ -3,7 +3,9 @@ from OCC.BRepGProp import brepgprop_SurfaceProperties
 from OCC.GCPnts import GCPnts_AbscissaPoint
 from OCC.GProp import GProp_GProps
 from OCC.Geom import (Handle_Geom_BSplineCurve, Handle_Geom_BSplineSurface,
-                      Handle_Geom_Line, Handle_Geom_Plane)
+                      Handle_Geom_Circle, Handle_Geom_Ellipse,
+                      Handle_Geom_Line,
+                      Handle_Geom_Plane)
 from OCC.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
@@ -27,7 +29,7 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolstd_array2_real)
 
 __all__ = ["Geometry2D", "Point2D", "NurbsCurve2D", "Geometry", "Point",
-           "Direction", "Vector", "Axis1", "Axis3", "Curve", "Line",
+           "Direction", "Vector", "Axis1", "Axis3", "Curve", "Line", "Circle",
            "NurbsCurve", "Surface", "Plane", "NurbsSurface"]
 
 
@@ -1187,6 +1189,162 @@ class Line(Curve):
         h_geom = self.object.Copy()
         h_crv = self.handle.DownCast(h_geom)
         return Line(h_crv)
+
+
+class Circle(Curve):
+    """
+    Circular curve.
+
+    :param OCC.Geom.Handle_Geom_Circle the_handle: The circle handle.
+    """
+
+    def __init__(self, the_handle):
+        super(Circle, self).__init__(the_handle)
+
+    @property
+    def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_Circle
+        """
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_Circle
+        """
+        return self._object
+
+    @property
+    def radius(self):
+        """
+        :return: The radius.
+        :rtype: float
+        """
+        return self.object.Radius()
+
+    @staticmethod
+    def downcast(crv):
+        """
+        Downcast the curve to this type.
+
+        :param afem.geometry.entities.Curve crv: The curve.
+
+        :return: A circle.
+        :rtype: afem.geometry.entities.Circle
+        """
+        h_crv = Handle_Geom_Circle.DownCast(crv.handle)
+        return Circle(h_crv)
+
+    def copy(self):
+        """
+        Return a new copy of the curve.
+
+        :return: New curve.
+        :rtype: afem.geometry.entities.Circle
+        """
+        h_geom = self.object.Copy()
+        h_crv = self.handle.DownCast(h_geom)
+        return Circle(h_crv)
+
+    def set_radius(self, r):
+        """
+        Set the radius.
+
+        :param float r: The radius.
+
+        :return: None.
+        """
+        self.object.SetRadius(r)
+
+
+class Ellipse(Curve):
+    """
+    Elliptical curve.
+
+    :param OCC.Geom.Handle_Geom_Ellipse the_handle: The ellipse handle.
+    """
+
+    def __init__(self, the_handle):
+        super(Ellipse, self).__init__(the_handle)
+
+    @property
+    def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_Ellipse
+        """
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_Ellipse
+        """
+        return self._object
+
+    @property
+    def major_radius(self):
+        """
+        :return: The major radius.
+        :rtype: float
+        """
+        return self.object.MajorRadius()
+
+    @property
+    def minor_radius(self):
+        """
+        :return: The minor radius.
+        :rtype: float
+        """
+        return self.object.MinorRadius()
+
+    @staticmethod
+    def downcast(crv):
+        """
+        Downcast the curve to this type.
+
+        :param afem.geometry.entities.Curve crv: The curve.
+
+        :return: An ellipse.
+        :rtype: afem.geometry.entities.Ellipse
+        """
+        h_crv = Handle_Geom_Ellipse.DownCast(crv.handle)
+        return Ellipse(h_crv)
+
+    def copy(self):
+        """
+        Return a new copy of the curve.
+
+        :return: New curve.
+        :rtype: afem.geometry.entities.Ellipse
+        """
+        h_geom = self.object.Copy()
+        h_crv = self.handle.DownCast(h_geom)
+        return Ellipse(h_crv)
+
+    def set_major_radius(self, r):
+        """
+        Set the major radius.
+
+        :param float r: The major radius.
+
+        :return: None.
+        """
+        self.object.SetMajorRadius(r)
+
+    def set_minor_radius(self, r):
+        """
+        Set the minor radius.
+
+        :param float r: The minor radius.
+
+        :return: None.
+        """
+        self.object.SetMinorRadius(r)
 
 
 class NurbsCurve(Curve):

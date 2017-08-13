@@ -9,6 +9,18 @@ Entities
 --------
 .. py:currentmodule:: afem.geometry.entities
 
+Geometry2D
+~~~~~~~~~~
+.. autoclass:: Geometry2D
+
+Point2D
+~~~~~~~
+.. autoclass:: Point2D
+
+NurbsCurve2D
+~~~~~~~~~~~~
+.. autoclass:: NurbsCurve2D
+
 Geometry
 ~~~~~~~~
 .. autoclass:: Geometry
@@ -16,10 +28,6 @@ Geometry
 Point
 ~~~~~
 .. autoclass:: Point
-
-Point2D
-~~~~~~~
-.. autoclass:: Point2D
 
 Direction
 ~~~~~~~~~
@@ -45,13 +53,17 @@ Line
 ~~~~
 .. autoclass:: Line
 
+Circle
+~~~~~~
+.. autoclass:: Circle
+
+Ellipse
+~~~~~~~
+.. autoclass:: Ellipse
+
 NurbsCurve
 ~~~~~~~~~~
 .. autoclass:: NurbsCurve
-
-NurbsCurve2D
-~~~~~~~~~~~~
-.. autoclass:: NurbsCurve2D
 
 Surface
 ~~~~~~~
@@ -120,6 +132,14 @@ LineByVector
 LineByPoints
 ~~~~~~~~~~~~
 .. autoclass:: LineByPoints
+
+CircleByNormal
+~~~~~~~~~~~~~~
+.. autoclass:: CircleByNormal
+
+CircleByPlane
+~~~~~~~~~~~~~
+.. autoclass:: CircleByPlane
 
 NurbsCurveByData
 ~~~~~~~~~~~~~~~~
