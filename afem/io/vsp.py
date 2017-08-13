@@ -8,7 +8,6 @@ from OCC.BRepCheck import BRepCheck_Analyzer
 from OCC.BRepGProp import brepgprop
 from OCC.GProp import GProp_GProps
 from OCC.Geom import Geom_Plane
-from OCC.GeomAdaptor import GeomAdaptor_Surface
 from OCC.GeomLib import GeomLib_IsPlanarSurface
 from OCC.IFSelect import IFSelect_ItemsByEntity
 from OCC.Interface import Interface_Static
@@ -24,8 +23,7 @@ from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
 from afem.config import Settings, logger
-from afem.geometry.create import (CurveByVIso, NurbsSurfaceByInterp,
-                                  create_nurbs_surface_from_occ)
+from afem.geometry.create import NurbsSurfaceByInterp
 from afem.geometry.entities import NurbsSurface
 from afem.oml.entities import Body, Fuselage, Wing
 from afem.topology.check import CheckShape
@@ -418,11 +416,10 @@ def _process_sref(compound):
     top_exp = TopExp_Explorer(compound, TopAbs_FACE)
     face = CheckShape.to_face(top_exp.Current())
     hsrf = BRep_Tool.Surface(face)
-    adp_srf = GeomAdaptor_Surface(hsrf)
-    occ_srf = adp_srf.BSpline().GetObject()
 
     # Convert to AFEM NurbsSurface.
-    srf = create_nurbs_surface_from_occ(occ_srf)
+    # srf = Surface(hsrf)
+    srf = NurbsSurface.downcast(hsrf)
 
     # The surface originally has uniform parameterization from OpenVSP,
     # extract curves at each knot value and wing_skin a C0 surface using chord
@@ -430,7 +427,7 @@ def _process_sref(compound):
     vknots = srf.vknots
     crvs = []
     for vi in vknots:
-        c = CurveByVIso(srf, vi).curve
+        c = srf.v_iso(vi)
         crvs.append(c)
     srf = NurbsSurfaceByInterp(crvs, 1).surface
     return srf
@@ -481,7 +478,7 @@ def _process_unsplit_wing(compound, divide_closed):
     # Make faces of surface.
     new_faces = []
     for s in [s1, s2, s3, s4, s5]:
-        f = BRepBuilderAPI_MakeFace(s.GetHandle(), 0.).Face()
+        f = BRepBuilderAPI_MakeFace(s.handle, 0.).Face()
         new_faces.append(f)
 
     # Segment off TE.
@@ -501,13 +498,13 @@ def _process_unsplit_wing(compound, divide_closed):
         usplits.Append(ui)
 
     split = ShapeUpgrade_SplitSurface()
-    split.Init(s6.GetHandle())
+    split.Init(s6.handle)
     split.SetUSplitValues(usplits.GetHandle())
     split.Perform()
     comp_surf1 = split.ResSurfaces().GetObject()
 
     split = ShapeUpgrade_SplitSurface()
-    split.Init(s7.GetHandle())
+    split.Init(s7.handle)
     split.SetUSplitValues(usplits.GetHandle())
     split.Perform()
     comp_surf2 = split.ResSurfaces().GetObject()

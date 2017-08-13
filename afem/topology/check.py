@@ -138,7 +138,7 @@ class CheckShape(object):
         if isinstance(entity, TopoDS_Edge):
             return entity
 
-        if CheckGeom.is_curve_like(entity):
+        if CheckGeom.is_curve(entity):
             return BRepBuilderAPI_MakeEdge(entity.handle).Edge()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_EDGE:
@@ -161,7 +161,7 @@ class CheckShape(object):
         if isinstance(entity, TopoDS_Wire):
             return entity
 
-        if CheckGeom.is_curve_like(entity):
+        if CheckGeom.is_curve(entity):
             e = BRepBuilderAPI_MakeEdge(entity.handle).Edge()
             return BRepBuilderAPI_MakeWire(e).Wire()
 
@@ -188,7 +188,7 @@ class CheckShape(object):
         if isinstance(entity, TopoDS_Face):
             return entity
 
-        if CheckGeom.is_surface_like(entity):
+        if CheckGeom.is_surface(entity):
             return BRepBuilderAPI_MakeFace(entity.handle, 0.).Face()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_FACE:
@@ -221,7 +221,7 @@ class CheckShape(object):
             builder.Add(shell, entity)
             return shell
 
-        if CheckGeom.is_surface_like(entity):
+        if CheckGeom.is_surface(entity):
             f = BRepBuilderAPI_MakeFace(entity.handle, 0.).Face()
             shell = TopoDS_Shell()
             builder = BRep_Builder()
@@ -338,9 +338,9 @@ class CheckShape(object):
         # Geometry
         if CheckGeom.is_point_like(entity):
             return cls.to_vertex(entity)
-        if CheckGeom.is_curve_like(entity):
+        if CheckGeom.is_curve(entity):
             return cls.to_edge(entity)
-        if CheckGeom.is_surface_like(entity):
+        if CheckGeom.is_surface(entity):
             return cls.to_face(entity)
 
         raise TypeError('Failed to convert entity to a shape.')

@@ -1,7 +1,7 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCC.Geom import Geom_Geometry
 from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
-from OCC.Standard import Standard_Transient
+from OCC.Standard import Standard_Transient, Handle_Standard_Transient
 from OCC.gce import gce_MakeMirror
 
 __all__ = []
@@ -9,6 +9,10 @@ __all__ = []
 
 def _get_handle(self):
     return self.GetHandle()
+
+
+def _get_handle_handle(self):
+    return self
 
 
 def _set_color(self, r, g, b):
@@ -46,6 +50,7 @@ def _get_mirrored(self):
 
 
 Standard_Transient.handle = property(_get_handle)
+Handle_Standard_Transient.handle = property(_get_handle_handle)
 
 Geom_Geometry.color = None
 Geom_Geometry.set_color = _set_color

@@ -1,6 +1,6 @@
 from OCC.TopoDS import TopoDS_Solid
 
-from afem.geometry.create import CurveByUIso, CurveByVIso, PlaneByPoints
+from afem.geometry.create import PlaneByPoints
 from afem.geometry.entities import NurbsCurve, NurbsSurface
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
@@ -306,7 +306,8 @@ class Wing(Body):
             should create points that are on or very near the intersection
             between these two shapes. If they are not they will be projected to
             the intersection which could yield unanticipated results.
-        :type basis_shape: afem.geometry.entities.Surface or OCC.TopoDS.TopoDS_Shape
+        :type basis_shape: afem.geometry.entities.Surface or
+            OCC.TopoDS.TopoDS_Shape
         :param bool refine_edges: Option to refine the edges after the
             Boolean operation between the wing reference shape and the basis
             shape.
@@ -378,9 +379,9 @@ class Wing(Body):
         :raise TypeError: If both *u* and *v* are None.
         """
         if u is not None:
-            return CurveByUIso(self.sref, u).curve
+            return self.sref.u_iso(u)
         elif v is not None:
-            return CurveByVIso(self.sref, v).curve
+            return self.sref.v_iso(v)
         else:
             msg = 'Invalid parameter input.'
             raise TypeError(msg)
