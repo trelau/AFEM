@@ -5,10 +5,7 @@ from OCC.BRepAdaptor import BRepAdaptor_Curve
 from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy
 from OCC.BRepClass3d import brepclass3d
 from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
-from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_BSplineSurface,
-                         GeomAbs_BezierCurve, GeomAbs_BezierSurface,
-                         GeomAbs_Line, GeomAbs_Plane)
-from OCC.GeomAdaptor import GeomAdaptor_Surface
+from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_BezierCurve)
 from OCC.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCC.ShapeAnalysis import (ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds,
                                ShapeAnalysis_ShapeTolerance)
@@ -20,9 +17,8 @@ from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                         TopoDS_Wire, topods_Compound, topods_Edge, topods_Face,
                         topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
 
-from afem.geometry.create import (create_nurbs_curve_from_occ,
-                                  create_nurbs_surface_from_occ)
-from afem.geometry.entities import Line, Plane, Point
+from afem.geometry.create import (create_nurbs_curve_from_occ)
+from afem.geometry.entities import Curve, Point, Surface
 from afem.topology.props import AreaOfShapes
 
 __all__ = ["ExploreShape", "ExploreWire", "ExploreFreeEdges"]
@@ -275,19 +271,8 @@ class ExploreShape(object):
 
         :raise RuntimeError: If an unsupported curve type is found.
         """
-        # TODO Handle other curve types.
-        adp_crv = BRepAdaptor_Curve(edge)
-        if adp_crv.GetType() == GeomAbs_Line:
-            gp_lin = adp_crv.Line()
-            crv = Line(gp_lin)
-            return crv
-        elif adp_crv.GetType() in [GeomAbs_BezierCurve, GeomAbs_BSplineCurve]:
-            crv = adp_crv.BSpline().GetObject()
-            crv = create_nurbs_curve_from_occ(crv)
-            return crv
-        else:
-            msg = 'Unsupported curve type.'
-            raise RuntimeError(msg)
+        h_crv = BRep_Tool.Curve(edge)
+        return Curve(h_crv[0])
 
     @staticmethod
     def curve_of_wire(wire):
@@ -355,25 +340,17 @@ class ExploreShape(object):
         :raise RuntimeError: If unsupported surface type is found.
         """
         hsrf = BRep_Tool.Surface(face)
-        adp_srf = GeomAdaptor_Surface(hsrf)
-        if adp_srf.GetType() == GeomAbs_Plane:
-            gp_pln = adp_srf.Plane()
-            return Plane(gp_pln)
-        elif adp_srf.GetType() in [GeomAbs_BezierSurface,
-                                   GeomAbs_BSplineSurface]:
-            occ_srf = adp_srf.BSpline().GetObject()
-            return create_nurbs_surface_from_occ(occ_srf)
-        else:
-            msg = 'Unsupported surface type.'
-            raise RuntimeError(msg)
+        return Surface(hsrf)
 
     @classmethod
     def surface_of_shape(cls, shape):
         """
         Get the surface of the largest face in the shape.
 
-        :param shape:
-        :return:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: The surface.
+        :rtype: afem.geometry.entities.Surface
         """
         faces = cls.get_faces(shape)
         if not faces:
