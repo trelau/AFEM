@@ -13,11 +13,12 @@ from afem.topology.props import *
 
 __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SurfacePartByShape", "SparByParameters", "SparByPoints",
-           "SparBySurface", "SparBetweenShapes", "SparsBetweenPlanesByNumber",
+           "SparBySurface", "SparByShape",
+           "SparBetweenShapes", "SparsBetweenPlanesByNumber",
            "SparsBetweenPlanesByDistance", "SparsAlongCurveByNumber",
            "SparsAlongCurveByDistance",
            "RibByParameters",
-           "RibByPoints", "RibBySurface", "RibBetweenShapes",
+           "RibByPoints", "RibBySurface", "RibByShape", "RibBetweenShapes",
            "RibsBetweenPlanesByNumber", "RibsBetweenPlanesByDistance",
            "RibsAlongCurveByNumber", "RibsAlongCurveByDistance",
            "BulkheadBySurface", "FloorBySurface",
@@ -373,6 +374,68 @@ class SparBySurface(object):
 
         # Create the part
         self._spar = Spar(label, shape, cref, srf)
+
+    @property
+    def spar(self):
+        """
+        :return: The spar.
+        :rtype: afem.structure.entities.Spar
+        """
+        return self._spar
+
+
+class SparByShape(object):
+    """
+    Create a spar using a basis shape.
+
+    :param str label: Part label.
+    :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape.
+    :param afem.oml.entities.Wing wing: The wing.
+
+    .. note::
+
+        * The reference curve of the part will be untrimmed in this method. It
+          will be determined by the intersection between *shape* and the wing
+          reference shape.
+
+        * The reference surface of the part will be taken as the underlying
+          surface of the largest face in the basis shape.
+    """
+
+    def __init__(self, label, basis_shape, wing):
+        _validate_type(basis_shape, TopoDS_Shape)
+        _validate_type(wing, Wing)
+
+        # Build reference curve
+        section = IntersectShapes(basis_shape, wing.sref_shape)
+        edges = ExploreShape.get_edges(section.shape)
+        wires = WiresByConnectedEdges(edges).wires
+        w = LengthOfShapes(wires).longest_shape
+        w = CheckShape.to_wire(w)
+        cref = ExploreShape.curve_of_shape(w)
+
+        # Orient cref so that p1 is nearest (u1, v1) on the wing
+        umin, vmin = wing.sref.u1, wing.sref.v1
+        p0 = wing.eval(umin, vmin)
+        p1 = cref.eval(cref.u1)
+        p2 = cref.eval(cref.u2)
+        d1 = p0.distance(p1)
+        d2 = p0.distance(p2)
+        if d2 < d1:
+            cref.reverse()
+
+        # Build part shape
+        common = CommonShapes(basis_shape, wing)
+        if not common.is_done:
+            msg = 'Boolean operation failed.'
+            raise RuntimeError(msg)
+        basis_shape = common.shape
+
+        # Get reference surface
+        sref = ExploreShape.surface_of_shape(basis_shape)
+
+        # Create the part
+        self._spar = Spar(label, basis_shape, cref, sref)
 
     @property
     def spar(self):
@@ -915,6 +978,68 @@ class RibBySurface(object):
 
         # Create the part
         self._rib = Rib(label, shape, cref, srf)
+
+    @property
+    def rib(self):
+        """
+        :return: The rib.
+        :rtype: afem.structure.entities.Rib
+        """
+        return self._rib
+
+
+class RibByShape(object):
+    """
+    Create a rib using a basis shape.
+
+    :param str label: Part label.
+    :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape.
+    :param afem.oml.entities.Wing wing: The wing.
+
+    .. note::
+
+        * The reference curve of the part will be untrimmed in this method. It
+          will be determined by the intersection between *shape* and the wing
+          reference shape.
+
+        * The reference surface of the part will be taken as the underlying
+          surface of the largest face in the basis shape.
+    """
+
+    def __init__(self, label, basis_shape, wing):
+        _validate_type(basis_shape, TopoDS_Shape)
+        _validate_type(wing, Wing)
+
+        # Build reference curve
+        section = IntersectShapes(basis_shape, wing.sref_shape)
+        edges = ExploreShape.get_edges(section.shape)
+        wires = WiresByConnectedEdges(edges).wires
+        w = LengthOfShapes(wires).longest_shape
+        w = CheckShape.to_wire(w)
+        cref = ExploreShape.curve_of_shape(w)
+
+        # Orient cref so that p1 is nearest (u1, v1) on the wing
+        umin, vmin = wing.sref.u1, wing.sref.v1
+        p0 = wing.eval(umin, vmin)
+        p1 = cref.eval(cref.u1)
+        p2 = cref.eval(cref.u2)
+        d1 = p0.distance(p1)
+        d2 = p0.distance(p2)
+        if d2 < d1:
+            cref.reverse()
+
+        # Build part shape
+        common = CommonShapes(basis_shape, wing)
+        if not common.is_done:
+            msg = 'Boolean operation failed.'
+            raise RuntimeError(msg)
+        basis_shape = common.shape
+
+        # Get reference surface
+        sref = ExploreShape.surface_of_shape(basis_shape)
+
+        # Create the part
+        self._rib = Rib(label, basis_shape, cref, sref)
 
     @property
     def rib(self):
