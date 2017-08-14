@@ -20,9 +20,9 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "RibByPoints", "RibBySurface", "RibBetweenShapes",
            "RibsBetweenPlanesByNumber", "RibsBetweenPlanesByDistance",
            "RibsAlongCurveByNumber", "RibsAlongCurveByDistance",
-           "RibsAtShapes", "BulkheadBySurface", "FloorBySurface",
-           "FrameByPlane", "FramesBetweenPlanesByNumber",
-           "FramesBetweenPlanesByDistance", "FramesByPlanes", "SkinBySolid",
+           "BulkheadBySurface", "FloorBySurface",
+           "FrameByPlane", "FramesByPlanes", "FramesBetweenPlanesByNumber",
+           "FramesBetweenPlanesByDistance", "SkinBySolid",
            "SkinByBody"]
 
 
@@ -762,11 +762,6 @@ class SparsAlongCurveByDistance(object):
         return self._next_index
 
 
-class SparsAtShapes(object):
-    # TODO SparsAtShapes
-    pass
-
-
 # RIB -------------------------------------------------------------------------
 
 class RibByParameters(object):
@@ -1309,11 +1304,6 @@ class RibsAlongCurveByDistance(object):
         return self._next_index
 
 
-class RibsAtShapes(object):
-    # TODO RibsAtShapes
-    pass
-
-
 # BULKHEAD -------------------------------------------------------------------
 
 class BulkheadBySurface(object):
@@ -1453,6 +1443,64 @@ class FrameByPlane(object):
         return self._frame
 
 
+class FramesByPlanes(object):
+    """
+    Create frames using a list of planes. This method uses
+    :class:`.FrameByPlane`.
+
+    :param str label: Part label.
+    :param list[afem.geometry.entities.Plane] plns: The planes.
+    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param float height: The height.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    """
+
+    def __init__(self, label, plns, fuselage, height, first_index=1,
+                 delimiter=' '):
+        for pln in plns:
+            _validate_type(pln, Plane)
+        _validate_type(fuselage, Fuselage)
+
+        first_index = int(first_index)
+
+        self._frames = []
+        self._nframes = len(plns)
+        for pln in plns:
+            label_indx = delimiter.join([label, str(first_index)])
+            frame = FrameByPlane(label_indx, pln, fuselage, height).frame
+            first_index += 1
+            self._frames.append(frame)
+        self._next_index = first_index
+
+    @property
+    def nframes(self):
+        """
+        :return: The number of frames.
+        :rtype: int
+        """
+        return self._nframes
+
+    @property
+    def frames(self):
+        """
+        :return: The frames.
+        :rtype: list[afem.structure.entities.Frame]
+        """
+        return self._frames
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
+
+
 class FramesBetweenPlanesByNumber(object):
     """
     Create a specified number of frames between two planes. This method uses
@@ -1572,78 +1620,6 @@ class FramesBetweenPlanesByDistance(object):
             first_index += 1
             self._frames.append(frame)
         self._next_index = first_index
-
-    @property
-    def nframes(self):
-        """
-        :return: The number of frames.
-        :rtype: int
-        """
-        return self._nframes
-
-    @property
-    def frames(self):
-        """
-        :return: The frames.
-        :rtype: list[afem.structure.entities.Frame]
-        """
-        return self._frames
-
-    @property
-    def spacing(self):
-        """
-        :return: The spacing between first and second parts.
-        :rtype: float
-        """
-        return self._ds
-
-    @property
-    def next_index(self):
-        """
-        :return: The next index.
-        :rtype: int
-        """
-        return self._next_index
-
-
-class FramesByPlanes(object):
-    """
-    Create frames using a list of planes. This method uses
-    :class:`.FrameByPlane`.
-
-    :param str label: Part label.
-    :param list[afem.geometry.entities.Plane] plns: The planes.
-    :param afem.oml.entities.Fuselage fuselage: The fuselage.
-    :param float height: The height.
-    :param int first_index: The first index appended to the part label as
-        parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
-    """
-
-    def __init__(self, label, plns, fuselage, height, first_index=1,
-                 delimiter=' '):
-        for pln in plns:
-            _validate_type(pln, Plane)
-        _validate_type(fuselage, Fuselage)
-
-        first_index = int(first_index)
-
-        self._frames = []
-        self._nframes = len(plns)
-        self._ds = None
-        for pln in plns:
-            label_indx = delimiter.join([label, str(first_index)])
-            frame = FrameByPlane(label_indx, pln, fuselage, height).frame
-            first_index += 1
-            self._frames.append(frame)
-        self._next_index = first_index
-
-        if len(plns) > 1:
-            p1 = plns[0].eval(0., 0.)
-            p2 = plns[1].eval(0., 0.)
-            self._ds = p1.distance(p2)
 
     @property
     def nframes(self):

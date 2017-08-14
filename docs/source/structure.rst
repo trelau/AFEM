@@ -133,10 +133,6 @@ SparsAlongCurveByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: SparsAlongCurveByDistance
 
-SparsAtShapes
-~~~~~~~~~~~~~
-.. autoclass:: SparsAtShapes
-
 RibByParameters
 ~~~~~~~~~~~~~~~~
 .. autoclass:: RibByParameters
@@ -169,10 +165,6 @@ RibsAlongCurveByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: RibsAlongCurveByDistance
 
-RibsAtShapes
-~~~~~~~~~~~~~
-.. autoclass:: RibsAtShapes
-
 BulkheadBySurface
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: BulkheadBySurface
@@ -185,6 +177,10 @@ FrameByPlane
 ~~~~~~~~~~~~~
 .. autoclass:: FrameByPlane
 
+FramesByPlanes
+~~~~~~~~~~~~~~
+.. autoclass:: FramesByPlanes
+
 FramesBetweenPlanesByNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: FramesBetweenPlanesByNumber
@@ -192,10 +188,6 @@ FramesBetweenPlanesByNumber
 FramesBetweenPlanesByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: FramesBetweenPlanesByDistance
-
-FramesByPlanes
-~~~~~~~~~~~~~~
-.. autoclass:: FramesByPlanes
 
 SkinBySolid
 ~~~~~~~~~~~
