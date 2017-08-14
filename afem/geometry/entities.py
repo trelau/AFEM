@@ -1447,7 +1447,8 @@ class NurbsCurve(Curve):
         """
         return homogenize_array1d(self.cp, self.w)
 
-    def downcast(self, crv):
+    @staticmethod
+    def downcast(crv):
         """
         Downcast the curve to this type.
 
@@ -1573,6 +1574,7 @@ class TrimmedCurve(Curve):
         :rtype: afem.geometry.entities.TrimmedCurve
         """
         h_crv = Handle_Geom_TrimmedCurve.DownCast(crv.handle)
+        x=h_crv.IsNull()
         return TrimmedCurve(h_crv)
 
     def copy(self):
