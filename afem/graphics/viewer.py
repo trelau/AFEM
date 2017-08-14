@@ -14,7 +14,14 @@ __all__ = ["Viewer", "ViewableItem"]
 
 class ViewableItem(object):
     """
-    Class for items that can be viewed.
+    Base class for items that can be viewed.
+
+    :var OCC.Quantity.Quantity_Color color: The OCC color quantity. The
+        color is set randomly during initialization.
+    :var float transparency: The transparency level.
+    :var afem.geometry.entities.Plane mirror: The plane to mirror the object
+        about. If provided then object will be mirrored about the plane for
+        visualization purposes only.
     """
 
     def __init__(self):
@@ -30,6 +37,8 @@ class ViewableItem(object):
         :param float r: Red.
         :param float g: Green.
         :param float b: Blue.
+
+        :return: None.
         """
         if r > 1.:
             r /= 255.
@@ -44,6 +53,8 @@ class ViewableItem(object):
         Set the opacity for graphics.
 
         :param float transparency: Level of transparency (0 to 1).
+
+        :return: None.
         """
         if transparency < 0.:
             transparency = 0.
@@ -55,19 +66,23 @@ class ViewableItem(object):
         """
         Set a plane to mirror the item.
 
-        :param pln:
+        :param afem.geometry.entities.Plane pln: The plane.
+
+        :return: None.
         """
         self.mirror = pln
 
     def get_mirrored(self):
         """
-        Get the mirrored item.
+        Get the mirrored shape.
 
-        :return:
+        :return: The mirrored shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
         """
         if not self.mirror:
             return None
-        trsf = gce_MakeMirror(self.mirror.Pln()).Value()
+
+        trsf = gce_MakeMirror(self.mirror.object.Pln()).Value()
         builder = BRepBuilderAPI_Transform(self, trsf, True)
         if not builder.IsDone():
             return None
@@ -76,7 +91,7 @@ class ViewableItem(object):
 
 class Viewer(object):
     """
-    View objects using PythonOCC simple GUI.
+    View objects.
     """
     _items = []
     _meshes = []
@@ -85,6 +100,8 @@ class Viewer(object):
     def clear(cls):
         """
         Clear entities from viewer.
+
+        :return: None.
         """
         cls._items = []
         cls._meshes = []
@@ -94,6 +111,12 @@ class Viewer(object):
     def show(cls, clear=True, view='iso'):
         """
         Show the viewer.
+
+        :param bool clear: Clear the items after rendering.
+        :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
+            'right', 'front', 'bottom').
+
+        :return: None.
         """
         disp, start_display, _, _ = init_display()
         for item in cls._items:
@@ -137,11 +160,12 @@ class Viewer(object):
     @classmethod
     def add(cls, *items):
         """
-        Add items to the viewer.
+        Add viewable items.
 
-        :param items:
+        :param items: Item(s) to view.
+        :type items: afem.graphics.viewer.ViewableItem or TopoDS.TopoDS_Shape
 
-        :return:
+        :return: None.
         """
         for item in items:
             if isinstance(item, (ViewableItem, TopoDS_Shape)):
@@ -152,8 +176,9 @@ class Viewer(object):
         """
         Add meshes to the viewer.
 
-        :param meshes:
-        :return:
+        :param afem.fem.meshes.Mesh meshes: The mesh(es) to add.
+
+        :return: None.
         """
         for mesh in meshes:
             cls._meshes.append(mesh)
@@ -162,11 +187,24 @@ class Viewer(object):
     def capture(cls, filename='capture.png', clear=True, view='iso'):
         """
         Capture a screenshot from the viewer.
+
+        :param str filename: The name of the file. The type will be
+            automatically deduced from the extension.
+        :param bool clear: Clear the items after rendering.
+        :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
+            'right', 'front', 'bottom').
+
+        :return: None.
         """
         disp, start_display, _, _ = init_display()
         for item in cls._items:
-            disp.DisplayShape(item, color=item.color,
-                              transparency=item.transparency)
+            try:
+                disp.DisplayShape(item, color=item.color,
+                                  transparency=item.transparency)
+            except TypeError:
+                # Hack for some geometry items
+                disp.DisplayShape(item.object, color=item.color,
+                                  transparency=item.transparency)
         for mesh in cls._meshes:
             _display_smesh(disp, mesh)
 

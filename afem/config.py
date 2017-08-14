@@ -83,7 +83,7 @@ class Settings(object):
         logger.setLevel(log_dict[level])
 
     @classmethod
-    def set_units(cls, units='inch'):
+    def set_units(cls, units='in'):
         """
         Set units.
         
