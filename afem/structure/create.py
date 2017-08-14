@@ -13,7 +13,10 @@ from afem.topology.props import *
 
 __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SurfacePartByShape", "SparByParameters", "SparByPoints",
-           "SparBySurface", "SparBetweenShapes", "RibByParameters",
+           "SparBySurface", "SparBetweenShapes", "SparsBetweenPlanesByNumber",
+           "SparsBetweenPlanesByDistance", "SparsAlongCurveByNumber",
+           "SparsAlongCurveByDistance",
+           "RibByParameters",
            "RibByPoints", "RibBySurface", "RibBetweenShapes",
            "RibsBetweenPlanesByNumber", "RibsBetweenPlanesByDistance",
            "RibsAlongCurveByNumber", "RibsAlongCurveByDistance",
@@ -417,23 +420,346 @@ class SparBetweenShapes(SparByPoints):
 
 
 class SparsBetweenPlanesByNumber(object):
-    # TODO SparsBetweenPlanesByNumber
-    pass
+    """
+    Create a specified number of planar spars between two planes. This method
+    uses :class:`.PlanesBetweenPlanesByNumber` and :class:`.SparBetweenShapes`.
+
+    :param str label: Part label.
+    :param afem.geometry.entities.Plane pln1: The first plane.
+    :param afem.geometry.entities.Plane pln2: The second plane.
+    :param int n: The number of parts.
+    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
+    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param afem.oml.entities.Wing wing: The wing.
+    :param float d1: An offset distance for the first plane. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last plane. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    """
+
+    def __init__(self, label, pln1, pln2, n, shape1, shape2, wing, d1=None,
+                 d2=None, first_index=1, delimiter=' '):
+        _validate_type(pln1, Plane)
+        _validate_type(pln2, Plane)
+        _validate_type(wing, Wing)
+        _validate_type(shape1, TopoDS_Shape)
+        _validate_type(shape2, TopoDS_Shape)
+
+        n = int(n)
+        first_index = int(first_index)
+
+        builder = PlanesBetweenPlanesByNumber(pln1, pln2, n, d1, d2)
+
+        self._spars = []
+        self._nspars = builder.nplanes
+        self._ds = builder.spacing
+        for pln in builder.planes:
+            basis_shape = FaceBySurface(pln).face
+            label_indx = delimiter.join([label, str(first_index)])
+            spar = SparBetweenShapes(label_indx, shape1, shape2, wing,
+                                     basis_shape).spar
+            first_index += 1
+            self._spars.append(spar)
+        self._next_index = first_index
+
+    @property
+    def nspars(self):
+        """
+        :return: The number of spars.
+        :rtype: int
+        """
+        return self._nspars
+
+    @property
+    def spars(self):
+        """
+        :return: The spars.
+        :rtype: list[afem.structure.entities.Spar]
+        """
+        return self._spars
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between first and second parts.
+        :rtype: float
+        """
+        return self._ds
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
 
 
 class SparsBetweenPlanesByDistance(object):
-    # TODO SparsBetweenPlanesByDistance
-    pass
+    """
+    Create planar spars between two planes using a maximum spacing. This method
+    uses :class:`.PlanesBetweenPlanesByDistance` and
+    :class:`.SparBetweenShapes`.
+
+    :param str label: Part label.
+    :param afem.geometry.entities.Plane pln1: The first plane.
+    :param afem.geometry.entities.Plane pln2: The second plane.
+    :param float maxd: The maximum allowed spacing. The actual spacing will
+        be adjusted to not to exceed this value.
+    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
+    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param afem.oml.entities.Wing wing: The wing.
+    :param float d1: An offset distance for the first plane. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last plane. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param int nmin: Minimum number of parts to create.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    """
+
+    def __init__(self, label, pln1, pln2, maxd, shape1, shape2, wing, d1=None,
+                 d2=None, nmin=0, first_index=1, delimiter=' '):
+        _validate_type(pln1, Plane)
+        _validate_type(pln2, Plane)
+        _validate_type(wing, Wing)
+        _validate_type(shape1, TopoDS_Shape)
+        _validate_type(shape2, TopoDS_Shape)
+
+        first_index = int(first_index)
+
+        builder = PlanesBetweenPlanesByDistance(pln1, pln2, maxd, d1, d2, nmin)
+
+        self._spars = []
+        self._nspars = builder.nplanes
+        self._ds = builder.spacing
+        for pln in builder.planes:
+            basis_shape = FaceBySurface(pln).face
+            label_indx = delimiter.join([label, str(first_index)])
+            spar = SparBetweenShapes(label_indx, shape1, shape2, wing,
+                                     basis_shape).spar
+            first_index += 1
+            self._spars.append(spar)
+        self._next_index = first_index
+
+    @property
+    def nspars(self):
+        """
+        :return: The number of spars.
+        :rtype: int
+        """
+        return self._nspars
+
+    @property
+    def spars(self):
+        """
+        :return: The spars.
+        :rtype: list[afem.structure.entities.Spar]
+        """
+        return self._spars
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between first and second parts.
+        :rtype: float
+        """
+        return self._ds
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
 
 
 class SparsAlongCurveByNumber(object):
-    # TODO SparsAlongCurveByNumber
-    pass
+    """
+    Create a specified number of planar spars along a curve. This method
+    uses :class:`.PlanesAlongCurveByNumber` and :class:`.SparBetweenShapes`.
+
+    :param str label: Part label.
+    :param afem.geometry.entities.Curve crv: The curve.
+    :param int n: The number of parts.
+    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
+    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+        will be used to define the normal of all planes along the curve. If
+        no plane is provided, then the first derivative of the curve will
+        define the plane normal.
+    :param float u1: The parameter of the first plane (default=crv.u1).
+    :param float u2: The parameter of the last plane (default=crv.u2).
+    :param float d1: An offset distance for the first plane. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last plane. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    :param float tol: Tolerance.
+    """
+
+    def __init__(self, label, crv, n, shape1, shape2, wing, ref_pln=None,
+                 u1=None, u2=None, d1=None, d2=None, first_index=1,
+                 delimiter=' ', tol=1.0e-7):
+        _validate_type(crv, Curve)
+        _validate_type(shape1, TopoDS_Shape)
+        _validate_type(shape2, TopoDS_Shape)
+        _validate_type(wing, Wing)
+        _validate_type(ref_pln, Plane, False)
+
+        n = int(n)
+        first_index = int(first_index)
+
+        builder = PlanesAlongCurveByNumber(crv, n, ref_pln, u1, u2, d1, d2,
+                                           tol)
+
+        self._spars = []
+        self._nspars = builder.nplanes
+        self._ds = builder.spacing
+        for pln in builder.planes:
+            basis_shape = FaceBySurface(pln).face
+            label_indx = delimiter.join([label, str(first_index)])
+            spar = SparBetweenShapes(label_indx, shape1, shape2, wing,
+                                     basis_shape).spar
+            first_index += 1
+            self._spars.append(spar)
+        self._next_index = first_index
+
+    @property
+    def nspars(self):
+        """
+        :return: The number of spars.
+        :rtype: int
+        """
+        return self._nspars
+
+    @property
+    def spars(self):
+        """
+        :return: The spars.
+        :rtype: list[afem.structure.entities.Spar]
+        """
+        return self._spars
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between first and second parts.
+        :rtype: float
+        """
+        return self._ds
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
 
 
 class SparsAlongCurveByDistance(object):
-    # TODO SparsAlongCurveByDistance
-    pass
+    """
+    Create planar spars along a curve using a maximum spacing. This method
+    uses :class:`.PlanesAlongCurveByDistance` and :class:`.SparBetweenShapes`.
+
+    :param str label: Part label.
+    :param afem.geometry.entities.Curve crv: The curve.
+    :param float maxd: The maximum allowed spacing between planes. The
+        actual spacing will be adjusted to not to exceed this value.
+    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
+    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+        will be used to define the normal of all planes along the curve. If
+        no plane is provided, then the first derivative of the curve will
+        define the plane normal.
+    :param float u1: The parameter of the first plane (default=crv.u1).
+    :param float u2: The parameter of the last plane (default=crv.u2).
+    :param float d1: An offset distance for the first plane. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last plane. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param int nmin: Minimum number of planes to create.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    :param float tol: Tolerance.
+    """
+
+    def __init__(self, label, crv, maxd, shape1, shape2, wing, ref_pln=None,
+                 u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
+                 delimiter=' ', tol=1.0e-7):
+        _validate_type(crv, Curve)
+        _validate_type(shape1, TopoDS_Shape)
+        _validate_type(shape2, TopoDS_Shape)
+        _validate_type(wing, Wing)
+        _validate_type(ref_pln, Plane, False)
+
+        first_index = int(first_index)
+
+        builder = PlanesAlongCurveByDistance(crv, maxd, ref_pln, u1, u2, d1,
+                                             d2, nmin, tol)
+
+        self._spars = []
+        self._nspars = builder.nplanes
+        self._ds = builder.spacing
+        for pln in builder.planes:
+            basis_shape = FaceBySurface(pln).face
+            label_indx = delimiter.join([label, str(first_index)])
+            spar = SparBetweenShapes(label_indx, shape1, shape2, wing,
+                                     basis_shape).spar
+            first_index += 1
+            self._spars.append(spar)
+        self._next_index = first_index
+
+    @property
+    def nspars(self):
+        """
+        :return: The number of spars.
+        :rtype: int
+        """
+        return self._nspars
+
+    @property
+    def spars(self):
+        """
+        :return: The spars.
+        :rtype: list[afem.structure.entities.Spar]
+        """
+        return self._spars
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between first and second parts.
+        :rtype: float
+        """
+        return self._ds
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
 
 
 class SparsAtShapes(object):
