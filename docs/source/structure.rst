@@ -113,6 +113,10 @@ SparBySurface
 ~~~~~~~~~~~~~
 .. autoclass:: SparBySurface
 
+SparByShape
+~~~~~~~~~~~
+.. autoclass:: SparByShape
+
 SparBetweenShapes
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: SparBetweenShapes
@@ -144,6 +148,10 @@ RibByPoints
 RibBySurface
 ~~~~~~~~~~~~
 .. autoclass:: RibBySurface
+
+RibByShape
+~~~~~~~~~~
+.. autoclass:: RibByShape
 
 RibBetweenShapes
 ~~~~~~~~~~~~~~~~
