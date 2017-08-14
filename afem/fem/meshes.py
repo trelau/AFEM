@@ -1,6 +1,6 @@
 from OCC.SMESH import SMESH_Gen_get
 
-from afem.fem.hypotheses import HypothesisData
+from afem.fem.hypotheses import HypothesisAPI
 from afem.fem.nodes import Node
 from afem.topology.check import CheckShape
 
@@ -167,7 +167,7 @@ class Mesh(object):
             else:
                 raise ValueError('No shape could be found.')
 
-        hypothesis = HypothesisData.get_hypothesis(hypothesis)
+        hypothesis = HypothesisAPI.get_hypothesis(hypothesis)
         if not hypothesis:
             raise ValueError('No hypothesis could be found.')
 
@@ -306,9 +306,12 @@ class SubMesh(object):
 class MeshAPI(object):
     """
     Mesh API. This is used to manage meshes from one place.
+
+    :var afem.fem.hypotheses.HypothesisAPI hypotheses: Access to
+        HypothesisAPI interface.
     """
     _active = None
-    hypotheses = HypothesisData()
+    hypotheses = HypothesisAPI()
 
     @classmethod
     def get_active(cls):

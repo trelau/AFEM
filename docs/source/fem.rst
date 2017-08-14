@@ -78,6 +78,10 @@ NetgenAlgoOnly2D
 ~~~~~~~~~~~~~~~~
 .. autoclass:: NetgenAlgoOnly2D
 
+HypothesisAPI
+~~~~~~~~~~~~~
+.. autoclass:: HypothesisAPI
+
 Meshes
 ------
 .. py:currentmodule:: afem.fem.meshes
