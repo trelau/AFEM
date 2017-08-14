@@ -237,7 +237,7 @@ def _display_smesh(display, mesh):
     """
     Display an SMESH generated mesh.
     """
-    ds = SMESH_MeshVSLink(mesh.smesh_obj)
+    ds = SMESH_MeshVSLink(mesh.object)
     mesh_vs = MeshVS_Mesh(True)
     prs_builder = MeshVS_MeshPrsBuilder(mesh_vs.GetHandle(), 1,
                                         ds.GetHandle(), 0, MeshVS_BP_Mesh)

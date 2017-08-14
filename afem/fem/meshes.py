@@ -12,153 +12,204 @@ __all__ = ["Mesh", "SubMesh", "MeshAPI"]
 class Mesh(object):
     """
     Mesh.
+
+    :param str label: The name.
     """
     _all = {}
     _indx = 0
 
-    def __init__(self, name):
-        self._name = name
-        Mesh._all[name] = self
+    def __init__(self, label):
+        self._label = label
+        Mesh._all[label] = self
         self._mesh = _mesh_gen.CreateMesh(Mesh._indx, True)
         self._ds = self._mesh.GetMeshDS()
         self._id = Mesh._indx
         Mesh._indx += 1
 
     @property
+    def object(self):
+        """
+        :return: The underlying mesh object.
+        :rtype: OCC.SMESH.SMESH_Mesh
+        """
+        return self._mesh
+
+    @property
     def id(self):
+        """
+        :return: The mesh ID.
+        :rtype: int
+        """
         return self._id
 
     @property
     def shape(self):
-        return self._mesh.GetShapeToMesh()
+        """
+        :return: The shape to mesh.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self.object.GetShapeToMesh()
 
     @property
     def has_shape(self):
-        return self._mesh.HasShapeToMesh()
-
-    @property
-    def smesh_obj(self):
-        return self._mesh
+        """
+        :return: ``True`` if the mesh has a shape, ``False`` if not.
+        :rtype: bool
+        """
+        return self.object.HasShapeToMesh()
 
     @property
     def nb_nodes(self):
+        """
+        :return: The number of nodes in the mesh.
+        :rtype: int
+        """
         return self._ds.NbNodes()
 
     @property
     def min_node_id(self):
+        """
+        :return: The minimum node ID in the mesh.
+        :rtype: int
+        """
         return self._ds.MinNodeID()
 
     @property
     def max_node_id(self):
+        """
+        :return: The maximum node ID in the mesh.
+        :rtype: int
+        """
         return self._ds.MaxNodeID()
 
     @property
     def min_elm_id(self):
+        """
+        :return: The minimum element ID in the mesh.
+        :rtype: int
+        """
         return self._ds.MinElementID()
 
     @property
     def max_elm_id(self):
+        """
+        :return: The maximum element ID in the mesh.
+        :rtype: int
+        """
         return self._ds.MaxElementID()
 
     @property
     def nodes(self):
+        """
+        :return: The mesh nodes.
+        :rtype: list[afem.fem.nodes.Node]
+        """
         return self.get_nodes()
 
     @classmethod
-    def get_mesh(cls, mesh=None):
+    def get_mesh(cls, mesh):
         """
         Get a mesh.
 
-        :param mesh:
+        :param mesh: The mesh to get. If a mesh instance is given it is
+            simply returned. If a string is given the mesh is retrieved by
+            its label.
+        :type mesh: afem.fem.meshes.Mesh or str
 
-        :return:
+        :return: The mesh.
+        :rtype: afem.fem.meshes.Mesh
+
+        :raise KeyError: If a mesh cannot be found.
         """
         if isinstance(mesh, Mesh):
             return mesh
-        try:
-            return Mesh._all[mesh]
-        except KeyError:
-            return None
+
+        return Mesh._all[mesh]
 
     def activate(self):
         """
         Activate this mesh.
 
-        :return:
+        :return: None.
         """
         MeshAPI._active = self
-        return True
 
     def shape_to_mesh(self, shape):
         """
         Set the shape to mesh.
 
-        :param shape:
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
 
-        :return:
+        :return: None
         """
         shape = CheckShape.to_shape(shape)
-        if not shape:
-            return False
-        self._mesh.ShapeToMesh(shape)
-        return True
+        self.object.ShapeToMesh(shape)
 
     def add_hypothesis(self, hypothesis, shape=None):
         """
         Add a hypothesis to the shape.
 
-        :param hypothesis:
-        :param shape:
+        :param hypothesis: The hypothesis. Can be an instance or a label.
+        :type hypothesis: afem.fem.hypotheses.Hypothesis or str
+        :param shape: The shape the hypothesis applies to. This can be a
+            sub-shape of the master shape. If not provided then the master
+            shape is used.
 
-        :return:
+        :return: None.
+
+        :raise ValueError: If no shape is available to apply the hypothesis to.
+        :raise ValueError: If no hypothesis is found.
         """
         shape = CheckShape.to_shape(shape)
         if not shape:
             if self.has_shape:
                 shape = self.shape
             else:
-                return False
+                raise ValueError('No shape could be found.')
+
         hypothesis = HypothesisData.get_hypothesis(hypothesis)
         if not hypothesis:
-            return False
-        self._mesh.AddHypothesis(shape, hypothesis.id)
-        return True
+            raise ValueError('No hypothesis could be found.')
+
+        self.object.AddHypothesis(shape, hypothesis.id)
 
     def compute(self):
         """
         Compute the mesh.
 
-        :return:
+        :return: ``True`` if performed, ``False`` if not.
+        :rtype: bool
         """
-        return _mesh_gen.Compute(self._mesh, self.shape)
+        return _mesh_gen.Compute(self.object, self.shape)
 
     def clear(self):
         """
         Clear all nodes and elements.
 
-        :return:
+        :return: None.
         """
-        self._mesh.Clear()
-        return True
+        self.object.Clear()
 
     def get_submesh(self, sub_shape):
         """
         Get a SubMesh from a sub-shape.
 
-        :param sub_shape:
+        :param OCC.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
 
-        :return:
+        :return: A sub-mesh.
+        :rtype: afem.fem.meshes.SubMesh
         """
-        mesh = self._mesh.GetSubMesh(sub_shape)
-        return SubMesh(mesh)
+        the_mesh = self.object.GetSubMesh(sub_shape)
+        return SubMesh(the_mesh)
 
     def get_nodes(self, order=False):
         """
-        Get nodes from the mesh.
+        Get the nodes of the mesh.
 
-        :param bool order: Order nodes order by ID.
+        :param bool order: Order nodes by their ID.
 
-        :return:
+        :return: The nodes.
+        :rtype: list[afem.fem.nodes.Node]
         """
         niter = self._ds.nodesIterator(order)
         nodes = []
@@ -171,26 +222,52 @@ class Mesh(object):
 class SubMesh(object):
     """
     SubMesh.
+
+    :param OCC.SMESH.SMESH_subMesh: The sub-mesh.
     """
 
-    def __init__(self, smesh_submesh):
-        self._mesh = smesh_submesh
-        self._ds = smesh_submesh.GetSubMeshDS()
+    def __init__(self, the_submesh):
+        self._mesh = the_submesh
+        self._ds = the_submesh.GetSubMeshDS()
+
+    @property
+    def object(self):
+        """
+        :return: The underlying sub-mesh object.
+        :rtype: OCC.SMESH.SMESH_subMesh
+        """
+        return self._mesh
 
     @property
     def is_empty(self):
-        return self._mesh.IsEmpty()
+        """
+        :return: ``True`` if the sub-mesh is empty, ``False`` if not.
+        :rtype: bool
+        """
+        return self.object.IsEmpty()
 
     @property
     def is_computed(self):
-        return self._mesh.IsMeshComputed()
+        """
+        :return: ``True`` if the sub-mesh is computed, ``False`` if not.
+        :rtype: bool
+        """
+        return self.object.IsMeshComputed()
 
     @property
     def nb_nodes(self):
+        """
+        :return: The number of nodes in the sub-mesh.
+        :rtype: int
+        """
         return self._ds.NbNodes()
 
     @property
     def nodes(self):
+        """
+        :return: The sub-mesh nodes.
+        :rtype: list[afem.fem.nodes.Node]
+        """
         return self.get_nodes()
 
     def get_nodes(self, include_subshapes=True):
@@ -200,7 +277,8 @@ class SubMesh(object):
         :param bool include_subshapes: Option to include sub-shapes when
             retrieving nodes.
 
-        :return:
+        :return: The sub-mesh nodes.
+        :rtype: list[afem.fem.nodes.Node]
         """
         # Return nodes on sub-shape only.
         if not include_subshapes:
@@ -210,6 +288,7 @@ class SubMesh(object):
                 n = Node(niter.next())
                 nodes.append(n)
             return nodes
+
         # Can't figure out how to get nodes from sub-shapes, so get the
         # elements and then the nodes from them.
         # TODO Figure out how to access sub-nodes.
@@ -226,7 +305,7 @@ class SubMesh(object):
 
 class MeshAPI(object):
     """
-    Mesh data manager.
+    Mesh API. This is used to manage meshes from one place.
     """
     _active = None
     hypotheses = HypothesisData()
@@ -236,7 +315,8 @@ class MeshAPI(object):
         """
         Get the active mesh.
 
-        :return:
+        :return: The active mesh.
+        :rtype: afem.fem.meshes.Mesh
         """
         return cls._active
 
@@ -245,42 +325,47 @@ class MeshAPI(object):
         """
         Get mesh.
 
-        :param mesh:
+        :param mesh: The mesh to get. If a mesh instance is given it is
+            simply returned. If a string is given the mesh is retrieved by
+            its label. If ``None`` is given then the active mesh is returned.
+        :type mesh: afem.fem.meshes.Mesh or str or None
 
-        :return:
+        :return: The mesh.
+        :rtype: afem.fem.meshes.Mesh
         """
-        mesh = Mesh.get_mesh(mesh)
-        if mesh:
-            return mesh
-        return cls._active
+        if mesh is None:
+            return cls._active
+
+        return Mesh.get_mesh(mesh)
 
     @classmethod
     def make_active(cls, mesh):
         """
         Activate the mesh.
 
-        :param mesh:
+        :param mesh: The mesh to activate. If a mesh instance is given it is
+            activated. If a string is given the mesh is retrieved by
+            its label.
+        :type mesh: afem.fem.meshes.Mesh or str
 
-        :return:
+        :return: None.
         """
         mesh = cls.get_mesh(mesh)
-        if not mesh:
-            return False
         mesh.activate()
-        return True
 
     @classmethod
-    def create_mesh(cls, name, shape, active=True):
+    def create_mesh(cls, label, shape, active=True):
         """
-        Create a mesh
+        Create a mesh.
 
-        :param name:
-        :param shape:
-        :param active:
+        :param str label: The label.
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool active: Option to make this mesh active.
 
-        :return:
+        :return: The new mesh.
+        :rtype: afem.fem.meshes.Mesh
         """
-        mesh = Mesh(name)
+        mesh = Mesh(label)
         mesh.shape_to_mesh(shape)
         if active:
             mesh.activate()
@@ -291,29 +376,33 @@ class MeshAPI(object):
         """
         Add a hypothesis to the shape in a mesh.
 
-        :param hypothesis:
-        :param shape:
-        :param mesh:
+        :param hypothesis: The hypothesis. Can be an instance or a label.
+        :type hypothesis: afem.fem.hypotheses.Hypothesis or str
+        :param shape: The shape the hypothesis applies to. This can be a
+            sub-shape of the master shape. If not provided then the master
+            shape is used.
+        :param mesh: The mesh to apply the hypothesis to. If ``None`` is
+            provided then the active mesh is used.
+        :type mesh: afem.fem.meshes.Mesh or str or None
 
-        :return:
+        :return: None.
         """
         mesh = cls.get_mesh(mesh)
-        if not mesh:
-            return False
-        return mesh.add_hypothesis(hypothesis, shape)
+        mesh.add_hypothesis(hypothesis, shape)
 
     @classmethod
     def compute_mesh(cls, mesh=None):
         """
         Compute a mesh.
 
-        :param mesh:
+        :param mesh: The mesh to compute. If ``None`` is provided then the
+            active mesh is used.
+        :type mesh: afem.fem.meshes.Mesh or str or None
 
-        :return:
+        :return: ``True`` if performed, ``False`` if not.
+        :rtype: bool
         """
         mesh = cls.get_mesh(mesh)
-        if not mesh:
-            return False
         return mesh.compute()
 
     @classmethod
@@ -321,14 +410,15 @@ class MeshAPI(object):
         """
         Get a SubMesh from the sub-shape.
 
-        :param sub_shape:
-        :param mesh:
+        :param OCC.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
+        :param mesh: The mesh to retrieve the sub-mesh from. If ``None`` is
+            provided then the active mesh is used.
+        :type mesh: afem.fem.meshes.Mesh or str or None
 
-        :return:
+        :return: The sub-mesh.
+        :rtype: afem.fem.meshes.SubMesh
         """
         mesh = cls.get_mesh(mesh)
-        if not mesh:
-            return None
         return mesh.get_submesh(sub_shape)
 
     @classmethod
@@ -337,11 +427,12 @@ class MeshAPI(object):
         Get nodes from the mesh.
 
         :param bool order: Order nodes order by ID.
-        :param mesh:
+        :param mesh: The mesh to retrieve the nodes from. If ``None`` is
+            provided then the active mesh is used.
+        :type mesh: afem.fem.meshes.Mesh or str or None
 
-        :return:
+        :return: The nodes.
+        :rtype: list[afem.fem.nodes.Node]
         """
         mesh = cls.get_mesh(mesh)
-        if not mesh:
-            return Node
         return mesh.get_nodes(order)
