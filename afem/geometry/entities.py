@@ -14,7 +14,6 @@ from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array2OfPnt)
 from OCC.gp import gp_Ax1, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec, gp_XYZ
 from numpy import add, array, float64, ndarray, subtract
 
-from afem.config import Settings
 from afem.geometry.utils import (global_to_local_param,
                                  homogenize_array1d,
                                  homogenize_array2d,
@@ -188,7 +187,7 @@ class Point2D(gp_Pnt2d, Geometry2D):
             return self.Distance(other)
         return None
 
-    def is_equal(self, other, tol=None):
+    def is_equal(self, other, tol=1.0e-7):
         """
         Check for coincident points.
 
@@ -198,8 +197,6 @@ class Point2D(gp_Pnt2d, Geometry2D):
         :return: *True* if coincident, *False* if not.
         :rtype: bool
         """
-        if tol is None:
-            tol = Settings.gtol
         if isinstance(other, gp_Pnt2d):
             return self.IsEqual(other, tol)
         if is_array_like(other) and len(other) == 2:
@@ -607,7 +604,7 @@ class Point(gp_Pnt, Geometry):
             return self.Distance(other)
         return None
 
-    def is_equal(self, other, tol=None):
+    def is_equal(self, other, tol=1.0e-7):
         """
         Check for coincident points.
 
@@ -617,8 +614,6 @@ class Point(gp_Pnt, Geometry):
         :return: *True* if coincident, *False* if not.
         :rtype: bool
         """
-        if tol is None:
-            tol = Settings.gtol
         if isinstance(other, gp_Pnt):
             return self.IsEqual(other, tol)
         if is_array_like(other) and len(other) == 3:
