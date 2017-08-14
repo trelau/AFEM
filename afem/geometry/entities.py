@@ -1170,8 +1170,12 @@ class Line(Curve):
 
         :return: A line.
         :rtype: afem.geometry.entities.Line
+
+        :raise ValueError: If the curve cannot be downcast to this type.
         """
         h_crv = Handle_Geom_Line.DownCast(crv.handle)
+        if h_crv.IsNull():
+            raise ValueError('Could not downcast curve.')
         return Line(h_crv)
 
     def copy(self):
@@ -1229,8 +1233,12 @@ class Circle(Curve):
 
         :return: A circle.
         :rtype: afem.geometry.entities.Circle
+
+        :raise ValueError: If the curve cannot be downcast to this type.
         """
         h_crv = Handle_Geom_Circle.DownCast(crv.handle)
+        if h_crv.IsNull():
+            raise ValueError('Could not downcast curve.')
         return Circle(h_crv)
 
     def copy(self):
@@ -1306,8 +1314,12 @@ class Ellipse(Curve):
 
         :return: An ellipse.
         :rtype: afem.geometry.entities.Ellipse
+
+        :raise ValueError: If the curve cannot be downcast to this type.
         """
         h_crv = Handle_Geom_Ellipse.DownCast(crv.handle)
+        if h_crv.IsNull():
+            raise ValueError('Could not downcast curve.')
         return Ellipse(h_crv)
 
     def copy(self):
@@ -1456,8 +1468,12 @@ class NurbsCurve(Curve):
 
         :return: A NURBS curve.
         :rtype: afem.geometry.entities.NurbsCurve
+
+        :raise ValueError: If the curve cannot be downcast to this type.
         """
         h_crv = Handle_Geom_BSplineCurve.DownCast(crv.handle)
+        if h_crv.IsNull():
+            raise ValueError('Could not downcast curve.')
         return NurbsCurve(h_crv)
 
     def copy(self):
@@ -1572,9 +1588,12 @@ class TrimmedCurve(Curve):
 
         :return: A trimmed curve.
         :rtype: afem.geometry.entities.TrimmedCurve
+
+        :raise ValueError: If the curve cannot be downcast to this type.
         """
         h_crv = Handle_Geom_TrimmedCurve.DownCast(crv.handle)
-        x=h_crv.IsNull()
+        if h_crv.IsNull():
+            raise ValueError('Could not downcast curve.')
         return TrimmedCurve(h_crv)
 
     def copy(self):
@@ -1824,8 +1843,12 @@ class Plane(Surface):
 
         :return: A plane.
         :rtype: afem.geometry.entities.Plane
+
+        :raise ValueError: If the surface cannot be downcast to this type.
         """
         h_srf = Handle_Geom_Plane.DownCast(srf.handle)
+        if h_srf.IsNull():
+            raise ValueError('Could not downcast surface.')
         return Plane(h_srf)
 
     def copy(self):
@@ -2025,8 +2048,12 @@ class NurbsSurface(Surface):
 
         :return: A surface.
         :rtype: afem.geometry.entities.NurbsSurface
+
+        :raise ValueError: If the surface cannot be downcast to this type.
         """
         h_srf = Handle_Geom_BSplineSurface.DownCast(srf.handle)
+        if h_srf.IsNull():
+            raise ValueError('Could not downcast surface.')
         return NurbsSurface(h_srf)
 
     def copy(self):
