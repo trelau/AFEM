@@ -3,7 +3,7 @@ from __future__ import print_function
 import time
 
 from afem.config import Settings
-from afem.fem import MeshData
+from afem.fem import MeshAPI
 from afem.geometry import CreateGeom
 from afem.graphics import Viewer
 from afem.io import ImportVSP
@@ -228,22 +228,22 @@ Viewer.show(False)
 
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
-MeshData.create_mesh('wing-body mesh', shape_to_mesh)
+MeshAPI.create_mesh('wing-body mesh', shape_to_mesh)
 
 # Use a single global hypothesis based on local length.
-MeshData.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
-MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshData.add_hypothesis('netgen hypo')
-MeshData.add_hypothesis('netgen algo')
+MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
+MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
+MeshAPI.add_hypothesis('netgen hypo')
+MeshAPI.add_hypothesis('netgen algo')
 
 # Compute the mesh
 mesh_start = time.time()
 print('Computing mesh...')
-status = MeshData.compute_mesh()
+status = MeshAPI.compute_mesh()
 if not status:
     print('Failed to compute mesh')
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-Viewer.add_meshes(MeshData.get_active())
+Viewer.add_meshes(MeshAPI.get_active())
 Viewer.show()

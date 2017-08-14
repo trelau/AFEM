@@ -1,6 +1,6 @@
 import time
 
-from afem.fem import MeshData
+from afem.fem import MeshAPI
 from afem.geometry import CreateGeom
 from afem.graphics import Viewer
 from afem.io import ImportVSP

@@ -90,6 +90,6 @@ SubMesh
 ~~~~~~~
 .. autoclass:: SubMesh
 
-MeshData
-~~~~~~~~
-.. autoclass:: MeshData
+MeshAPI
+~~~~~~~
+.. autoclass:: MeshAPI

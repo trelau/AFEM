@@ -7,7 +7,7 @@ from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCC.Bnd import Bnd_Box
 from OCC.gce import gce_MakeMirror
 
-from afem.fem import MeshData
+from afem.fem import MeshAPI
 from afem.geometry import CreateGeom
 from afem.graphics import Viewer
 from afem.io import ImportVSP
@@ -330,20 +330,20 @@ Viewer.show(False)
 
 # MESH ------------------------------------------------------------------------
 shape_to_mesh = ShapeTools.make_compound(all_parts)
-MeshData.create_mesh('tbw mesh', shape_to_mesh)
-MeshData.hypotheses.create_netgen_simple_2d('netgen hypo', 4., True)
-MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshData.add_hypothesis('netgen hypo')
-MeshData.add_hypothesis('netgen algo')
+MeshAPI.create_mesh('tbw mesh', shape_to_mesh)
+MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4., True)
+MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
+MeshAPI.add_hypothesis('netgen hypo')
+MeshAPI.add_hypothesis('netgen algo')
 
 # Compute the mesh
 mesh_start = time.time()
 print('Computing mesh...')
-status = MeshData.compute_mesh()
+status = MeshAPI.compute_mesh()
 if not status:
     print('Failed to compute mesh')
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-Viewer.add_meshes(MeshData.get_active())
+Viewer.add_meshes(MeshAPI.get_active())
 Viewer.show()

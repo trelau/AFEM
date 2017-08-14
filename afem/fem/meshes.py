@@ -6,7 +6,7 @@ from afem.topology.check import CheckShape
 
 _mesh_gen = SMESH_Gen_get()
 
-__all__ = ["Mesh", "SubMesh", "MeshData"]
+__all__ = ["Mesh", "SubMesh", "MeshAPI"]
 
 
 class Mesh(object):
@@ -86,7 +86,7 @@ class Mesh(object):
 
         :return:
         """
-        MeshData._active = self
+        MeshAPI._active = self
         return True
 
     def shape_to_mesh(self, shape):
@@ -224,7 +224,7 @@ class SubMesh(object):
         return list(node_set)
 
 
-class MeshData(object):
+class MeshAPI(object):
     """
     Mesh data manager.
     """

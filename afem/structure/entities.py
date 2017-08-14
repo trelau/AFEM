@@ -4,7 +4,7 @@ from numpy import mean
 
 from afem.config import logger
 from afem.fem.elements import Elm2D
-from afem.fem.meshes import MeshData
+from afem.fem.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import PlaneByNormal, PlaneFromParameter, \
     PointFromParameter
@@ -1047,7 +1047,7 @@ class SurfacePart(Part):
         :rtype: set(afem.fem.entities.Elm2D)
         """
         # TODO Support nodes and elements for both curve and surface parts.
-        smesh_mesh = MeshData.get_mesh().smesh_obj
+        smesh_mesh = MeshAPI.get_mesh().smesh_obj
         if not isinstance(smesh_mesh, SMESH_Mesh):
             return set()
 

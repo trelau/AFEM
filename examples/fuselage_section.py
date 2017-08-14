@@ -1,4 +1,4 @@
-from afem.fem import MeshData
+from afem.fem import MeshAPI
 from afem.geometry import *
 from afem.graphics import Viewer
 from afem.oml import *
@@ -97,17 +97,17 @@ Viewer.show(False)
 
 # Mesh
 the_shape = AssemblyAPI.prepare_shape_to_mesh()
-MeshData.create_mesh('the mesh', the_shape)
-MeshData.hypotheses.create_netgen_simple_2d('netgen', 4.)
-MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshData.add_hypothesis('netgen')
-MeshData.add_hypothesis('netgen algo')
+MeshAPI.create_mesh('the mesh', the_shape)
+MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
+MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
+MeshAPI.add_hypothesis('netgen')
+MeshAPI.add_hypothesis('netgen algo')
 # edges = ShapeTools.get_edges(the_shape, True)
 # MeshData.hypotheses.create_local_length_1d('local length', 4)
 # MeshData.hypotheses.create_regular_1d('algo 1d')
 # MeshData.add_hypothesis('local length', edges)
 # MeshData.add_hypothesis('algo 1d', edges)
-MeshData.compute_mesh()
+MeshAPI.compute_mesh()
 
-Viewer.add_meshes(MeshData.get_active())
+Viewer.add_meshes(MeshAPI.get_active())
 Viewer.show()
