@@ -65,6 +65,10 @@ NurbsCurve
 ~~~~~~~~~~
 .. autoclass:: NurbsCurve
 
+TrimmedCurve
+~~~~~~~~~~~~
+.. autoclass:: TrimmedCurve
+
 Surface
 ~~~~~~~
 .. autoclass:: Surface
@@ -156,6 +160,14 @@ NurbsCurveByApprox
 NurbsCurveByPoints
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: NurbsCurveByPoints
+
+TrimmedCurveByParameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: TrimmedCurveByParameters
+
+TrimmedCurveByPoints
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: TrimmedCurveByPoints
 
 PlaneByNormal
 ~~~~~~~~~~~~~

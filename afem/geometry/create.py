@@ -5,7 +5,7 @@ import OCC.BSplCLib as CLib
 from OCC.Approx import (Approx_ChordLength)
 from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
-                      Geom_Line, Geom_Plane)
+                      Geom_Line, Geom_Plane, Geom_TrimmedCurve)
 from OCC.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                          GeomAPI_PointsToBSpline)
 from OCC.GeomAbs import (GeomAbs_C2)
@@ -23,6 +23,7 @@ from scipy.linalg import lu_factor, lu_solve
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
+from afem.geometry.project import ProjectPointToCurve
 from afem.geometry.utils import (basis_funs, centripetal_parameters,
                                  chord_parameters, dehomogenize_array2d,
                                  find_span, homogenize_array1d,
@@ -43,7 +44,8 @@ __all__ = ["PointByXYZ", "PointByArray",
            "VectorByPoints", "LineByVector", "LineByPoints", "CircleByNormal",
            "CircleByPlane",
            "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
-           "NurbsCurveByPoints",
+           "NurbsCurveByPoints", "TrimmedCurveByParameters",
+           "TrimmedCurveByPoints",
            "PlaneByNormal", "PlaneByAxes", "PlaneByPoints", "PlaneByApprox",
            "PlaneFromParameter", "PlanesAlongCurveByNumber",
            "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
@@ -963,6 +965,112 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
 
     def __init__(self, qp):
         super(NurbsCurveByPoints, self).__init__(qp, 1, 1, 'C0')
+
+
+# TRIMMED CURVE ---------------------------------------------------------------
+
+class TrimmedCurveByParameters(object):
+    """
+    Create a trimmed curve using a basis curve and limiting parameters.
+
+    :param afem.geometry.entities.Curve basis_curve: The basis curve.
+    :param float u1: The first parameter.
+    :param float u2: The last parameter.
+    :param bool sense: If the basis curve is periodic, the trimmed curve
+        will have the same orientation as the basis curve if ``True`` or
+        opposite if ``False``.
+    :param bool adjust_periodic: If the basis curve is periodic, the bounds
+        of the trimmed curve may be different from *u1* and *u2* if
+        ``True``.
+
+    :raise TypeError: If the basis curve is not a valid curve type.
+    :raise ValueError: If *u1* >= *u2*.
+
+    Usage:
+
+    >>> from afem.geometry import NurbsSurfaceByInterp, TrimmedCurveByParameters
+    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
+    >>> basis_curve = NurbsCurveByInterp(qp).curve
+    >>> basis_curve.u1
+    0.0
+    >>> basis_curve.p1
+    Point(0.0, 0.0, 0.0)
+    >>> builder = TrimmedCurveByParameters(basis_curve, 1., 10.)
+    >>> c = builder.curve
+    >>> c.u1
+    1.0
+    >>> c.p1
+    Point(0.7071067811865475, 1.314213562373095, 0.0)
+    """
+
+    def __init__(self, basis_curve, u1, u2, sense=True, adjust_periodic=True):
+        if not isinstance(basis_curve, Curve):
+            raise TypeError('Invalid type of basis curve.')
+
+        if u1 >= u2:
+            raise ValueError('Parameter values are invalid.')
+
+        crv = Geom_TrimmedCurve(basis_curve.handle, u1, u2, sense,
+                                adjust_periodic)
+        self._c = TrimmedCurve(crv.GetHandle())
+
+    @property
+    def curve(self):
+        """
+        :return: The trimmed curve.
+        :rtype: afem.geometry.entities.TrimmedCurve
+        """
+        return self._c
+
+
+class TrimmedCurveByPoints(TrimmedCurveByParameters):
+    """
+    Create a trimmed curve using a basis curve and limiting points. The
+    points are projected to the basis curve then
+    :class:`.TrimmedCurveByParameters` is used.
+
+    :param afem.geometry.entities.Curve basis_curve: The basis curve.
+    :param point_like p1: The first point.
+    :param point_like p2: The last point.
+    :param bool sense: If the basis curve is periodic, the trimmed curve
+        will have the same orientation as the basis curve if ``True`` or
+        opposite if ``False``.
+    :param bool adjust_periodic: If the basis curve is periodic, the bounds
+        of the trimmed curve may be different from *u1* and *u2* if
+        ``True``.
+
+    :raise TypeError: If the basis curve is not a valid curve type.
+    :raise ValueError: If *u1* >= *u2*.
+
+    Usage:
+
+    >>> from afem.geometry import NurbsSurfaceByInterp, TrimmedCurveByPoints
+    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
+    >>> basis_curve = NurbsCurveByInterp(qp).curve
+    >>> basis_curve.u1
+    0.0
+    >>> basis_curve.p1
+    Point(0.0, 0.0, 0.0)
+    >>> p1 = basis_curve.eval(1.0)
+    >>> p2 = basis_curve.eval(10.0)
+    >>> builder = TrimmedCurveByPoints(basis_curve, p1, p2)
+    >>> c = builder.curve
+    >>> c.u1
+    1.0
+    >>> c.p1
+    Point(0.7071067811865475, 1.314213562373095, 0.0)
+    """
+
+    def __init__(self, basis_curve, p1, p2, sense=True,
+                 adjust_periodic=True):
+        if not isinstance(basis_curve, Curve):
+            raise TypeError('Invalid type of basis curve.')
+
+        u1 = ProjectPointToCurve(p1, basis_curve).nearest_param
+        u2 = ProjectPointToCurve(p2, basis_curve).nearest_param
+
+        super(TrimmedCurveByPoints, self).__init__(basis_curve, u1, u2, sense,
+                                                   adjust_periodic)
 
 
 # PLANE -----------------------------------------------------------------------

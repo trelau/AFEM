@@ -5,7 +5,7 @@ from OCC.GProp import GProp_GProps
 from OCC.Geom import (Handle_Geom_BSplineCurve, Handle_Geom_BSplineSurface,
                       Handle_Geom_Circle, Handle_Geom_Ellipse,
                       Handle_Geom_Line,
-                      Handle_Geom_Plane)
+                      Handle_Geom_Plane, Handle_Geom_TrimmedCurve)
 from OCC.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCC.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
@@ -29,7 +29,7 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
 
 __all__ = ["Geometry2D", "Point2D", "NurbsCurve2D", "Geometry", "Point",
            "Direction", "Vector", "Axis1", "Axis3", "Curve", "Line", "Circle",
-           "NurbsCurve", "Surface", "Plane", "NurbsSurface"]
+           "NurbsCurve", "TrimmedCurve", "Surface", "Plane", "NurbsSurface"]
 
 
 # 2-D -------------------------------------------------------------------------
@@ -1526,6 +1526,86 @@ class NurbsCurve(Curve):
             return False
         self.object.Segment(u1, u2)
         return True
+
+
+class TrimmedCurve(Curve):
+    """
+    Trimmed curve. This defines a basis curve limited by two parameter values.
+
+    :param OCC.Geom.Handle_Geom_TrimmedCurve the_handle: The handle.
+    """
+
+    def __init__(self, the_handle):
+        super(TrimmedCurve, self).__init__(the_handle)
+
+    @property
+    def handle(self):
+        """
+        :return: The smart pointer.
+        :rtype: OCC.Geom.Handle_Geom_TrimmedCurve
+        """
+        return self._handle
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCC.Geom.Geom_TrimmedCurve
+        """
+        return self._object
+
+    @property
+    def basis_curve(self):
+        """
+        :return: The basis curve.
+        :rtype: afem.geometry.entities.Curve
+        """
+        return Curve(self.object.BasisCurve())
+
+    @staticmethod
+    def downcast(crv):
+        """
+        Downcast the curve to this type.
+
+        :param afem.geometry.entities.Curve crv: The curve.
+
+        :return: A trimmed curve.
+        :rtype: afem.geometry.entities.TrimmedCurve
+        """
+        h_crv = Handle_Geom_TrimmedCurve.DownCast(crv.handle)
+        return TrimmedCurve(h_crv)
+
+    def copy(self):
+        """
+        Return a new copy of the curve.
+
+        :return: New curve.
+        :rtype: afem.geometry.entities.Circle
+        """
+        h_geom = self.object.Copy()
+        h_crv = self.handle.DownCast(h_geom)
+        return TrimmedCurve(h_crv)
+
+    def set_trim(self, u1, u2, sense=True, adjust_periodic=True):
+        """
+        Set the trimming parameters on the basis curve.
+
+        :param float u1: The first parameter.
+        :param float u2: The last parameter.
+        :param bool sense: If the basis curve is periodic, the trimmed curve
+            will have the same orientation as the basis curve if ``True`` or
+            opposite if ``False``.
+        :param bool adjust_periodic: If the basis curve is periodic, the bounds
+            of the trimmed curve may be different from *u1* and *u2* if
+            ``True``.
+
+        :return: None.
+
+        :raise RuntimeError: If *u1* == *u2*.
+        :raise RuntimeError: If *u1* or *u2* is outside the bounds of the basis
+            curve.
+        """
+        self.object.SetTrim(u1, u2, sense, adjust_periodic)
 
 
 class Surface(Geometry):
