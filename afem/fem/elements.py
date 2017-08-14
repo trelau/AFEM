@@ -9,7 +9,7 @@ class Element(object):
     """
     Base class for elements.
 
-    :param OCC.SMDS.SMDS_MeshElement the_element: The SMESH element.
+    :param OCC.SMDS.SMDS_MeshElement the_element: The element.
     """
 
     def __init__(self, the_element):
