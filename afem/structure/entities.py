@@ -407,7 +407,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :param bool is_rel: Option specifying if the distance is absolute or
             a relative to the length of the reference curve. If relative, then
             *ds* is multiplied by the curve length to get the absolute value
-            for the :class:`.PointFromParameter` method.
+            for the :class:`PointFromParameter` method.
         :param bool is_local: Option specifying if the parameter is local or
             global.
 

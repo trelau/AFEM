@@ -146,7 +146,7 @@ class DistancePointToShapes(DistanceShapeToShapes):
     """
     Calculate the minimum distance between a point and other shapes. Sort the
     results by distance. This method converts the point to a vertex and then
-    uses :class:`.DistanceShapeToShapes`.
+    uses :class:`DistanceShapeToShapes`.
 
     :param point_like pnt: The point.
     :param list[OCC.TopoDS.TopoDS_Shape] other_shapes: The other shapes.

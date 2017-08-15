@@ -459,7 +459,7 @@ class WiresByShape(WiresByConnectedEdges):
     """
     Create wires by connecting all the edges of a shape. This method gathers
     all the unique edges of a shape and then uses
-    :class:`.WiresByConnectedEdges`.
+    :class:`WiresByConnectedEdges`.
 
     :param OCC.TopoDS.TopoDS_Shape: The shape.
 
@@ -1690,9 +1690,9 @@ class PlaneByEdges(object):
 class PlaneByIntersectingShapes(object):
     """
     Create a plane by intersection two shapes. If no additional point is
-    provided, then :class:`.PlaneByEdges`. is used. If a point is provided,
+    provided, then :class:`PlaneByEdges`. is used. If a point is provided,
     then the edges are tessellated and the point is added to this list. Then
-    the tool :class:`.PlaneByApprox` is used.
+    the tool :class:`PlaneByApprox` is used.
 
     :param OCC.TopoDS.TopoDS_Shape shape1: The first shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: The second shape.

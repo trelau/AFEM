@@ -135,6 +135,6 @@ class MaterialData(object):
         :param rho: Density.
 
         :return: New linear isotropic material.
-        :rtype: :class:`.Isotropic`
+        :rtype: :class:`Isotropic`
         """
         return Isotropic(name, E, G, nu, rho)
