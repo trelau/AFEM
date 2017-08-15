@@ -232,6 +232,10 @@ FuseSurfacePartsByCref
 ~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: FuseSurfacePartsByCref
 
+SplitParts
+~~~~~~~~~~
+.. autoclass:: SplitParts
+
 Modify
 ------
 
