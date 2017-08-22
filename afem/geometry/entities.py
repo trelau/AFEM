@@ -25,7 +25,8 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolgp_array2_pnt,
                             to_np_from_tcolstd_array1_integer,
                             to_np_from_tcolstd_array1_real,
-                            to_np_from_tcolstd_array2_real)
+                            to_np_from_tcolstd_array2_real,
+                            to_tcolgp_array1_pnt, to_tcolstd_array1_real)
 
 __all__ = ["Geometry2D", "Point2D", "NurbsCurve2D", "Geometry", "Point",
            "Direction", "Vector", "Axis1", "Axis3", "Curve", "Line", "Circle",
@@ -1544,6 +1545,22 @@ class NurbsCurve(Curve):
         self.object.Segment(u1, u2)
         return True
 
+    def set_cp(self, i, cp, weight=None):
+        """
+        Modify the curve by setting the specified control point and weight.
+
+        :param int i: The point index.
+        :param afem.geometry.entities.Point cp: The point.
+        :param weight: The weight.
+        :type weight: float or None
+
+        :return: None.
+        """
+        if weight is None:
+            self.object.SetPole(i, cp)
+        else:
+            self.object.SetPole(i, cp, weight)
+
 
 class TrimmedCurve(Curve):
     """
@@ -2151,6 +2168,119 @@ class NurbsSurface(Surface):
             return False
         self.object.CheckAndSegment(u1, u2, v1, v2)
         return True
+
+    def locate_u(self, u, tol2d=1.0e-9, with_knot_repetition=False):
+        """
+        Locate the u-value in the knot sequence.
+
+        :param float u: The parameter.
+        :param int tol2d: The parametric tolerance. Used to determine if *u* is
+            at an existing knot.
+        :param bool with_knot_repetition: Considers location of knot value
+            with repetition of multiple knot value if ``True``.
+
+        :return: Bounding knot locations (i1, i2).
+        :rtype: tuple(float)
+        """
+        return self.object.LocateU(u, tol2d, with_knot_repetition)
+
+    def locate_v(self, v, tol2d=1.0e-9, with_knot_repetition=False):
+        """
+        Locate the v-value in the knot sequence.
+
+        :param float v: The parameter.
+        :param int tol2d: The parametric tolerance. Used to determine if *v* is
+            at an existing knot.
+        :param bool with_knot_repetition: Considers location of knot value
+            with repetition of multiple knot value if ``True``.
+
+        :return: Bounding knot locations (i1, i2).
+        :rtype: tuple(float)
+        """
+        return self.object.LocateV(v, tol2d, with_knot_repetition)
+
+    def insert_uknot(self, u, m=1, tol2d=1.0e-9):
+        """
+        Insert a u-value in the knot sequence.
+
+        :param float u: The knot value.
+        :param int m: If the knot already exists, the multiplicity of the
+            knot is increased if the previous multiplicity is lower than
+            *m*. Otherwise it does nothing.
+        :param float tol2d: Parametric tolerance for comparing knot values.
+
+        :return: None.
+        """
+        self.object.InsertUKnot(u, m, tol2d)
+
+    def insert_vknot(self, v, m=1, tol2d=1.0e-9):
+        """
+        Insert a v-value in the knot sequence.
+
+        :param float v: The knot value.
+        :param int m: If the knot already exists, the multiplicity of the
+            knot is increased if the previous multiplicity is lower than
+            *m*. Otherwise it does nothing.
+        :param float tol2d: Parametric tolerance for comparing knot values.
+
+        :return: None.
+        """
+        self.object.InsertVKnot(v, m, tol2d)
+
+    def set_cp(self, i, j, cp, weight=None):
+        """
+        Modify the surface by setting the specified control point and weight.
+
+        :param int i: The point index in u-direction.
+        :param int j: The point index in v-direction.
+        :param afem.geometry.entities.Point cp: The point.
+        :param weight: The weight.
+        :type weight: float or None
+
+        :return: None.
+        """
+        if weight is None:
+            self.object.SetPole(i, j, cp)
+        else:
+            self.object.SetPole(i, j, cp, weight)
+
+    def set_cp_col(self, v_index, cp, weights=None):
+        """
+        Modify the surface by setting the specified column of control points
+        and weights.
+
+        :param int v_index: The column index.
+        :param list[afem.geometry.entities.Point] cp: The points.
+        :param weights: The weights.
+        :type weights: list[float] or None
+
+        :return: None.
+        """
+        tcol_gp = to_tcolgp_array1_pnt(cp)
+        if weights is None:
+            self.object.SetPoleCol(v_index, tcol_gp)
+        else:
+            tcol_w = to_tcolstd_array1_real(weights)
+            self.object.SetPoleCol(v_index, tcol_gp, tcol_w)
+
+    def set_cp_row(self, u_index, cp, weights=None):
+        """
+        Modify the surface by setting the specified row of control points
+        and weights.
+
+        :param int u_index: The row index.
+        :param list[afem.geometry.entities.Point] cp: The points.
+        :param weights: The weights.
+        :type weights: list[float] or None
+
+        :return: None.
+        """
+        tcol_gp = to_tcolgp_array1_pnt(cp)
+        if weights is None:
+            self.object.SetPoleRow(u_index, tcol_gp)
+        else:
+            tcol_w = to_tcolstd_array1_real(weights)
+            self.object.SetPoleRow(u_index, tcol_gp, tcol_w)
 
 
 if __name__ == "__main__":

@@ -46,7 +46,7 @@ def _set_mirror(self, pln):
 def _get_mirrored(self):
     if not self.mirror:
         return None
-    trsf = gce_MakeMirror(self.mirror.Pln()).Value()
+    trsf = gce_MakeMirror(self.mirror.object.Pln()).Value()
     builder = BRepBuilderAPI_Transform(self, trsf, True)
     if not builder.IsDone():
         return None
