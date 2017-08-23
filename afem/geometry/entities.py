@@ -634,7 +634,7 @@ class Point(gp_Pnt, Geometry):
         :raise TypeError: If *v* cannot be converted to a vector.
         """
         if isinstance(v, (tuple, list, ndarray)):
-            return Vector(v[0], v[1], v[2])
+            v = Vector(v[0], v[1], v[2])
         elif isinstance(v, Direction):
             v = Vector(v)
         elif isinstance(v, gp_Vec):
