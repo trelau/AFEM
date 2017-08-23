@@ -1396,10 +1396,10 @@ class NurbsCurve(Curve):
     @property
     def n(self):
         """
-        :return: Number of control points - 1.
+        :return: Number of control points.
         :rtype: int
         """
-        return self.object.NbPoles() - 1
+        return self.object.NbPoles()
 
     @property
     def knots(self):
@@ -1549,7 +1549,7 @@ class NurbsCurve(Curve):
         """
         Modify the curve by setting the specified control point and weight.
 
-        :param int i: The point index.
+        :param int i: The point index (1 <= *i* <= *n*).
         :param afem.geometry.entities.Point cp: The point.
         :param weight: The weight.
         :type weight: float or None
@@ -1951,18 +1951,18 @@ class NurbsSurface(Surface):
     @property
     def n(self):
         """
-        :return: Number of control points - 1 in u-direction.
+        :return: Number of control points in u-direction.
         :rtype: int
         """
-        return self.object.NbUPoles() - 1
+        return self.object.NbUPoles()
 
     @property
     def m(self):
         """
-        :return: Number of control points - 1 in v-direction.
+        :return: Number of control points in v-direction.
         :rtype: int
         """
-        return self.object.NbVPoles() - 1
+        return self.object.NbVPoles()
 
     @property
     def uknots(self):
@@ -2231,8 +2231,8 @@ class NurbsSurface(Surface):
         """
         Modify the surface by setting the specified control point and weight.
 
-        :param int i: The point index in u-direction.
-        :param int j: The point index in v-direction.
+        :param int i: The point index in u-direction (1 <= *i* <= *n*).
+        :param int j: The point index in v-direction (1 <= *j* <= *m*).
         :param afem.geometry.entities.Point cp: The point.
         :param weight: The weight.
         :type weight: float or None
@@ -2244,31 +2244,12 @@ class NurbsSurface(Surface):
         else:
             self.object.SetPole(i, j, cp, weight)
 
-    def set_cp_col(self, v_index, cp, weights=None):
-        """
-        Modify the surface by setting the specified column of control points
-        and weights.
-
-        :param int v_index: The column index.
-        :param list[afem.geometry.entities.Point] cp: The points.
-        :param weights: The weights.
-        :type weights: list[float] or None
-
-        :return: None.
-        """
-        tcol_gp = to_tcolgp_array1_pnt(cp)
-        if weights is None:
-            self.object.SetPoleCol(v_index, tcol_gp)
-        else:
-            tcol_w = to_tcolstd_array1_real(weights)
-            self.object.SetPoleCol(v_index, tcol_gp, tcol_w)
-
     def set_cp_row(self, u_index, cp, weights=None):
         """
         Modify the surface by setting the specified row of control points
         and weights.
 
-        :param int u_index: The row index.
+        :param int u_index: The row index (1 <= *u_index* <= *n*).
         :param list[afem.geometry.entities.Point] cp: The points.
         :param weights: The weights.
         :type weights: list[float] or None
@@ -2281,6 +2262,25 @@ class NurbsSurface(Surface):
         else:
             tcol_w = to_tcolstd_array1_real(weights)
             self.object.SetPoleRow(u_index, tcol_gp, tcol_w)
+
+    def set_cp_col(self, v_index, cp, weights=None):
+        """
+        Modify the surface by setting the specified column of control points
+        and weights.
+
+        :param int v_index: The column index (1 <= *v_index* <= *m*).
+        :param list[afem.geometry.entities.Point] cp: The points.
+        :param weights: The weights.
+        :type weights: list[float] or None
+
+        :return: None.
+        """
+        tcol_gp = to_tcolgp_array1_pnt(cp)
+        if weights is None:
+            self.object.SetPoleCol(v_index, tcol_gp)
+        else:
+            tcol_w = to_tcolstd_array1_real(weights)
+            self.object.SetPoleCol(v_index, tcol_gp, tcol_w)
 
 
 if __name__ == "__main__":
