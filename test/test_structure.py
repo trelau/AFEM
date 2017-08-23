@@ -198,7 +198,6 @@ class TestStructure(unittest.TestCase):
                                  3.)
         self.assertEqual(builder.nframes, 3)
         self.assertEqual(builder.next_index, 4)
-        self.assertAlmostEqual(builder.spacing, 100.0000, delta=0.001)
 
     def test_skin_by_solid(self):
         skin = SkinBySolid('skin', self.wing).skin
