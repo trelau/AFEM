@@ -14,6 +14,8 @@ from afem.topology.modify import DivideC0Shape, DivideClosedShape
 
 __all__ = ["Body", "Wing", "Fuselage"]
 
+# TODO Consider using only Body that has cref and sref attributes.
+
 
 class Body(TopoDS_Solid, ViewableItem):
     """
