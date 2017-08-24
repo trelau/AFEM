@@ -1072,6 +1072,30 @@ class Curve(Geometry):
         h_crv = self.handle.DownCast(h_geom)
         return Curve(h_crv)
 
+    def local_to_global_param(self, *args):
+        """
+        Convert parameter(s) from local domain 0. <= u <= 1. to global domain
+        a <= u <= b.
+
+        :param float args: Local parameter(s).
+
+        :return: Global parameter(s).
+        :rtype: float or list[float]
+        """
+        return local_to_global_param(self.u1, self.u2, *args)
+
+    def global_to_local_param(self, *args):
+        """
+        Convert parameter(s) from global domain a <= u <= b to local domain
+        0. <= u <= 1.
+
+        :param float args: Global parameter(s).
+
+        :return: Local parameter(s).
+        :rtype: float or list[float]
+        """
+        return global_to_local_param(self.u1, self.u2, *args)
+
     def eval(self, u):
         """
         Evaluate a point on the curve.
@@ -1505,30 +1529,6 @@ class NurbsCurve(Curve):
         reparameterize_knots(u1, u2, tcol_knots)
         self.object.SetKnots(tcol_knots)
         return True
-
-    def local_to_global_param(self, *args):
-        """
-        Convert parameter(s) from local domain 0. <= u <= 1. to global domain
-        a <= u <= b.
-
-        :param float args: Local parameter(s).
-
-        :return: Global parameter(s).
-        :rtype: float or list[float]
-        """
-        return local_to_global_param(self.u1, self.u2, *args)
-
-    def global_to_local_param(self, *args):
-        """
-        Convert parameter(s) from global domain a <= u <= b to local domain
-        0. <= u <= 1.
-
-        :param float args: Global parameter(s).
-
-        :return: Local parameter(s).
-        :rtype: float or list[float]
-        """
-        return global_to_local_param(self.u1, self.u2, *args)
 
     def segment(self, u1, u2):
         """

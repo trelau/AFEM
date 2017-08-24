@@ -234,6 +234,9 @@ def build_wingbox(wing, params):
     for part in internal_parts:
         part.discard_by_cref()
 
+    Viewer.add(*AssemblyAPI.get_parts())
+    Viewer.show()
+
     for part in internal_parts:
         part.check()
 

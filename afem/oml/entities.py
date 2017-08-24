@@ -1,6 +1,6 @@
 from OCC.TopoDS import TopoDS_Solid
 
-from afem.geometry.create import PlaneByPoints
+from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import NurbsCurve, Surface
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
@@ -263,7 +263,8 @@ class Body(TopoDS_Solid, ViewableItem):
     def extract_curve(self, u1, v1, u2, v2, basis_shape=None,
                       refine_edges=True):
         """
-        Extract a curve within the reference surface between the parameters.
+        Extract a trimmed curve within the reference surface between the
+        parameters.
 
         :param float u1: First u-parameter.
         :param float v1: First v-parameter.
@@ -282,7 +283,7 @@ class Body(TopoDS_Solid, ViewableItem):
             shape.
 
         :return: The curve.
-        :rtype: afem.geometry.entities.Curve
+        :rtype: afem.geometry.entities.TrimmedCurve
 
         :raise RuntimeError: If method fails.
         """
@@ -326,13 +327,10 @@ class Body(TopoDS_Solid, ViewableItem):
             raise RuntimeError(msg)
         u2c = proj.nearest_param
 
-        # TODO Use trimmed curve
         if u1c > u2c:
-            crv.reverse()
-            u1c, u2c = crv.reversed_u(u1c), crv.reversed_u(u2c)
-        crv.segment(u1c, u2c)
+            u1c, u2c = u2c, u1c
 
-        return crv
+        return TrimmedCurveByParameters(crv, u1c, u2c).curve
 
     def isocurve(self, u=None, v=None):
         """

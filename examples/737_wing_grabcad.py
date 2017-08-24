@@ -65,6 +65,12 @@ u = tip_rib.local_to_global_u(0.15)
 p2 = tip_rib.point_on_cref(u)
 outbd_fspar = SparByPoints('outbd front spar', p1, p2, wing).spar
 
+# Adjust root and tip rib reference curve
+root_rib.set_p1(inbd_fspar.p1)
+root_rib.set_p2(rspar.p1)
+tip_rib.set_p1(outbd_fspar.p2)
+tip_rib.set_p2(rspar.p2)
+
 # Kink rib
 p1 = inbd_fspar.p2
 p2 = inbd_fspar.p2

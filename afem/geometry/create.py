@@ -45,7 +45,7 @@ __all__ = ["PointByXYZ", "PointByArray",
            "CircleByPlane",
            "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
            "NurbsCurveByPoints", "TrimmedCurveByParameters",
-           "TrimmedCurveByPoints",
+           "TrimmedCurveByPoints", "TrimmedCurveByCurve",
            "PlaneByNormal", "PlaneByAxes", "PlaneByPoints", "PlaneByApprox",
            "PlaneFromParameter", "PlanesAlongCurveByNumber",
            "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
@@ -1021,6 +1021,32 @@ class TrimmedCurveByParameters(object):
         :rtype: afem.geometry.entities.TrimmedCurve
         """
         return self._c
+
+
+class TrimmedCurveByCurve(TrimmedCurveByParameters):
+    """
+    Create a trimmed curve using the existing first and last parameters of
+    the basis curve. This method uses :class:`TrimmedCurveByParameters`.
+
+    :param afem.geometry.entities.Curve basis_curve: The basis curve.
+    :param bool sense: If the basis curve is periodic, the trimmed curve
+        will have the same orientation as the basis curve if ``True`` or
+        opposite if ``False``.
+    :param bool adjust_periodic: If the basis curve is periodic, the bounds
+        of the trimmed curve may be different from *u1* and *u2* if
+        ``True``.
+
+    :raise TypeError: If the basis curve is not a valid curve type.
+
+    """
+
+    def __init__(self, basis_curve, sense=True, adjust_periodic=True):
+        if not isinstance(basis_curve, Curve):
+            raise TypeError('Invalid type of basis curve.')
+
+        super(TrimmedCurveByCurve, self).__init__(basis_curve, basis_curve.u1,
+                                                  basis_curve.u2, sense,
+                                                  adjust_periodic)
 
 
 class TrimmedCurveByPoints(TrimmedCurveByParameters):

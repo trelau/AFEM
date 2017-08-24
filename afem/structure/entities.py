@@ -6,16 +6,18 @@ from afem.config import logger
 from afem.fem.elements import Elm2D
 from afem.fem.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import PlaneByNormal, PlaneFromParameter, \
-    PointFromParameter
+from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
+                                  PointFromParameter, TrimmedCurveByCurve)
+from afem.geometry.entities import TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
 from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import CutShapes, FuseShapes, SplitShapes
 from afem.topology.check import CheckShape, ClassifyPointInSolid
-from afem.topology.create import CompoundByShapes, HalfspaceBySurface, \
-    PointsAlongShapeByDistance, PointsAlongShapeByNumber
+from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
+                                  PointsAlongShapeByDistance,
+                                  PointsAlongShapeByNumber)
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import (FixShape, RebuildShapeByTool,
@@ -34,7 +36,8 @@ class Part(TopoDS_Shape, ViewableItem):
 
     :param str label: The label.
     :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
+    :param cref: The reference curve. If it is not a :class:`TrimmedCurve`,
+        then it will be converted to one.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
     :type sref: afem.geometry.entities.Surface or None
@@ -148,7 +151,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def cref(self):
         """
         :return: The part reference curve.
-        :rtype: afem.geometry.entities.Curve
+        :rtype: afem.geometry.entities.TrimmedCurve
         """
         return self._cref
 
@@ -238,16 +241,91 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Set the part reference curve.
 
-        :param afem.geometry.entities.Curve cref: The curve.
+        :param afem.geometry.entities.Curve cref: The curve. If it is not a
+            :class:`TrimmedCurve`, then it will be converted to one. Access
+            the original curve using the *basis_curve* property (i.e.,
+            part.cref.basis_curve).
+        :param cref: The reference curve.
 
         :return: None.
 
         :raise TypeError: If *cref* is an invalid curve.
         """
         if not CheckGeom.is_curve(cref):
-            msg = 'Invalid curve type.'
-            raise TypeError(msg)
-        self._cref = cref
+            raise TypeError('Invalid curve type.')
+
+        if isinstance(cref, TrimmedCurve):
+            self._cref = cref
+        else:
+            self._cref = TrimmedCurveByCurve(cref).curve
+
+    def set_u1(self, u1):
+        """
+        Set the first parameter of the reference curve.
+
+        :param float u1: The parameter.
+
+        :return: None.
+
+        :raise ValueError: If the *u1* is greater than or equal to *u2*.
+        """
+        if u1 >= self.cref.u2:
+            msg = ('First parameter greater than or equal to second '
+                   'parameter of curve.')
+            raise ValueError(msg)
+
+        self.cref.set_trim(u1, self.cref.u2)
+
+    def set_u2(self, u2):
+        """
+        Set the last parameter of the reference curve.
+
+        :param float u2: The parameter.
+
+        :return: None.
+
+        :raise ValueError: If the *u2* is less than or equal to *u1*.
+        """
+        if u2 <= self.cref.u1:
+            msg = ('Second parameter less than or equal to first '
+                   'parameter of curve.')
+            raise ValueError(msg)
+
+        self.cref.set_trim(self.cref.u1, u2)
+
+    def set_p1(self, p1):
+        """
+        Set the first parameter of the reference curve by inverting the point.
+
+        :param point_like p1: The point.
+
+        :return: None.
+
+        :raise RuntimeError: If no projection can be found.
+        """
+        u1 = self.invert_cref(p1)
+        if u1 is None:
+            msg = 'No projection found on reference curve.'
+            raise RuntimeError(msg)
+
+        self.set_u1(u1)
+
+    def set_p2(self, p2):
+        """
+        Set the last parameter of the reference curve by inverting the point.
+
+        :param point_like p2: The point.
+
+        :return: None.
+
+        :raise RuntimeError: If no projection can be found.
+        """
+        u2 = self.invert_cref(p2)
+        if u2 is None:
+            msg = 'No projection found on reference curve.'
+            raise RuntimeError(msg)
+
+        self.set_u2(u2)
 
     def set_sref(self, sref):
         """
@@ -362,7 +440,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_cref:
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
-        return self._cref.local_to_global_param(u)
+        return self.cref.local_to_global_param(u)
 
     def point_on_cref(self, u):
         """
@@ -378,7 +456,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_cref:
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
-        return self._cref.eval(u)
+        return self.cref.eval(u)
 
     def point_on_sref(self, u, v):
         """
@@ -395,7 +473,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_sref:
             msg = 'Part does not have a reference surface.'
             raise AttributeError(msg)
-        return self._sref.eval(u, v)
+        return self.sref.eval(u, v)
 
     def point_from_parameter(self, ds, u0=None, is_rel=False, is_local=False):
         """

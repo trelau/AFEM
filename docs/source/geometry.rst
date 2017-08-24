@@ -165,6 +165,10 @@ TrimmedCurveByParameters
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: TrimmedCurveByParameters
 
+TrimmedCurveByCurve
+~~~~~~~~~~~~~~~~~~~
+.. autoclass:: TrimmedCurveByCurve
+
 TrimmedCurveByPoints
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: TrimmedCurveByPoints
