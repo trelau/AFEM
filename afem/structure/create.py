@@ -19,6 +19,7 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SparsAlongCurveByDistance",
            "RibByParameters",
            "RibByPoints", "RibBySurface", "RibByShape", "RibBetweenShapes",
+           "RibByOrientation",
            "RibsBetweenPlanesByNumber", "RibsBetweenPlanesByDistance",
            "RibsAlongCurveByNumber", "RibsAlongCurveByDistance",
            "BulkheadBySurface", "FloorBySurface",
@@ -1084,6 +1085,29 @@ class RibBetweenShapes(RibByPoints):
 
         super(RibBetweenShapes, self).__init__(label, p1, p2, body,
                                                basis_shape)
+
+
+class RibByOrientation(RibBySurface):
+    """
+    Create a planar rib using rotation angles. This creates the plane then uses
+    :class:`RibBySurface`.
+
+    :param str label: Part label.
+    :param point_like origin: The origin of the plane after rotating and
+        translating from the global origin.
+    :param afem.oml.entities.Body body: The body.
+    :param float alpha: Rotation in degrees about global x-axis.
+    :param float beta: Rotation in degrees about global y-axis.
+    :param float gamma: Rotation in degrees about global z-axis.
+    :param str axes: The axes for the original plane before rotation and
+        translation ('xy', 'xz', 'yz').
+    """
+
+    def __init__(self, label, origin, body, alpha=0., beta=0., gamma=0.,
+                 axes='xz'):
+        pln = PlaneByOrientation(origin, axes, alpha, beta, gamma).plane
+
+        super(RibByOrientation, self).__init__(label, pln, body)
 
 
 class RibsBetweenPlanesByNumber(object):

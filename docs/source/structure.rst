@@ -157,6 +157,10 @@ RibBetweenShapes
 ~~~~~~~~~~~~~~~~
 .. autoclass:: RibBetweenShapes
 
+RibByOrientation
+~~~~~~~~~~~~~~~~
+.. autoclass:: RibByOrientation
+
 RibsBetweenPlanesByNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: RibsBetweenPlanesByNumber

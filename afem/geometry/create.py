@@ -1147,7 +1147,7 @@ class PlaneByAxes(object):
     Create a plane by an origin and basic axes.
 
     :param point_like origin: The origin.
-    :param vector_like axes: The axes ('xy', 'xz', 'yz').
+    :param str axes: The axes ('xy', 'xz', 'yz').
 
     :raise TypeError: If *origin* cannot be converted to :class:`Point`.
     :raise Value: If *axes* is not a supported option.
@@ -1377,7 +1377,7 @@ class PlaneByOrientation(object):
     Create a plane by rotation angles.
 
     :param point_like origin: The origin.
-    :param vector_like axes: The reference axes ('xy', 'xz', 'yz').
+    :param str axes: The reference axes ('xy', 'xz', 'yz').
     :param float alpha: Rotation in degrees about global x-axis.
     :param float beta: Rotation in degrees about global y-axis.
     :param float gamma: Rotation in degrees about global z-axis.
