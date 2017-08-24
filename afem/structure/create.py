@@ -3,7 +3,7 @@ from OCC.TopoDS import TopoDS_Shape, TopoDS_Solid
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import *
 from afem.geometry.entities import *
-from afem.oml.entities import Body, Fuselage, Wing
+from afem.oml.entities import Body
 from afem.structure.entities import *
 from afem.topology.bop import *
 from afem.topology.check import CheckShape
@@ -229,7 +229,7 @@ class SparByParameters(object):
     :param float v1: Starting point v-parameter.
     :param float u2: Ending point u-parameter.
     :param float v2: Ending point v-parameter.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape to define the shape of the part. If
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
@@ -243,17 +243,17 @@ class SparByParameters(object):
     .. note::
 
         * If a basis shape is provided, then the starting and ending parameters
-          should be near the intersection between this shape and the wing
+          should be near the intersection between this shape and the body
           reference shape.
     """
 
-    def __init__(self, label, u1, v1, u2, v2, wing, basis_shape=None):
-        _validate_type(wing, Wing)
+    def __init__(self, label, u1, v1, u2, v2, body, basis_shape=None):
+        _validate_type(body, Body)
         _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         # Determine reference surface and basis shape
         if basis_shape is None:
-            pln = wing.extract_plane(u1, v1, u2, v2)
+            pln = body.extract_plane(u1, v1, u2, v2)
             sref = pln
             basis_shape = FaceBySurface(pln).face
         elif isinstance(basis_shape, Surface):
@@ -262,11 +262,11 @@ class SparByParameters(object):
         else:
             sref = ExploreShape.surface_of_shape(basis_shape)
 
-        # Extract wing cref
-        cref = wing.extract_curve(u1, v1, u2, v2, basis_shape)
+        # Extract cref
+        cref = body.extract_curve(u1, v1, u2, v2, basis_shape)
 
         # Build part shape
-        common = CommonShapes(basis_shape, wing)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -292,7 +292,7 @@ class SparByPoints(SparByParameters):
     :param str label: Part label.
     :param point_like p1: Starting point.
     :param point_like p2: End point.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape to define the shape of the part. If
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
@@ -302,15 +302,15 @@ class SparByPoints(SparByParameters):
 
     .. note::
 
-        * The starting and ending points should be on or near the wing
+        * The starting and ending points should be on or near the body
           reference surface since they are projected to find parameters.
 
         * If a basis shape is provided, then the starting and ending points
-          should be near the intersection between this shape and the wing
+          should be near the intersection between this shape and the body
           reference shape.
     """
 
-    def __init__(self, label, p1, p2, wing, basis_shape=None):
+    def __init__(self, label, p1, p2, body, basis_shape=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
 
@@ -318,11 +318,11 @@ class SparByPoints(SparByParameters):
         _validate_type(p2, Point)
 
         # Invert points
-        u1, v1 = wing.invert(p1)
-        u2, v2 = wing.invert(p2)
+        u1, v1 = body.invert(p1)
+        u2, v2 = body.invert(p2)
 
         # Use SparByParameters
-        super(SparByPoints, self).__init__(label, u1, v1, u2, v2, wing,
+        super(SparByPoints, self).__init__(label, u1, v1, u2, v2, body,
                                            basis_shape)
 
 
@@ -332,32 +332,32 @@ class SparBySurface(object):
 
     :param str label: Part label.
     :param afem.geometry.entities.Surface srf: The surface.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
 
     .. note::
 
         The reference curve of the part will be untrimmed in this method. It
-        will be determined by the intersection between *srf* and the wing
+        will be determined by the intersection between *srf* and the body
         reference shape.
     """
 
-    def __init__(self, label, srf, wing):
+    def __init__(self, label, srf, body):
         _validate_type(srf, Surface)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
 
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
-        section = IntersectShapes(basis_shape, wing.sref_shape)
+        section = IntersectShapes(basis_shape, body.sref_shape)
         edges = ExploreShape.get_edges(section.shape)
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
         w = CheckShape.to_wire(w)
         cref = ExploreShape.curve_of_shape(w)
 
-        # Orient cref so that p1 is nearest (u1, v1) on the wing
-        umin, vmin = wing.sref.u1, wing.sref.v1
-        p0 = wing.eval(umin, vmin)
+        # Orient cref so that p1 is nearest (u1, v1) on the body
+        umin, vmin = body.sref.u1, body.sref.v1
+        p0 = body.eval(umin, vmin)
         p1 = cref.eval(cref.u1)
         p2 = cref.eval(cref.u2)
         d1 = p0.distance(p1)
@@ -366,7 +366,7 @@ class SparBySurface(object):
             cref.reverse()
 
         # Build part shape
-        common = CommonShapes(basis_shape, wing)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -390,33 +390,33 @@ class SparByShape(object):
 
     :param str label: Part label.
     :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
 
     .. note::
 
         * The reference curve of the part will be untrimmed in this method. It
-          will be determined by the intersection between *shape* and the wing
+          will be determined by the intersection between *shape* and the body
           reference shape.
 
         * The reference surface of the part will be taken as the underlying
           surface of the largest face in the basis shape.
     """
 
-    def __init__(self, label, basis_shape, wing):
+    def __init__(self, label, basis_shape, body):
         _validate_type(basis_shape, TopoDS_Shape)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
 
         # Build reference curve
-        section = IntersectShapes(basis_shape, wing.sref_shape)
+        section = IntersectShapes(basis_shape, body.sref_shape)
         edges = ExploreShape.get_edges(section.shape)
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
         w = CheckShape.to_wire(w)
         cref = ExploreShape.curve_of_shape(w)
 
-        # Orient cref so that p1 is nearest (u1, v1) on the wing
-        umin, vmin = wing.sref.u1, wing.sref.v1
-        p0 = wing.eval(umin, vmin)
+        # Orient cref so that p1 is nearest (u1, v1) on the body
+        umin, vmin = body.sref.u1, body.sref.v1
+        p0 = body.eval(umin, vmin)
         p1 = cref.eval(cref.u1)
         p2 = cref.eval(cref.u2)
         d1 = p0.distance(p1)
@@ -425,7 +425,7 @@ class SparByShape(object):
             cref.reverse()
 
         # Build part shape
-        common = CommonShapes(basis_shape, wing)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -455,22 +455,22 @@ class SparBetweenShapes(SparByPoints):
     :param str label: Part label.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
         OCC.TopoDS.TopoDS_Shape
     """
 
-    def __init__(self, label, shape1, shape2, wing, basis_shape):
+    def __init__(self, label, shape1, shape2, body, basis_shape):
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         if isinstance(basis_shape, Surface):
             basis_shape = FaceBySurface(basis_shape).face
 
-        wing_basis_edges = IntersectShapes(basis_shape, wing.sref_shape).shape
+        wing_basis_edges = IntersectShapes(basis_shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
         p2_shape = IntersectShapes(shape2, wing_basis_edges).shape
         v1 = ExploreShape.get_vertices(p1_shape)[0]
@@ -478,7 +478,7 @@ class SparBetweenShapes(SparByPoints):
         p1 = ExploreShape.pnt_of_vertex(v1)
         p2 = ExploreShape.pnt_of_vertex(v2)
 
-        super(SparBetweenShapes, self).__init__(label, p1, p2, wing,
+        super(SparBetweenShapes, self).__init__(label, p1, p2, body,
                                                 basis_shape)
 
 
@@ -493,7 +493,7 @@ class SparsBetweenPlanesByNumber(object):
     :param int n: The number of parts.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
@@ -505,11 +505,11 @@ class SparsBetweenPlanesByNumber(object):
         'label' + 'delimiter' + 'index'.
     """
 
-    def __init__(self, label, pln1, pln2, n, shape1, shape2, wing, d1=None,
+    def __init__(self, label, pln1, pln2, n, shape1, shape2, body, d1=None,
                  d2=None, first_index=1, delimiter=' '):
         _validate_type(pln1, Plane)
         _validate_type(pln2, Plane)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
 
@@ -524,7 +524,7 @@ class SparsBetweenPlanesByNumber(object):
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
-            spar = SparBetweenShapes(label_indx, shape1, shape2, wing,
+            spar = SparBetweenShapes(label_indx, shape1, shape2, body,
                                      basis_shape).spar
             first_index += 1
             self._spars.append(spar)
@@ -576,7 +576,7 @@ class SparsBetweenPlanesByDistance(object):
         be adjusted to not to exceed this value.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
@@ -589,11 +589,11 @@ class SparsBetweenPlanesByDistance(object):
         'label' + 'delimiter' + 'index'.
     """
 
-    def __init__(self, label, pln1, pln2, maxd, shape1, shape2, wing, d1=None,
+    def __init__(self, label, pln1, pln2, maxd, shape1, shape2, body, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' '):
         _validate_type(pln1, Plane)
         _validate_type(pln2, Plane)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
 
@@ -607,7 +607,7 @@ class SparsBetweenPlanesByDistance(object):
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
-            spar = SparBetweenShapes(label_indx, shape1, shape2, wing,
+            spar = SparBetweenShapes(label_indx, shape1, shape2, body,
                                      basis_shape).spar
             first_index += 1
             self._spars.append(spar)
@@ -656,7 +656,7 @@ class SparsAlongCurveByNumber(object):
     :param int n: The number of parts.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
@@ -675,13 +675,13 @@ class SparsAlongCurveByNumber(object):
     :param float tol: Tolerance.
     """
 
-    def __init__(self, label, crv, n, shape1, shape2, wing, ref_pln=None,
+    def __init__(self, label, crv, n, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, first_index=1,
                  delimiter=' ', tol=1.0e-7):
         _validate_type(crv, Curve)
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(ref_pln, Plane, False)
 
         n = int(n)
@@ -696,7 +696,7 @@ class SparsAlongCurveByNumber(object):
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
-            spar = SparBetweenShapes(label_indx, shape1, shape2, wing,
+            spar = SparBetweenShapes(label_indx, shape1, shape2, body,
                                      basis_shape).spar
             first_index += 1
             self._spars.append(spar)
@@ -746,7 +746,7 @@ class SparsAlongCurveByDistance(object):
         actual spacing will be adjusted to not to exceed this value.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
@@ -766,13 +766,13 @@ class SparsAlongCurveByDistance(object):
     :param float tol: Tolerance.
     """
 
-    def __init__(self, label, crv, maxd, shape1, shape2, wing, ref_pln=None,
+    def __init__(self, label, crv, maxd, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
                  delimiter=' ', tol=1.0e-7):
         _validate_type(crv, Curve)
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(ref_pln, Plane, False)
 
         first_index = int(first_index)
@@ -786,7 +786,7 @@ class SparsAlongCurveByDistance(object):
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
-            spar = SparBetweenShapes(label_indx, shape1, shape2, wing,
+            spar = SparBetweenShapes(label_indx, shape1, shape2, body,
                                      basis_shape).spar
             first_index += 1
             self._spars.append(spar)
@@ -836,7 +836,7 @@ class RibByParameters(object):
     :param float v1: Starting point v-parameter.
     :param float u2: Ending point u-parameter.
     :param float v2: Ending point v-parameter.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape to define the shape of the part. If
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
@@ -847,17 +847,17 @@ class RibByParameters(object):
     .. note::
 
         * If a basis shape is provided, then the starting and ending parameters
-          should be near the intersection between this shape and the wing
+          should be near the intersection between this shape and the body
           reference shape.
     """
 
-    def __init__(self, label, u1, v1, u2, v2, wing, basis_shape=None):
-        _validate_type(wing, Wing)
+    def __init__(self, label, u1, v1, u2, v2, body, basis_shape=None):
+        _validate_type(body, Body)
         _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         # Determine reference surface and basis shape
         if basis_shape is None:
-            pln = wing.extract_plane(u1, v1, u2, v2)
+            pln = body.extract_plane(u1, v1, u2, v2)
             sref = pln
             basis_shape = FaceBySurface(pln).face
         elif isinstance(basis_shape, Surface):
@@ -866,11 +866,11 @@ class RibByParameters(object):
         else:
             sref = ExploreShape.surface_of_shape(basis_shape)
 
-        # Extract wing cref
-        cref = wing.extract_curve(u1, v1, u2, v2, basis_shape)
+        # Extract cref
+        cref = body.extract_curve(u1, v1, u2, v2, basis_shape)
 
         # Build part shape
-        common = CommonShapes(basis_shape, wing)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -896,7 +896,7 @@ class RibByPoints(RibByParameters):
     :param str label: Part label.
     :param point_like p1: Starting point.
     :param point_like p2: End point.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape to define the shape of the part. If
         not provided, then a plane will be defined between (u1, v1),
         (u2, v2), and a point translated from the reference surface normal at
@@ -906,15 +906,15 @@ class RibByPoints(RibByParameters):
 
     .. note::
 
-        * The starting and ending points should be on or near the wing
+        * The starting and ending points should be on or near the body
           reference surface since they are projected to find parameters.
 
         * If a basis shape is provided, then the starting and ending points
-          should be near the intersection between this shape and the wing
+          should be near the intersection between this shape and the body
           reference shape.
     """
 
-    def __init__(self, label, p1, p2, wing, basis_shape=None):
+    def __init__(self, label, p1, p2, body, basis_shape=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
 
@@ -922,11 +922,11 @@ class RibByPoints(RibByParameters):
         _validate_type(p2, Point)
 
         # Invert points
-        u1, v1 = wing.invert(p1)
-        u2, v2 = wing.invert(p2)
+        u1, v1 = body.invert(p1)
+        u2, v2 = body.invert(p2)
 
         # Use SparByParameters
-        super(RibByPoints, self).__init__(label, u1, v1, u2, v2, wing,
+        super(RibByPoints, self).__init__(label, u1, v1, u2, v2, body,
                                           basis_shape)
 
 
@@ -936,32 +936,32 @@ class RibBySurface(object):
 
     :param str label: Part label.
     :param afem.geometry.entities.Surface srf: The surface.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
 
     .. note::
 
         The reference curve of the part will be untrimmed in this method. It
-        will be determined by the intersection between *srf* and the wing
+        will be determined by the intersection between *srf* and the body
         reference shape.
     """
 
-    def __init__(self, label, srf, wing):
+    def __init__(self, label, srf, body):
         _validate_type(srf, Surface)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
 
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
-        section = IntersectShapes(basis_shape, wing.sref_shape)
+        section = IntersectShapes(basis_shape, body.sref_shape)
         edges = ExploreShape.get_edges(section.shape)
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
         w = CheckShape.to_wire(w)
         cref = ExploreShape.curve_of_shape(w)
 
-        # Orient cref so that p1 is nearest (u1, v1) on the wing
-        umin, vmin = wing.sref.u1, wing.sref.v1
-        p0 = wing.eval(umin, vmin)
+        # Orient cref so that p1 is nearest (u1, v1) on the body
+        umin, vmin = body.sref.u1, body.sref.v1
+        p0 = body.eval(umin, vmin)
         p1 = cref.eval(cref.u1)
         p2 = cref.eval(cref.u2)
         d1 = p0.distance(p1)
@@ -970,7 +970,7 @@ class RibBySurface(object):
             cref.reverse()
 
         # Build part shape
-        common = CommonShapes(basis_shape, wing)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -994,33 +994,33 @@ class RibByShape(object):
 
     :param str label: Part label.
     :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
 
     .. note::
 
         * The reference curve of the part will be untrimmed in this method. It
-          will be determined by the intersection between *shape* and the wing
+          will be determined by the intersection between *shape* and the body
           reference shape.
 
         * The reference surface of the part will be taken as the underlying
           surface of the largest face in the basis shape.
     """
 
-    def __init__(self, label, basis_shape, wing):
+    def __init__(self, label, basis_shape, body):
         _validate_type(basis_shape, TopoDS_Shape)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
 
         # Build reference curve
-        section = IntersectShapes(basis_shape, wing.sref_shape)
+        section = IntersectShapes(basis_shape, body.sref_shape)
         edges = ExploreShape.get_edges(section.shape)
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
         w = CheckShape.to_wire(w)
         cref = ExploreShape.curve_of_shape(w)
 
-        # Orient cref so that p1 is nearest (u1, v1) on the wing
-        umin, vmin = wing.sref.u1, wing.sref.v1
-        p0 = wing.eval(umin, vmin)
+        # Orient cref so that p1 is nearest (u1, v1) on the body
+        umin, vmin = body.sref.u1, body.sref.v1
+        p0 = body.eval(umin, vmin)
         p1 = cref.eval(cref.u1)
         p2 = cref.eval(cref.u2)
         d1 = p0.distance(p1)
@@ -1029,7 +1029,7 @@ class RibByShape(object):
             cref.reverse()
 
         # Build part shape
-        common = CommonShapes(basis_shape, wing)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1059,22 +1059,22 @@ class RibBetweenShapes(RibByPoints):
     :param str label: Part label.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
         OCC.TopoDS.TopoDS_Shape
     """
 
-    def __init__(self, label, shape1, shape2, wing, basis_shape):
+    def __init__(self, label, shape1, shape2, body, basis_shape):
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         if isinstance(basis_shape, Surface):
             basis_shape = FaceBySurface(basis_shape).face
 
-        wing_basis_edges = IntersectShapes(basis_shape, wing.sref_shape).shape
+        wing_basis_edges = IntersectShapes(basis_shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
         p2_shape = IntersectShapes(shape2, wing_basis_edges).shape
         v1 = ExploreShape.get_vertices(p1_shape)[0]
@@ -1082,7 +1082,7 @@ class RibBetweenShapes(RibByPoints):
         p1 = ExploreShape.pnt_of_vertex(v1)
         p2 = ExploreShape.pnt_of_vertex(v2)
 
-        super(RibBetweenShapes, self).__init__(label, p1, p2, wing,
+        super(RibBetweenShapes, self).__init__(label, p1, p2, body,
                                                basis_shape)
 
 
@@ -1097,7 +1097,7 @@ class RibsBetweenPlanesByNumber(object):
     :param int n: The number of parts.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
@@ -1109,11 +1109,11 @@ class RibsBetweenPlanesByNumber(object):
         'label' + 'delimiter' + 'index'.
     """
 
-    def __init__(self, label, pln1, pln2, n, shape1, shape2, wing, d1=None,
+    def __init__(self, label, pln1, pln2, n, shape1, shape2, body, d1=None,
                  d2=None, first_index=1, delimiter=' '):
         _validate_type(pln1, Plane)
         _validate_type(pln2, Plane)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
 
@@ -1128,7 +1128,7 @@ class RibsBetweenPlanesByNumber(object):
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
-            rib = RibBetweenShapes(label_indx, shape1, shape2, wing,
+            rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape).rib
             first_index += 1
             self._ribs.append(rib)
@@ -1180,7 +1180,7 @@ class RibsBetweenPlanesByDistance(object):
         be adjusted to not to exceed this value.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
@@ -1193,11 +1193,11 @@ class RibsBetweenPlanesByDistance(object):
         'label' + 'delimiter' + 'index'.
     """
 
-    def __init__(self, label, pln1, pln2, maxd, shape1, shape2, wing, d1=None,
+    def __init__(self, label, pln1, pln2, maxd, shape1, shape2, body, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' '):
         _validate_type(pln1, Plane)
         _validate_type(pln2, Plane)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
 
@@ -1211,7 +1211,7 @@ class RibsBetweenPlanesByDistance(object):
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
-            rib = RibBetweenShapes(label_indx, shape1, shape2, wing,
+            rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape).rib
             first_index += 1
             self._ribs.append(rib)
@@ -1260,7 +1260,7 @@ class RibsAlongCurveByNumber(object):
     :param int n: The number of parts.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
@@ -1279,13 +1279,13 @@ class RibsAlongCurveByNumber(object):
     :param float tol: Tolerance.
     """
 
-    def __init__(self, label, crv, n, shape1, shape2, wing, ref_pln=None,
+    def __init__(self, label, crv, n, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, first_index=1,
                  delimiter=' ', tol=1.0e-7):
         _validate_type(crv, Curve)
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(ref_pln, Plane, False)
 
         n = int(n)
@@ -1300,7 +1300,7 @@ class RibsAlongCurveByNumber(object):
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
-            rib = RibBetweenShapes(label_indx, shape1, shape2, wing,
+            rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape).rib
             first_index += 1
             self._ribs.append(rib)
@@ -1350,7 +1350,7 @@ class RibsAlongCurveByDistance(object):
         actual spacing will be adjusted to not to exceed this value.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
     :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
-    :param afem.oml.entities.Wing wing: The wing.
+    :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
         no plane is provided, then the first derivative of the curve will
@@ -1370,13 +1370,13 @@ class RibsAlongCurveByDistance(object):
     :param float tol: Tolerance.
     """
 
-    def __init__(self, label, crv, maxd, shape1, shape2, wing, ref_pln=None,
+    def __init__(self, label, crv, maxd, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
                  delimiter=' ', tol=1.0e-7):
         _validate_type(crv, Curve)
         _validate_type(shape1, TopoDS_Shape)
         _validate_type(shape2, TopoDS_Shape)
-        _validate_type(wing, Wing)
+        _validate_type(body, Body)
         _validate_type(ref_pln, Plane, False)
 
         first_index = int(first_index)
@@ -1390,7 +1390,7 @@ class RibsAlongCurveByDistance(object):
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
-            rib = RibBetweenShapes(label_indx, shape1, shape2, wing,
+            rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape).rib
             first_index += 1
             self._ribs.append(rib)
@@ -1437,20 +1437,20 @@ class BulkheadBySurface(object):
 
     :param str label: Part label.
     :param afem.geometry.entities.Surface srf: The surface.
-    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param afem.oml.entities.Body body: The body.
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, srf, fuselage):
+    def __init__(self, label, srf, body):
         _validate_type(srf, Surface)
-        _validate_type(fuselage, Fuselage)
+        _validate_type(body, Body)
 
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
-        common = CommonShapes(basis_shape, fuselage)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1476,20 +1476,20 @@ class FloorBySurface(object):
 
     :param str label: Part label.
     :param afem.geometry.entities.Surface srf: The surface.
-    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param afem.oml.entities.Body body: The body.
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, srf, fuselage):
+    def __init__(self, label, srf, body):
         _validate_type(srf, Surface)
-        _validate_type(fuselage, Fuselage)
+        _validate_type(body, Body)
 
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
-        common = CommonShapes(basis_shape, fuselage)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1516,21 +1516,21 @@ class FrameByPlane(object):
 
     :param str label: Part label.
     :param afem.geometry.entities.Plane pln: The plane.
-    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param afem.oml.entities.Body body: The body.
     :param float height: The height. The absolute value is used.
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, pln, fuselage, height):
+    def __init__(self, label, pln, body, height):
         _validate_type(pln, Plane)
-        _validate_type(fuselage, Fuselage)
+        _validate_type(body, Body)
 
         basis_shape = FaceBySurface(pln).face
 
         # Find initial shape
-        common = CommonShapes(basis_shape, fuselage)
+        common = CommonShapes(basis_shape, body)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1575,7 +1575,7 @@ class FramesByPlanes(object):
 
     :param str label: Part label.
     :param list[afem.geometry.entities.Plane] plns: The planes.
-    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param afem.oml.entities.Body body: The body.
     :param float height: The height.
     :param int first_index: The first index appended to the part label as
         parts are created successively.
@@ -1584,11 +1584,11 @@ class FramesByPlanes(object):
         'label' + 'delimiter' + 'index'.
     """
 
-    def __init__(self, label, plns, fuselage, height, first_index=1,
+    def __init__(self, label, plns, body, height, first_index=1,
                  delimiter=' '):
         for pln in plns:
             _validate_type(pln, Plane)
-        _validate_type(fuselage, Fuselage)
+        _validate_type(body, Body)
 
         first_index = int(first_index)
 
@@ -1596,7 +1596,7 @@ class FramesByPlanes(object):
         self._nframes = len(plns)
         for pln in plns:
             label_indx = delimiter.join([label, str(first_index)])
-            frame = FrameByPlane(label_indx, pln, fuselage, height).frame
+            frame = FrameByPlane(label_indx, pln, body, height).frame
             first_index += 1
             self._frames.append(frame)
         self._next_index = first_index
@@ -1635,7 +1635,7 @@ class FramesBetweenPlanesByNumber(object):
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
-    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param afem.oml.entities.Body body: The body.
     :param float height: The height.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1648,11 +1648,11 @@ class FramesBetweenPlanesByNumber(object):
         'label' + 'delimiter' + 'index'.
     """
 
-    def __init__(self, label, pln1, pln2, n, fuselage, height, d1=None,
+    def __init__(self, label, pln1, pln2, n, body, height, d1=None,
                  d2=None, first_index=1, delimiter=' '):
         _validate_type(pln1, Plane)
         _validate_type(pln2, Plane)
-        _validate_type(fuselage, Fuselage)
+        _validate_type(body, Body)
 
         n = int(n)
         first_index = int(first_index)
@@ -1664,7 +1664,7 @@ class FramesBetweenPlanesByNumber(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             label_indx = delimiter.join([label, str(first_index)])
-            frame = FrameByPlane(label_indx, pln, fuselage, height).frame
+            frame = FrameByPlane(label_indx, pln, body, height).frame
             first_index += 1
             self._frames.append(frame)
         self._next_index = first_index
@@ -1712,7 +1712,7 @@ class FramesBetweenPlanesByDistance(object):
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
-    :param afem.oml.entities.Fuselage fuselage: The fuselage.
+    :param afem.oml.entities.Body body: The body.
     :param float height: The height.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1726,11 +1726,11 @@ class FramesBetweenPlanesByDistance(object):
         'label' + 'delimiter' + 'index'.
     """
 
-    def __init__(self, label, pln1, pln2, maxd, fuselage, height, d1=None,
+    def __init__(self, label, pln1, pln2, maxd, body, height, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' '):
         _validate_type(pln1, Plane)
         _validate_type(pln2, Plane)
-        _validate_type(fuselage, Fuselage)
+        _validate_type(body, Body)
 
         first_index = int(first_index)
 
@@ -1741,7 +1741,7 @@ class FramesBetweenPlanesByDistance(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             label_indx = delimiter.join([label, str(first_index)])
-            frame = FrameByPlane(label_indx, pln, fuselage, height).frame
+            frame = FrameByPlane(label_indx, pln, body, height).frame
             first_index += 1
             self._frames.append(frame)
         self._next_index = first_index

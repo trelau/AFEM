@@ -13,14 +13,6 @@ Body
 ~~~~
 .. autoclass:: Body
 
-Wing
-~~~~
-.. autoclass:: Wing
-
-Fuselage
-~~~~~~~~
-.. autoclass:: Fuselage
-
 Check
 -----
 

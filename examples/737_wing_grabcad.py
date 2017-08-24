@@ -32,7 +32,7 @@ p2 = [-424.050551, 669.291339, 58.597981]
 c3 = NurbsCurveByPoints([p1, p2]).curve
 
 sref = NurbsSurfaceByInterp([c1, c2, c3], 1).surface
-wing = Wing(solid)
+wing = Body(solid)
 wing.set_sref(sref)
 wing.set_transparency(0.5)
 

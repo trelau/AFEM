@@ -25,7 +25,7 @@ from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 from afem.config import Settings, logger
 from afem.geometry.create import NurbsSurfaceByInterp
 from afem.geometry.entities import NurbsSurface
-from afem.oml.entities import Body, Fuselage, Wing
+from afem.oml.entities import Body
 from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
@@ -372,7 +372,7 @@ def _process_wing(compound, divide_closed):
     if not solid:
         return None
 
-    wing = Wing(solid)
+    wing = Body(solid)
 
     if vsp_surf:
         vsp_surf = NurbsSurface.downcast(vsp_surf)
@@ -396,7 +396,7 @@ def _process_fuse(compound, divide_closed):
     if not solid:
         return None
 
-    fuselage = Fuselage(solid)
+    fuselage = Body(solid)
 
     faces = ExploreShape.get_faces(compound)
     if len(faces) == 1:

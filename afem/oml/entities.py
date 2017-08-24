@@ -12,9 +12,7 @@ from afem.topology.create import FaceBySurface, WiresByConnectedEdges
 from afem.topology.distance import DistancePointToShapes
 from afem.topology.modify import DivideC0Shape, DivideClosedShape
 
-__all__ = ["Body", "Wing", "Fuselage"]
-
-# TODO Consider using only Body that has cref and sref attributes.
+__all__ = ["Body"]
 
 
 class Body(TopoDS_Solid, ViewableItem):
@@ -33,6 +31,8 @@ class Body(TopoDS_Solid, ViewableItem):
         self.set_solid(solid)
         self._metadata = {}
         self._name = name
+        self._sref = None
+        self._sref_shape = None
 
     @property
     def name(self):
@@ -65,75 +65,6 @@ class Body(TopoDS_Solid, ViewableItem):
         :rtype: dict
         """
         return self._metadata
-
-    def set_name(self, name):
-        """
-        Set name of body.
-
-        :param str name: The name.
-
-        :return: None.
-        """
-        self._name = name
-
-    def add_metadata(self, key, value):
-        """
-        Add metadata to the body.
-
-        :param key: The key.
-        :param value: The value.
-
-        :return: None.
-        """
-        self._metadata[key] = value
-
-    def get_metadata(self, key):
-        """
-        Get metadata.
-
-        :param key: The key.
-
-        :return: The key or *None* if not present.
-        :rtype: object or None
-        """
-        try:
-            return self._metadata[key]
-        except KeyError:
-            return None
-
-    def set_solid(self, solid):
-        """
-        Set the shape for the OML body.
-
-        :param OCC.TopoDS.TopoDS_Solid solid: The solid.
-
-        :return: None.
-
-        :raise TypeError: If *shape* is not a solid.
-        """
-        if not CheckShape.is_solid(solid):
-            msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
-            raise RuntimeError(msg)
-        solid = CheckShape.to_solid(solid)
-        self.TShape(solid.TShape())
-        self.Location(solid.Location())
-        self.Orientation(solid.Orientation())
-        return True
-
-
-class Wing(Body):
-    """
-    Wing.
-
-    :param OCC.TopoDS.TopoDS_Solid solid: The solid.
-
-    :raise TypeError: If *shape* is not a solid.
-    """
-
-    def __init__(self, solid):
-        super(Wing, self).__init__(solid)
-        self._sref = None
-        self._sref_shape = None
 
     @property
     def sref(self):
@@ -199,9 +130,63 @@ class Wing(Body):
         """
         return self.sref.vknots
 
+    def set_name(self, name):
+        """
+        Set name of body.
+
+        :param str name: The name.
+
+        :return: None.
+        """
+        self._name = name
+
+    def add_metadata(self, key, value):
+        """
+        Add metadata to the body.
+
+        :param key: The key.
+        :param value: The value.
+
+        :return: None.
+        """
+        self._metadata[key] = value
+
+    def get_metadata(self, key):
+        """
+        Get metadata.
+
+        :param key: The key.
+
+        :return: The key or *None* if not present.
+        :rtype: object or None
+        """
+        try:
+            return self._metadata[key]
+        except KeyError:
+            return None
+
+    def set_solid(self, solid):
+        """
+        Set the shape for the OML body.
+
+        :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+
+        :return: None.
+
+        :raise TypeError: If *shape* is not a solid.
+        """
+        if not CheckShape.is_solid(solid):
+            msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
+            raise RuntimeError(msg)
+        solid = CheckShape.to_solid(solid)
+        self.TShape(solid.TShape())
+        self.Location(solid.Location())
+        self.Orientation(solid.Orientation())
+        return True
+
     def set_sref(self, srf, divide_closed=True, divide_c0=True):
         """
-        Set the wing reference surface.
+        Set the reference surface.
 
         :param afem.geometry.entities.NurbsSurface srf: The surface.
         :param bool divide_closed: Option to divide the surface if closed
@@ -228,7 +213,7 @@ class Wing(Body):
 
     def eval(self, u, v):
         """
-        Evaluate a point on the wing reference surface.
+        Evaluate a point on the reference surface.
 
         :param float u: Parameter in u-direction.
         :param float v: Parameter in v-direction.
@@ -240,7 +225,7 @@ class Wing(Body):
 
     def norm(self, u, v):
         """
-        Evaluate the surface normal of the wing reference surface.
+        Evaluate the surface normal of the reference surface.
 
         :param float u: Parameter in u-direction.
         :param float v: Parameter in v-direction.
@@ -252,8 +237,7 @@ class Wing(Body):
 
     def invert(self, p):
         """
-        Find the parameters on the wing reference surface by inverting the
-        point.
+        Find the parameters on the reference surface by inverting the point.
 
         :param point_like p: The point.
 
@@ -271,10 +255,10 @@ class Wing(Body):
 
     def extract_plane(self, u1, v1, u2, v2):
         """
-        Extract a plane between parameters on the wing reference surface. The
+        Extract a plane between parameters on the reference surface. The
         plane will be defined by three points. The first point is at (u1, v1),
         the second point is at (u2, v2), and the third point will be offset
-        from the first point in the direction of the wing reference surface
+        from the first point in the direction of the reference surface
         normal. The points should not be collinear.
 
         :param float u1: First u-parameter.
@@ -295,15 +279,14 @@ class Wing(Body):
     def extract_curve(self, u1, v1, u2, v2, basis_shape=None,
                       refine_edges=True):
         """
-        Extract a curve within the wing reference surface between the
-        parameters.
+        Extract a curve within the reference surface between the parameters.
 
         :param float u1: First u-parameter.
         :param float v1: First v-parameter.
         :param float u2: Second u-parameter.
         :param float v2: Second v-parameter.
         :param basis_shape: The shape that will be used to intersect with
-            the wing reference shape. If not provided a plane will be
+            the reference shape. If not provided a plane will be
             created using the *extract_plane()* method. The parameters
             should create points that are on or very near the intersection
             between these two shapes. If they are not they will be projected to
@@ -311,7 +294,7 @@ class Wing(Body):
         :type basis_shape: afem.geometry.entities.Surface or
             OCC.TopoDS.TopoDS_Shape
         :param bool refine_edges: Option to refine the edges after the
-            Boolean operation between the wing reference shape and the basis
+            Boolean operation between the reference shape and the basis
             shape.
 
         :return: The curve.
@@ -368,7 +351,7 @@ class Wing(Body):
 
     def isocurve(self, u=None, v=None):
         """
-        Extract iso-curve in the wing reference surface.
+        Extract iso-curve in the reference surface.
 
         :param float u: Constant u-parameter. Will override *v* if both are
             provided.
@@ -386,16 +369,3 @@ class Wing(Body):
         else:
             msg = 'Invalid parameter input.'
             raise TypeError(msg)
-
-
-class Fuselage(Body):
-    """
-    Fuselage.
-
-    :param OCC.TopoDS.TopoDS_Solid solid: The solid.
-
-    :raise TypeError: If *shape* is not a solid.
-    """
-
-    def __init__(self, solid):
-        super(Fuselage, self).__init__(solid)

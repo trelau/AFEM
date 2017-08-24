@@ -50,7 +50,6 @@ def build_wingbox(wing, params):
     build_aux_spar = params['build aux']
     aux_rib_list = params['aux rib list']
     aux_spar_xloc = params['aux spar xloc']
-    Settings.set_part_tol(params['part tol'])
 
     # BUILD -------------------------------------------------------------------
     AssemblyAPI.create_assy(assy_name)

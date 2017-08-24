@@ -19,7 +19,7 @@ radius = diameter / 2.
 
 # Create a solid cylinder to represent fuselage section.
 cylinder = SolidByCylinder(radius, length).solid
-fuselage = Fuselage(cylinder)
+fuselage = Body(cylinder)
 
 # Skin
 skin = SkinByBody('skin', fuselage).skin
