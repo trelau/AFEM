@@ -328,7 +328,8 @@ class Body(TopoDS_Solid, ViewableItem):
         u2c = proj.nearest_param
 
         if u1c > u2c:
-            u1c, u2c = u2c, u1c
+            crv.reverse()
+            u1c, u2c = crv.reversed_u(u1c), crv.reversed_u(u2c)
 
         return TrimmedCurveByParameters(crv, u1c, u2c).curve
 
