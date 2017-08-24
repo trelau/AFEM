@@ -55,7 +55,7 @@ rspar = SparByPoints('rear spar', p1, p2, wing).spar
 # Front inboard spar
 u = root_rib.local_to_global_u(0.15)
 p1 = root_rib.point_on_cref(u)
-v = wing.vknots[1]
+v = wing.sref.vknots[1]
 p2 = wing.eval(0.15, v)
 inbd_fspar = SparByPoints('inbd front spar', p1, p2, wing).spar
 

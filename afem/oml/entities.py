@@ -1,7 +1,7 @@
 from OCC.TopoDS import TopoDS_Solid
 
 from afem.geometry.create import PlaneByPoints
-from afem.geometry.entities import NurbsCurve, NurbsSurface
+from afem.geometry.entities import NurbsCurve, Surface
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
@@ -70,7 +70,7 @@ class Body(TopoDS_Solid, ViewableItem):
     def sref(self):
         """
         :return: The reference surface.
-        :rtype: afem.geometry.entities.NurbsSurface
+        :rtype: afem.geometry.entities.Surface
         """
         return self._sref
 
@@ -113,22 +113,6 @@ class Body(TopoDS_Solid, ViewableItem):
         :rtype: float
         """
         return self.sref.v2
-
-    @property
-    def uknots(self):
-        """
-        :return: Knots in u-direction of reference surface.
-        :rtype: numpy.ndarray
-        """
-        return self.sref.uknots
-
-    @property
-    def vknots(self):
-        """
-        :return: Knots in v-direction of reference surface.
-        :rtype: numpy.ndarray
-        """
-        return self.sref.vknots
 
     def set_name(self, name):
         """
@@ -188,7 +172,7 @@ class Body(TopoDS_Solid, ViewableItem):
         """
         Set the reference surface.
 
-        :param afem.geometry.entities.NurbsSurface srf: The surface.
+        :param afem.geometry.entities.Surface srf: The surface.
         :param bool divide_closed: Option to divide the surface if closed
             when creating the reference shape.
         :param bool divide_c0: Option to divide the surface at C0 boundaries
@@ -198,7 +182,7 @@ class Body(TopoDS_Solid, ViewableItem):
 
         :raise TypeError: If *srf* is not a supported type.
         """
-        if not isinstance(srf, NurbsSurface):
+        if not isinstance(srf, Surface):
             msg = 'Unsupported surface type.'
             raise TypeError(msg)
 
@@ -298,7 +282,7 @@ class Body(TopoDS_Solid, ViewableItem):
             shape.
 
         :return: The curve.
-        :rtype: afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.entities.Curve
 
         :raise RuntimeError: If method fails.
         """
@@ -342,6 +326,7 @@ class Body(TopoDS_Solid, ViewableItem):
             raise RuntimeError(msg)
         u2c = proj.nearest_param
 
+        # TODO Use trimmed curve
         if u1c > u2c:
             crv.reverse()
             u1c, u2c = crv.reversed_u(u1c), crv.reversed_u(u2c)
@@ -358,7 +343,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :param float v: Constant v-parameter.
 
         :return: The iso-curve.
-        :rtype: afem.geometry.entities.NurbsCurve
+        :rtype: afem.geometry.entities.Curve
 
         :raise TypeError: If both *u* and *v* are None.
         """
