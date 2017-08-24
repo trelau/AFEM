@@ -193,6 +193,10 @@ PlaneFromParameter
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: PlaneFromParameter
 
+PlaneByOrientation
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlaneByOrientation
+
 PlanesAlongCurveByNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PlanesAlongCurveByNumber

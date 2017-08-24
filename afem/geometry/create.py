@@ -47,7 +47,8 @@ __all__ = ["PointByXYZ", "PointByArray",
            "NurbsCurveByPoints", "TrimmedCurveByParameters",
            "TrimmedCurveByPoints", "TrimmedCurveByCurve",
            "PlaneByNormal", "PlaneByAxes", "PlaneByPoints", "PlaneByApprox",
-           "PlaneFromParameter", "PlanesAlongCurveByNumber",
+           "PlaneFromParameter", "PlaneByOrientation",
+           "PlanesAlongCurveByNumber",
            "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
            "PlanesBetweenPlanesByDistance", "NurbsSurfaceByData",
            "NurbsSurfaceByInterp", "NurbsSurfaceByApprox"]
@@ -1369,6 +1370,53 @@ class PlaneFromParameter(object):
         :rtype: float
         """
         return self._u
+
+
+class PlaneByOrientation(object):
+    """
+    Create a plane by rotation angles.
+
+    :param point_like origin: The origin.
+    :param vector_like axes: The reference axes ('xy', 'xz', 'yz').
+    :param float alpha: Rotation in degrees about global x-axis.
+    :param float beta: Rotation in degrees about global y-axis.
+    :param float gamma: Rotation in degrees about global z-axis.
+
+    Usage:
+
+    >>> from afem.geometry import PlaneByOrientation
+    >>> builder = PlaneByOrientation(alpha=30.)
+    >>> pln = builder.plane
+    """
+
+    def __init__(self, origin=(0., 0., 0.), axes='xz', alpha=0., beta=0.,
+                 gamma=0.):
+        pln = PlaneByAxes(axes=axes).plane
+
+        from OCC.gp import gp_Quaternion, gp_Trsf
+        from math import radians
+
+        # Build a quaternion for rotation angles
+        r = gp_Quaternion()
+        r.SetEulerAngles(2, radians(alpha), radians(beta), radians(gamma))
+
+        # Build transformation matrix and rotate about global origin and
+        # translate to desired plane origin.
+        tf = gp_Trsf()
+        v = CheckGeom.to_vector(origin)
+
+        tf.SetTransformation(r, v)
+        pln.object.Transform(tf)
+
+        self._pln = pln
+
+    @property
+    def plane(self):
+        """
+        :return: The plane.
+        :rtype: afem.geometry.entities.Plane
+        """
+        return self._pln
 
 
 class PlanesAlongCurveByNumber(object):
