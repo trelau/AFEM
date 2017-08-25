@@ -231,8 +231,7 @@ def build_wingbox(wing, params):
     # Fuse internal structure and discard faces
     internal_parts = AssemblyAPI.get_parts(order=True)
     FuseSurfacePartsByCref(internal_parts)
-    for part in internal_parts:
-        part.discard_by_cref()
+    DiscardByCref(internal_parts)
 
     Viewer.add(*AssemblyAPI.get_parts())
     Viewer.show()

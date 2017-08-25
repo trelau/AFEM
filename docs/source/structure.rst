@@ -242,6 +242,11 @@ SplitParts
 
 Modify
 ------
+.. py:currentmodule:: afem.structure.modify
+
+DiscardByCref
+~~~~~~~~~~~~~
+.. autoclass:: DiscardByCref
 
 Check
 -----

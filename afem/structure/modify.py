@@ -1,3 +1,39 @@
+__all__ = ["DiscardByCref"]
+
+
+class DiscardByCref(object):
+    """
+    Discard shapes of the parts by using their reference curves. An infinite
+    solid is created at each end of the reference curve using the curve
+    tangent. Any shape that has a centroid in these solids is removed.
+    For a curve part edges are discarded, for a SurfacePart faces are
+    discarded.
+
+    :param list[afem.structure.entities.Part] parts: The parts.
+    """
+
+    def __init__(self, parts):
+        self._status = {}
+
+        for part in parts:
+            status = part.discard_by_cref()
+            self._status[part] = status
+
+    def was_modified(self, part):
+        """
+        Check to see if part was modified.
+
+        :param afem.structure.entities.Part part: The part.
+
+        :return: *True* if entities were discarded from the part, *False*
+            otherwise.
+        :rtype: bool
+        """
+        try:
+            return self._status[part]
+        except KeyError:
+            return False
+
 # TODO Rebuild part tool. Handle sub-parts.
 # Perform for sub-parts.
 # for subpart in part.subparts:

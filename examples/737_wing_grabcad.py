@@ -121,8 +121,7 @@ wing_parts = AssemblyAPI.get_parts(rtype=SurfacePart)
 
 # Fuse wing parts and discard faces
 FuseSurfacePartsByCref(wing_parts)
-for part in wing_parts:
-    part.discard_by_cref()
+DiscardByCref(wing_parts)
 
 # Skin
 skin = SkinByBody('skin', wing).skin
