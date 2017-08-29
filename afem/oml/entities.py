@@ -19,7 +19,9 @@ class Body(TopoDS_Solid, ViewableItem):
     """
     Base class for OML bodies.
 
-    :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+    :param solid: The solid. It will be downcasted to a solid if a generic
+        shape is provided.
+    :type solid: OCC.TopoDS.TopoDS_Shape or OCC.TopoDS.TopoDS_Solid
     :param str name: The name.
 
     :raise TypeError: If *shape* is not a solid.
