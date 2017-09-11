@@ -205,6 +205,12 @@ class Viewer(object):
                 # Hack for some geometry items
                 disp.DisplayShape(item.object, color=item.color,
                                   transparency=item.transparency)
+
+            if item.mirror:
+                mirrored = item.get_mirrored()
+                disp.DisplayShape(mirrored, color=item.color,
+                                  transparency=item.transparency)
+
         for mesh in cls._meshes:
             _display_smesh(disp, mesh)
 
