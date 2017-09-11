@@ -54,6 +54,19 @@ AFEM is a pure Python package and can be installed using the command:
 within the AFEM root folder. The "develop" option links to the source code
 at runtime so changes in the source are reflected in any programs using AFEM.
 
+# Building Documentation
+The documentation can be built from sources using sphinx. Install sphinx and
+sphinx_rtd_theme in the desired conda environment by:
+
+    conda install sphinx sphinx_rtd_theme
+    
+Then navigate to the docs/ folder and run:
+
+    make html
+
+This should build html documentation in a docs/build/html folder. Open the 
+afem.html file with a web browser.
+
 # Getting Started
 The best way to get started is to examine and run the files in the examples and
 test folders.
