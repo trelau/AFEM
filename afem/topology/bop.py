@@ -112,6 +112,22 @@ class BopAlgo(object):
         """
         return self._bop.Shape()
 
+    @property
+    def vertices(self):
+        """
+        :return: The vertices of the resulting shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Vertex]
+        """
+        return ExploreShape.get_vertices(self.shape)
+
+    @property
+    def edges(self):
+        """
+        :return: The edges of the resulting shape.
+        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        """
+        return ExploreShape.get_edges(self.shape)
+
     def refine_edges(self):
         """
         Fuse C1 edges.

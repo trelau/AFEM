@@ -29,15 +29,17 @@ class ExploreShape(object):
     """
 
     @staticmethod
-    def get_vertices(shape):
+    def get_vertices(shape, unique=True):
         """
         Get vertices from a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool unique: Option to return only unique vertices.
 
         :return: Vertices of shape.
         :rtype: list[OCC.TopoDS.TopoDS_Vertex]
         """
+        # TODO Option for unique vertices.
         if isinstance(shape, TopoDS_Vertex):
             return [shape]
 
@@ -46,7 +48,16 @@ class ExploreShape(object):
         while exp.More():
             vi = exp.Current()
             vertex = topods_Vertex(vi)
-            vertices.append(vertex)
+            if unique:
+                is_unique = True
+                for v in vertices:
+                    if v.IsSame(vertex):
+                        is_unique = False
+                        break
+                if is_unique:
+                    vertices.append(vertex)
+            else:
+                vertices.append(vertex)
             exp.Next()
         return vertices
 
