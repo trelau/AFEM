@@ -401,6 +401,7 @@ def _process_fuse(compound, divide_closed):
     faces = ExploreShape.get_faces(compound)
     if len(faces) == 1:
         vsp_surf = ExploreShape.surface_of_face(faces[0])
+        vsp_surf = NurbsSurface.downcast(vsp_surf)
         fuselage.add_metadata('vsp surface', vsp_surf)
 
     return fuselage
