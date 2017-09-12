@@ -1150,7 +1150,7 @@ class PlaneByAxes(object):
     :param str axes: The axes ('xy', 'xz', 'yz').
 
     :raise TypeError: If *origin* cannot be converted to :class:`Point`.
-    :raise Value: If *axes* is not a supported option.
+    :raise ValueError: If *axes* is not a supported option.
 
     Usage:
 
@@ -1179,7 +1179,7 @@ class PlaneByAxes(object):
             pln = Geom_Plane(origin, Direction(0., 1., 0))
         else:
             msg = 'Unknown axes.'
-            raise RuntimeError(msg)
+            raise ValueError(msg)
 
         self._pln = Plane(pln.GetHandle())
 
