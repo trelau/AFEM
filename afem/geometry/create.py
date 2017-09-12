@@ -16,7 +16,7 @@ from OCC.GeomPlate import GeomPlate_BuildAveragePlane
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal)
 from OCC.TColgp import (TColgp_Array1OfPnt)
 from OCC.gce import gce_MakeCirc
-from OCC.gp import gp_Pln, gp_Quaternion, gp_Trsf
+from OCC.gp import gp_Ax3, gp_Pln, gp_Quaternion, gp_Trsf
 from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
@@ -1172,11 +1172,20 @@ class PlaneByAxes(object):
             raise ValueError(msg)
 
         if axes in ['xy', 'yx']:
-            pln = Geom_Plane(origin, Direction(0., 0., 1))
+            n = Direction(0., 0., 1.)
+            vx = Direction(1., 0., 0.)
+            ax3 = gp_Ax3(origin, n, vx)
+            pln = Geom_Plane(ax3)
         elif axes in ['yz', 'zy']:
-            pln = Geom_Plane(origin, Direction(1., 0., 0))
+            n = Direction(1., 0., 0.)
+            vx = Direction(0., 1., 0.)
+            ax3 = gp_Ax3(origin, n, vx)
+            pln = Geom_Plane(ax3)
         elif axes in ['xz', 'zx']:
-            pln = Geom_Plane(origin, Direction(0., 1., 0))
+            n = Direction(0., 1., 0.)
+            vx = Direction(1., 0., 0.)
+            ax3 = gp_Ax3(origin, n, vx)
+            pln = Geom_Plane(ax3)
         else:
             msg = 'Unknown axes.'
             raise ValueError(msg)
