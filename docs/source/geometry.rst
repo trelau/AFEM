@@ -197,6 +197,10 @@ PlaneByOrientation
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: PlaneByOrientation
 
+PlaneByCurveAndSurface
+~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlaneByCurveAndSurface
+
 PlanesAlongCurveByNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PlanesAlongCurveByNumber
@@ -212,6 +216,10 @@ PlanesBetweenPlanesByNumber
 PlanesBetweenPlanesByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PlanesBetweenPlanesByDistance
+
+PlanesAlongCurveAndSurfaceByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlanesAlongCurveAndSurfaceByDistance
 
 NurbsSurfaceByData
 ~~~~~~~~~~~~~~~~~~

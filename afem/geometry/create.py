@@ -23,7 +23,7 @@ from scipy.linalg import lu_factor, lu_solve
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
-from afem.geometry.project import ProjectPointToCurve
+from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
 from afem.geometry.utils import (basis_funs, centripetal_parameters,
                                  chord_parameters, dehomogenize_array2d,
                                  find_span, homogenize_array1d,
@@ -48,9 +48,12 @@ __all__ = ["PointByXYZ", "PointByArray",
            "TrimmedCurveByPoints", "TrimmedCurveByCurve",
            "PlaneByNormal", "PlaneByAxes", "PlaneByPoints", "PlaneByApprox",
            "PlaneFromParameter", "PlaneByOrientation",
+           "PlaneByCurveAndSurface",
            "PlanesAlongCurveByNumber",
            "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
-           "PlanesBetweenPlanesByDistance", "NurbsSurfaceByData",
+           "PlanesBetweenPlanesByDistance",
+           "PlanesAlongCurveAndSurfaceByDistance",
+           "NurbsSurfaceByData",
            "NurbsSurfaceByInterp", "NurbsSurfaceByApprox"]
 
 
@@ -1362,7 +1365,7 @@ class PlaneFromParameter(object):
             self._pln = Plane(Geom_Plane(p, dn).GetHandle())
         else:
             v = c.deriv(u, 1)
-            self._pln = PlaneByNormal(p, v)
+            self._pln = PlaneByNormal(p, v).plane
 
     @property
     def plane(self):
@@ -1415,6 +1418,38 @@ class PlaneByOrientation(object):
         pln.object.Transform(tf)
 
         self._pln = pln
+
+    @property
+    def plane(self):
+        """
+        :return: The plane.
+        :rtype: afem.geometry.entities.Plane
+        """
+        return self._pln
+
+
+class PlaneByCurveAndSurface(object):
+    """
+    Create a plane using a curve that lies on a surface. The x-axis of the
+    plane is found by the cross product of the surface normal and the first
+    derivative of the curve at the parameter. The normal of the plane is
+    found by the cross product of the x-axis and the surface normal. The
+    origin will be located at a point along the curve at the given parameter.
+
+    :param afem.geometry.entities.Curve crv: The curve.
+    :param afem.geometry.entities.Surface srf: The surface.
+    :param float u: The curve parameter.
+    """
+
+    def __init__(self, crv, srf, u):
+        origin = crv.eval(u)
+        u, v = ProjectPointToSurface(origin, srf).nearest_param
+        srf_nrm = srf.norm(u, v)
+        crv_deriv = crv.deriv(u, 1)
+        vx = Direction(srf_nrm.Crossed(crv_deriv))
+        n = Direction(crv_deriv)
+        ax3 = gp_Ax3(origin, n, vx)
+        self._pln = Plane(Geom_Plane(ax3).GetHandle())
 
     @property
     def plane(self):
@@ -1888,6 +1923,120 @@ class PlanesBetweenPlanesByDistance(object):
         if self.nplanes < 3:
             return []
         return self._plns[1:-1]
+
+
+class PlanesAlongCurveAndSurfaceByDistance(object):
+    """
+    Create planes along a curve and surface by distance between points. The
+    origin of the planes will be equidistant along the curve. This method
+    calculates the number of points given the curve length and then uses
+    :class:`PlaneByCurveAndSurface` at each point.
+
+    :param afem.geometry.entities.Curve c: The curve.
+    :param afem.geometry.entities.Surface s: The surface.
+    :param float maxd: The maximum allowed spacing between planes. The
+        actual spacing will be adjusted to not to exceed this value.
+    :param float u1: The parameter of the first plane (default=c.u1).
+    :param float u2: The parameter of the last plane (default=c.u2).
+    :param float d1: An offset distance for the first plane. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last plane. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param int nmin: Minimum number of planes to create.
+    :param float tol: Tolerance.
+
+    :raise RuntimeError: If :class:`PointsAlongCurveByDistance` fails to
+        generate points along the curve.
+    """
+
+    def __init__(self, c, s, maxd, u1=None, u2=None, d1=None,
+                 d2=None, nmin=0, tol=1.0e-7):
+        pnt_builder = PointsAlongCurveByDistance(c, maxd, u1, u2, d1, d2,
+                                                 nmin, tol)
+        if pnt_builder.npts == 0:
+            msg = ('Failed to generate points along the curve for creating '
+                   'planes along a curve by distance.')
+            raise RuntimeError(msg)
+        npts = pnt_builder.npts
+        pnts = pnt_builder.points
+        prms = pnt_builder.parameters
+        spacing = pnt_builder.spacing
+
+        plns = []
+        for i in range(npts):
+            u = prms[i]
+            pln = PlaneByCurveAndSurface(c, s, u).plane
+            plns.append(pln)
+
+        self._plns = plns
+        self._nplns = npts
+        self._prms = prms
+        self._ds = spacing
+
+    @property
+    def nplanes(self):
+        """
+        :return: The number of planes.
+        :rtype: int
+        """
+        return self._nplns
+
+    @property
+    def planes(self):
+        """
+        :return: The planes.
+        :rtype: list[afem.geometry.entities.Plane]
+        """
+        return self._plns
+
+    @property
+    def parameters(self):
+        """
+        :return: The parameters.
+        :rtype: list[float]
+        """
+        return self._prms
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between the first and second points if there
+            are more than one point. Otherwise *None*.
+        :rtype: float or None
+        """
+        return self._ds
+
+    @property
+    def interior_planes(self):
+        """
+        :return: The planes between the first and last planes.
+        :rtype: list[afem.geometry.entities.Plane]
+        """
+        if self.nplanes < 3:
+            return []
+        return self._plns[1:-1]
+
+    def rotate_x(self, angle):
+        """
+        Rotate each of the planes around their local x-axis.
+
+        :param float angle: The rotation angle in degrees.
+
+        :return: None.
+        """
+        for pln in self.planes:
+            pln.rotate_x(angle)
+
+    def rotate_y(self, angle):
+        """
+        Rotate each of the planes around their local y-axis.
+
+        :param float angle: The rotation angle in degrees.
+
+        :return: None.
+        """
+        for pln in self.planes:
+            pln.rotate_y(angle)
 
 
 # NURBSSURFACE ----------------------------------------------------------------
