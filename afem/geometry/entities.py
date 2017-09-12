@@ -1,3 +1,5 @@
+from math import radians
+
 from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeFace
 from OCC.BRepGProp import brepgprop_SurfaceProperties
 from OCC.GCPnts import GCPnts_AbscissaPoint
@@ -1899,6 +1901,43 @@ class Plane(Surface):
             raise TypeError(msg)
 
         return self.object.Pln().Distance(pnt)
+
+    def rotate(self, axis, angle):
+        """
+        Rotate the plane about an axis.
+
+        :param afem.geometry.entities.Axis1 axis: The rotation axis.
+        :param float angle: The rotation angle in degrees.
+
+        :return: None.
+        """
+        pln = self.object.Pln()
+        pln.Rotate(axis, radians(angle))
+        self.object.SetPln(pln)
+
+    def rotate_x(self, angle):
+        """
+        Rotate the plane about its x-axis.
+
+        :param float angle: The rotation angle in degrees.
+
+        :return: None.
+        """
+        pln = self.object.Pln()
+        pln.Rotate(pln.XAxis(), radians(angle))
+        self.object.SetPln(pln)
+
+    def rotate_y(self, angle):
+        """
+        Rotate the plane about its y-axis.
+
+        :param float angle: The rotation angle in degrees.
+
+        :return: None.
+        """
+        pln = self.object.Pln()
+        pln.Rotate(pln.YAxis(), radians(angle))
+        self.object.SetPln(pln)
 
 
 class NurbsSurface(Surface):
