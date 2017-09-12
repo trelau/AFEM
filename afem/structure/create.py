@@ -22,6 +22,7 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "RibByOrientation",
            "RibsBetweenPlanesByNumber", "RibsBetweenPlanesByDistance",
            "RibsAlongCurveByNumber", "RibsAlongCurveByDistance",
+           "RibsAlongCurveAndSurfaceByDistance",
            "BulkheadBySurface", "FloorBySurface",
            "FrameByPlane", "FramesByPlanes", "FramesBetweenPlanesByNumber",
            "FramesBetweenPlanesByDistance", "SkinBySolid",
@@ -1407,6 +1408,102 @@ class RibsAlongCurveByDistance(object):
 
         builder = PlanesAlongCurveByDistance(crv, maxd, ref_pln, u1, u2, d1,
                                              d2, nmin, tol)
+
+        self._ribs = []
+        self._nribs = builder.nplanes
+        self._ds = builder.spacing
+        for pln in builder.planes:
+            basis_shape = FaceBySurface(pln).face
+            label_indx = delimiter.join([label, str(first_index)])
+            rib = RibBetweenShapes(label_indx, shape1, shape2, body,
+                                   basis_shape).rib
+            first_index += 1
+            self._ribs.append(rib)
+        self._next_index = first_index
+
+    @property
+    def nribs(self):
+        """
+        :return: The number of ribs.
+        :rtype: int
+        """
+        return self._nribs
+
+    @property
+    def ribs(self):
+        """
+        :return: The ribs.
+        :rtype: list[afem.structure.entities.Rib]
+        """
+        return self._ribs
+
+    @property
+    def spacing(self):
+        """
+        :return: The spacing between first and second parts.
+        :rtype: float
+        """
+        return self._ds
+
+    @property
+    def next_index(self):
+        """
+        :return: The next index.
+        :rtype: int
+        """
+        return self._next_index
+
+
+class RibsAlongCurveAndSurfaceByDistance(object):
+    """
+    Create planar ribs along a curve and surface using a maximum spacing. This
+    method uses :class:`PlanesAlongCurveAndSurfaceByDistance` and
+    :class:`RibBetweenShapes`.
+
+    :param str label: Part label.
+    :param afem.geometry.entities.Curve crv: The curve.
+    :param afem.geometry.entities.Surface srf: The surface.
+    :param float maxd: The maximum allowed spacing between planes. The
+        actual spacing will be adjusted to not to exceed this value.
+    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
+    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param afem.oml.entities.Body body: The body.
+    :param float u1: The parameter of the first plane (default=crv.u1).
+    :param float u2: The parameter of the last plane (default=crv.u2).
+    :param float d1: An offset distance for the first plane. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last plane. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param float rot_x: The rotation angles of each plane along their local
+        x-axis in degrees.
+    :param float rot_y: The rotation angles of each plane along their local
+        y-axis in degrees.
+    :param int nmin: Minimum number of planes to create.
+    :param int first_index: The first index appended to the part label as
+        parts are created successively.
+    :param str delimiter: The delimiter to use when joining the part label
+        with the index. The final part label will be
+        'label' + 'delimiter' + 'index'.
+    :param float tol: Tolerance.
+    """
+
+    def __init__(self, label, crv, srf, maxd, shape1, shape2, body,
+                 u1=None, u2=None, d1=None, d2=None, rot_x=None, rot_y=None,
+                 nmin=0, first_index=1, delimiter=' ', tol=1.0e-7):
+        _validate_type(crv, Curve)
+        _validate_type(srf, Surface)
+        _validate_type(shape1, TopoDS_Shape)
+        _validate_type(shape2, TopoDS_Shape)
+        _validate_type(body, Body)
+
+        first_index = int(first_index)
+
+        builder = PlanesAlongCurveAndSurfaceByDistance(crv, srf, maxd, u1, u2,
+                                                       d1, d2, nmin, tol)
+        if rot_x is not None:
+            builder.rotate_x(rot_x)
+        if rot_y is not None:
+            builder.rotate_y(rot_y)
 
         self._ribs = []
         self._nribs = builder.nplanes

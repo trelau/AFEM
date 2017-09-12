@@ -177,6 +177,10 @@ RibsAlongCurveByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: RibsAlongCurveByDistance
 
+RibsAlongCurveAndSurfaceByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: RibsAlongCurveAndSurfaceByDistance
+
 BulkheadBySurface
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: BulkheadBySurface
