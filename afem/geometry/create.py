@@ -1,4 +1,4 @@
-from math import ceil
+from math import ceil, radians
 from warnings import warn
 
 import OCC.BSplCLib as CLib
@@ -16,7 +16,7 @@ from OCC.GeomPlate import GeomPlate_BuildAveragePlane
 from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal)
 from OCC.TColgp import (TColgp_Array1OfPnt)
 from OCC.gce import gce_MakeCirc
-from OCC.gp import gp_Pln
+from OCC.gp import gp_Pln, gp_Quaternion, gp_Trsf
 from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
@@ -1392,9 +1392,6 @@ class PlaneByOrientation(object):
     def __init__(self, origin=(0., 0., 0.), axes='xz', alpha=0., beta=0.,
                  gamma=0.):
         pln = PlaneByAxes(axes=axes).plane
-
-        from OCC.gp import gp_Quaternion, gp_Trsf
-        from math import radians
 
         # Build a quaternion for rotation angles
         r = gp_Quaternion()
