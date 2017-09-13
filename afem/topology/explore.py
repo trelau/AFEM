@@ -39,7 +39,6 @@ class ExploreShape(object):
         :return: Vertices of shape.
         :rtype: list[OCC.TopoDS.TopoDS_Vertex]
         """
-        # TODO Option for unique vertices.
         if isinstance(shape, TopoDS_Vertex):
             return [shape]
 
