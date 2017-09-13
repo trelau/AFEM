@@ -44,7 +44,7 @@ class CheckGeom(object):
     @staticmethod
     def is_point(geom):
         """
-        Check if the entity is a :class:`Point`.
+        Check if the entity is a :class:`.Point`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Point, *False* if not.
@@ -55,7 +55,7 @@ class CheckGeom(object):
     @staticmethod
     def is_point2d(geom):
         """
-        Check if the entity is a :class:`Point2D`.
+        Check if the entity is a :class:`.Point2D`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Point2D, *False* if not.
@@ -66,7 +66,7 @@ class CheckGeom(object):
     @staticmethod
     def to_point(geom):
         """
-        Convert entity to a :class:`Point` if possible.
+        Convert entity to a :class:`.Point` if possible.
 
         :param geom: An entity.
 
@@ -98,7 +98,7 @@ class CheckGeom(object):
     @staticmethod
     def is_vector(geom):
         """
-        Check if the entity is a :class:`Vector`.
+        Check if the entity is a :class:`.Vector`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Vector, *False* if not.
@@ -130,7 +130,7 @@ class CheckGeom(object):
     @staticmethod
     def is_direction(geom):
         """
-        Check if the entity is a :class:`Direction`.
+        Check if the entity is a :class:`.Direction`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Direction, *False* if not.
@@ -160,7 +160,7 @@ class CheckGeom(object):
     @staticmethod
     def is_plane(geom):
         """
-        Check if the entity is a :class:`Plane`.
+        Check if the entity is a :class:`.Plane`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Plane, *False* if not.
@@ -171,7 +171,7 @@ class CheckGeom(object):
     @staticmethod
     def is_line(geom):
         """
-        Check if the entity is a :class:`Line`.
+        Check if the entity is a :class:`.Line`.
 
         :param geom: An entity.
         :return: *True* if the entity is a Line, *False* if not.
@@ -215,7 +215,7 @@ class CheckGeom(object):
     @staticmethod
     def is_axis3(geom):
         """
-        Check if the entity is an :class:`Axis3`.
+        Check if the entity is an :class:`.Axis3`.
 
         :param geom: An entity.
 

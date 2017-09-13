@@ -36,7 +36,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
     :param str label: The label.
     :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve. If it is not a :class:`TrimmedCurve`,
+    :param cref: The reference curve. If it is not a :class:`.TrimmedCurve`,
         then it will be converted to one.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -242,7 +242,7 @@ class Part(TopoDS_Shape, ViewableItem):
         Set the part reference curve.
 
         :param afem.geometry.entities.Curve cref: The curve. If it is not a
-            :class:`TrimmedCurve`, then it will be converted to one. Access
+            :class:`.TrimmedCurve`, then it will be converted to one. Access
             the original curve using the *basis_curve* property (i.e.,
             part.cref.basis_curve).
         :param cref: The reference curve.
@@ -485,7 +485,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :param bool is_rel: Option specifying if the distance is absolute or
             a relative to the length of the reference curve. If relative, then
             *ds* is multiplied by the curve length to get the absolute value
-            for the :class:`PointFromParameter` method.
+            for the :class:`.PointFromParameter` method.
         :param bool is_local: Option specifying if the parameter is local or
             global.
 

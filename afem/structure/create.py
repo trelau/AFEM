@@ -289,7 +289,7 @@ class SparByParameters(object):
 class SparByPoints(SparByParameters):
     """
     Create a spar between two points. This method inverts the starting and
-    ending points and then uses :class:`SparByParameters`.
+    ending points and then uses :class:`.SparByParameters`.
 
     :param str label: Part label.
     :param point_like p1: Starting point.
@@ -452,7 +452,7 @@ class SparBetweenShapes(SparByPoints):
     """
     Create a spar between shapes. This method uses the shapes to define
     starting and ending points by intersecting the reference curve and then
-    uses :class:`SparByPoints`.
+    uses :class:`.SparByPoints`.
 
     :param str label: Part label.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
@@ -487,7 +487,7 @@ class SparBetweenShapes(SparByPoints):
 class SparsBetweenPlanesByNumber(object):
     """
     Create a specified number of planar spars between two planes. This method
-    uses :class:`PlanesBetweenPlanesByNumber` and :class:`SparBetweenShapes`.
+    uses :class:`.PlanesBetweenPlanesByNumber` and :class:`.SparBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Plane pln1: The first plane.
@@ -568,8 +568,8 @@ class SparsBetweenPlanesByNumber(object):
 class SparsBetweenPlanesByDistance(object):
     """
     Create planar spars between two planes using a maximum spacing. This method
-    uses :class:`PlanesBetweenPlanesByDistance` and
-    :class:`SparBetweenShapes`.
+    uses :class:`.PlanesBetweenPlanesByDistance` and
+    :class:`.SparBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Plane pln1: The first plane.
@@ -651,7 +651,7 @@ class SparsBetweenPlanesByDistance(object):
 class SparsAlongCurveByNumber(object):
     """
     Create a specified number of planar spars along a curve. This method
-    uses :class:`PlanesAlongCurveByNumber` and :class:`SparBetweenShapes`.
+    uses :class:`.PlanesAlongCurveByNumber` and :class:`.SparBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Curve crv: The curve.
@@ -740,7 +740,7 @@ class SparsAlongCurveByNumber(object):
 class SparsAlongCurveByDistance(object):
     """
     Create planar spars along a curve using a maximum spacing. This method
-    uses :class:`PlanesAlongCurveByDistance` and :class:`SparBetweenShapes`.
+    uses :class:`.PlanesAlongCurveByDistance` and :class:`.SparBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Curve crv: The curve.
@@ -893,7 +893,7 @@ class RibByParameters(object):
 class RibByPoints(RibByParameters):
     """
     Create a rib between two points. This method inverts the starting and
-    ending points and then uses :class:`RibByParameters`.
+    ending points and then uses :class:`.RibByParameters`.
 
     :param str label: Part label.
     :param point_like p1: Starting point.
@@ -1056,7 +1056,7 @@ class RibBetweenShapes(RibByPoints):
     """
     Create a rib between shapes. This method uses the shapes to define
     starting and ending points by intersecting the reference curve and then
-    uses :class:`RibByPoints`.
+    uses :class:`.RibByPoints`.
 
     :param str label: Part label.
     :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
@@ -1091,7 +1091,7 @@ class RibBetweenShapes(RibByPoints):
 class RibByOrientation(RibBySurface):
     """
     Create a planar rib using rotation angles. This creates the plane then uses
-    :class:`RibBySurface`.
+    :class:`.RibBySurface`.
 
     :param str label: Part label.
     :param point_like origin: The origin of the plane after rotating and
@@ -1114,7 +1114,7 @@ class RibByOrientation(RibBySurface):
 class RibsBetweenPlanesByNumber(object):
     """
     Create a specified number of planar ribs between two planes. This method
-    uses :class:`PlanesBetweenPlanesByNumber` and :class:`RibBetweenShapes`.
+    uses :class:`.PlanesBetweenPlanesByNumber` and :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Plane pln1: The first plane.
@@ -1195,8 +1195,8 @@ class RibsBetweenPlanesByNumber(object):
 class RibsBetweenPlanesByDistance(object):
     """
     Create planar ribs between two planes using a maximum spacing. This method
-    uses :class:`PlanesBetweenPlanesByDistance` and
-    :class:`RibBetweenShapes`.
+    uses :class:`.PlanesBetweenPlanesByDistance` and
+    :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Plane pln1: The first plane.
@@ -1278,7 +1278,7 @@ class RibsBetweenPlanesByDistance(object):
 class RibsAlongCurveByNumber(object):
     """
     Create a specified number of planar ribs along a curve. This method
-    uses :class:`PlanesAlongCurveByNumber` and :class:`RibBetweenShapes`.
+    uses :class:`.PlanesAlongCurveByNumber` and :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Curve crv: The curve.
@@ -1367,7 +1367,7 @@ class RibsAlongCurveByNumber(object):
 class RibsAlongCurveByDistance(object):
     """
     Create planar ribs along a curve using a maximum spacing. This method
-    uses :class:`PlanesAlongCurveByDistance` and :class:`RibBetweenShapes`.
+    uses :class:`.PlanesAlongCurveByDistance` and :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Curve crv: The curve.
@@ -1457,8 +1457,8 @@ class RibsAlongCurveByDistance(object):
 class RibsAlongCurveAndSurfaceByDistance(object):
     """
     Create planar ribs along a curve and surface using a maximum spacing. This
-    method uses :class:`PlanesAlongCurveAndSurfaceByDistance` and
-    :class:`RibBetweenShapes`.
+    method uses :class:`.PlanesAlongCurveAndSurfaceByDistance` and
+    :class:`.RibBetweenShapes`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Curve crv: The curve.
@@ -1692,7 +1692,7 @@ class FrameByPlane(object):
 class FramesByPlanes(object):
     """
     Create frames using a list of planes. This method uses
-    :class:`FrameByPlane`.
+    :class:`.FrameByPlane`.
 
     :param str label: Part label.
     :param list[afem.geometry.entities.Plane] plns: The planes.
@@ -1750,7 +1750,7 @@ class FramesByPlanes(object):
 class FramesBetweenPlanesByNumber(object):
     """
     Create a specified number of frames between two planes. This method uses
-    :class:`PlanesBetweenPlanesByNumber` and :class:`FrameByPlane`.
+    :class:`.PlanesBetweenPlanesByNumber` and :class:`.FrameByPlane`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Plane pln1: The first plane.
@@ -1826,7 +1826,7 @@ class FramesBetweenPlanesByNumber(object):
 class FramesBetweenPlanesByDistance(object):
     """
     Create frames between two planes using a maximum spacing. This method uses
-    :class:`PlanesBetweenPlanesByDistance` and :class:`FrameByPlane`.
+    :class:`.PlanesBetweenPlanesByDistance` and :class:`.FrameByPlane`.
 
     :param str label: Part label.
     :param afem.geometry.entities.Plane pln1: The first plane.

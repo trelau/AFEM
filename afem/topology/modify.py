@@ -379,7 +379,7 @@ class RebuildShapeWithShapes(object):
         Apply the substitutions to the original old shape and return a new
         shape.
 
-        :param bool fix: Option to use :class:`FixShape` on the new shape in
+        :param bool fix: Option to use :class:`.FixShape` on the new shape in
             case the substitutions caused errors (e.g., like a solid is now a
             shell).
 
@@ -401,7 +401,7 @@ class RebuildShapeByTool(object):
     :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopAlgo
-    :param bool fix: Option to use :class:`FixShape` on the new shape in
+    :param bool fix: Option to use :class:`.FixShape` on the new shape in
         case the substitutions caused errors (e.g., like a solid is now a
         shell).
 
@@ -485,7 +485,7 @@ class RebuildShapesByTool(object):
     :param list[OCC.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopAlgo
-    :param bool fix: Option to use :class:`FixShape` on the new shape in
+    :param bool fix: Option to use :class:`.FixShape` on the new shape in
         case the substitutions caused errors (e.g., like a solid is now a
         shell).
     """

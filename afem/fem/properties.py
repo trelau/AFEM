@@ -123,6 +123,6 @@ class PropertyData(object):
         :param mid1: Material for the membrane.
 
         :return: New shell element property.
-        :rtype: :class:`Shell`
+        :rtype: :class:`.Shell`
         """
         return Shell(name, t, mid1)

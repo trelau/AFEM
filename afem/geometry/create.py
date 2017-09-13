@@ -299,7 +299,7 @@ class PointsAlongCurveByDistance(object):
     """
     Create points along a curve by distance between points. The points will
     be equidistant. This method calculates the number of points given the
-    curve length and then uses :class:`PointsAlongCurveByNumber`.
+    curve length and then uses :class:`.PointsAlongCurveByNumber`.
 
     :param afem.geometry.entities.Curve c: The curve.
     :param float maxd: The maximum allowed spacing between points. The
@@ -570,7 +570,7 @@ class VectorByPoints(object):
     :param point_like p1: The first point.
     :param point_like p2: The last point.
 
-    :raise TypeError: If *p1* or *p2* cannot be converted to a :class:`Point`.
+    :raise TypeError: If *p1* or *p2* cannot be converted to a :class:`.Point`.
 
     >>> from afem.geometry import Point, VectorByPoints
     >>> p1 = Point()
@@ -607,8 +607,8 @@ class LineByVector(object):
     :param point_like p: Origin of line.
     :param vector_like d: Direction of line.
 
-    :raise TypeError: If *p* cannot be converted to a :class:`Point`
-    :raise TypeError: If *d* cannot be converted to a :class:`Direction`
+    :raise TypeError: If *p* cannot be converted to a :class:`.Point`
+    :raise TypeError: If *d* cannot be converted to a :class:`.Direction`
 
     Usage:
 
@@ -647,7 +647,7 @@ class LineByPoints(object):
     :param point_like p1: The first point.
     :param point_like p2: The last point.
 
-    :raise TypeError: If *p1* or *p2* cannot be converted to a :class:`Point`.
+    :raise TypeError: If *p1* or *p2* cannot be converted to a :class:`.Point`.
 
     Usage:
 
@@ -947,7 +947,7 @@ class NurbsCurveByApprox(object):
 class NurbsCurveByPoints(NurbsCurveByApprox):
     """
     Create a linear curve (i.e., a polyline) between points. This method uses
-    :class:`NurbsCurveByApprox` to fit a linear curve.
+    :class:`.NurbsCurveByApprox` to fit a linear curve.
 
     :param list[point_like] qp: List of points.
 
@@ -1030,7 +1030,7 @@ class TrimmedCurveByParameters(object):
 class TrimmedCurveByCurve(TrimmedCurveByParameters):
     """
     Create a trimmed curve using the existing first and last parameters of
-    the basis curve. This method uses :class:`TrimmedCurveByParameters`.
+    the basis curve. This method uses :class:`.TrimmedCurveByParameters`.
 
     :param afem.geometry.entities.Curve basis_curve: The basis curve.
     :param bool sense: If the basis curve is periodic, the trimmed curve
@@ -1057,7 +1057,7 @@ class TrimmedCurveByPoints(TrimmedCurveByParameters):
     """
     Create a trimmed curve using a basis curve and limiting points. The
     points are projected to the basis curve then
-    :class:`TrimmedCurveByParameters` is used.
+    :class:`.TrimmedCurveByParameters` is used.
 
     :param afem.geometry.entities.Curve basis_curve: The basis curve.
     :param point_like p1: The first point.
@@ -1112,8 +1112,8 @@ class PlaneByNormal(object):
     :param point_like origin: The origin.
     :param vector_like vnorm: The normal vector.
 
-    :raise TypeError: If *origin* cannot be converted to :class:`Point`.
-    :raise TypeError: If *vnorm* cannot be converted to :class:`Direction`.
+    :raise TypeError: If *origin* cannot be converted to :class:`.Point`.
+    :raise TypeError: If *vnorm* cannot be converted to :class:`.Direction`.
 
     Usage:
 
@@ -1152,7 +1152,7 @@ class PlaneByAxes(object):
     :param point_like origin: The origin.
     :param str axes: The axes ('xy', 'xz', 'yz').
 
-    :raise TypeError: If *origin* cannot be converted to :class:`Point`.
+    :raise TypeError: If *origin* cannot be converted to :class:`.Point`.
     :raise ValueError: If *axes* is not a supported option.
 
     Usage:
@@ -1214,7 +1214,7 @@ class PlaneByPoints(object):
     :param point_like p3: Third point.
 
     :raise TypeError: if *p1*, *p2*, or *p3* cannot be converted to a
-        :class:`Point`.
+        :class:`.Point`.
     :raise ValueError: If the points are collinear.
 
     Usage:
@@ -1479,7 +1479,7 @@ class PlanesAlongCurveByNumber(object):
         a negative number indicating a distance from *u2* towards *u1*.
     :param float tol: Tolerance.
 
-    :raise RuntimeError: If :class:`PointsAlongCurveByNumber` fails to
+    :raise RuntimeError: If :class:`.PointsAlongCurveByNumber` fails to
         generate points along the curve.
 
     Usage:
@@ -1578,7 +1578,7 @@ class PlanesAlongCurveByDistance(object):
     Create planes along a curve by distance between points. The origin of the
     planes will be equidistant along the curve. This method calculates the
     number of points given the curve length and then uses
-    :class:`PlanesAlongCurveByNumber`.
+    :class:`.PlanesAlongCurveByNumber`.
 
     :param afem.geometry.entities.Curve c: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
@@ -1596,7 +1596,7 @@ class PlanesAlongCurveByDistance(object):
     :param int nmin: Minimum number of planes to create.
     :param float tol: Tolerance.
 
-    :raise RuntimeError: If :class:`PointsAlongCurveByDistance` fails to
+    :raise RuntimeError: If :class:`.PointsAlongCurveByDistance` fails to
         generate points along the curve.
 
     Usage:
@@ -1696,7 +1696,7 @@ class PlanesBetweenPlanesByNumber(object):
     Create planes between two other planes. This method will create a line
     normal to the first plane at its origin and then intersect
     that line with the second plane. Planes are then created along this line
-    using :class:`PlanesAlongCurveByNumber`. Planes are not generated at
+    using :class:`.PlanesAlongCurveByNumber`. Planes are not generated at
     the same location as the boundary planes.
 
     :param afem.geometry.entities.Plane pln1: The first plane. This will be
@@ -1813,7 +1813,7 @@ class PlanesBetweenPlanesByDistance(object):
     Create planes between two other planes by distance. This method will
     create a line normal to the first plane at its origin and then intersect
     that line with the second plane. Planes are then created along this line
-    using :class:`PlanesAlongCurveByNumber`. Planes are not generated at
+    using :class:`.PlanesAlongCurveByNumber`. Planes are not generated at
     the same location as the boundary planes.
 
     :param afem.geometry.entities.Plane pln1: The first plane. This will be
@@ -1930,7 +1930,7 @@ class PlanesAlongCurveAndSurfaceByDistance(object):
     Create planes along a curve and surface by distance between points. The
     origin of the planes will be equidistant along the curve. This method
     calculates the number of points given the curve length and then uses
-    :class:`PlaneByCurveAndSurface` at each point.
+    :class:`.PlaneByCurveAndSurface` at each point.
 
     :param afem.geometry.entities.Curve c: The curve.
     :param afem.geometry.entities.Surface s: The surface.
@@ -1945,7 +1945,7 @@ class PlanesAlongCurveAndSurfaceByDistance(object):
     :param int nmin: Minimum number of planes to create.
     :param float tol: Tolerance.
 
-    :raise RuntimeError: If :class:`PointsAlongCurveByDistance` fails to
+    :raise RuntimeError: If :class:`.PointsAlongCurveByDistance` fails to
         generate points along the curve.
     """
 
