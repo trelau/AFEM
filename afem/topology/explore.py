@@ -290,7 +290,7 @@ class ExploreShape(object):
         :param OCC.TopoDS.TopoDS_Wire wire: The wire.
 
         :return: Concatenated curve of wire.
-        :rtype: afem.geometry.entities.Curve
+        :rtype: afem.geometry.entities.NurbsCurve
 
         :raise RuntimeError: If an unsupported curve type is found.
         """
@@ -301,10 +301,6 @@ class ExploreShape(object):
             exp.Next()
             adp_crv = BRepAdaptor_Curve(e)
             tol = ExploreShape.get_tolerance(e, 1)
-            # TODO Handle curves other than BSpline
-            if adp_crv.GetType() not in [GeomAbs_BSplineCurve,
-                                         GeomAbs_BezierCurve]:
-                continue
             geom_convert.Add(adp_crv.BSpline(), tol)
         h_crv = geom_convert.BSplineCurve()
         if h_crv.IsNull():
