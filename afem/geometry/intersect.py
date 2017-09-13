@@ -142,14 +142,11 @@ class IntersectCurveCurve(CurveIntersector):
     def __init__(self, crv1, crv2, itol=1.0e-7):
         super(IntersectCurveCurve, self).__init__(crv1, crv2)
 
-        # Perform
-        # TODO Reevaluate if IntTools_EdgeEdge is needed.
-
-        # Build edges from curve.
+        # Build edges from curve
         e1 = BRepBuilderAPI_MakeEdge(crv1.handle).Edge()
         e2 = BRepBuilderAPI_MakeEdge(crv2.handle).Edge()
 
-        # Set tolerance to be half intersection tolerance.
+        # Set tolerance to be half intersection tolerance
         shp_tol = ShapeFix_ShapeTolerance()
         tol = itol / 2.
         shp_tol.SetTolerance(e1, tol)
@@ -159,7 +156,7 @@ class IntersectCurveCurve(CurveIntersector):
         cci = IntTools_EdgeEdge(e1, e2)
         cci.Perform()
 
-        # Gather results of point intersection only.
+        # Gather results of point intersection only
         results = []
         common_parts = cci.CommonParts()
         for i in range(1, common_parts.Length() + 1):

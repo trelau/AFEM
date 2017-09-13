@@ -3,7 +3,7 @@ from OCC.TopoDS import TopoDS_Shape
 from numpy import mean
 
 from afem.config import logger
-from afem.fem.elements import Elm2D
+from afem.fem.elements import Elm1D, Elm2D
 from afem.fem.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
@@ -1054,6 +1054,46 @@ class CurvePart(Part):
         :rtype: float
         """
         return LinearProps(self).length
+
+    @property
+    def elements(self):
+        """
+        :return: The 1-d elements of the part.
+        :rtype: set(afem.fem.entities.Elm1D)
+        """
+        smesh_mesh = MeshAPI.get_mesh().object
+        if not isinstance(smesh_mesh, SMESH_Mesh):
+            return set()
+
+        edges = ExploreShape.get_edges(self)
+        compound = CompoundByShapes(edges).compound
+        submesh = smesh_mesh.GetSubMesh(compound)
+        if submesh.IsEmpty():
+            return set()
+
+        submesh_ds = submesh.GetSubMeshDS()
+        if not submesh_ds:
+            return set()
+
+        elm_iter = submesh_ds.GetElements()
+        elm_set = set()
+        while elm_iter.more():
+            elm = Elm1D(elm_iter.next())
+            elm_set.add(elm)
+
+        return elm_set
+
+    @property
+    def nodes(self):
+        """
+        :return: The nodes of part.
+        :rtype: set(afem.fem.entities.Node)
+        """
+        node_set = set()
+        for e in self.elements:
+            for n in e.nodes:
+                node_set.add(n)
+        return node_set
 
 
 class Beam(CurvePart):

@@ -326,13 +326,11 @@ class ProjectCurveToPlane(CurveProjector):
     def __init__(self, crv, pln, direction=None, keep_param=True):
         super(ProjectCurveToPlane, self).__init__()
 
-        # Perform
         direction = CheckGeom.to_direction(direction)
         if not CheckGeom.is_direction(direction):
             direction = pln.object.Pln().Axis().Direction()
 
-        # OCC projection.
-        # TODO Consider ProjLib_ProjectOnPlane
+        # OCC projection
         hcrv = GeomProjLib.geomprojlib_ProjectOnPlane(crv.handle,
                                                       pln.handle,
                                                       direction, keep_param)
@@ -375,9 +373,7 @@ class ProjectCurveToSurface(CurveProjector):
     def __init__(self, crv, srf):
         super(ProjectCurveToSurface, self).__init__()
 
-        # Perform
         # OCC projection
-        # TODO Catch error in case curve is outside the surface boundaries.
         hcrv = GeomProjLib.geomprojlib_Project(crv.handle,
                                                srf.handle)
         if hcrv.IsNull():
