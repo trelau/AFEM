@@ -1,8 +1,8 @@
-from afem.geometry.intersect import IntersectCurveCurve
 from afem.structure.entities import SurfacePart
-from afem.topology.bop import FuseShapes, SplitShapes
+from afem.topology.bop import FuseShapes, SplitShapes, IntersectShapes
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import RebuildShapesByTool
+from afem.topology.create import EdgeByCurve
 
 __all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "SplitParts"]
 
@@ -87,8 +87,10 @@ class FuseSurfacePartsByCref(object):
                     tol1 = ExploreShape.get_tolerance(main, 1)
                     tol2 = ExploreShape.get_tolerance(other, 1)
                     tol = max(tol1, tol2)
-                cci = IntersectCurveCurve(main.cref, other.cref, tol)
-                if not cci.success:
+                e1 = EdgeByCurve(main.cref).edge
+                e2 = EdgeByCurve(other.cref).edge
+                bop = IntersectShapes(e1, e2, fuzzy_val=tol)
+                if not bop.vertices:
                     continue
                 # Store potential join
                 other_parts.append(other)
