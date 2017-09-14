@@ -5,7 +5,7 @@ with open('afem.log', 'w') as log:
     log.write('-----------------------------\n')
     log.write('AFEM LOGGING FILE INITIALIZED\n')
     log.write('-----------------------------\n')
-logger = logging.getLogger('afem_logger')
+logger = logging.getLogger('afem')
 logger.setLevel(logging.INFO)
 _fh = logging.FileHandler('afem.log')
 _fmt = logging.Formatter('%(levelname)s: %(message)s')
