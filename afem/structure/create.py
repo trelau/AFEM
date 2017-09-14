@@ -13,6 +13,7 @@ from afem.topology.props import *
 
 __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SurfacePartByShape", "SparByParameters", "SparByPoints",
+           "SparByEnds",
            "SparBySurface", "SparByShape",
            "SparBetweenShapes", "SparsBetweenPlanesByNumber",
            "SparsBetweenPlanesByDistance", "SparsAlongCurveByNumber",
@@ -326,6 +327,47 @@ class SparByPoints(SparByParameters):
         # Use SparByParameters
         super(SparByPoints, self).__init__(label, u1, v1, u2, v2, body,
                                            basis_shape)
+
+
+class SparByEnds(SparByParameters):
+    """
+    Create a spar by defining its endpoints which can be either points or
+    parameters on a reference surface.
+
+    :param str label: Part label.
+    :param e1: Start point as a point or surface parameters (u1, v1).
+    :type e1: point_like or collections.Sequence[float]
+    :param e2: End point as a point or surface parameters (u2, v2).
+    :type e2: point_like or collections.Sequence[float]
+    :param afem.oml.entities.Body body: The body.
+    :param basis_shape: The basis shape to define the shape of the part. If
+        not provided, then a plane will be defined between (u1, v1),
+        (u2, v2), and a point translated from the reference surface normal at
+        (u1, v1).
+    :type basis_shape: afem.geometry.entities.Surface or
+        OCC.TopoDS.TopoDS_Shape
+
+    :raise TypeError: If *e1* or *e2* are not *point_like* or a sequence of
+        two surface parameters.
+    """
+
+    def __init__(self, label, e1, e2, body, basis_shape=None):
+        if len(e1) == 2:
+            u1, v1 = e1
+        elif CheckGeom.is_point_like(e1):
+            u1, v1 = body.invert(e1)
+        else:
+            raise TypeError('Invalid type for first e1')
+
+        if len(e2) == 2:
+            u2, v2 = e2
+        elif CheckGeom.is_point_like(e2):
+            u2, v2 = body.invert(e2)
+        else:
+            raise TypeError('Invalid type for e2.')
+
+        super(SparByEnds, self).__init__(label, u1, v1, u2, v2, body,
+                                         basis_shape)
 
 
 class SparBySurface(object):

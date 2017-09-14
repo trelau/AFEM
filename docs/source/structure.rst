@@ -109,6 +109,10 @@ SparByPoints
 ~~~~~~~~~~~~
 .. autoclass:: SparByPoints
 
+SparByEnds
+~~~~~~~~~~
+.. autoclass:: SparByEnds
+
 SparBySurface
 ~~~~~~~~~~~~~
 .. autoclass:: SparBySurface

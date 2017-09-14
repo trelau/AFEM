@@ -1164,7 +1164,6 @@ class SurfacePart(Part):
         :return: The shell elements of the part.
         :rtype: set(afem.fem.entities.Elm2D)
         """
-        # TODO Support nodes and elements for both curve and surface parts.
         smesh_mesh = MeshAPI.get_mesh().object
         if not isinstance(smesh_mesh, SMESH_Mesh):
             return set()
