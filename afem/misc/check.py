@@ -3,6 +3,7 @@ try:
 except ImportError:
     _zip = zip
 
+from collections import Sequence
 from itertools import tee
 
 from numpy import ndarray
@@ -19,7 +20,7 @@ def is_array_like(obj):
     :return: *True* if array_like, *False* if not.
     :rtype: bool
     """
-    return isinstance(obj, (tuple, list, ndarray))
+    return isinstance(obj, (Sequence, ndarray))
 
 
 def is_array_type(rtype):

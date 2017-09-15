@@ -648,6 +648,49 @@ class Point(gp_Pnt, Geometry):
         self.Translate(v)
         return True
 
+    def rotate(self, axis, angle):
+        """
+        Rotate the point about an axis.
+
+        :param afem.geometry.entities.Axis1 axis: The rotation axis.
+        :param float angle: The rotation angle in degrees.
+
+        :return: None.
+        """
+        self.Rotate(axis, radians(angle))
+
+    def rotate_xyz(self, origin, x, y, z):
+        """
+        Rotate the point about the global x-, y-, and z-axes using
+        *origin* as the point of rotation. Rotations follow the right-hand
+        rule for each axis.
+
+        :param point_like origin: The origin of rotation.
+        :param float x: Rotation about x-axis in degrees.
+        :param float y: Rotation about y-axis in degrees.
+        :param float z: Rotation about z-axis in degrees.
+
+        :return: None.
+
+        :raise TypeError: If *origin* cannot be converted to a Point.
+        """
+        if is_array_like(origin) and len(origin) == 3:
+            origin = gp_Pnt(*origin)
+        if not isinstance(origin, gp_Pnt):
+            raise TypeError('Invalid origin provided.')
+
+        # x-axis
+        ax = gp_Ax1(origin, gp_Dir(1., 0., 0.))
+        self.Rotate(ax, radians(x))
+
+        # y-axis
+        ax = gp_Ax1(origin, gp_Dir(0., 1., 0.))
+        self.Rotate(ax, radians(y))
+
+        # z-axis
+        ax = gp_Ax1(origin, gp_Dir(0., 0., 1.))
+        self.Rotate(ax, radians(z))
+
     def copy(self):
         """
         Return a new copy of the point.
