@@ -9,24 +9,26 @@ __all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "SplitParts"]
 
 class FuseSurfaceParts(object):
     """
-    Fuse together multiple surface parts and rebuild their shapes. The part
-    shapes are rebuilt in place.
+    Fuse together multiple surface parts and rebuild their shapes.
 
     :param parts: The surface parts.
     :type parts: collections.Sequence[afem.structure.entities.SurfacePart]
+    :param parts: The other surface parts.
+    :type tools: collections.Sequence[afem.structure.entities.SurfacePart]
     :param float fuzzy_val: Fuzzy tolerance value.
     """
 
-    def __init__(self, parts, fuzzy_val=None):
+    def __init__(self, parts, tools, fuzzy_val=None):
         bop = FuseShapes(fuzzy_val=fuzzy_val)
 
         parts = list(parts)
-        bop.set_args([parts[0]])
-        bop.set_tools(parts[1:])
+        tools = list(tools)
+        bop.set_args(parts)
+        bop.set_tools(tools)
         bop.build()
 
-        rebuild = RebuildShapesByTool(parts, bop)
-        for part in parts:
+        rebuild = RebuildShapesByTool(parts + tools, bop)
+        for part in parts + tools:
             new_shape = rebuild.new_shape(part)
             part.set_shape(new_shape)
 
