@@ -512,9 +512,11 @@ class SparBetweenShapes(SparByPoints):
         _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         if isinstance(basis_shape, Surface):
-            basis_shape = FaceBySurface(basis_shape).face
+            shape = FaceBySurface(basis_shape).face
+        else:
+            shape = basis_shape
 
-        wing_basis_edges = IntersectShapes(basis_shape, body.sref_shape).shape
+        wing_basis_edges = IntersectShapes(shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
         p2_shape = IntersectShapes(shape2, wing_basis_edges).shape
         v1 = ExploreShape.get_vertices(p1_shape)[0]
@@ -1116,9 +1118,11 @@ class RibBetweenShapes(RibByPoints):
         _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
         if isinstance(basis_shape, Surface):
-            basis_shape = FaceBySurface(basis_shape).face
+            shape = FaceBySurface(basis_shape).face
+        else:
+            shape = basis_shape
 
-        wing_basis_edges = IntersectShapes(basis_shape, body.sref_shape).shape
+        wing_basis_edges = IntersectShapes(shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
         p2_shape = IntersectShapes(shape2, wing_basis_edges).shape
         v1 = ExploreShape.get_vertices(p1_shape)[0]
