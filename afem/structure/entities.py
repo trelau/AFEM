@@ -849,9 +849,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :raise TypeError: If this part is not a curve or surface part.
         """
-        if isinstance(self, CurvePart):
-            rebuild = RebuildShapeByTool(self, tool)
-        elif isinstance(self, SurfacePart):
+        if isinstance(self, (CurvePart, SurfacePart)):
             rebuild = RebuildShapeByTool(self, tool)
         else:
             msg = 'Invalid part type in rebuild operation.'

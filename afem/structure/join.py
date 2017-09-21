@@ -1,10 +1,13 @@
 from afem.structure.entities import SurfacePart
-from afem.topology.bop import FuseShapes, SplitShapes, IntersectShapes
+from afem.topology.bop import (CutShapes, FuseShapes, IntersectShapes,
+                               SplitShapes)
+from afem.topology.check import CheckShape
+from afem.topology.create import CompoundByShapes, EdgeByCurve
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import RebuildShapesByTool
-from afem.topology.create import EdgeByCurve
 
-__all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "SplitParts"]
+__all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "CutParts",
+           "SplitParts"]
 
 
 class FuseSurfaceParts(object):
@@ -115,7 +118,37 @@ class FuseSurfacePartsByCref(object):
 
 
 class CutParts(object):
-    pass
+    """
+    Cut each part with a shape and update the part shape.
+
+    :param parts: The parts to cut.
+    :type parts: collections.Sequence[afem.structure.entities.Part]
+    :param shape: The shape to cut with.
+    :type shape: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    """
+
+    def __init__(self, parts, shape):
+        parts = list(parts)
+        cmp = CompoundByShapes(parts).compound
+
+        shape = CheckShape.to_shape(shape)
+
+        bop = CutShapes(cmp, shape)
+
+        rebuild = RebuildShapesByTool(parts, bop)
+        for part in parts:
+            new_shape = rebuild.new_shape(part)
+            part.set_shape(new_shape)
+
+        self._is_done = bop.is_done
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if operation is done, *False* if not.
+        :rtype: bool
+        """
+        return self._is_done
 
 
 class SewParts(object):

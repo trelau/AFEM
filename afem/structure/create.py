@@ -497,8 +497,12 @@ class SparBetweenShapes(SparByPoints):
     uses :class:`.SparByPoints`.
 
     :param str label: Part label.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
@@ -506,8 +510,8 @@ class SparBetweenShapes(SparByPoints):
     """
 
     def __init__(self, label, shape1, shape2, body, basis_shape):
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
+        _validate_type(shape1, (TopoDS_Shape, Curve, Surface))
+        _validate_type(shape2, (TopoDS_Shape, Curve, Surface))
         _validate_type(body, Body)
         _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
@@ -515,6 +519,9 @@ class SparBetweenShapes(SparByPoints):
             shape = FaceBySurface(basis_shape).face
         else:
             shape = basis_shape
+
+        shape1 = CheckShape.to_shape(shape1)
+        shape2 = CheckShape.to_shape(shape2)
 
         wing_basis_edges = IntersectShapes(shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
@@ -1103,8 +1110,12 @@ class RibBetweenShapes(RibByPoints):
     uses :class:`.RibByPoints`.
 
     :param str label: Part label.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
@@ -1112,8 +1123,8 @@ class RibBetweenShapes(RibByPoints):
     """
 
     def __init__(self, label, shape1, shape2, body, basis_shape):
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
+        _validate_type(shape1, (TopoDS_Shape, Curve, Surface))
+        _validate_type(shape2, (TopoDS_Shape, Curve, Surface))
         _validate_type(body, Body)
         _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
 
@@ -1121,6 +1132,9 @@ class RibBetweenShapes(RibByPoints):
             shape = FaceBySurface(basis_shape).face
         else:
             shape = basis_shape
+
+        shape1 = CheckShape.to_shape(shape1)
+        shape2 = CheckShape.to_shape(shape2)
 
         wing_basis_edges = IntersectShapes(shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
