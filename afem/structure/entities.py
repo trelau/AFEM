@@ -17,7 +17,7 @@ from afem.topology.bop import CutShapes, FuseShapes, SplitShapes
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   PointsAlongShapeByDistance,
-                                  PointsAlongShapeByNumber)
+                                  PointsAlongShapeByNumber, ShellByFaces)
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import (FixShape, RebuildShapeByTool,
@@ -1197,6 +1197,17 @@ class SurfacePart(Part):
             for n in e.nodes:
                 node_set.add(n)
         return node_set
+
+    def make_shell(self):
+        """
+        Attempt to make a shell from the faces of the part. This method
+        only constructs the faces into a shell without checking for a valid
+        shape.
+
+        :return: A new shell from the shape of the part.
+        :rtype: OCC.TopoDS.TopoDS_Shell
+        """
+        return ShellByFaces(self.faces).shell
 
     def fuse(self, *other_parts):
         """
