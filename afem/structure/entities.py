@@ -8,7 +8,7 @@ from afem.fem.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
                                   PointFromParameter, TrimmedCurveByCurve)
-from afem.geometry.entities import TrimmedCurve
+from afem.geometry.entities import Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
@@ -178,6 +178,26 @@ class Part(TopoDS_Shape, ViewableItem):
         :rtype: bool
         """
         return CheckGeom.is_surface(self._sref)
+
+    @property
+    def is_planar(self):
+        """
+        :return: *True* if the reference surface is a plane, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(self.sref, Plane)
+
+    @property
+    def plane(self):
+        """
+        :return: A plane if the reference surface is a plane.
+        :rtype: afem.geometry.entities.Plane
+
+        :raise TypeError: If the reference surface is not a plane.
+        """
+        if not self.is_planar:
+            raise TypeError('Reference surface is not a plane.')
+        return self.sref
 
     @property
     def p1(self):
@@ -1261,6 +1281,7 @@ class SurfacePart(Part):
             if not sew.is_modified(part):
                 continue
             mod_shape = sew.modified(part)
+            print('modified ', part.label)
             part.set_shape(mod_shape)
         return True
 

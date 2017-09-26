@@ -206,7 +206,7 @@ class SewShape(object):
 
     def add(self, shape):
         """
-        Add a shape to sew.
+        Add a shape to be sewed or controlled.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
 
@@ -529,8 +529,6 @@ class RebuildShapesByTool(object):
             new_shape = reshape.Apply(old_shape)
             if fix:
                 new_shape = FixShape(new_shape).shape
-            else:
-                new_shape = new_shape
 
             self._new_shapes.Bind(old_shape, new_shape)
 

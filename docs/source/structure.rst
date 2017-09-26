@@ -248,6 +248,10 @@ CutParts
 ~~~~~~~~
 .. autoclass:: CutParts
 
+SewSurfaceParts
+~~~~~~~~~~~~~~~
+.. autoclass:: SewSurfaceParts
+
 SplitParts
 ~~~~~~~~~~
 .. autoclass:: SplitParts

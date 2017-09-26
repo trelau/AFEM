@@ -1,13 +1,15 @@
+from numpy import mean
+
 from afem.structure.entities import SurfacePart
-from afem.topology.bop import (CutShapes, FuseShapes, IntersectShapes,
+from afem.topology.bop import (FuseShapes, IntersectShapes,
                                SplitShapes)
 from afem.topology.check import CheckShape
-from afem.topology.create import CompoundByShapes, EdgeByCurve
+from afem.topology.create import EdgeByCurve
 from afem.topology.explore import ExploreShape
-from afem.topology.modify import RebuildShapesByTool
+from afem.topology.modify import RebuildShapesByTool, SewShape
 
 __all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "CutParts",
-           "SplitParts"]
+           "SewSurfaceParts", "SplitParts"]
 
 
 class FuseSurfaceParts(object):
@@ -119,7 +121,7 @@ class FuseSurfacePartsByCref(object):
 
 class CutParts(object):
     """
-    Cut each part with a shape and update the part shape.
+    Cut each part with a shape and rebuild the part shape.
 
     :param parts: The parts to cut.
     :type parts: collections.Sequence[afem.structure.entities.Part]
@@ -129,30 +131,49 @@ class CutParts(object):
 
     def __init__(self, parts, shape):
         parts = list(parts)
-        cmp = CompoundByShapes(parts).compound
 
         shape = CheckShape.to_shape(shape)
 
-        bop = CutShapes(cmp, shape)
-
-        rebuild = RebuildShapesByTool(parts, bop)
+        # TODO Really just loop through each one?
         for part in parts:
-            new_shape = rebuild.new_shape(part)
-            part.set_shape(new_shape)
-
-        self._is_done = bop.is_done
-
-    @property
-    def is_done(self):
-        """
-        :return: *True* if operation is done, *False* if not.
-        :rtype: bool
-        """
-        return self._is_done
+            part.cut(shape)
 
 
-class SewParts(object):
-    pass
+class SewSurfaceParts(object):
+    """
+    Sew edges of the surface parts and rebuild their shapes.
+
+    :param parts: The parts to sew.
+    :type parts: collections.Sequence[afem.structure.entities.SurfacePart]
+    :param float tol: The tolerance. If not provided then the average
+        tolerance from all part shapes will be used.
+    :param float max_tol: Maximum tolerance. If not provided then the maximum
+        tolerance from all part shapes will be used.
+    """
+
+    def __init__(self, parts, tol=None, max_tol=None):
+        parts = list(parts)
+
+        if tol is None:
+            tol = mean([ExploreShape.get_tolerance(part, 0) for part in parts],
+                       dtype=float)
+
+        if max_tol is None:
+            max_tol = max([ExploreShape.get_tolerance(part, 1) for part
+                           in parts])
+
+        sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
+                       non_manifold=True)
+
+        for part in parts:
+            sew.add(part)
+        sew.perform()
+
+        for part in parts:
+            if not sew.is_modified(part):
+                continue
+            mod_shape = sew.modified(part)
+            part.set_shape(mod_shape)
 
 
 class SplitParts(object):
