@@ -30,7 +30,7 @@ other_wing = ImportVSP.get_body('Wing.2')
 other_htail = ImportVSP.get_body('Htail.1')
 
 # FUSELAGE --------------------------------------------------------------------
-AssemblyAPI.create_assy('fuselage assy')
+fuse_assy = AssemblyAPI.create_assy('fuselage assy')
 
 # Fwd bulkhead at 25% wing chord
 p0 = wing.eval(0.25, 0.)
@@ -109,7 +109,7 @@ CutParts([fskin, fwd_bh, rear_bh, aft_bh, floor] + frames, cutter)
 FuseSurfaceParts([fwd_bh, rear_bh, aft_bh, floor, fskin], frames)
 
 # WING ------------------------------------------------------------------------
-AssemblyAPI.create_assy('wing assy')
+wing_assy = AssemblyAPI.create_assy('wing assy')
 
 # Root rib
 
@@ -219,65 +219,18 @@ wskin.discard_by_dmin(wing.sref_shape, 1.0)
 # shells (upper and lower skin).
 wskin.fix()
 
-# print('start cutting')
-# frame_cut = CompoundByShapes(frames).compound
-# start = time.time()
-# wskin.cut(frame_cut)
-# CutParts([wskin, fc_spar, aux_spar], fuselage.outer_shell)
-# print('done cutting', time.time() - start)
-
-wing_parts = AssemblyAPI.get_parts('wing assy')
-fuselage_parts = AssemblyAPI.get_parts('fuselage assy')
+# JOIN ------------------------------------------------------------------------
 print('Fusing assemblies...')
 start = time.time()
-# FuseSurfaceParts(wing_parts, fuselage_parts)
-c1 = CompoundByShapes(wing_parts).compound
-c2 = CompoundByShapes(fuselage_parts).compound
-# bop = FuseShapes(c1, c2)
-bop = SplitShapes(c1, c2)
+bop = FuseAssemblies([wing_assy, fuse_assy])
 print('complete', time.time() - start)
-for part in wing_parts + fuselage_parts:
-    part.rebuild(bop)
 
-# Viewing
-for part in wing_parts + fuselage_parts:
+for part in wing_assy.get_parts() + fuse_assy.get_parts():
     Viewer.add(part)
-Viewer.show()
 
-shape = CompoundByShapes(wing_parts + fuselage_parts).compound
-tool = ExploreFreeEdges(shape)
+tool = ExploreFreeEdges(bop.fused_shape)
 Viewer.add(*tool.free_edges)
-Viewer.add(shape)
-Viewer.show()
-
-from OCC.BOPAlgo import BOPAlgo_BOP
-
-print('using BOP')
-start = time.time()
-bop = BOPAlgo_BOP()
-bop.AddArgument(c1)
-bop.AddTool(c2)
-bop.SetRunParallel(True)
-bop.SetOperation(2)
-bop.Perform()
-
-pf_cut = bop.PPaveFiller()
-
-bop = BOPAlgo_BOP()
-bop.AddArgument(c1)
-bop.AddTool(c2)
-bop.SetRunParallel(True)
-bop.SetOperation(1)
-bop.PerformWithFiller(pf_cut)
-print(time.time() - start)
-
-Viewer.add(bop.Shape())
-tool = ExploreFreeEdges(bop.Shape())
-Viewer.add(*tool.free_edges)
-Viewer.show()
-
-
-
+Viewer.show(False)
 
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
