@@ -228,25 +228,30 @@ class FuseAssemblies(object):
     Fuse assemblies and rebuild the part shapes. This tool puts all the part
     shapes into compounds before the Boolean operation.
 
-    :param afem.structure.assembly.Assembly assy1: The first assembly.
-    :param afem.structure.assembly.Assembly assy2: The second assembly.
+    :param assys: The assemblies.
+    :type assys: collections.Sequence[afem.structure.assembly.Assembly]
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool include_subassy: Option to recursively include parts
             from any sub-assemblies.
-    :param afem.structure.assembly.Assembly other_assys: Extra assemblies.
+
+    :raise ValueError: If less than two assemblies are provided.
     """
 
-    def __init__(self, assy1, assy2, fuzzy_val=None, include_subassy=True,
-                 *other_assys):
+    def __init__(self, assys, fuzzy_val=None, include_subassy=True):
+        if len(assys) < 2:
+            raise ValueError('Not enough assemblies to fuse. Need at least '
+                             'two.')
+
         bop = FuseShapes(fuzzy_val=fuzzy_val)
 
-        parts1 = assy1.get_parts(include_subassy)
+        assys = list(assys)
+        parts1 = assys[0].get_parts(include_subassy)
         shape1 = CompoundByShapes(parts1).compound
         bop.set_args([shape1])
 
         tools = []
         other_parts = []
-        for assy in [assy2] + list(other_assys):
+        for assy in assys[1:]:
             parts = assy.get_parts(include_subassy)
             other_parts += parts
             shape = CompoundByShapes(parts).compound
