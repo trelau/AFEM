@@ -4,12 +4,12 @@ from afem.structure.entities import SurfacePart
 from afem.topology.bop import (FuseShapes, IntersectShapes,
                                SplitShapes)
 from afem.topology.check import CheckShape
-from afem.topology.create import EdgeByCurve
+from afem.topology.create import CompoundByShapes, EdgeByCurve
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import RebuildShapesByTool, SewShape
 
 __all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "CutParts",
-           "SewSurfaceParts", "SplitParts"]
+           "SewSurfaceParts", "SplitParts", "FuseAssemblies"]
 
 
 class FuseSurfaceParts(object):
@@ -221,3 +221,60 @@ class SplitParts(object):
         :rtype: OCC.TopoDS.TopoDS_Shape
         """
         return self._split_shape
+
+
+class FuseAssemblies(object):
+    """
+    Fuse assemblies and rebuild the part shapes. This tool puts all the part
+    shapes into compounds before the Boolean operation.
+
+    :param afem.structure.assembly.Assembly assy1: The first assembly.
+    :param afem.structure.assembly.Assembly assy2: The second assembly.
+    :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool include_subassy: Option to recursively include parts
+            from any sub-assemblies.
+    :param afem.structure.assembly.Assembly other_assys: Extra assemblies.
+    """
+
+    def __init__(self, assy1, assy2, fuzzy_val=None, include_subassy=True,
+                 *other_assys):
+        bop = FuseShapes(fuzzy_val=fuzzy_val)
+
+        parts1 = assy1.get_parts(include_subassy)
+        shape1 = CompoundByShapes(parts1).compound
+        bop.set_args([shape1])
+
+        tools = []
+        other_parts = []
+        for assy in [assy2] + list(other_assys):
+            parts = assy.get_parts(include_subassy)
+            other_parts += parts
+            shape = CompoundByShapes(parts).compound
+            tools.append(shape)
+        bop.set_tools(tools)
+
+        bop.build()
+
+        all_parts = parts1 + other_parts
+        rebuild = RebuildShapesByTool(all_parts, bop)
+        for part in all_parts:
+            new_shape = rebuild.new_shape(part)
+            part.set_shape(new_shape)
+
+        self._bop = bop
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if operation is done, *False* if not.
+        :rtype: bool
+        """
+        return self._bop.is_done
+
+    @property
+    def fused_shape(self):
+        """
+        :return: The fused shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._bop.shape

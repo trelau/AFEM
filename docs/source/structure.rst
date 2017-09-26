@@ -256,6 +256,10 @@ SplitParts
 ~~~~~~~~~~
 .. autoclass:: SplitParts
 
+FuseAssemblies
+~~~~~~~~~~~~~~
+.. autoclass:: FuseAssemblies
+
 Modify
 ------
 .. py:currentmodule:: afem.structure.modify
