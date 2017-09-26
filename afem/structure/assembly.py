@@ -261,7 +261,7 @@ class AssemblyAPI(object):
         Create an assembly.
 
         :param str label: The label.
-        :param parent: The parent assembly. If ``None`` then the active
+        :param parent: The parent assembly. If ``None`` then the master
             assembly is used.
         :type parent: str or afem.structure.assembly.Assembly or None
         :param bool active: Option to make the new assembly the active one.

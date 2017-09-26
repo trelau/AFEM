@@ -22,20 +22,27 @@ fuselage.set_transparency(0.5)
 # WING
 wing_assy = AssemblyAPI.create_assy('wing assy')
 
+rib_assy = AssemblyAPI.create_assy('rib assy', wing_assy)
+
 root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, wing).rib
 tip = RibByParameters('tip', 0.15, 0.2, 0.70, 0.2, wing).rib
+
+spar_assy = AssemblyAPI.create_assy('spar assy', wing_assy)
 
 fspar = SparByPoints('fspar', root.p1, tip.p1, wing).spar
 rspar = SparByPoints('rspar', root.p2, tip.p2, wing).spar
 
+rib_assy.activate()
 RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar, rspar, wing, d1=30.,
                        d2=-50)
 
-parts = wing_assy.get_parts()
-FuseSurfacePartsByCref(parts)
-DiscardByCref(parts)
+# Use FuseAssemblies
+FuseAssemblies([rib_assy, spar_assy])
+DiscardByCref(wing_assy.get_parts())
 
+wing_assy.activate()
 skin = SkinByBody('wing skin', wing).skin
+parts = rib_assy.get_parts() + spar_assy.get_parts()
 skin.fuse(*parts)
 skin.discard_by_dmin(wing.sref_shape, 1.)
 skin.fix()
