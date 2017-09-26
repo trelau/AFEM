@@ -4,11 +4,14 @@ import time
 
 from afem.config import Settings
 from afem.fem import MeshAPI
-from afem.geometry import CreateGeom
+from afem.geometry import *
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-from afem.structure import AssemblyAPI, CreatePart, PartTools
-from afem.topology import ShapeTools
+from afem.misc.check import pairwise
+from afem.structure import *
+from afem.topology import *
+
+Settings.log_to_console(True)
 
 # Set units to inch.
 Settings.set_units('in')
@@ -31,66 +34,79 @@ AssemblyAPI.create_assy('fuselage assy')
 
 # Fwd bulkhead at 25% wing chord
 p0 = wing.eval(0.25, 0.)
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-fwd_bh = CreatePart.bulkhead.by_sref('fwd bh', fuselage, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+fwd_bh = BulkheadBySurface('fwd bh', pln, fuselage).bulkhead
 
 # Rear bulkhead at 65% wing chord
 p0 = wing.eval(0.65, 0.)
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-rear_bh = CreatePart.bulkhead.by_sref('rear bh', fuselage, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+rear_bh = BulkheadBySurface('rear bh', pln, fuselage).bulkhead
 
 # Aft bulkhead at 85% wing chord
 p0 = wing.eval(0.85, 0.)
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-aft_bh = CreatePart.bulkhead.by_sref('aft bh', fuselage, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+aft_bh = BulkheadBySurface('aft bh', pln, fuselage).bulkhead
 
 # Floor
-pln = CreateGeom.plane_by_axes([0, 0, -24], 'xy')
-floor = CreatePart.floor.by_sref('floor', fuselage, pln)
+pln = PlaneByAxes((0., 0., -24.), 'xy').plane
+floor = FloorBySurface('floor', pln, fuselage).floor
 
 # Skin
-fskin = CreatePart.skin.from_body('fuselage skin', fuselage)
+fskin = SkinByBody('fuselage skin', fuselage).skin
 
 # Cutting solids.
 p0 = wing.eval(0., 0.)
-fwd_pln = CreateGeom.plane_by_axes(p0, 'yz')
-fwd_cut = ShapeTools.box_from_plane(fwd_pln, 1e6, 1e6, -1e6)
+fwd_pln = PlaneByAxes(p0, 'yz').plane
+fwd_cut = SolidByPlane(fwd_pln, 1.e6, 1.e6, -1.e6).solid
 
 p0 = wing.eval(1., 0.)
-aft_pln = CreateGeom.plane_by_axes(p0, 'yz')
-aft_cut = ShapeTools.box_from_plane(aft_pln, 1e6, 1e6, 1e6)
+aft_pln = PlaneByAxes(p0, 'yz').plane
+aft_cut = SolidByPlane(aft_pln, 1.e6, 1.e6, 1.e6).solid
 
-above_floor = ShapeTools.make_halfspace(floor, [0, 0, 1e6])
-below_floor = ShapeTools.make_halfspace(floor, [0, 0, -1e6])
+shell = floor.make_shell()
+above_floor = HalfspaceByShape(shell, (0., 0., 1.e6)).solid
+below_floor = HalfspaceByShape(shell, (0., 0., -1.e6)).solid
 
-left_pln = CreateGeom.plane_by_axes([0., 0., 0.], 'xz')
-left_cut = ShapeTools.box_from_plane(left_pln, 1e6, 1e6, -1e6)
+left_pln = PlaneByAxes(axes='xz').plane
+left_cut = SolidByPlane(left_pln, 1.e6, 1.e6, -1.e6).solid
 
 # Frames
 plns = [fwd_pln, fwd_bh.sref, rear_bh.sref, aft_bh.sref, aft_pln]
-frames = CreatePart.frame.between_planes('frame', fuselage, plns, 4., 24.)
+frames = []
+next_index = 1
+for pln1, pln2 in pairwise(plns):
+    builder = FramesBetweenPlanesByDistance('frame', pln1, pln2, 24.,
+                                            fuselage, 4., 24., -24.,
+                                            first_index=next_index)
+    frames += builder.frames
+    next_index = builder.next_index
 
 # Frames at bulkheads
-plns = [fwd_bh.sref, rear_bh.sref, aft_bh.sref]
+plns = [fwd_bh.plane, rear_bh.plane, aft_bh.plane]
 indx = len(frames) + 1
-bh_frames = CreatePart.frame.at_shapes('frame', fuselage, plns, 4., indx)
-PartTools.cut_parts(bh_frames, below_floor)
+bh_frames = FramesByPlanes('frame', plns, fuselage, 4., indx).frames
+
+CutParts(bh_frames, below_floor)
 frames += bh_frames
 
 # Cut and discard to get half model
-PartTools.cut_parts([fskin, floor], fwd_cut)
-PartTools.cut_parts([fskin, floor], aft_cut)
-PartTools.cut_parts([fwd_bh, rear_bh, aft_bh], above_floor)
+CutParts([fskin, floor], fwd_cut)
+CutParts([fskin, floor], aft_cut)
+CutParts([fwd_bh, rear_bh, aft_bh], above_floor)
 
-# Cut a piece of the wing to cut fuselage faces inside it.
-cut1 = ShapeTools.box_from_plane(fwd_bh.sref, 1e6, 1e6, -1e6)
-cut2 = ShapeTools.box_from_plane(aft_bh.sref, 1e6, 1e6, 1e6)
-joined_wing = wing.fuse(other_wing)
-cutter = joined_wing.bop_algo([cut1, cut2], 'cut')
-PartTools.cut_parts([fskin, fwd_bh, rear_bh, aft_bh, floor] + frames, cutter)
+# Cut a piece of the wing to cut fuselage faces inside it
+cut1 = SolidByPlane(fwd_bh.plane, 1.e6, 1.e6, -1.e6).solid
+cut2 = SolidByPlane(aft_bh.plane, 1.e6, 1.e6, 1.e6).solid
+joined_wing = FuseShapes(wing, other_wing).shape
+bop = CutShapes()
+bop.set_args([joined_wing])
+bop.set_tools([cut1, cut2])
+bop.build()
+cutter = bop.shape
+CutParts([fskin, fwd_bh, rear_bh, aft_bh, floor] + frames, cutter)
 
 # Join
-PartTools.fuse_parts([fwd_bh, rear_bh, aft_bh, floor, fskin] + frames)
+FuseSurfaceParts([fwd_bh, rear_bh, aft_bh, floor, fskin], frames)
 
 # WING ------------------------------------------------------------------------
 AssemblyAPI.create_assy('wing assy')
@@ -98,24 +114,23 @@ AssemblyAPI.create_assy('wing assy')
 # Root rib
 
 # Find the intersection between the fuselage and wing
-shape = fuselage.section(wing)
+shape = IntersectShapes(fuselage, wing).shape
 
 # Discard parts of the intersection curve fwd/aft of bulkheads and keep only
 # the upper skin intersection.
-cut1 = ShapeTools.box_from_plane(fwd_bh.sref, 500, 500, -500)
-cut2 = ShapeTools.box_from_plane(rear_bh.sref, 500, 500, 500)
-cut3 = ShapeTools.make_halfspace(wing.sref, [0, 0, -1000])
+cut1 = SolidByPlane(fwd_bh.plane, 500., 500., -500.).solid
+cut2 = SolidByPlane(rear_bh.plane, 500., 500., 500.).solid
+cut3 = HalfspaceBySurface(wing.sref, (0., 0., -1000.)).solid
 
 # Use consecutive cuts since BOPs struggle with half-spaces.
-shape = ShapeTools.bcut(shape, cut1)
-shape = ShapeTools.bcut(shape, cut2)
-shape = ShapeTools.bcut(shape, cut3)
+shape = CutShapes(shape, cut1).shape
+shape = CutShapes(shape, cut2).shape
+shape = CutShapes(shape, cut3).shape
 
 # Make face in z-direction
-vz = CreateGeom.vector([0, 0, -100])
-rshape = ShapeTools.make_prism(shape, vz)
+rshape = ShapeByDrag(shape, (0., 0., -100.)).shape
 
-root_rib = CreatePart.rib.by_sref('root rib', wing, rshape)
+root_rib = RibByShape('root rib', rshape, wing).rib
 
 # Cut the root rib where the frame reference planes are. This 1) Resolves
 # some issues the mesher was having with the root rib topology and 2) Allow
@@ -123,108 +138,146 @@ root_rib = CreatePart.rib.by_sref('root rib', wing, rshape)
 for frame in frames:
     root_rib.cut(frame.sref)
 
-# Center spars between root chord and root rib.
-root_chord = wing.isocurve(v=wing.v1)
+# Center spars between root chord and root rib
+root_chord = wing.sref.v_iso(wing.sref.v1)
 
-fc_spar = CreatePart.spar.between_geom('fc spar', wing, root_chord,
-                                       root_rib.cref, fwd_bh.sref)
-
-rc_spar = CreatePart.spar.between_geom('rc spar', wing, root_chord,
-                                       root_rib.cref, rear_bh.sref)
+fc_spar = SparBetweenShapes('fc spar', root_chord, root_rib, wing,
+                            fwd_bh.sref).spar
+rc_spar = SparBetweenShapes('rc spar', root_chord, root_rib, wing,
+                            rear_bh.sref).spar
 
 # Tip rib
-v = wing.vknots[-2]
-tip_rib = CreatePart.rib.by_parameters('tip rib', wing, 0.15, v, 0.65, v)
+v = wing.sref.vknots[-2]
+tip_rib = RibByParameters('tip rib', 0.15, v, 0.65, v, wing).rib
 
 # Front and rear spar. Use intersection of root rib and center spars to
 # define planes so the edges all align at the root rib.
-pln = ShapeTools.plane_from_section(root_rib,
-                                    fc_spar,
-                                    tip_rib.p1)
+pln = PlaneByIntersectingShapes(root_rib, fc_spar, tip_rib.p1).plane
+
 p1 = root_rib.p1
 p2 = tip_rib.p1
-fspar = CreatePart.spar.by_points('fspar', wing, p1, p2, pln)
+fspar = SparByPoints('fspar', p1, p2, wing, pln).spar
 
-pln = ShapeTools.plane_from_section(root_rib,
-                                    rc_spar,
-                                    tip_rib.p2)
+pln = PlaneByIntersectingShapes(root_rib, rc_spar, tip_rib.p2).plane
 p1 = root_rib.p2
 p2 = tip_rib.p2
-rspar = CreatePart.spar.by_points('rspar', wing, p1, p2, pln)
+rspar = SparByPoints('rspar', p1, p2, wing, pln).spar
 
 # Aux spar
-v = wing.vknots[1]
+v = wing.sref.vknots[1]
 p0 = wing.eval(0.5, v)
-pln = CreateGeom.plane_by_axes(p0, 'xz')
-aux_spar = CreatePart.spar.between_geom('aux spar', wing, root_chord,
-                                        pln, aft_bh.sref)
+pln = PlaneByAxes(p0, 'xz').plane
+aux_spar = SparBetweenShapes('aux spar', root_chord, pln, wing,
+                             aft_bh.sref).spar
 
 # Rib at end of aux spar
-pln = CreateGeom.plane_by_axes(aux_spar.p2, 'xz')
-kink_rib = CreatePart.rib.between_geom('kink rib', wing, fspar.sref,
-                                       aft_bh.sref, pln)
+pln = PlaneByAxes(aux_spar.p2, 'xz').plane
+face1 = FaceBySurface(fspar.sref).face
+face2 = FaceBySurface(aft_bh.sref).face
+kink_rib = RibBetweenShapes('kink rib', face1, face2, wing, pln).rib
 
 # Streamwise ribs between root and kink rib.
-root_pln = CreateGeom.plane_by_axes(root_rib.p2, 'xz')
+root_pln = PlaneByAxes(root_rib.p2, 'xz').plane
 plns = [root_pln, kink_rib.sref]
-inbd_ribs = CreatePart.rib.between_planes('rib', wing, plns, fspar.sref,
-                                          rspar.sref, 30.)
+inbd_ribs = RibsBetweenPlanesByDistance('inbd rib', root_pln, kink_rib.plane,
+                                        30., fspar, rspar, wing, 30.,
+                                        -30.).ribs
 
 # Outboard ribs
 u1 = rspar.invert_cref(kink_rib.p2)
-outbd_ribs = CreatePart.rib.along_curve('outbd rib', wing, rspar.cref,
-                                        fspar.sref, rspar.sref, 30., u1=u1,
-                                        s1=30., s2=-30.)
+outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 30., fspar,
+                                      rspar, wing, u1=u1, d1=30., d2=-30.).ribs
 
 # Rib along kink rib to front spar.
 u1 = fspar.invert_cref(kink_rib.p1)
 u2 = fspar.invert_cref(outbd_ribs[0].p1)
-kink_ribs = CreatePart.rib.along_curve('kink rib', wing, fspar.cref,
-                                       fspar.sref, kink_rib.sref, maxd=30.,
-                                       npts=1, u1=u1, u2=u2, s1=30., s2=-30.)
+kink_ribs = RibsAlongCurveByDistance('kink rib', fspar.cref, 30., fspar,
+                                     kink_rib, wing, u1=u1, u2=u2, d1=30.,
+                                     d2=-30., nmin=1).ribs
 
 # Center ribs.
-xz_pln = CreateGeom.plane_by_axes(axes='xz')
-center_ribs = CreatePart.rib.along_curve('center rib', wing, fc_spar.cref,
-                                         fc_spar.sref, rc_spar.sref, npts=3,
-                                         ref_pln=xz_pln, s1=30., s2=-30.)
+xz_pln = PlaneByAxes(axes='xz').plane
+center_ribs = RibsAlongCurveByNumber('center rib', fc_spar.cref, 3, fc_spar,
+                                     rc_spar, wing, ref_pln=xz_pln, d1=30.,
+                                     d2=-30.).ribs
 
 # Fuse wing internal structure and discard faces
 internal_parts = AssemblyAPI.get_parts()
-PartTools.fuse_wing_parts(internal_parts)
-PartTools.discard_faces(internal_parts)
+FuseSurfacePartsByCref(internal_parts)
+DiscardByCref(internal_parts)
 
 # Wing skin
-wskin = CreatePart.skin.from_body('wing skin', wing)
+wskin = SkinByBody('wing skin', wing).skin
 
 # Join the wing skin and internal structure
 wskin.fuse(*internal_parts)
 
 # Discard faces touching reference surface.
-wskin.discard(wing.sref)
+wskin.discard_by_dmin(wing.sref_shape, 1.0)
 
 # Fix skin since it's not a single shell anymore, but a compound of two
 # shells (upper and lower skin).
 wskin.fix()
 
-print('start cutting')
-frame_cut = ShapeTools.make_compound(frames)
-start = time.time()
-wskin.cut(frame_cut)
-PartTools.cut_parts([wskin, fc_spar, aux_spar], fuselage.shell)
-print('done cutting', time.time() - start)
+# print('start cutting')
+# frame_cut = CompoundByShapes(frames).compound
+# start = time.time()
+# wskin.cut(frame_cut)
+# CutParts([wskin, fc_spar, aux_spar], fuselage.outer_shell)
+# print('done cutting', time.time() - start)
 
 wing_parts = AssemblyAPI.get_parts('wing assy')
 fuselage_parts = AssemblyAPI.get_parts('fuselage assy')
-print('starting assy join')
+print('Fusing assemblies...')
 start = time.time()
-PartTools.sew_parts(wing_parts + fuselage_parts)
+# FuseSurfaceParts(wing_parts, fuselage_parts)
+c1 = CompoundByShapes(wing_parts).compound
+c2 = CompoundByShapes(fuselage_parts).compound
+# bop = FuseShapes(c1, c2)
+bop = SplitShapes(c1, c2)
 print('complete', time.time() - start)
+for part in wing_parts + fuselage_parts:
+    part.rebuild(bop)
 
 # Viewing
 for part in wing_parts + fuselage_parts:
     Viewer.add(part)
-Viewer.show(False)
+Viewer.show()
+
+shape = CompoundByShapes(wing_parts + fuselage_parts).compound
+tool = ExploreFreeEdges(shape)
+Viewer.add(*tool.free_edges)
+Viewer.add(shape)
+Viewer.show()
+
+from OCC.BOPAlgo import BOPAlgo_BOP
+
+print('using BOP')
+start = time.time()
+bop = BOPAlgo_BOP()
+bop.AddArgument(c1)
+bop.AddTool(c2)
+bop.SetRunParallel(True)
+bop.SetOperation(2)
+bop.Perform()
+
+pf_cut = bop.PPaveFiller()
+
+bop = BOPAlgo_BOP()
+bop.AddArgument(c1)
+bop.AddTool(c2)
+bop.SetRunParallel(True)
+bop.SetOperation(1)
+bop.PerformWithFiller(pf_cut)
+print(time.time() - start)
+
+Viewer.add(bop.Shape())
+tool = ExploreFreeEdges(bop.Shape())
+Viewer.add(*tool.free_edges)
+Viewer.show()
+
+
+
 
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
