@@ -14,6 +14,8 @@ frame_height = 3.5
 frame_spacing = 24
 floor_beam_height = 6
 
+Viewer.add(Point())
+
 # Calculate
 radius = diameter / 2.
 
@@ -50,10 +52,10 @@ above_floor = ShapeByDrag(main_floor, (0., 2. * diameter, 0.)).shape
 below_cargo_floor = ShapeByDrag(cargo_floor, (0., -60., 0.)).shape
 
 pln1 = PlaneByAxes((-.667 * radius, 0., 0.), 'yz').plane
-face1 = FaceByPlane(pln1, 0., length, -diameter, diameter).face
+face1 = FaceByPlane(pln1, -diameter, diameter, 0., length).face
 
 pln2 = PlaneByAxes((.667 * radius, 0., 0.), 'yz').plane
-face2 = FaceByPlane(pln2, 0., length, -diameter, diameter).face
+face2 = FaceByPlane(pln2, -diameter, diameter, 0., length).face
 
 i = 1
 for frame in frames:
