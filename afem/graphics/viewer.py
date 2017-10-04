@@ -108,7 +108,8 @@ class Viewer(object):
         cls._entities = []
 
     @classmethod
-    def show(cls, clear=True, view='iso', white_bg=False):
+    def show(cls, clear=True, view='iso', white_bg=False, fit=True, xy1=None,
+             xy2=None):
         """
         Show the viewer.
 
@@ -116,6 +117,9 @@ class Viewer(object):
         :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
             'right', 'front', 'bottom').
         :param bool white_bg: Option to make the background white.
+        :param bool fit: Option to fit contents to screen.
+        :param array_like xy1: Lower corner for zooming.
+        :param array_like xy2: Upper corner for zooming.
 
         :return: None.
         """
@@ -155,7 +159,13 @@ class Viewer(object):
             disp.set_bg_gradient_color(255, 255, 255, 255, 255, 255)
             disp.Repaint()
 
-        disp.FitAll()
+        if xy1 is not None and xy2 is not None:
+            disp.View.FitAll(xy1[0], xy1[1], xy2[0], xy2[1])
+            fit = False
+
+        if fit:
+            disp.FitAll()
+
         disp.Repaint()
         start_display()
 
@@ -244,7 +254,11 @@ class Viewer(object):
             disp.set_bg_gradient_color(255, 255, 255, 255, 255, 255)
 
         if xy1 is not None and xy2 is not None:
-            disp.View.FitAll(xy1[0], xy1[1], xy2[0], xy2[1])
+            xmin = disp.View.Convert(xy1[0])
+            ymin = disp.View.Convert(xy1[1])
+            xmax = disp.View.Convert(xy2[0])
+            ymax = disp.View.Convert(xy2[1])
+            disp.View.FitAll(xmin, ymin, xmax, ymax)
             fit = False
 
         if fit:

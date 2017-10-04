@@ -1,8 +1,7 @@
 from numpy import mean
 
 from afem.structure.entities import SurfacePart
-from afem.topology.bop import (FuseShapes, IntersectShapes,
-                               SplitShapes)
+from afem.topology.bop import FuseShapes, IntersectShapes, SplitShapes
 from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes, EdgeByCurve
 from afem.topology.explore import ExploreShape
@@ -132,11 +131,20 @@ class CutParts(object):
     def __init__(self, parts, shape):
         parts = list(parts)
 
-        shape = CheckShape.to_shape(shape)
+        shape2 = CheckShape.to_shape(shape)
 
-        # TODO Really just loop through each one?
+        # FIXME Loop through each since Boolean seems to not be robust
         for part in parts:
-            part.cut(shape)
+            part.cut(shape2)
+
+        # shape1 = CompoundByShapes(parts).compound
+        #
+        # bop = CutShapes(shape1, shape2)
+        #
+        # rebuild = RebuildShapesByTool(parts, bop)
+        # for part in parts:
+        #     new_shape = rebuild.new_shape(part)
+        #     part.set_shape(new_shape)
 
 
 class SewSurfaceParts(object):

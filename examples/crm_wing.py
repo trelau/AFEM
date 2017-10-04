@@ -143,7 +143,7 @@ FuseSurfaceParts(ribs, [root_rib, fspar, rspar1, rspar2])
 DiscardByCref(ribs)
 
 # Center wing ribs
-ribs = RibsBetweenPlanesByNumber('center rib', xz_pln, root_rib.sref, 4,
+ribs = RibsBetweenPlanesByNumber('center rib', xz_pln, root_rib.plane, 4,
                                  fc_spar, rc_spar, rhs_wing).ribs
 FuseSurfaceParts(ribs, [fc_spar, rc_spar])
 DiscardByCref(ribs)
