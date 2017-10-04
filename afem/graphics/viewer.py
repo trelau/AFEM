@@ -108,13 +108,14 @@ class Viewer(object):
         cls._entities = []
 
     @classmethod
-    def show(cls, clear=True, view='iso'):
+    def show(cls, clear=True, view='iso', white_bg=False):
         """
         Show the viewer.
 
         :param bool clear: Clear the items after rendering.
         :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
             'right', 'front', 'bottom').
+        :param bool white_bg: Option to make the background white.
 
         :return: None.
         """
@@ -149,6 +150,10 @@ class Viewer(object):
             disp.View_Front()
         elif view in ['rear']:
             disp.View_Rear()
+
+        if white_bg:
+            disp.set_bg_gradient_color(255, 255, 255, 255, 255, 255)
+            disp.Repaint()
 
         disp.FitAll()
         disp.Repaint()
@@ -184,7 +189,8 @@ class Viewer(object):
             cls._meshes.append(mesh)
 
     @classmethod
-    def capture(cls, filename='capture.png', clear=True, view='iso'):
+    def capture(cls, filename='capture.png', clear=True, view='iso',
+                white_bg=False, fit=True, xy1=None, xy2=None):
         """
         Capture a screenshot from the viewer.
 
@@ -193,6 +199,10 @@ class Viewer(object):
         :param bool clear: Clear the items after rendering.
         :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
             'right', 'front', 'bottom').
+        :param bool white_bg: Option to make the background white.
+        :param bool fit: Option to fit contents to screen.
+        :param array_like xy1: Lower corner for zooming.
+        :param array_like xy2: Upper corner for zooming.
 
         :return: None.
         """
@@ -230,9 +240,17 @@ class Viewer(object):
         elif view in ['rear']:
             disp.View_Rear()
 
-        disp.FitAll()
-        disp.Repaint()
+        if white_bg:
+            disp.set_bg_gradient_color(255, 255, 255, 255, 255, 255)
 
+        if xy1 is not None and xy2 is not None:
+            disp.View.FitAll(xy1[0], xy1[1], xy2[0], xy2[1])
+            fit = False
+
+        if fit:
+            disp.FitAll()
+
+        disp.Repaint()
         disp.View.Dump(filename)
 
         if clear:
