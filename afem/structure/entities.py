@@ -13,7 +13,8 @@ from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
 from afem.structure.assembly import AssemblyAPI
-from afem.topology.bop import CutShapes, FuseShapes, SplitShapes
+from afem.topology.bop import CutShapes, FuseShapes, IntersectShapes, \
+    SplitShapes
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   PointsAlongShapeByDistance,
@@ -346,6 +347,54 @@ class Part(TopoDS_Shape, ViewableItem):
             raise RuntimeError(msg)
 
         self.set_u2(u2)
+
+    def trim_u1(self, entity):
+        """
+        Trim the first parameter of the reference curve by interesting it with
+        the entity.
+
+        :param entity: The entity.
+        :type entity: afem.geometry.entities.Geometry or
+            OCC.TopoDS.TopoDS_Shape
+
+        :return: None.
+
+        :raise RuntimeError: If an intersection with the reference curve cannot
+            be found.
+        """
+        shape1 = CheckShape.to_shape(self.cref)
+        shape2 = CheckShape.to_shape(entity)
+        bop = IntersectShapes(shape1, shape2)
+        if not bop.is_done:
+            raise RuntimeError('Failed to intersect reference curve.')
+
+        pnts = [ExploreShape.pnt_of_vertex(v) for v in bop.vertices]
+        p = CheckGeom.nearest_point(self.p1, pnts)
+        self.set_p1(p)
+
+    def trim_u2(self, entity):
+        """
+        Trim the last parameter of the reference curve by interesting it with
+        the entity.
+
+        :param entity: The entity.
+        :type entity: afem.geometry.entities.Geometry or
+            OCC.TopoDS.TopoDS_Shape
+
+        :return: None.
+
+        :raise RuntimeError: If an intersection with the reference curve cannot
+            be found.
+        """
+        shape1 = CheckShape.to_shape(self.cref)
+        shape2 = CheckShape.to_shape(entity)
+        bop = IntersectShapes(shape1, shape2)
+        if not bop.is_done:
+            raise RuntimeError('Failed to intersect reference curve.')
+
+        pnts = [ExploreShape.pnt_of_vertex(v) for v in bop.vertices]
+        p = CheckGeom.nearest_point(self.p2, pnts)
+        self.set_p2(p)
 
     def set_sref(self, sref):
         """
