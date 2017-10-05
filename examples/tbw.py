@@ -274,28 +274,26 @@ skin = SkinByBody('gear skin', gear).skin
 skin.fuse(*internal_parts)
 skin.set_transparency(0.5)
 
+# STRUTS ----------------------------------------------------------------------
+crv = strut.extract_curve(0.5, 0., 0.5, 1.)
+crv.set_color(1, 0, 0)
+beam1 = BeamByCurve('beam 1', crv).beam
+beam1.set_color(1, 0, 0)
+
+crv = jury.extract_curve(0.5, 0., 0.5, 1.)
+crv.set_color(1, 0, 0)
+beam2 = BeamByCurve('beam 2', crv).beam
+beam2.set_color(1, 0, 0)
+
+p2 = beam1.p1
+ProjectPointToSurface(p2, wing.sref, update=True)
+beam3 = BeamByPoints('beam 3', beam1.p1, p2).beam
+beam3.set_color(1, 0, 0)
+
+# VIEW ------------------------------------------------------------------------
 parts = AssemblyAPI.get_parts()
 for part in parts:
     part.set_mirror(xz_pln)
 
 Viewer.add(*AssemblyAPI.get_parts())
-
-# STRUTS ----------------------------------------------------------------------
-crv = strut.extract_curve(0.5, 0., 0.5, 1.)
-crv.set_color(1, 0, 0)
-Viewer.add(crv)
-
-crv = jury.extract_curve(0.5, 0., 0.5, 1.)
-crv.set_color(1, 0, 0)
-Viewer.add(crv)
-
-crv = other_strut.extract_curve(0.5, 0., 0.5, 1.)
-crv.set_color(1, 0, 0)
-Viewer.add(crv)
-
-crv = other_jury.extract_curve(0.5, 0., 0.5, 1.)
-crv.set_color(1, 0, 0)
-Viewer.add(crv)
-
-# VIEW ------------------------------------------------------------------------
 Viewer.show()
