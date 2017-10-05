@@ -1,11 +1,11 @@
-import time
-
-from afem.fem import MeshAPI
-from afem.geometry import CreateGeom
+from afem.config import Settings
+from afem.geometry import *
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-from afem.structure import AssemblyAPI, CreatePart, PartTools
-from afem.topology import ShapeTools
+from afem.structure import *
+from afem.topology import *
+
+Settings.log_to_console(True)
 
 # Inputs
 fname = r'..\models\N2A_nosplit.stp'
@@ -24,104 +24,139 @@ wing = ImportVSP.get_body('Wing_Body')
 other_wing = ImportVSP.get_body('Wing_Body.1')
 vtail = ImportVSP.get_body('Vertical_Tails')
 other_vtail = ImportVSP.get_body('Vertical_Tails.2')
-for name in ImportVSP.get_bodies():
-    body = ImportVSP.get_body(name)
+for body in [wing, other_wing, vtail, other_vtail]:
     body.set_transparency(0.5)
     body.set_color(0.5, 0.5, 0.5)
-    Viewer.add(body)
 
 # Construction geometry
 root_chord = wing.isocurve(v=0.)
 
+AssemblyAPI.create_assy('wing assy')
+
 # Centerbody structure
-sref = CreateGeom.plane_by_axes([fd_length, 0, 0], 'yz')
-fd_bh = CreatePart.spar.by_sref('flight deck bulkhead', wing, sref)
+pln = PlaneByAxes((fd_length, 0, 0), 'yz').plane
+fd_bh = SparBySurface('flight deck bh', pln, wing).spar
 
 # Rear cabin bulkhead
 if cabin_length < 1:
-    p0 = root_chord.eval_dx(cabin_length, root_chord.u1, True)
-    sref = CreateGeom.plane_by_axes(p0, 'yz')
+    ds = cabin_length * root_chord.length
+    p0 = PointFromParameter(root_chord, root_chord.u1, ds).point
+    pln = PlaneByAxes(p0, 'yz').plane
 else:
-    p0 = CreateGeom.point_by_xyz(fd_length + cabin_length, 0, 0)
-    sref = CreateGeom.plane_by_axes(p0, 'yz')
-rear_cabin_bh = CreatePart.spar.by_sref('rear cabin bulkhead', wing, sref)
+    p0 = Point(fd_length, cabin_length, 0, 0)
+    pln = PlaneByAxes(p0, 'yz').plane
+rear_cabin_bh = SparBySurface('rear cabin bulkhead', pln, wing).spar
 
 # Cabin side-of-body
-p0 = CreateGeom.point_by_xyz(p0.x, cabin_width / 2., 0.)
-sref = CreateGeom.plane_by_axes(p0, 'xz')
-cb_sob = CreatePart.rib.by_sref('centerbody sob', wing, sref)
+p0 = Point(p0.x, cabin_width / 2., 0)
+pln = PlaneByAxes(p0, 'xz').plane
+cb_sob = RibBySurface('centerbody sob', pln, wing).rib
+
+# Trim cref of rear bulkhead
+rear_cabin_bh.trim_u2(cb_sob)
 
 # Cabin bay wall
-p0 = CreateGeom.point_by_xyz(p0.x, cabin_width / 4., 0.)
-sref = CreateGeom.plane_by_axes(p0, 'xz')
-cb_wall = CreatePart.rib.by_sref('centerbody wall', wing, sref)
+p0 = Point(p0.x, cabin_width / 4., 0)
+pln = PlaneByAxes(p0, 'xz').plane
+cb_wall = RibBySurface('centerbody wall', pln, wing).rib
 
 # Front spar segments
-p1 = fd_bh.eval_dx(0.75, is_local=True)
-p2 = cb_wall.eval_dx(0.05, is_local=True)
-cb_fspar1 = CreatePart.spar.by_points('cb fspar 1', wing, p1, p2)
+p1 = fd_bh.point_from_parameter(0.75, is_rel=True)
+p2 = cb_wall.point_from_parameter(0.05, is_rel=True)
+cb_fspar1 = SparByPoints('cb spar 1', p1, p2, wing).spar
 
-p2 = cb_sob.eval_dx(0.05, is_local=True)
-sref = ShapeTools.plane_from_section(cb_wall, cb_fspar1, p2)
-cb_fspar2 = CreatePart.spar.by_points('cb fspar 2', wing, cb_fspar1.p2, p2,
-                                      sref)
-
-
-
-
-
+p2 = cb_sob.point_from_parameter(0.05, is_rel=True)
+pln = PlaneByIntersectingShapes(cb_wall, cb_fspar1, p2).plane
+cb_fspar2 = SparByPoints('cb fspar 2', cb_fspar1.p2, p2, wing, pln).spar
 
 # Outboard wing structure
 
 # Root rib
-outbd_root_rib = CreatePart.rib.by_parameters('outbd root rib', wing,
-                                              0.15, 0.5, 0.70, 0.5)
+root_rib = RibByParameters('ob root rib', 0.15, 0.5, 0.7, 0.5, wing).rib
 
 # Tip rib
-tip_rib = CreatePart.rib.by_parameters('tip rib', wing,
-                                       0.15, 0.995, 0.70, 0.995)
+tip_rib = RibByParameters('ob tip rib', 0.15, 0.995, 0.7, 0.995, wing).rib
 
 # Outbd front spar
-outbd_fspar = CreatePart.spar.by_points('outbd front spar', wing,
-                                        outbd_root_rib.p1, tip_rib.p1)
+ob_fspar = SparByPoints('ob fspar', root_rib.p1, tip_rib.p1, wing).spar
 
 # Outbd rear spar
-outbd_rspar = CreatePart.spar.by_points('outbd rear spar', wing,
-                                        outbd_root_rib.p2, tip_rib.p2)
+ob_rspar = SparByPoints('ob rspar', root_rib.p2, tip_rib.p2, wing).spar
 
 # Outbd ribs
-# outbd_ribs = CreatePart.rib.along_curve('outbd rib', wing, outbd_rspar.cref,
-#                                         outbd_fspar.sref, outbd_rspar.sref,
-#                                         72., s1=30., s2=-30.)
+RibsAlongCurveByDistance('ob rib', ob_rspar.cref, 30, ob_fspar,
+                         ob_rspar, wing, d1=30, d2=-30)
+
+# Trap wing (need to redo and align spars given intersection of parts)
+fspar = SparByPoints('trap fspar', cb_fspar2.p2, ob_fspar.p1, wing).spar
+rspar = SparByPoints('trap rspar', rear_cabin_bh.p2, ob_rspar.p1, wing).spar
+
+RibsBetweenPlanesByDistance('trap rib', cb_sob.plane, root_rib.plane, 30,
+                            fspar, rspar, wing, 30, -30)
+
+# Rear centerbody
+p0 = root_chord.eval(0.85)
+pln = PlaneByAxes(p0, 'yz').plane
+SparBySurface('rc spar', pln, wing)
+
+# Spars and cb intersections
+p1 = cb_fspar1.p2
+pln = PlaneByAxes(p1, 'yz').plane
+spar1 = SparBySurface('cb spar 1', pln, wing).spar
+spar1.trim_u2(cb_wall)
+
+p1 = cb_fspar2.p2
+ProjectPointToCurve(p1, root_chord, update=True)
+pln = PlaneByAxes(p1, 'yz').plane
+spar2 = SparBySurface('cb spar 2', pln, wing).spar
+spar2.trim_u2(cb_sob)
+
+p0 = rear_cabin_bh.plane.eval()
+p0.x -= 144
+pln = PlaneByAxes(p0, 'yz').plane
+spar3 = SparBySurface('cb spar 3', pln, wing).spar
+spar3.trim_u2(cb_sob)
+
+# Cut with an imaginary floor for now
+pln = PlaneByAxes((0, 0, 0), axes='xy').plane
+solid = HalfspaceBySurface(pln, (0, 0, 100)).solid
+spar1.cut(solid)
+spar2.cut(solid)
+spar3.cut(solid)
+
+# Fuse
+internal_parts = AssemblyAPI.get_parts()
+FuseSurfacePartsByCref(internal_parts)
+DiscardByCref(internal_parts)
+
+skin = SkinByBody('skin', wing).skin
+skin.fuse(*internal_parts)
+skin.set_transparency(0.5)
+
+# Vtail structure
+AssemblyAPI.create_assy('vtail assy')
+
+fspar = SparByParameters('vtail fspar', 0.15, 0.01, 0.15, 0.99, vtail).spar
+rspar = SparByParameters('vtail rspar', 0.70, 0.01, 0.70, 0.99, vtail).spar
+RibByPoints('vtail root rib', fspar.p1, rspar.p1, vtail)
+RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
+RibsAlongCurveByDistance('vtail rib', rspar.cref, 18, fspar, rspar,
+                         vtail, d1=18, d2=-30)
 
 internal_parts = AssemblyAPI.get_parts()
+FuseSurfacePartsByCref(internal_parts)
+DiscardByCref(internal_parts)
 
-PartTools.fuse_wing_parts(internal_parts)
-PartTools.discard_faces(internal_parts)
+skin = SkinByBody('vtail skin', vtail).skin
+skin.fuse(*internal_parts)
+skin.discard_by_dmin(vtail.sref_shape, 1.)
+skin.fix()
 
-Viewer.add(*internal_parts)
+# Mirror and plot
+parts = AssemblyAPI.get_master().get_parts()
+xz_pln = PlaneByAxes().plane
+for part in parts:
+    part.set_mirror(xz_pln)
 
-Viewer.show(False)
-#
-# # MESH --------------------------------------------------------------------
-# # Initialize
-# shape_to_mesh = AssemblyData.prepare_shape_to_mesh()
-# MeshData.create_mesh('N2A mesh', shape_to_mesh)
-#
-# # Use a single global hypothesis based on local length.
-# MeshData.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
-# MeshData.hypotheses.create_netgen_algo_2d('netgen algo')
-# MeshData.add_hypothesis('netgen hypo')
-# MeshData.add_hypothesis('netgen algo')
-#
-# # Compute the mesh
-# mesh_start = time.time()
-# print('Computing mesh...')
-# status = MeshData.compute_mesh()
-# if not status:
-#     print('Failed to compute mesh')
-# else:
-#     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
-#
-# Viewer.add_meshes(MeshData.get_active())
-# Viewer.show()
+Viewer.add(*AssemblyAPI.get_master().get_parts())
+Viewer.show()
