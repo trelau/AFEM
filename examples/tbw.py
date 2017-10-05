@@ -1,18 +1,14 @@
 from __future__ import print_function
 
-import time
-
-from OCC.BRepBndLib import brepbndlib_Add
-from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
-from OCC.Bnd import Bnd_Box
-from OCC.gce import gce_MakeMirror
-
-from afem.fem import MeshAPI
-from afem.geometry import CreateGeom
+from afem.config import Settings
+from afem.geometry import *
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-from afem.structure import AssemblyAPI, CreatePart, PartTools
-from afem.topology import ShapeTools
+from afem.misc.check import pairwise
+from afem.structure import *
+from afem.topology import *
+
+Settings.log_to_console(True)
 
 # Import model
 fname = r'..\models\TBW_SUGAR.stp'
@@ -32,318 +28,274 @@ other_jury = ImportVSP.get_body('Jury.4')
 strut = ImportVSP.get_body('Strut')
 other_strut = ImportVSP.get_body('Strut.5')
 
-for name in ImportVSP.get_bodies():
-    body = ImportVSP.get_body(name)
+for body in [fuselage, wing, other_wing, gear, other_gear, htail, other_htail,
+             vtail]:
     body.set_color(0.5, 0.5, 0.5)
     body.set_transparency(0.5)
     Viewer.add(body)
-
-all_parts = []
 
 # WING ------------------------------------------------------------------------
 AssemblyAPI.create_assy('wing assy')
 
 # Center wing structure will be based on the intersection between the wings
 # and fuselage.
-joined_wings = wing.fuse(other_wing)
-shape = ShapeTools.bsection(fuselage, joined_wings)
+joined_wings = FuseShapes(wing, other_wing).shape
+shape = IntersectShapes(fuselage, joined_wings).shape
 
 # Use the y-dimensions of the bounding box of the intersection curve.
-bbox = Bnd_Box()
-brepbndlib_Add(shape, bbox)
-corner_max = bbox.CornerMax()
-ymax = corner_max.Y()
+bbox = BBox()
+bbox.add_shape(shape)
+ymax = bbox.ymax
 
 # Center wing box
-xz_plane = CreateGeom.plane_by_axes(axes='xz')
-root_rib_pln = CreateGeom.plane_by_axes([0, ymax, 0], 'xz')
+xz_plane = PlaneByAxes().plane
+root_rib_pln = PlaneByAxes((0., ymax, 0.), 'xz').plane
 
 # Front center spar
 p1 = wing.eval(0.15, 0.)
-pln = CreateGeom.plane_by_axes(p1, 'yz')
-fc_spar = CreatePart.spar.between_geom('fc spar', wing, xz_plane,
-                                       root_rib_pln, pln)
+pln = PlaneByAxes(p1, 'yz').plane
+fc_spar = SparBetweenShapes('fc spar', xz_plane, root_rib_pln, wing, pln).spar
+
 # Rear center spar
 p1 = wing.eval(0.70, 0.)
-pln = CreateGeom.plane_by_axes(p1, 'yz')
-rc_spar = CreatePart.spar.between_geom('fc spar', wing, xz_plane,
-                                       root_rib_pln, pln)
+pln = PlaneByAxes(p1, 'yz').plane
+rc_spar = SparBetweenShapes('rc spar', xz_plane, root_rib_pln, wing, pln).spar
 
 # Root rib
-root_rib = CreatePart.rib.by_points('root rib', wing, fc_spar.p2, rc_spar.p2)
+root_rib = RibByPoints('root rib', fc_spar.p2, rc_spar.p2, wing).rib
 
 # Strut rib where strut intersects.
 p0 = strut.eval(0.5, 1.)
-pln = CreateGeom.plane_by_axes(p0, 'xz')
-strut_rib = CreatePart.rib.by_sref('kink rib', wing, pln)
+pln = PlaneByAxes(p0, 'xz').plane
+strut_rib = RibBySurface('kink rib', pln, wing).rib
 
 # Tip rib
-tip_rib = CreatePart.rib.by_parameters('tip rib', wing, 0.15, 0.99, 0.70, 0.99)
+tip_rib = RibByParameters('tip rib', 0.15, 0.99, 0.70, 0.99, wing).rib
 
 # Inboard front spar
 u = strut_rib.local_to_global_u(0.15)
 p2 = strut_rib.point_on_cref(u)
-pln = ShapeTools.plane_from_section(root_rib, fc_spar, p2)
-inbd_fspar = CreatePart.spar.by_points('inbd front spar', wing, root_rib.p1,
-                                       p2, pln)
+pln = PlaneByIntersectingShapes(root_rib, fc_spar, p2).plane
+inbd_fspar = SparByPoints('inbd fspar', root_rib.p1, p2, wing, pln).spar
 
 # Inboard rear spar
 u = strut_rib.local_to_global_u(0.70)
 p2 = strut_rib.point_on_cref(u)
-pln = ShapeTools.plane_from_section(root_rib, rc_spar, p2)
-inbd_rspar = CreatePart.spar.by_points('inbd rear spar', wing, root_rib.p2,
-                                       p2, pln)
+pln = PlaneByIntersectingShapes(root_rib, rc_spar, p2).plane
+inbd_rspar = SparByPoints('inbd rspar', root_rib.p2, p2, wing, pln).spar
 
 # Outboard front spar
-pln = ShapeTools.plane_from_section(strut_rib, inbd_fspar, tip_rib.p1)
-outbd_fspar = CreatePart.spar.by_points('outbd front spar', wing,
-                                        inbd_fspar.p2, tip_rib.p1, pln)
+pln = PlaneByIntersectingShapes(strut_rib, inbd_fspar, tip_rib.p1).plane
+outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.p2, tip_rib.p1, wing,
+                           pln).spar
 
 # Outboard rear spar
-pln = ShapeTools.plane_from_section(strut_rib, inbd_rspar, tip_rib.p2)
-outbd_rspar = CreatePart.spar.by_points('outbd rear spar', wing,
-                                        inbd_rspar.p2, tip_rib.p2, pln)
+pln = PlaneByIntersectingShapes(strut_rib, inbd_rspar, tip_rib.p2).plane
+outbd_rspar = SparByPoints('outbd rspar', inbd_rspar.p2, tip_rib.p2, wing,
+                           pln).spar
 
-# Jury rib where strut intersects.
+# Jury rib where strut intersects
 p0 = jury.eval(0.5, 1.)
-pln = CreateGeom.plane_by_axes(p0, 'xz')
-jury_rib = CreatePart.rib.between_geom('jury rib', wing, inbd_fspar.sref,
-                                       inbd_rspar.sref, pln)
+pln = PlaneByAxes(p0, 'xz').plane
+jury_rib = RibBetweenShapes('jury rib', inbd_fspar, inbd_rspar, wing, pln).rib
 
-# Inboard ribs.
+# Inboard ribs
 u2 = inbd_rspar.invert_cref(jury_rib.p2)
-inbd_ribs = CreatePart.rib.along_curve('inbd rib', wing, inbd_rspar.cref,
-                                       inbd_fspar.sref, inbd_rspar.sref,
-                                       30., u2=u2, s1=18., s2=-30.)
+inbd_ribs = RibsAlongCurveByDistance('inbd rib', inbd_rspar.cref, 30.,
+                                     inbd_fspar, inbd_rspar, wing, u2=u2,
+                                     d1=18, d2=-30).ribs
 
 # Middle ribs
-mid_ribs = CreatePart.rib.along_curve('mid rib', wing, inbd_rspar.cref,
-                                      inbd_fspar.sref, inbd_rspar.sref,
-                                      30., u1=u2, s1=18., s2=-30.)
+mid_ribs = RibsAlongCurveByDistance('mid rib', inbd_rspar.cref, 30.,
+                                    inbd_fspar, inbd_rspar, wing, u1=u2,
+                                    d1=18, d2=-30).ribs
 
-# Outboard ribs.
-outbd_ribs = CreatePart.rib.along_curve('outbd rib', wing, outbd_rspar.cref,
-                                        outbd_fspar.sref, outbd_rspar.sref,
-                                        30., s1=18., s2=-30.)
+# Outboard ribs
+outbd_ribs = RibsAlongCurveByDistance('outbd rib', outbd_rspar.cref, 30.,
+                                      outbd_fspar, outbd_rspar, wing,
+                                      d1=18, d2=-30).ribs
 
 # Join and discard internal structure.
 internal_parts = AssemblyAPI.get_parts()
-PartTools.fuse_wing_parts(internal_parts)
-PartTools.discard_faces(internal_parts)
+FuseSurfacePartsByCref(internal_parts)
+DiscardByCref(internal_parts)
 
 # Wing skin
-wskin = CreatePart.skin.from_body('wing skin', wing)
+wskin = SkinByBody('wing skin', wing).skin
 
 # Join the wing skin and internal structure
 wskin.fuse(*internal_parts)
 
 # Discard faces touching reference surface.
-wskin.discard(wing.sref)
+wskin.discard_by_dmin(wing.sref_shape, 1.)
 
 # Fix skin since it's not a single shell anymore, but a compound of two
 # shells (upper and lower skin).
 wskin.fix()
 
-# Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyAPI.get_parts()
+Viewer.add(*AssemblyAPI.get_parts())
 
 # HTAIL -----------------------------------------------------------------------
 AssemblyAPI.create_assy('htail assy')
 
-fspar = CreatePart.spar.by_parameters('htail fspar', htail, 0.15, 0.01,
-                                      0.15, 0.99)
-
-rspar = CreatePart.spar.by_parameters('htail rspar', htail, 0.70, 0.01,
-                                      0.70, 0.99)
-
-root = CreatePart.rib.by_points('htail root rib', htail, fspar.p1, rspar.p1)
-tip = CreatePart.rib.by_points('htail tip rib', htail, fspar.p2, rspar.p2)
-
-ribs = CreatePart.rib.along_curve('htail rib', htail, rspar.cref,
-                                  fspar.sref, rspar.sref,
-                                  12, s1=12., s2=-12)
+fspar = SparByParameters('htail fspar', 0.15, 0.01, 0.15, 0.99, htail).spar
+rspar = SparByParameters('htail rspar', 0.70, 0.01, 0.70, 0.99, htail).spar
+root = RibByPoints('htail root rib', fspar.p1, rspar.p1, htail).rib
+tip = RibByPoints('htail tip rib', fspar.p2, rspar.p2, htail).rib
+ribs = RibsAlongCurveByDistance('htail rib', rspar.cref, 12, fspar, rspar,
+                                htail, d1=12, d2=-12).ribs
 
 internal_parts = AssemblyAPI.get_parts()
-PartTools.fuse_wing_parts(internal_parts)
-PartTools.discard_faces(internal_parts)
+FuseSurfacePartsByCref(internal_parts)
+DiscardByCref(internal_parts)
 
-skin = CreatePart.skin.from_body('htail skin', htail)
+skin = SkinByBody('htail skin', htail).skin
 skin.fuse(*internal_parts)
-skin.discard(htail.sref)
+skin.discard_by_dmin(htail.sref_shape, 1.)
 skin.fix()
 
-# Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyAPI.get_parts()
+Viewer.add(*AssemblyAPI.get_parts())
 
 # VTAIL -----------------------------------------------------------------------
 AssemblyAPI.create_assy('vtail assy')
 
-u, v = vtail.invert_point(fspar.p1)
-mspar = CreatePart.spar.by_parameters('vtail mspar', vtail, u, 0.05,
-                                      u, v)
+u, v = ProjectPointToSurface(fspar.p1, vtail.sref).nearest_param
+mspar = SparByParameters('vtail mspar', u, 0.05, u, v, vtail).spar
 
-u, v = vtail.invert_point(rspar.p1)
-rspar = CreatePart.spar.by_parameters('vtail rspar', vtail, u, 0.05,
-                                      u, v)
-
-fspar = CreatePart.spar.by_parameters('vtail fspar', vtail, 0.075, 0.05,
-                                      0.075, v)
-
-root = CreatePart.rib.by_points('vtail root rib', vtail, fspar.p1, rspar.p1)
-tip = CreatePart.rib.by_points('vtail tip rib', vtail, fspar.p2, rspar.p2)
-
-ribs = CreatePart.rib.along_curve('vtail rib', vtail, rspar.cref,
-                                  fspar.sref, rspar.sref,
-                                  18, s1=18., s2=-18)
+u, v = ProjectPointToSurface(rspar.p1, vtail.sref).nearest_param
+rspar = SparByParameters('vtail rspar', u, 0.05, u, v, vtail).spar
+fspar = SparByParameters('vtail fspar', 0.12, 0.05, 0.12, v, vtail).spar
+RibByPoints('vtail root rib', fspar.p1, rspar.p1, vtail)
+RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
+RibsAlongCurveByDistance('vtail rib', rspar.cref, 18., fspar, rspar, vtail,
+                         d1=18, d2=-72)
 
 internal_parts = AssemblyAPI.get_parts()
-PartTools.fuse_wing_parts(internal_parts)
-PartTools.discard_faces(internal_parts)
+FuseSurfacePartsByCref(internal_parts)
+DiscardByCref(internal_parts)
 
-skin = CreatePart.skin.from_body('vtail skin', vtail)
+skin = SkinByBody('vtail skin', vtail).skin
 skin.fuse(*internal_parts)
-skin.discard(vtail.sref)
+skin.discard_by_dmin(vtail.sref_shape, 1.)
 skin.fix()
 
-# Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyAPI.get_parts()
+Viewer.add(*AssemblyAPI.get_parts())
 
 # FUSELAGE --------------------------------------------------------------------
 AssemblyAPI.create_assy('fuselage assy')
 
-pln = CreateGeom.plane_by_axes([60, 0, 0], 'yz')
-bh1 = CreatePart.bulkhead.by_sref('bh 1', fuselage, pln)
+pln = PlaneByAxes((60, 0, 0), 'yz').plane
+bh1 = BulkheadBySurface('bh 1', pln, fuselage).bulkhead
 
-pln = CreateGeom.plane_by_axes([180, 0, 0], 'yz')
-bh2 = CreatePart.bulkhead.by_sref('bh 2', fuselage, pln)
-
+pln = PlaneByAxes((180, 0, 0), 'yz').plane
+bh2 = BulkheadBySurface('bh 2', pln, fuselage).bulkhead
 p0 = fc_spar.p1
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-bh3 = CreatePart.bulkhead.by_sref('bh 3', fuselage, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+bh3 = BulkheadBySurface('bh 3', pln, fuselage).bulkhead
 
 p0 = rc_spar.p1
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-bh4 = CreatePart.bulkhead.by_sref('bh 4', fuselage, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+bh4 = BulkheadBySurface('bh 4', pln, fuselage).bulkhead
 
 p0 = fspar.p1
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-bh5 = CreatePart.bulkhead.by_sref('bh 5', fuselage, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+bh5 = BulkheadBySurface('bh 5', pln, fuselage).bulkhead
 
 p0 = mspar.p1
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-bh6 = CreatePart.bulkhead.by_sref('bh 6', fuselage, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+bh6 = BulkheadBySurface('bh 6', pln, fuselage).bulkhead
 
 p0 = rspar.p1
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-bh7 = CreatePart.bulkhead.by_sref('bh 7', fuselage, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+bh7 = BulkheadBySurface('bh 7', pln, fuselage).bulkhead
 
-pln = CreateGeom.plane_by_axes([0, 0, -24], 'xy')
-floor = CreatePart.floor.by_sref('floor', fuselage, pln)
+pln = PlaneByAxes((0, 0, -24), 'xy').plane
+floor = FloorBySurface('floor', pln, fuselage).floor
 
-# above_floor = ShapeTools.make_halfspace(floor, [0, 0, 1e6])
-# bh3.cut(above_floor)
-# bh4.cut(above_floor)
-
-fwd = ShapeTools.make_halfspace(bh1, [-1e6, 0, 0])
+shell = ShellByFaces(bh1.faces).shell
+fwd = HalfspaceByShape(shell, (-1e6, 0, 0)).solid
 floor.cut(fwd)
-aft = ShapeTools.make_halfspace(bh5, [1e6, 0, 0])
+shell = ShellByFaces(bh5.faces).shell
+aft = HalfspaceByShape(shell, (1e6, 0, 0)).solid
 floor.cut(aft)
 
-skin = CreatePart.skin.from_body('fuselage skin', fuselage)
-
 plns = [bh1.sref, bh2.sref, bh3.sref, bh4.sref, bh5.sref, bh6.sref, bh7.sref]
-frames = CreatePart.frame.between_planes('frame', fuselage, plns, 3.5, 24.)
 
-PartTools.fuse_parts(AssemblyAPI.get_parts())
+indx = 1
+frames = []
+for pln1, pln2 in pairwise(plns):
+    builder = FramesBetweenPlanesByDistance('frame', pln1, pln2, 24., fuselage,
+                                            3.5, first_index=indx)
+    frames += builder.frames
+    indx = builder.next_index
 
-# Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyAPI.get_parts()
+internal_parts = AssemblyAPI.get_parts()
+
+skin = SkinByBody('fuselage skin', fuselage).skin
+skin.set_transparency(0.5)
+
+FuseSurfaceParts([skin], internal_parts)
+
+Viewer.add(*AssemblyAPI.get_parts())
 
 # MIRROR ----------------------------------------------------------------------
-
-
-xz_pln = CreateGeom.plane_by_axes(axes='xz')
-
-trsf = gce_MakeMirror(xz_plane.Pln()).Value()
-
-transform = BRepBuilderAPI_Transform(trsf)
+xz_pln = PlaneByAxes().plane
 
 parts = AssemblyAPI.get_parts('wing assy')
-compound = ShapeTools.make_compound(parts)
-transform.Perform(compound, True)
-shape = transform.Shape()
-# Viewer.display(shape)
-all_parts.append(shape)
+for part in parts:
+    part.set_mirror(xz_pln)
 
 parts = AssemblyAPI.get_parts('htail assy')
-compound = ShapeTools.make_compound(parts)
-transform.Perform(compound, True)
-shape = transform.Shape()
-# Viewer.display(shape)
-all_parts.append(shape)
+for part in parts:
+    part.set_mirror(xz_pln)
 
 # GEAR ------------------------------------------------------------------------
 AssemblyAPI.create_assy('gear assy')
 
 p0 = gear.eval(0.15, 1.)
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-spar1 = CreatePart.spar.by_sref('gear spar 1', gear, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+spar1 = SparBySurface('gear spar 1', pln, gear).spar
 
 p0 = gear.eval(0.70, 1.)
-pln = CreateGeom.plane_by_axes(p0, 'yz')
-spar2 = CreatePart.spar.by_sref('gear spar 2', gear, pln)
+pln = PlaneByAxes(p0, 'yz').plane
+spar2 = SparBySurface('gear spar 2', pln, gear).spar
 
-plns = CreateGeom.planes_along_curve(spar2.cref, 30., s1=30., s2=-30.)
+plns = PlanesAlongCurveByDistance(spar2.cref, 30, d1=30, d2=-30).planes
 i = 1
 for pln in plns:
     name = ' '.join(['gear rib', str(i)])
-    CreatePart.rib.by_sref('gear rib', gear, pln)
+    RibBySurface(name, pln, gear)
     i += 1
 
 internal_parts = AssemblyAPI.get_parts()
-PartTools.fuse_wing_parts(internal_parts)
-skin = CreatePart.skin.from_body('gear skin', gear)
-skin.fuse(*internal_parts)
+FuseSurfacePartsByCref(internal_parts)
 
-# Viewer.add(*AssemblyData.get_parts())
-all_parts += AssemblyAPI.get_parts()
+skin = SkinByBody('gear skin', gear).skin
+skin.fuse(*internal_parts)
+skin.set_transparency(0.5)
+
+parts = AssemblyAPI.get_parts()
+for part in parts:
+    part.set_mirror(xz_pln)
+
+Viewer.add(*AssemblyAPI.get_parts())
 
 # STRUTS ----------------------------------------------------------------------
-crv = strut.extract_curve((0.5, 0.), (0.5, 1.))
+crv = strut.extract_curve(0.5, 0., 0.5, 1.)
+crv.set_color(1, 0, 0)
 Viewer.add(crv)
 
-crv = jury.extract_curve((0.5, 0.), (0.5, 1.))
+crv = jury.extract_curve(0.5, 0., 0.5, 1.)
+crv.set_color(1, 0, 0)
 Viewer.add(crv)
 
-crv = other_strut.extract_curve((0.5, 0.), (0.5, 1.))
+crv = other_strut.extract_curve(0.5, 0., 0.5, 1.)
+crv.set_color(1, 0, 0)
 Viewer.add(crv)
 
-crv = other_jury.extract_curve((0.5, 0.), (0.5, 1.))
+crv = other_jury.extract_curve(0.5, 0., 0.5, 1.)
+crv.set_color(1, 0, 0)
 Viewer.add(crv)
 
 # VIEW ------------------------------------------------------------------------
-compound = ShapeTools.make_compound(all_parts)
-faces = ShapeTools.get_faces(compound)
-for f in faces:
-    Viewer.add(f, 'random')
-Viewer.show(False)
-
-# MESH ------------------------------------------------------------------------
-shape_to_mesh = ShapeTools.make_compound(all_parts)
-MeshAPI.create_mesh('tbw mesh', shape_to_mesh)
-MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4., True)
-MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshAPI.add_hypothesis('netgen hypo')
-MeshAPI.add_hypothesis('netgen algo')
-
-# Compute the mesh
-mesh_start = time.time()
-print('Computing mesh...')
-status = MeshAPI.compute_mesh()
-if not status:
-    print('Failed to compute mesh')
-else:
-    print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
-
-Viewer.add_meshes(MeshAPI.get_active())
 Viewer.show()
