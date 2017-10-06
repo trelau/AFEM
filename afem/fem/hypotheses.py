@@ -2,16 +2,20 @@ from OCC.NETGENPlugin import (NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D,
                               NETGENPlugin_NETGEN_2D_ONLY,
                               NETGENPlugin_SimpleHypothesis_2D)
 from OCC.SMESH import SMESH_Gen_get
-from OCC.StdMeshers import (StdMeshers_Adaptive1D, StdMeshers_Deflection1D,
-                            StdMeshers_LocalLength, StdMeshers_MaxLength,
-                            StdMeshers_NumberOfSegments, StdMeshers_Regular_1D)
+from OCC.StdMeshers import (QUAD_STANDARD, StdMeshers_Adaptive1D,
+                            StdMeshers_Deflection1D, StdMeshers_LocalLength,
+                            StdMeshers_MaxLength,
+                            StdMeshers_NumberOfSegments,
+                            StdMeshers_QuadrangleParams,
+                            StdMeshers_Quadrangle_2D, StdMeshers_Regular_1D)
 
 _mesh_gen = SMESH_Gen_get()
 
 __all__ = ["Hypothesis", "Regular1D", "MaxLength1D", "LocalLength1D",
            "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
            "NetgenHypothesis", "NetgenSimple2D", "NetgenAlgo2D",
-           "NetgenAlgoOnly2D", "HypothesisAPI"]
+           "NetgenAlgoOnly2D", "QuadrangleParams2D", "Quadrangle2D",
+           "HypothesisAPI"]
 
 
 class Hypothesis(object):
@@ -296,6 +300,62 @@ class NetgenAlgoOnly2D(Hypothesis):
         return self._hypothesis
 
 
+class QuadrangleParams2D(Hypothesis):
+    """
+    Quadrangle 2-D parameters.
+    """
+
+    def __init__(self, label):
+        self._hypothesis = StdMeshers_QuadrangleParams(Hypothesis._indx, 0,
+                                                       _mesh_gen)
+
+        super(QuadrangleParams2D, self).__init__(label)
+
+        self.object.SetQuadType(QUAD_STANDARD)
+
+    @property
+    def object(self):
+        """
+        :return: The underlying hypothesis.
+        :rtype: OCC.StdMeshers.StdMeshers_QuadrangleParams
+        """
+        return self._hypothesis
+
+
+class Quadrangle2D(Hypothesis):
+    """
+    Quadrangle 2-D algorithm
+    """
+
+    def __init__(self, label):
+        self._hypothesis = StdMeshers_Quadrangle_2D(Hypothesis._indx, 0,
+                                                    _mesh_gen)
+        super(Quadrangle2D, self).__init__(label)
+
+    def is_applicable(self, shape, check_all):
+        """
+        Check if this algorithm can mesh the shape.
+
+
+        :param shape: The shape.
+        :param bool check_all: If *True*, this check returns *True* if all
+            shapes are applicable. If *False* this check returns *True* if at
+            least one shape is ok.
+
+        :return: Check whether aglorithm is applicable.
+        :rtype: bool
+        """
+        return self.object.IsApplicable(shape, check_all)
+
+    @property
+    def object(self):
+        """
+        :return: The underlying hypothesis.
+        :rtype: OCC.StdMeshers.StdMeshers_Quadrangle_2D
+        """
+        return self._hypothesis
+
+
 class HypothesisAPI(object):
     """
     Hypothesis API. This is used to manage hypotheses from one place.
@@ -470,3 +530,27 @@ class HypothesisAPI(object):
         :rtype: afem.fem.hypotheses.NetgenAlgoOnly2D
         """
         return NetgenAlgoOnly2D(label)
+
+    @staticmethod
+    def create_quadrangle_parameters(label):
+        """
+        Create QuadrangleParams2D hypothesis.
+
+        :param str label: The label.
+
+        :return: The hypothesis.
+        :rtype: afem.fem.hypotheses.QuadrangleParams2D
+        """
+        return QuadrangleParams2D(label)
+
+    @staticmethod
+    def create_quadrangle_aglo(label):
+        """
+        Create Quadrangle2D algorithm.
+
+        :param str label: The label.
+
+        :return: The hypothesis.
+        :rtype: afem.fem.hypotheses.Quadrangle2D
+        """
+        return Quadrangle2D(label)

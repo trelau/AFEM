@@ -78,6 +78,14 @@ NetgenAlgoOnly2D
 ~~~~~~~~~~~~~~~~
 .. autoclass:: NetgenAlgoOnly2D
 
+QuadrangleParams2D
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: QuadrangleParams2D
+
+Quadrangle2D
+~~~~~~~~~~~~
+.. autoclass:: Quadrangle2D
+
 HypothesisAPI
 ~~~~~~~~~~~~~
 .. autoclass:: HypothesisAPI
