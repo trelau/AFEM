@@ -329,11 +329,24 @@ def build_wingbox(wing, params):
     shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
     MeshAPI.create_mesh('wing-box mesh', shape_to_mesh)
 
-    # Use a single global hypothesis based on local length.
+    # Use a single global hypothesis based on maximum length.
     MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
     MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
     MeshAPI.add_hypothesis('netgen hypo')
     MeshAPI.add_hypothesis('netgen algo')
+
+    MeshAPI.hypotheses.create_max_length_1d('max length', 4.)
+    MeshAPI.hypotheses.create_regular_1d('algo 1d')
+
+    MeshAPI.add_hypothesis('max length')
+    MeshAPI.add_hypothesis('algo 1d')
+
+    # Apply mapped quadrangle to internal structure
+    mapped_hyp = MeshAPI.hypotheses.create_quadrangle_parameters('quad hyp')
+    mapped_algo = MeshAPI.hypotheses.create_quadrangle_aglo('quad algo')
+    for part_ in internal_parts:
+        MeshAPI.add_hypothesis(mapped_hyp, part_)
+        MeshAPI.add_hypothesis(mapped_algo, part_)
 
     # Compute the mesh
     mesh_start = time.time()
