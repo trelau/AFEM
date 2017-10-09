@@ -5,6 +5,7 @@ from afem.io import brep
 from afem.oml import Body
 from afem.structure import *
 from afem.topology import *
+from afem.fem import MeshAPI
 
 Settings.set_units('in')
 Settings.log_to_console(True)
@@ -26,8 +27,11 @@ rhs_wing = Body(shape3, 'rhs wing')
 # Viewer.show()
 
 fuselage.set_transparency(0.5)
+fuselage.set_color(0.5, 0.5, 0.5)
 lhs_wing.set_transparency(0.5)
+lhs_wing.set_color(0.5, 0.5, 0.5)
 rhs_wing.set_transparency(0.5)
+rhs_wing.set_color(0.5, 0.5, 0.5)
 
 # BUILD REFERENCE SURFACES ----------------------------------------------------
 p1 = [908.101552, 0., 174.148325]
@@ -148,6 +152,8 @@ ribs = RibsBetweenPlanesByNumber('center rib', xz_pln, root_rib.plane, 4,
 FuseSurfaceParts(ribs, [fc_spar, rc_spar])
 DiscardByCref(ribs)
 
+internal_parts = AssemblyAPI.get_parts()
+
 # Skin
 skin = SkinByBody('skin', rhs_wing).skin
 skin.fuse(*parts)
@@ -158,4 +164,31 @@ skin.set_transparency(0.5)
 parts = AssemblyAPI.get_parts()
 
 Viewer.add(fuselage, rhs_wing, *parts)
+Viewer.show(False)
+
+# Mesh
+# Meshing
+shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
+MeshAPI.create_mesh('the mesh', shape_to_mesh)
+
+# Global mesh defaults
+ngh = MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
+nga = MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
+h2 = MeshAPI.hypotheses.create_max_length_1d('max length', 4.)
+a2 = MeshAPI.hypotheses.create_regular_1d('algo 1d')
+MeshAPI.add_hypothesis(ngh)
+MeshAPI.add_hypothesis(nga)
+MeshAPI.add_hypothesis(h2)
+MeshAPI.add_hypothesis(a2)
+
+# Local mesh
+MeshAPI.hypotheses.create_quadrangle_parameters('h1')
+MeshAPI.hypotheses.create_quadrangle_aglo('a1')
+for part in internal_parts:
+    MeshAPI.add_hypothesis('h1', part)
+    MeshAPI.add_hypothesis('a1', part)
+
+MeshAPI.compute_mesh()
+
+Viewer.add_meshes(MeshAPI.get_active())
 Viewer.show()
