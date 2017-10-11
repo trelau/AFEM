@@ -1,5 +1,6 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCC.Display.SimpleGui import init_display
+from OCC.Graphic3d import Graphic3d_NOM_DEFAULT
 from OCC.MeshVS import (MeshVS_BP_Mesh, MeshVS_DA_DisplayNodes,
                         MeshVS_DA_EdgeColor, MeshVS_Drawer, MeshVS_Mesh,
                         MeshVS_MeshPrsBuilder)
@@ -127,15 +128,18 @@ class Viewer(object):
         for item in cls._items:
             try:
                 disp.DisplayShape(item, color=item.color,
-                                  transparency=item.transparency)
+                                  transparency=item.transparency,
+                                  material=Graphic3d_NOM_DEFAULT)
             except TypeError:
                 # Hack for some geometry items
                 disp.DisplayShape(item.object, color=item.color,
-                                  transparency=item.transparency)
+                                  transparency=item.transparency,
+                                  material=Graphic3d_NOM_DEFAULT)
             if item.mirror:
                 mirrored = item.get_mirrored()
                 disp.DisplayShape(mirrored, color=item.color,
-                                  transparency=item.transparency)
+                                  transparency=item.transparency,
+                                  material=Graphic3d_NOM_DEFAULT)
         for mesh in cls._meshes:
             _display_smesh(disp, mesh)
 
@@ -220,16 +224,19 @@ class Viewer(object):
         for item in cls._items:
             try:
                 disp.DisplayShape(item, color=item.color,
-                                  transparency=item.transparency)
+                                  transparency=item.transparency,
+                                  material=Graphic3d_NOM_DEFAULT)
             except TypeError:
                 # Hack for some geometry items
                 disp.DisplayShape(item.object, color=item.color,
-                                  transparency=item.transparency)
+                                  transparency=item.transparency,
+                                  material=Graphic3d_NOM_DEFAULT)
 
             if item.mirror:
                 mirrored = item.get_mirrored()
                 disp.DisplayShape(mirrored, color=item.color,
-                                  transparency=item.transparency)
+                                  transparency=item.transparency,
+                                  material=Graphic3d_NOM_DEFAULT)
 
         for mesh in cls._meshes:
             _display_smesh(disp, mesh)
