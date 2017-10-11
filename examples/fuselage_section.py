@@ -100,15 +100,27 @@ Viewer.show(False)
 # Mesh
 the_shape = AssemblyAPI.prepare_shape_to_mesh()
 MeshAPI.create_mesh('the mesh', the_shape)
+
+# Unstructured quad-dominant
 MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
 MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
 MeshAPI.add_hypothesis('netgen')
 MeshAPI.add_hypothesis('netgen algo')
-# edges = ShapeTools.get_edges(the_shape, True)
-# MeshData.hypotheses.create_local_length_1d('local length', 4)
-# MeshData.hypotheses.create_regular_1d('algo 1d')
-# MeshData.add_hypothesis('local length', edges)
-# MeshData.add_hypothesis('algo 1d', edges)
+
+# Max edge length
+MeshAPI.hypotheses.create_max_length_1d('max length', 4.)
+MeshAPI.hypotheses.create_regular_1d('algo 1d')
+MeshAPI.add_hypothesis('max length')
+MeshAPI.add_hypothesis('algo 1d')
+
+# Mapped quads applied to applicable faces
+mapped_hyp = MeshAPI.hypotheses.create_quadrangle_parameters('quad hyp')
+mapped_algo = MeshAPI.hypotheses.create_quadrangle_aglo('quad algo')
+for face in ExploreShape.get_faces(the_shape):
+    if mapped_algo.is_applicable(face, True):
+        MeshAPI.add_hypothesis(mapped_hyp, face)
+        MeshAPI.add_hypothesis(mapped_algo, face)
+
 MeshAPI.compute_mesh()
 
 Viewer.add_meshes(MeshAPI.get_active())
