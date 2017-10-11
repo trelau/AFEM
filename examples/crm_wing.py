@@ -156,7 +156,7 @@ internal_parts = AssemblyAPI.get_parts()
 
 # Skin
 skin = SkinByBody('skin', rhs_wing).skin
-skin.fuse(*parts)
+skin.fuse(*internal_parts)
 skin.discard_by_dmin(rhs_wing.sref_shape, 1.)
 skin.fix()
 skin.set_transparency(0.5)
@@ -167,7 +167,6 @@ Viewer.add(fuselage, rhs_wing, *parts)
 Viewer.show(False)
 
 # Mesh
-# Meshing
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
 MeshAPI.create_mesh('the mesh', shape_to_mesh)
 
@@ -188,6 +187,7 @@ for part in internal_parts:
     MeshAPI.add_hypothesis('h1', part)
     MeshAPI.add_hypothesis('a1', part)
 
+print('Computing mesh...')
 MeshAPI.compute_mesh()
 
 Viewer.add_meshes(MeshAPI.get_active())
