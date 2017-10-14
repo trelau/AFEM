@@ -737,12 +737,20 @@ class Part(TopoDS_Shape, ViewableItem):
             success.append(status)
         return success
 
-    def get_plane(self, u0, ds, ref_pln=None, tol=1.0e-7):
+    def plane_from_parameter(self, ds, u0=None, is_rel=False, is_local=False,
+                             ref_pln=None, tol=1.0e-7):
         """
         Get a plane along the reference curve.
 
-        :param float u0: The initial parameter.
-        :param float ds: The distance along the curve from the given parameter.
+        :param float ds: The distance.
+        :param float u0: The parameter. If not provided the first parameter
+            of the reference curve will be used.
+        :param bool is_rel: Option specifying if the distance is absolute or
+            a relative to the length of the reference curve. If relative, then
+            *ds* is multiplied by the curve length to get the absolute value
+            for the :class:`.PlaneFromParameter` method.
+        :param bool is_local: Option specifying if the parameter is local or
+            global.
         :param afem.geometry.entities.Plane ref_pln: The normal of this plane
             will be used to define the normal of the new plane. If no plane is
             provided, then the first derivative of the curve will define the
@@ -758,7 +766,16 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        return PlaneFromParameter(self.cref, u0, ds, ref_pln, tol)
+        if u0 is None:
+            u0 = self.cref.u1
+
+        if is_local:
+            u0 = self.local_to_global_u(u0)
+
+        if is_rel:
+            ds *= self.cref.length
+
+        return PlaneFromParameter(self.cref, u0, ds, ref_pln, tol).plane
 
     def invert_cref(self, pnt):
         """
