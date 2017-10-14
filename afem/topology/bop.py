@@ -3,6 +3,7 @@ from warnings import warn
 from OCC.BOPAlgo import BOPAlgo_MakerVolume
 from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
+from OCC.BRepFeat import BRepFeat_MakeCylindricalHole
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 from OCC.TopoDS import topods_Solid
 
@@ -13,7 +14,8 @@ from afem.topology.check import CheckShape
 from afem.topology.explore import ExploreShape
 
 __all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
-           "IntersectShapes", "SplitShapes", "VolumesFromShapes"]
+           "IntersectShapes", "SplitShapes", "VolumesFromShapes",
+           "CutCylindricalHole"]
 
 
 class BopAlgo(object):
@@ -100,7 +102,8 @@ class BopAlgo(object):
         :return: *True* if operation is done, *False* if not.
         :rtype: bool
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+                                  BRepFeat_MakeCylindricalHole)):
             return self._bop.ErrorStatus() == 0
         return self._bop.IsDone()
 
@@ -134,7 +137,8 @@ class BopAlgo(object):
 
         :return: None.
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+                                  BRepFeat_MakeCylindricalHole)):
             warn('Refining edges not available. Doing nothing.',
                  RuntimeWarning)
         else:
@@ -146,7 +150,8 @@ class BopAlgo(object):
         :return: The result flag of edge refining.
         :rtype: bool
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+                                  BRepFeat_MakeCylindricalHole)):
             return False
         else:
             return self._bop.FuseEdges()
@@ -158,7 +163,8 @@ class BopAlgo(object):
             the shapes.
         :rtype: list[OCC.TopoDS.TopoDS_Edge]
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+                                  BRepFeat_MakeCylindricalHole)):
             warn('Getting section edges not available. Returning an empty '
                  'list.', RuntimeWarning)
             return []
@@ -524,6 +530,40 @@ class VolumesFromShapes(BopAlgo):
         :rtype: list[OCC.TopoDS.TopoDS_Solid]
         """
         return self._solids
+
+
+class CutCylindricalHole(BopAlgo):
+    """
+    Cut a cylindrical hole on a shape.
+
+    :param shape: The shape.
+    :type shape: OCC.TopoDS.TopoDS_Shape
+    :param float radius: The radius of the hole.
+    :param afem.geometry.entities.Axis1: The axis for the hole.
+    :param bool parallel: Option to run in parallel mode.
+    :param float fuzzy_val: Fuzzy tolerance value.
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> from afem.topology import *
+    >>> pln = PlaneByAxes().plane
+    >>> face = FaceByPlane(pln, -2., 2., -2., 2.).face
+    >>> # The small offset is a workaround for planar cuts
+    >>> p = Point(0., 0.1, 0.)
+    >>> d = Direction(0., 1., 0.)
+    >>> ax1 = Axis1(p, d)
+    >>> bop = CutCylindricalHole(face, 1., ax1)
+    >>> assert bop.is_done
+    """
+
+    def __init__(self, shape, radius, ax1, parallel=True, fuzzy_val=None):
+        super(CutCylindricalHole, self).__init__(None, None, parallel,
+                                                 fuzzy_val,
+                                                 BRepFeat_MakeCylindricalHole)
+
+        self._bop.Init(shape, ax1)
+        self._bop.Perform(radius)
 
 
 if __name__ == "__main__":

@@ -277,6 +277,10 @@ VolumesFromShapes
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: VolumesFromShapes
 
+CutCylindricalHole
+~~~~~~~~~~~~~~~~~~
+.. autoclass:: CutCylindricalHole
+
 Offset
 ------
 .. py:currentmodule:: afem.topology.offset
