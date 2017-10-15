@@ -11,7 +11,6 @@ from afem.geometry.check import CheckGeom
 from afem.occ.utils import (to_lst_from_toptools_listofshape,
                             to_toptools_listofshape)
 from afem.topology.check import CheckShape
-from afem.topology.create import WiresByShape
 from afem.topology.explore import ExploreShape
 
 __all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
@@ -394,7 +393,6 @@ class IntersectShapes(BopAlgo):
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
                  fuzzy_val=None):
-        self._wires = []
         super(IntersectShapes, self).__init__(None, None, parallel,
                                               fuzzy_val, BRepAlgoAPI_Section)
 
@@ -415,26 +413,6 @@ class IntersectShapes(BopAlgo):
 
         if build1 and build2:
             self._bop.Build()
-
-    @property
-    def wires(self):
-        """
-        :return: The wires after connecting edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
-        """
-        return self._wires
-
-    def build_wires(self):
-        """
-        Attempt to build wires from the edges of the intersection.
-
-        :return: *True* if at least one wire was built, *False* if no wires
-            were built.
-        :rtype: bool
-        """
-        tool = WiresByShape(self.shape)
-        self._wires = tool.wires
-        return tool.nwires > 0
 
 
 class SplitShapes(BopAlgo):

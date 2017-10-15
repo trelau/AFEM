@@ -177,6 +177,10 @@ ShapeByDrag
 ~~~~~~~~~~~
 .. autoclass:: ShapeByDrag
 
+PointAlongShape
+~~~~~~~~~~~~~~~
+.. autoclass:: PointAlongShape
+
 PointsAlongShapeByNumber
 ~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PointsAlongShapeByNumber

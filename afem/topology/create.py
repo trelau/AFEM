@@ -47,9 +47,9 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
            "SolidByCylinder",
            "CompoundByShapes", "HalfspaceByShape", "HalfspaceBySurface",
-           "ShapeByFaces", "ShapeByDrag", "PointsAlongShapeByNumber",
-           "PointsAlongShapeByDistance", "PlaneByEdges",
-           "PlaneByIntersectingShapes"]
+           "ShapeByFaces", "ShapeByDrag", "PointAlongShape",
+           "PointsAlongShapeByNumber", "PointsAlongShapeByDistance",
+           "PlaneByEdges", "PlaneByIntersectingShapes"]
 
 _occ_join = {'a': GeomAbs_Arc,
              'arc': GeomAbs_Arc,
@@ -1361,6 +1361,73 @@ class ShapeByDrag(object):
 
 
 # GEOMETRY --------------------------------------------------------------------
+
+class PointAlongShape(object):
+    """
+    Create a point along an edge or wire at a specified distance from the first
+    parameter.
+
+    :param shape: The shape.
+    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :param float ds: The distance along the curve from the given parameter.
+    :param float tol: Tolerance.
+
+    :raise TypeError: If *shape* if not a curve or wire.
+    :raise RuntimeError: If OCC method fails.
+
+    Usage:
+
+    >>> from afem.topology import *
+    >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
+    >>> tool = PointAlongShape(e, 5.)
+    >>> tool.point
+    Point(5.0, 0.0, 0.0)
+    >>> tool.parameter
+    5.0
+    """
+
+    def __init__(self, shape, ds, tol=1.0e-7):
+        if shape.ShapeType() not in [TopAbs_EDGE, TopAbs_WIRE]:
+            msg = 'Invalid shape in PointsAlongShapeByNumber.'
+            raise TypeError(msg)
+
+        shape = CheckShape.to_shape(shape)
+
+        if shape.ShapeType() == TopAbs_EDGE:
+            adp_crv = BRepAdaptor_Curve(shape)
+        elif shape.ShapeType() == TopAbs_WIRE:
+            adp_crv = BRepAdaptor_CompCurve(shape)
+        else:
+            msg = 'Could not create adaptor curve in PointAlongShape.'
+            raise RuntimeError(msg)
+
+        u0 = adp_crv.FirstParameter()
+        ap = GCPnts_AbscissaPoint(tol, adp_crv, ds, u0)
+        if not ap.IsDone():
+            msg = "GCPnts_AbscissaPoint failed."
+            raise RuntimeError(msg)
+
+        u = ap.Parameter()
+        self._u = u
+        p = adp_crv.Value(u)
+        self._p = Point(p.X(), p.Y(), p.Z())
+
+    @property
+    def point(self):
+        """
+        :return: The created point.
+        :rtype: afem.geometry.entities.Point
+        """
+        return self._p
+
+    @property
+    def parameter(self):
+        """
+        :return: The parameter on the adaptor curve.
+        :rtype: float
+        """
+        return self._u
+
 
 class PointsAlongShapeByNumber(object):
     """
