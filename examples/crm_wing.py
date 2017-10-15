@@ -26,11 +26,11 @@ rhs_wing = Body(shape3, 'rhs wing')
 # Viewer.add(fuselage, lhs_wing, rhs_wing)
 # Viewer.show()
 
-fuselage.set_transparency(0.5)
+fuselage.set_transparency(0.75)
 fuselage.set_color(0.5, 0.5, 0.5)
-lhs_wing.set_transparency(0.5)
+lhs_wing.set_transparency(0.75)
 lhs_wing.set_color(0.5, 0.5, 0.5)
-rhs_wing.set_transparency(0.5)
+rhs_wing.set_transparency(0.75)
 rhs_wing.set_color(0.5, 0.5, 0.5)
 
 # BUILD REFERENCE SURFACES ----------------------------------------------------
@@ -182,10 +182,11 @@ MeshAPI.add_hypothesis(a2)
 
 # Local mesh
 MeshAPI.hypotheses.create_quadrangle_parameters('h1')
-MeshAPI.hypotheses.create_quadrangle_aglo('a1')
+quad_algo = MeshAPI.hypotheses.create_quadrangle_aglo('a1')
 for part in internal_parts:
-    MeshAPI.add_hypothesis('h1', part)
-    MeshAPI.add_hypothesis('a1', part)
+    if quad_algo.is_applicable(part, True):
+        MeshAPI.add_hypothesis('h1', part)
+        MeshAPI.add_hypothesis('a1', part)
 
 print('Computing mesh...')
 MeshAPI.compute_mesh()
