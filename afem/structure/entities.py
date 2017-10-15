@@ -7,7 +7,8 @@ from afem.fem.elements import Elm1D, Elm2D
 from afem.fem.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
-                                  PointFromParameter, TrimmedCurveByCurve)
+                                  PointFromParameter, TrimmedCurveByCurve,
+                                  PointsAlongCurveByNumber)
 from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
@@ -1455,6 +1456,27 @@ class SurfacePart(Part):
         self.set_shape(bop.shape)
 
         return bop.is_done
+
+    def cut_holes(self, n, d):
+        """
+        Cut holes along the reference curve at evenly spaced intervals
+        (experimental).
+
+        :param int n: The number of holes.
+        :param float d: The diameter.
+
+        :return: None.
+
+        :raise AttributeError: If the part does not have a reference curve or
+            surface.
+        """
+        if not self.has_cref:
+            msg = 'Part does not have a reference curve.'
+            raise AttributeError(msg)
+
+        pac = PointsAlongCurveByNumber(self.cref, n + 2)
+        for u in pac.parameters[1:-1]:
+            self.cut_hole(d, 0., u)
 
 
 class WingPart(SurfacePart):
