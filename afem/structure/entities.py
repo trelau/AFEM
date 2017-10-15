@@ -8,23 +8,24 @@ from afem.fem.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
                                   PointFromParameter, TrimmedCurveByCurve)
-from afem.geometry.entities import Plane, TrimmedCurve
+from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
 from afem.structure.assembly import AssemblyAPI
-from afem.topology.bop import CutShapes, FuseShapes, IntersectShapes, \
-    SplitShapes
+from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
+                               IntersectShapes, SplitShapes)
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
-                                  PointsAlongShapeByDistance,
-                                  PointsAlongShapeByNumber, ShellByFaces)
+                                  PointAlongShape, PointsAlongShapeByDistance,
+                                  PointsAlongShapeByNumber,
+                                  ShellByFaces, WiresByShape)
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
 from afem.topology.modify import (FixShape, RebuildShapeByTool,
                                   RebuildShapeWithShapes, RebuildShapesByTool,
                                   SewShape, UnifyShape)
-from afem.topology.props import LinearProps, SurfaceProps
+from afem.topology.props import LengthOfShapes, LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
            "Rib", "FuselagePart", "Bulkhead", "Floor", "Frame", "Skin",
@@ -544,7 +545,7 @@ class Part(TopoDS_Shape, ViewableItem):
             raise AttributeError(msg)
         return self.sref.eval(u, v)
 
-    def point_from_parameter(self, ds, u0=None, is_rel=False, is_local=False):
+    def point_from_parameter(self, ds, u0=None, is_rel=False):
         """
         Evaluate point on reference curve at a distance from a parameter.
 
@@ -555,8 +556,6 @@ class Part(TopoDS_Shape, ViewableItem):
             a relative to the length of the reference curve. If relative, then
             *ds* is multiplied by the curve length to get the absolute value
             for the :class:`.PointFromParameter` method.
-        :param bool is_local: Option specifying if the parameter is local or
-            global.
 
         :return: The point.
         :rtype: afem.geometry.entities.Point
@@ -569,9 +568,6 @@ class Part(TopoDS_Shape, ViewableItem):
 
         if u0 is None:
             u0 = self.cref.u1
-
-        if is_local:
-            u0 = self.local_to_global_u(u0)
 
         if is_rel:
             ds *= self.cref.length
@@ -737,8 +733,8 @@ class Part(TopoDS_Shape, ViewableItem):
             success.append(status)
         return success
 
-    def plane_from_parameter(self, ds, u0=None, is_rel=False, is_local=False,
-                             ref_pln=None, tol=1.0e-7):
+    def plane_from_parameter(self, ds, u0=None, is_rel=False, ref_pln=None,
+                             tol=1.0e-7):
         """
         Get a plane along the reference curve.
 
@@ -749,8 +745,6 @@ class Part(TopoDS_Shape, ViewableItem):
             a relative to the length of the reference curve. If relative, then
             *ds* is multiplied by the curve length to get the absolute value
             for the :class:`.PlaneFromParameter` method.
-        :param bool is_local: Option specifying if the parameter is local or
-            global.
         :param afem.geometry.entities.Plane ref_pln: The normal of this plane
             will be used to define the normal of the new plane. If no plane is
             provided, then the first derivative of the curve will define the
@@ -768,9 +762,6 @@ class Part(TopoDS_Shape, ViewableItem):
 
         if u0 is None:
             u0 = self.cref.u1
-
-        if is_local:
-            u0 = self.local_to_global_u(u0)
 
         if is_rel:
             ds *= self.cref.length
@@ -1416,6 +1407,54 @@ class SurfacePart(Part):
         nodes1 = self.nodes
         nodes2 = other.nodes
         return list(nodes1 & nodes2)
+
+    def cut_hole(self, d, ds, u0=None, is_rel=False):
+        """
+        Cut a hole in the part and update its shape.
+
+        :param float d: Diameter of hole.
+        :param float ds: The distance.
+        :param float u0: The parameter. If not provided the first parameter
+            of the reference curve will be used.
+        :param bool is_rel: Option specifying if the distance is absolute or
+            a relative to the length of the reference curve. If relative, then
+            *ds* is multiplied by the curve length to get the absolute value.
+
+        :return: The status of the Boolean operation that will cut the hole.
+            *True* if the operation was performed, *False* if not.
+        :rtype: bool
+
+        :raise AttributeError: If the part does not have a reference curve or
+            surface.
+        """
+        if not self.has_cref:
+            msg = 'Part does not have a reference curve.'
+            raise AttributeError(msg)
+
+        if not self.has_sref:
+            msg = 'Part does not have a reference surface.'
+            raise AttributeError(msg)
+
+        # Intersect the shape with a plane to use for the hole height location
+        pln = self.plane_from_parameter(ds, u0, is_rel)
+        bop = IntersectShapes(self, pln)
+        wires = WiresByShape(bop.shape).wires
+        los = LengthOfShapes(wires)
+        max_length = los.max_length
+        wire = los.longest_shape
+        mid_length = max_length / 2.
+        p = PointAlongShape(wire, mid_length).point
+        u, v = self.invert_sref(p)
+        v = self.sref.norm(u, v)
+        v = CheckGeom.to_direction(v)
+        ax1 = Axis1(p, v)
+
+        # Cut the hole
+        r = d / 2.
+        bop = CutCylindricalHole(self, r, ax1)
+        self.set_shape(bop.shape)
+
+        return bop.is_done
 
 
 class WingPart(SurfacePart):
