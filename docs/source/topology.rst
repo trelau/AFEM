@@ -217,10 +217,6 @@ Modify
 ------
 .. py:currentmodule:: afem.topology.modify
 
-FixShape
-~~~~~~~~
-.. autoclass:: FixShape
-
 DivideClosedShape
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: DivideClosedShape
@@ -320,6 +316,14 @@ DistanceShapeToShape
 DistanceShapeToShapes
 ~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: DistanceShapeToShapes
+
+Fix
+---
+.. py:currentmodule:: afem.topology.fix
+
+FixShape
+~~~~~~~~
+.. autoclass:: FixShape
 
 Properties
 ----------

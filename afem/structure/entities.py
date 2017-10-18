@@ -23,7 +23,8 @@ from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   ShellByFaces, WiresByShape)
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
-from afem.topology.modify import (FixShape, RebuildShapeByTool,
+from afem.topology.fix import FixShape
+from afem.topology.modify import (RebuildShapeByTool,
                                   RebuildShapeWithShapes, RebuildShapesByTool,
                                   SewShape, UnifyShape)
 from afem.topology.props import LengthOfShapes, LinearProps, SurfaceProps

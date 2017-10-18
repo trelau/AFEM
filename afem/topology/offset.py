@@ -163,7 +163,6 @@ class OffsetShape(object):
 
         join_mode = occ_join_type[join_mode.lower()]
 
-        # TODO Remove internal edges option for OCC 7
         self._tool = BRepOffsetAPI_MakeOffsetShape(shape, offset, tol,
                                                    BRepOffset_Skin, False,
                                                    False, join_mode)

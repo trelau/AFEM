@@ -1,6 +1,5 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_Sewing
 from OCC.ShapeBuild import ShapeBuild_ReShape
-from OCC.ShapeFix import ShapeFix_Shape
 from OCC.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                               ShapeUpgrade_ShapeDivideContinuity,
                               ShapeUpgrade_UnifySameDomain)
@@ -10,40 +9,11 @@ from OCC.TopoDS import topods_Edge
 
 from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
+from afem.topology.fix import FixShape
 
-__all__ = ["FixShape", "DivideClosedShape", "DivideC0Shape", "UnifyShape",
+__all__ = ["DivideClosedShape", "DivideC0Shape", "UnifyShape",
            "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool",
            "RebuildShapesByTool"]
-
-
-class FixShape(object):
-    """
-    Attempt to fix the shape by applying a number of general fixes.
-
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param float min_tol: Minimum allowed tolerance.
-    :param float max_tol: Maximum allowed tolerance.
-    """
-
-    def __init__(self, shape, min_tol=None, max_tol=None):
-        # TODO Use context to fix sub-shapes
-        # TODO Option to set specific tools
-        # TODO Move to fix module
-        fix = ShapeFix_Shape(shape)
-        if min_tol is not None:
-            fix.SetMinTolerance(min_tol)
-        if max_tol is not None:
-            fix.SetMaxTolerance(max_tol)
-        fix.Perform()
-        self._shape = fix.Shape()
-
-    @property
-    def shape(self):
-        """
-        :return: The fixed shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
-        """
-        return self._shape
 
 
 class DivideClosedShape(object):
