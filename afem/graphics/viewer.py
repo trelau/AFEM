@@ -95,41 +95,27 @@ class ViewableItem(object):
 
 
 class Viewer:
-    """
-    View objects.
-    """
-    def __init__(self, shapes=list(), meshes=list()):
-        self._items = shapes
-        self._meshes = meshes
-        self._win = None
-        self._disp = None
-        self._start_display = None
-        self._draw_edges = True
-        return
-
-    @property
-    def draw_edges(self):
-        return self._draw_edges
-
-    @draw_edges.setter
-    def draw_edges(self, tf):
-        self._draw_edges = tf
-
-    def start(self, clear=False, view='iso', white_bg=False, fit=True, xy1=None,
-              xy2=None, draw_edges=True):
+    def __init__(
+            self, shapes=list(), meshes=list(), view='iso', white_bg=False, fit=True, xy1=None, xy2=None,
+            draw_edges=True
+    ):
         """
-        Show the viewer.
+        Initializes a viewer object
 
-        :param bool clear: Clear the items after rendering.
+        :param shapes: Item(s) to view.
+        :type shapes: list of afem.graphics.viewer.ViewableItem or TopoDS.TopoDS_Shape
+        :param list of afem.fem.meshes.Mesh meshes: Mesh(es) to view.
         :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
             'right', 'front', 'bottom').
         :param bool white_bg: Option to make the background white.
         :param bool fit: Option to fit contents to screen.
         :param array_like xy1: Lower corner for zooming.
         :param array_like xy2: Upper corner for zooming.
-
-        :return: None.
+        :param bool draw_edges: Display edges as black lines if True
         """
+        self._items = shapes
+        self._meshes = meshes
+        self._draw_edges = draw_edges
         view_scale = 0.9
         screen_res = (int(view_scale * ctypes.windll.user32.GetSystemMetrics(0)),
                       int(view_scale * ctypes.windll.user32.GetSystemMetrics(1)))
@@ -138,8 +124,8 @@ class Viewer:
         self.set_display_shapes()
         self.change_view(view)
 
-        self._disp.View.ColorScale()
-        self._disp.View.ColorScaleDisplay()
+        # self._disp.View.ColorScale()
+        # self._disp.View.ColorScaleDisplay()
         self.draw_edges = draw_edges
         self._disp.default_drawer.SetFaceBoundaryDraw(self.draw_edges)
 
@@ -158,10 +144,17 @@ class Viewer:
         self._win.close()
         return
 
+    @property
+    def draw_edges(self):
+        return self._draw_edges
+
+    @draw_edges.setter
+    def draw_edges(self, tf):
+        self._draw_edges = tf
+
     def clear_all(self):
         """
-        Clear entities from viewer.
-
+        Clear entities from viewer and from object memory
         :return: None.
         """
         self._items = []
@@ -170,10 +163,18 @@ class Viewer:
         return
 
     def close(self):
+        """
+        Close the viewer window
+        :return: None
+        """
         self._win.close()
         return
 
     def delete_viewer(self):
+        """
+        Clear the viewer canvas object from memory
+        :return: None
+        """
         self._win.canva.close()
         self._win.canva.deleteLater()
         self._win.menu_bar.close()
@@ -185,6 +186,12 @@ class Viewer:
         return
 
     def change_view(self, v):
+        """
+        Change the viewing angle of the current viewer.
+        :param str v: The viewing angle ('iso', 'top', 'bottom', 'left',
+            'right', 'front', 'bottom').
+        :return:
+        """
         v = v.lower()
         if v in ['i', 'iso', 'isometric']:
             self._disp.View_Iso()
@@ -205,6 +212,10 @@ class Viewer:
         return
 
     def show(self):
+        """
+        Display the current viewer for interactive use
+        :return: None
+        """
         self._disp.Repaint()
         self._win.show()
         self._start_display()
@@ -225,6 +236,10 @@ class Viewer:
         return
 
     def set_display_shapes(self):
+        """
+        Draws but does not display the current _items list and _meshes list in the viewer
+        :return: None
+        """
         for item in self._items:
             try:
                 self._disp.DisplayShape(
@@ -249,7 +264,7 @@ class Viewer:
                     material=Graphic3d_NOM_DEFAULT
                 )
         for mesh in self._meshes:
-            _display_smesh(disp, mesh)
+            _display_smesh(self._disp, mesh)
         self._disp.Repaint()
         return
 
@@ -266,6 +281,14 @@ class Viewer:
         return
 
     def capture(self, filename='capture.png', view='iso', fit=True):
+        """
+        Take a screen capture of the current viewer configuration
+        :param str filename: name of the file to be captured
+        :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
+            'right', 'front', 'bottom').
+        :param bool fit: Option to fit contents to screen.
+        :return: None
+        """
         self._win.show()
         self.change_view(view)
         if fit:
