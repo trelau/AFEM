@@ -179,9 +179,19 @@ class Assembly(object):
         :rtype: OCC.TopoDS.TopoDS_Compound
         """
         parts = self.get_parts(include_subassy)
-        if not parts:
-            return None
         return CompoundByShapes(parts).compound
+
+    def as_compound(self, include_subassy=True):
+        """
+        Build a TopoDS_Compound from all the parts of the assembly.
+
+        :param bool include_subassy: Option to recursively include parts
+            from any sub-assemblies.
+
+        :return: The parts as a compound.
+        :rtype: OCC.TopoDS.TopoDS_Compound
+        """
+        return self.prepare_shape_to_mesh(include_subassy)
 
 
 class AssemblyAPI(object):
@@ -358,6 +368,23 @@ class AssemblyAPI(object):
         """
         assy = cls.get_assy(assy)
         return assy.prepare_shape_to_mesh(include_subassy)
+
+    @classmethod
+    def as_compound(cls, assy='_master', include_subassy=True):
+        """
+        Build a TopoDS_Compound from all the parts of the assembly.
+
+        :param assy: The assembly. If ``None`` then the active assembly is
+            used. By default the master model is used.
+        :type assy: str or afem.structure.assembly.Assembly or None
+        :param bool include_subassy: Option to recursively include parts
+            from any sub-assemblies.
+
+        :return: The parts as a compound.
+        :rtype: OCC.TopoDS.TopoDS_Compound
+        """
+        assy = cls.get_assy(assy)
+        return assy.as_compound(include_subassy)
 
     @classmethod
     def add_metadata(cls, key, value, assy=None):
