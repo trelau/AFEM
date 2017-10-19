@@ -1,7 +1,10 @@
+from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.ShapeFix import ShapeFix_Shape, ShapeFix_ShapeTolerance
 from OCC.TopAbs import TopAbs_SHAPE
 
 __all__ = ["FixTolerance", "FixShape"]
+
+_fix_tol = ShapeFix_ShapeTolerance()
 
 
 class FixTolerance(object):
@@ -23,8 +26,7 @@ class FixTolerance(object):
         :return: *True* if at least one tolerance of a sub-shape was modified.
         :rtype: bool
         """
-        return ShapeFix_ShapeTolerance().LimitTolerance(shape, tmin, tmax,
-                                                        styp)
+        return _fix_tol.LimitTolerance(shape, tmin, tmax, styp)
 
     @staticmethod
     def set_tolerance(shape, tol, styp=TopAbs_SHAPE):
@@ -38,7 +40,7 @@ class FixTolerance(object):
 
         :return: None.
         """
-        return ShapeFix_ShapeTolerance().SetTolerance(shape, tol, styp)
+        return _fix_tol.SetTolerance(shape, tol, styp)
 
 
 class FixShape(object):
@@ -48,18 +50,24 @@ class FixShape(object):
     :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param float min_tol: Minimum allowed tolerance.
     :param float max_tol: Maximum allowed tolerance.
+    :param OCC.TopoDS.TopoDS_Shape context: The context shape.
     """
 
-    def __init__(self, shape, min_tol=None, max_tol=None):
-        # TODO Use context to fix sub-shapes
+    def __init__(self, shape, min_tol=None, max_tol=None, context=None):
         # TODO Option to set specific tools
-        fix = ShapeFix_Shape(shape)
+        self._tool = ShapeFix_Shape()
         if min_tol is not None:
-            fix.SetMinTolerance(min_tol)
+            self._tool.SetMinTolerance(min_tol)
         if max_tol is not None:
-            fix.SetMaxTolerance(max_tol)
-        fix.Perform()
-        self._shape = fix.Shape()
+            self._tool.SetMaxTolerance(max_tol)
+
+        if context is not None:
+            reshape = ShapeBuild_ReShape()
+            reshape.Apply(context)
+            self._tool.SetContext(reshape.GetHandle())
+
+        self._tool.Init(shape)
+        self._tool.Perform()
 
     @property
     def shape(self):
@@ -67,4 +75,23 @@ class FixShape(object):
         :return: The fixed shape.
         :rtype: OCC.TopoDS.TopoDS_Shape
         """
-        return self._shape
+        return self._tool.Shape()
+
+    @property
+    def context(self):
+        """
+        :return: The context.
+        :rtype: OCC.ShapeBuild.ShapeBuild_ReShape
+        """
+        return self._tool.Context().GetObject()
+
+    def apply(self, shape):
+        """
+        Apply substitutions to the shape (or subshape) and get the result.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: The new shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self.context.Apply(shape)
