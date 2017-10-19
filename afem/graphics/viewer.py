@@ -1,6 +1,7 @@
 from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
 from OCC.Display.SimpleGui import init_display
 from OCC.Graphic3d import Graphic3d_NOM_DEFAULT
+from OCC.V3d import V3d_ColorScale
 from OCC.MeshVS import (MeshVS_BP_Mesh, MeshVS_DA_DisplayNodes,
                         MeshVS_DA_EdgeColor, MeshVS_Drawer, MeshVS_Mesh,
                         MeshVS_MeshPrsBuilder)
@@ -9,6 +10,8 @@ from OCC.SMESH import SMESH_MeshVSLink
 from OCC.TopoDS import TopoDS_Shape
 from OCC.gce import gce_MakeMirror
 from numpy.random import rand
+import ctypes
+import gc
 
 __all__ = ["Viewer", "ViewableItem"]
 
@@ -30,6 +33,7 @@ class ViewableItem(object):
         self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
         self.transparency = 0.
         self.mirror = None
+        return
 
     def set_color(self, r, g, b):
         """
@@ -90,27 +94,29 @@ class ViewableItem(object):
         return builder.Shape()
 
 
-class Viewer(object):
+class Viewer:
     """
     View objects.
     """
-    _items = []
-    _meshes = []
+    def __init__(self, shapes=list(), meshes=list()):
+        self._items = shapes
+        self._meshes = meshes
+        self._win = None
+        self._disp = None
+        self._start_display = None
+        self._draw_edges = True
+        return
 
-    @classmethod
-    def clear(cls):
-        """
-        Clear entities from viewer.
+    @property
+    def draw_edges(self):
+        return self._draw_edges
 
-        :return: None.
-        """
-        cls._items = []
-        cls._meshes = []
-        cls._entities = []
+    @draw_edges.setter
+    def draw_edges(self, tf):
+        self._draw_edges = tf
 
-    @classmethod
-    def show(cls, clear=True, view='iso', white_bg=False, fit=True, xy1=None,
-             xy2=None):
+    def start(self, clear=False, view='iso', white_bg=False, fit=True, xy1=None,
+              xy2=None, draw_edges=True):
         """
         Show the viewer.
 
@@ -124,60 +130,87 @@ class Viewer(object):
 
         :return: None.
         """
-        disp, start_display, _, _ = init_display()
-        for item in cls._items:
-            try:
-                disp.DisplayShape(item, color=item.color,
-                                  transparency=item.transparency,
-                                  material=Graphic3d_NOM_DEFAULT)
-            except TypeError:
-                # Hack for some geometry items
-                disp.DisplayShape(item.object, color=item.color,
-                                  transparency=item.transparency,
-                                  material=Graphic3d_NOM_DEFAULT)
-            if item.mirror:
-                mirrored = item.get_mirrored()
-                disp.DisplayShape(mirrored, color=item.color,
-                                  transparency=item.transparency,
-                                  material=Graphic3d_NOM_DEFAULT)
-        for mesh in cls._meshes:
-            _display_smesh(disp, mesh)
+        view_scale = 0.9
+        screen_res = (int(view_scale * ctypes.windll.user32.GetSystemMetrics(0)),
+                      int(view_scale * ctypes.windll.user32.GetSystemMetrics(1)))
+        self._disp, self._start_display, add_menu, add_function_to_menu = init_display(size=screen_res)
+        self._win = add_menu.__closure__[0].cell_contents
+        self.set_display_shapes()
+        self.change_view(view)
 
-        view = view.lower()
-        if view in ['i', 'iso', 'isometric']:
-            disp.View_Iso()
-        elif view in ['t', 'top']:
-            disp.View_Top()
-        elif view in ['b', 'bottom']:
-            disp.View_Bottom()
-        elif view in ['l', 'left']:
-            disp.View_Left()
-        elif view in ['r', 'right']:
-            disp.View_Right()
-        elif view in ['f', 'front']:
-            disp.View_Front()
-        elif view in ['rear']:
-            disp.View_Rear()
+        self._disp.View.ColorScale()
+        self._disp.View.ColorScaleDisplay()
+        self.draw_edges = draw_edges
+        self._disp.default_drawer.SetFaceBoundaryDraw(self.draw_edges)
 
         if white_bg:
-            disp.set_bg_gradient_color(255, 255, 255, 255, 255, 255)
-            disp.Repaint()
+            self._disp.set_bg_gradient_color(255, 255, 255, 255, 255, 255)
+            self._disp.Repaint()
 
         if xy1 is not None and xy2 is not None:
-            disp.View.FitAll(xy1[0], xy1[1], xy2[0], xy2[1])
+            self._disp.View.FitAll(xy1[0], xy1[1], xy2[0], xy2[1])
             fit = False
 
         if fit:
-            disp.FitAll()
+            self._disp.FitAll()
 
-        disp.Repaint()
-        start_display()
+        self._disp.Repaint()
+        self._win.close()
+        return
 
-        if clear:
-            cls.clear()
+    def clear_all(self):
+        """
+        Clear entities from viewer.
 
-    @classmethod
-    def add(cls, *items):
+        :return: None.
+        """
+        self._items = []
+        self._meshes = []
+        self._disp.EraseAll()
+        return
+
+    def close(self):
+        self._win.close()
+        return
+
+    def delete_viewer(self):
+        self._win.canva.close()
+        self._win.canva.deleteLater()
+        self._win.menu_bar.close()
+        self._win.menu_bar.deleteLater()
+        self._win = None
+        self._disp = None
+        self._start_display = None
+        gc.collect()
+        return
+
+    def change_view(self, v):
+        v = v.lower()
+        if v in ['i', 'iso', 'isometric']:
+            self._disp.View_Iso()
+        elif v in ['t', 'top']:
+            self._disp.View_Top()
+        elif v in ['b', 'bottom']:
+            self._disp.View_Bottom()
+        elif v in ['l', 'left']:
+            self._disp.View_Front()
+        elif v in ['r', 'right']:
+            self._disp.View_Rear()
+        elif v in ['f', 'front']:
+            self._disp.View_Left()
+        elif v in ['rear']:
+            self._disp.View_Right()
+        else:
+            raise ValueError
+        return
+
+    def show(self):
+        self._disp.Repaint()
+        self._win.show()
+        self._start_display()
+        return
+
+    def add(self, *items):
         """
         Add viewable items.
 
@@ -188,10 +221,39 @@ class Viewer(object):
         """
         for item in items:
             if isinstance(item, (ViewableItem, TopoDS_Shape)):
-                cls._items.append(item)
+                self._items.append(item)
+        return
 
-    @classmethod
-    def add_meshes(cls, *meshes):
+    def set_display_shapes(self):
+        for item in self._items:
+            try:
+                self._disp.DisplayShape(
+                    item, color=item.color,
+                    transparency=item.transparency,
+                    material=Graphic3d_NOM_DEFAULT
+                )
+            except TypeError:
+                # Hack for some geometry items
+                self._disp.DisplayShape(
+                    item.object,
+                    color=item.color,
+                    transparency=item.transparency,
+                    material=Graphic3d_NOM_DEFAULT
+                )
+            if item.mirror:
+                mirrored = item.get_mirrored()
+                self._disp.DisplayShape(
+                    mirrored,
+                    color=item.color,
+                    transparency=item.transparency,
+                    material=Graphic3d_NOM_DEFAULT
+                )
+        for mesh in self._meshes:
+            _display_smesh(disp, mesh)
+        self._disp.Repaint()
+        return
+
+    def add_meshes(self, *meshes):
         """
         Add meshes to the viewer.
 
@@ -200,82 +262,18 @@ class Viewer(object):
         :return: None.
         """
         for mesh in meshes:
-            cls._meshes.append(mesh)
+            self._meshes.append(mesh)
+        return
 
-    @classmethod
-    def capture(cls, filename='capture.png', clear=True, view='iso',
-                white_bg=False, fit=True, xy1=None, xy2=None):
-        """
-        Capture a screenshot from the viewer.
-
-        :param str filename: The name of the file. The type will be
-            automatically deduced from the extension.
-        :param bool clear: Clear the items after rendering.
-        :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
-            'right', 'front', 'bottom').
-        :param bool white_bg: Option to make the background white.
-        :param bool fit: Option to fit contents to screen.
-        :param array_like xy1: Lower corner for zooming.
-        :param array_like xy2: Upper corner for zooming.
-
-        :return: None.
-        """
-        disp, start_display, _, _ = init_display()
-        for item in cls._items:
-            try:
-                disp.DisplayShape(item, color=item.color,
-                                  transparency=item.transparency,
-                                  material=Graphic3d_NOM_DEFAULT)
-            except TypeError:
-                # Hack for some geometry items
-                disp.DisplayShape(item.object, color=item.color,
-                                  transparency=item.transparency,
-                                  material=Graphic3d_NOM_DEFAULT)
-
-            if item.mirror:
-                mirrored = item.get_mirrored()
-                disp.DisplayShape(mirrored, color=item.color,
-                                  transparency=item.transparency,
-                                  material=Graphic3d_NOM_DEFAULT)
-
-        for mesh in cls._meshes:
-            _display_smesh(disp, mesh)
-
-        view = view.lower()
-        if view in ['i', 'iso', 'isometric']:
-            disp.View_Iso()
-        elif view in ['t', 'top']:
-            disp.View_Top()
-        elif view in ['b', 'bottom']:
-            disp.View_Bottom()
-        elif view in ['l', 'left']:
-            disp.View_Left()
-        elif view in ['r', 'right']:
-            disp.View_Right()
-        elif view in ['f', 'front']:
-            disp.View_Front()
-        elif view in ['rear']:
-            disp.View_Rear()
-
-        if white_bg:
-            disp.set_bg_gradient_color(255, 255, 255, 255, 255, 255)
-
-        if xy1 is not None and xy2 is not None:
-            xmin = disp.View.Convert(xy1[0])
-            ymin = disp.View.Convert(xy1[1])
-            xmax = disp.View.Convert(xy2[0])
-            ymax = disp.View.Convert(xy2[1])
-            disp.View.FitAll(xmin, ymin, xmax, ymax)
-            fit = False
-
+    def capture(self, filename='capture.png', view='iso', fit=True):
+        self._win.show()
+        self.change_view(view)
         if fit:
-            disp.FitAll()
-
-        disp.Repaint()
-        disp.View.Dump(filename)
-
-        if clear:
-            cls.clear()
+            self._disp.FitAll()
+        self._disp.Repaint()
+        self._disp.View.Dump(filename)
+        self._win.close()
+        return
 
 
 def _display_smesh(display, mesh):
