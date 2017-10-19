@@ -9,7 +9,6 @@ from OCC.TopoDS import topods_Edge
 
 from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
-from afem.topology.fix import FixShape
 
 __all__ = ["DivideClosedShape", "DivideC0Shape", "UnifyShape",
            "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool",
@@ -344,22 +343,15 @@ class RebuildShapeWithShapes(object):
         cmp = CompoundByShapes(new_shapes).compound
         self._tool.Replace(old_shape, cmp)
 
-    def apply(self, fix=False):
+    def apply(self):
         """
         Apply the substitutions to the original old shape and return a new
         shape.
 
-        :param bool fix: Option to use :class:`.FixShape` on the new shape in
-            case the substitutions caused errors (e.g., like a solid is now a
-            shell).
-
         :return: The new shape.
         :rtype: OCC.TopoDS.TopoDS_Shape
         """
-        new_shape = self._tool.Apply(self._old_shape)
-        if not fix:
-            return new_shape
-        return FixShape(new_shape).shape
+        return self._tool.Apply(self._old_shape)
 
 
 class RebuildShapeByTool(object):
@@ -371,9 +363,6 @@ class RebuildShapeByTool(object):
     :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopAlgo
-    :param bool fix: Option to use :class:`.FixShape` on the new shape in
-        case the substitutions caused errors (e.g., like a solid is now a
-        shell).
 
     :raise ValueError: If there are no sub-shapes to substitute.
 
@@ -399,7 +388,7 @@ class RebuildShapeByTool(object):
     True
     """
 
-    def __init__(self, old_shape, tool, fix=False):
+    def __init__(self, old_shape, tool):
         reshape = ShapeBuild_ReShape()
 
         # TODO Consider iterating through all shapes?
@@ -426,11 +415,7 @@ class RebuildShapeByTool(object):
                 new_shape = CompoundByShapes(mod_shapes).compound
                 reshape.Replace(shape, new_shape)
 
-        new_shape = reshape.Apply(old_shape)
-        if fix:
-            self._new_shape = FixShape(new_shape).shape
-        else:
-            self._new_shape = new_shape
+        self._new_shape = reshape.Apply(old_shape)
 
     @property
     def new_shape(self):
@@ -455,12 +440,9 @@ class RebuildShapesByTool(object):
     :param list[OCC.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopAlgo
-    :param bool fix: Option to use :class:`.FixShape` on the new shape in
-        case the substitutions caused errors (e.g., like a solid is now a
-        shell).
     """
 
-    def __init__(self, old_shapes, tool, fix=False):
+    def __init__(self, old_shapes, tool):
         reshape = ShapeBuild_ReShape()
 
         self._new_shapes = TopTools_DataMapOfShapeShape()
@@ -497,9 +479,6 @@ class RebuildShapesByTool(object):
                     reshape.Replace(shape, new_shape)
 
             new_shape = reshape.Apply(old_shape)
-            if fix:
-                new_shape = FixShape(new_shape).shape
-
             self._new_shapes.Bind(old_shape, new_shape)
 
     def new_shape(self, old_shape):
