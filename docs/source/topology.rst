@@ -321,10 +321,6 @@ Fix
 ---
 .. py:currentmodule:: afem.topology.fix
 
-FixTolerance
-~~~~~~~~~~~~
-.. autoclass:: FixTolerance
-
 FixShape
 ~~~~~~~~
 .. autoclass:: FixShape

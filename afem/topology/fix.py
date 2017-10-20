@@ -2,45 +2,9 @@ from OCC.ShapeBuild import ShapeBuild_ReShape
 from OCC.ShapeFix import ShapeFix_Shape, ShapeFix_ShapeTolerance
 from OCC.TopAbs import TopAbs_SHAPE
 
-__all__ = ["FixTolerance", "FixShape"]
+__all__ = ["FixShape"]
 
 _fix_tol = ShapeFix_ShapeTolerance()
-
-
-class FixTolerance(object):
-    """
-    Methods for adjusting shape tolerances.
-    """
-
-    @staticmethod
-    def limit_tolerance(shape, tmin, tmax=0., styp=TopAbs_SHAPE):
-        """
-        Limit tolerances in a shape.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param float tmin: The minimum tolerance.
-        :param float tmax: The maximum tolerance.
-        :param OCC.TopAbs.TopAbs_ShapeEnum styp: The level of shape to set
-            (i.e., only vertices, only edges, only faces, or all shapes).
-
-        :return: *True* if at least one tolerance of a sub-shape was modified.
-        :rtype: bool
-        """
-        return _fix_tol.LimitTolerance(shape, tmin, tmax, styp)
-
-    @staticmethod
-    def set_tolerance(shape, tol, styp=TopAbs_SHAPE):
-        """
-        Enforce tolerance on the given shape.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param float tol: The tolerance.
-        :param OCC.TopAbs.TopAbs_ShapeEnum styp: The level of shape to set
-            (i.e., only vertices, only edges, only faces, or all shapes).
-
-        :return: None.
-        """
-        return _fix_tol.SetTolerance(shape, tol, styp)
 
 
 class FixShape(object):
@@ -99,3 +63,33 @@ class FixShape(object):
         :rtype: OCC.TopoDS.TopoDS_Shape
         """
         return self.context.Apply(shape)
+
+    @staticmethod
+    def limit_tolerance(shape, tmin, tmax=0., styp=TopAbs_SHAPE):
+        """
+        Limit tolerances in a shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param float tmin: The minimum tolerance.
+        :param float tmax: The maximum tolerance.
+        :param OCC.TopAbs.TopAbs_ShapeEnum styp: The level of shape to set
+            (i.e., only vertices, only edges, only faces, or all shapes).
+
+        :return: *True* if at least one tolerance of a sub-shape was modified.
+        :rtype: bool
+        """
+        return _fix_tol.LimitTolerance(shape, tmin, tmax, styp)
+
+    @staticmethod
+    def set_tolerance(shape, tol, styp=TopAbs_SHAPE):
+        """
+        Enforce tolerance on the given shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param float tol: The tolerance.
+        :param OCC.TopAbs.TopAbs_ShapeEnum styp: The level of shape to set
+            (i.e., only vertices, only edges, only faces, or all shapes).
+
+        :return: None.
+        """
+        return _fix_tol.SetTolerance(shape, tol, styp)
