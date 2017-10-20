@@ -18,7 +18,7 @@ class FixAssembly(object):
     :raise TypeError: If an :class:`.Assembly` instance is not found.
     """
 
-    def __init__(self, assy, precision=None, min_tol=None, max_tol=None):
+    def __init__(self, assy=None, precision=None, min_tol=None, max_tol=None):
         assy = AssemblyAPI.get_assy(assy)
         if not isinstance(assy, Assembly):
             raise TypeError('Could not find assembly.')
@@ -33,7 +33,7 @@ class FixAssembly(object):
             part.set_shape(new_shape)
 
     @staticmethod
-    def limit_tolerance(assy, tol=1.0e-7):
+    def limit_tolerance(assy=None, tol=1.0e-7):
         """
         Limit tolerances for the assembly shapes.
 
@@ -55,7 +55,7 @@ class FixAssembly(object):
         return FixShape.limit_tolerance(shape, tol)
 
     @staticmethod
-    def set_tolerance(assy, tol):
+    def set_tolerance(assy=None, tol=1.0e7):
         """
         Enforce tolerance on the given assembly.
 

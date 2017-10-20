@@ -236,18 +236,12 @@ def build_wingbox(wing, params):
     Viewer.add(*AssemblyAPI.get_parts())
     Viewer.show()
 
-    for part in internal_parts:
-        part.check()
-
     # SKIN --------------------------------------------------------------------
     skin = SkinByBody('wing skin', wing, False).skin
 
     # Join the wing skin and internal structure
     all_parts = AssemblyAPI.get_parts(order=True)
-    # TODO Fuse algorithm fails, but split seems to work?
-    # skin.fuse(*internal_parts)
-    SplitParts(all_parts)
-    skin.check()
+    skin.fuse(*internal_parts)
 
     # Discard faces touching reference surface.
     skin.discard_by_dmin(wing.sref_shape, 0.1)
@@ -345,8 +339,9 @@ def build_wingbox(wing, params):
     mapped_hyp = MeshAPI.hypotheses.create_quadrangle_parameters('quad hyp')
     mapped_algo = MeshAPI.hypotheses.create_quadrangle_aglo('quad algo')
     for part_ in internal_parts:
-        MeshAPI.add_hypothesis(mapped_hyp, part_)
-        MeshAPI.add_hypothesis(mapped_algo, part_)
+        if mapped_algo.is_applicable(part_):
+            MeshAPI.add_hypothesis(mapped_hyp, part_)
+            MeshAPI.add_hypothesis(mapped_algo, part_)
 
     # Compute the mesh
     mesh_start = time.time()

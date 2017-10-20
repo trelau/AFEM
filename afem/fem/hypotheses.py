@@ -332,7 +332,7 @@ class Quadrangle2D(Hypothesis):
                                                     _mesh_gen)
         super(Quadrangle2D, self).__init__(label)
 
-    def is_applicable(self, shape, check_all):
+    def is_applicable(self, shape, check_all=True):
         """
         Check if this algorithm can mesh the shape.
 
