@@ -159,7 +159,7 @@ class OffsetShape(object):
 
     def __init__(self, shape, offset, tol=None, join_mode='arc'):
         if tol is None:
-            tol = ExploreShape.get_tolerance(shape)
+            tol = ExploreShape.global_tolerance(shape)
 
         join_mode = occ_join_type[join_mode.lower()]
 

@@ -149,7 +149,7 @@ class SewShape(object):
             if shape is None:
                 tol = 1.0e-7
             else:
-                tol = ExploreShape.get_tolerance(shape)
+                tol = ExploreShape.global_tolerance(shape)
 
         self._tool = BRepBuilderAPI_Sewing(tol, True, True, cut_free_edges,
                                            non_manifold)

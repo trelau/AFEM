@@ -117,7 +117,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The average tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.get_tolerance(self, 0)
+        return ExploreShape.global_tolerance(self, 0)
 
     @property
     def max_tol(self):
@@ -125,7 +125,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The maximum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.get_tolerance(self, 1)
+        return ExploreShape.global_tolerance(self, 1)
 
     @property
     def min_tol(self):
@@ -133,7 +133,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The minimum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.get_tolerance(self, 2)
+        return ExploreShape.global_tolerance(self, 2)
 
     @property
     def metadata(self):
@@ -1337,9 +1337,9 @@ class SurfacePart(Part):
         """
         parts = [self] + list(other_parts)
 
-        tol = mean([ExploreShape.get_tolerance(part, 0) for part in parts],
+        tol = mean([ExploreShape.global_tolerance(part, 0) for part in parts],
                    dtype=float)
-        max_tol = max([ExploreShape.get_tolerance(part, 1) for part in parts])
+        max_tol = max([ExploreShape.global_tolerance(part, 1) for part in parts])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
                        non_manifold=True)

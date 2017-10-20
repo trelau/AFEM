@@ -65,20 +65,19 @@ class FixShape(object):
         return self.context.Apply(shape)
 
     @staticmethod
-    def limit_tolerance(shape, tmin, tmax=0., styp=TopAbs_SHAPE):
+    def limit_tolerance(shape, tol=1.0e-7, styp=TopAbs_SHAPE):
         """
         Limit tolerances in a shape.
 
         :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-        :param float tmin: The minimum tolerance.
-        :param float tmax: The maximum tolerance.
+        :param float tol: Target tolerance.
         :param OCC.TopAbs.TopAbs_ShapeEnum styp: The level of shape to set
             (i.e., only vertices, only edges, only faces, or all shapes).
 
         :return: *True* if at least one tolerance of a sub-shape was modified.
         :rtype: bool
         """
-        return _fix_tol.LimitTolerance(shape, tmin, tmax, styp)
+        return _fix_tol.LimitTolerance(shape, tol, 0., styp)
 
     @staticmethod
     def set_tolerance(shape, tol, styp=TopAbs_SHAPE):

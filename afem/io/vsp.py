@@ -348,7 +348,7 @@ def _build_solid(compound, divide_closed):
         if not check_shp.IsValid():
             logger.info('...solid could not be fixed.')
     else:
-        tol = ExploreShape.get_tolerance(solid)
+        tol = ExploreShape.global_tolerance(solid)
         logger.info('Successfully generated solid. Tol={0}'.format(tol))
 
     return solid

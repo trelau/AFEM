@@ -10,7 +10,8 @@ from OCC.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCC.ShapeAnalysis import (ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds,
                                ShapeAnalysis_ShapeTolerance)
 from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE,
-                        TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE)
+                        TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE,
+                        TopAbs_SHAPE)
 from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                         TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex,
@@ -300,7 +301,7 @@ class ExploreShape(object):
             e = topods_Edge(exp.Current())
             exp.Next()
             adp_crv = BRepAdaptor_Curve(e)
-            tol = ExploreShape.get_tolerance(e, 1)
+            tol = ExploreShape.global_tolerance(e, 1)
             geom_convert.Add(adp_crv.BSpline(), tol)
         h_crv = geom_convert.BSplineCurve()
         if h_crv.IsNull():
@@ -430,7 +431,23 @@ class ExploreShape(object):
         return u1, u2
 
     @staticmethod
-    def get_tolerance(shape, mode=0):
+    def local_tolerance(shape, mode=0, styp=TopAbs_SHAPE):
+        """
+        Compute the local tolerance of the shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param int mode: Average (0), maximal (1), minimal (2)
+        :param OCC.TopAbs.TopAbs_ShapeEnum styp: The level of shape to examine
+            (i.e., only vertices, only edges, only faces, or all shapes).
+
+        :return: The tolerance.
+        :rtype: float
+        """
+        tol = ShapeAnalysis_ShapeTolerance()
+        return tol.Tolerance(shape, mode, styp)
+
+    @staticmethod
+    def global_tolerance(shape, mode=0):
         """
         Compute the global tolerance of the shape.
 

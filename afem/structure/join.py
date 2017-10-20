@@ -90,8 +90,8 @@ class FuseSurfacePartsByCref(object):
                 if not main.has_cref or not other.has_cref:
                     continue
                 if tol is None:
-                    tol1 = ExploreShape.get_tolerance(main, 1)
-                    tol2 = ExploreShape.get_tolerance(other, 1)
+                    tol1 = ExploreShape.global_tolerance(main, 1)
+                    tol2 = ExploreShape.global_tolerance(other, 1)
                     tol = max(tol1, tol2)
                 e1 = EdgeByCurve(main.cref).edge
                 e2 = EdgeByCurve(other.cref).edge
@@ -163,11 +163,11 @@ class SewSurfaceParts(object):
         parts = list(parts)
 
         if tol is None:
-            tol = mean([ExploreShape.get_tolerance(part, 0) for part in parts],
+            tol = mean([ExploreShape.global_tolerance(part, 0) for part in parts],
                        dtype=float)
 
         if max_tol is None:
-            max_tol = max([ExploreShape.get_tolerance(part, 1) for part
+            max_tol = max([ExploreShape.global_tolerance(part, 1) for part
                            in parts])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
