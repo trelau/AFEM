@@ -48,14 +48,18 @@ class FixShape(object):
     Attempt to fix the shape by applying a number of general fixes.
 
     :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param float precision: Basic precision value.
     :param float min_tol: Minimum allowed tolerance.
     :param float max_tol: Maximum allowed tolerance.
     :param OCC.TopoDS.TopoDS_Shape context: The context shape.
     """
 
-    def __init__(self, shape, min_tol=None, max_tol=None, context=None):
-        # TODO Option to set specific tools
+    def __init__(self, shape, precision=None, min_tol=None, max_tol=None,
+                 context=None):
         self._tool = ShapeFix_Shape()
+
+        if precision is not None:
+            self._tool.SetPrecision(precision)
         if min_tol is not None:
             self._tool.SetMinTolerance(min_tol)
         if max_tol is not None:

@@ -391,8 +391,6 @@ class RebuildShapeByTool(object):
     def __init__(self, old_shape, tool):
         reshape = ShapeBuild_ReShape()
 
-        # TODO Consider iterating through all shapes?
-
         # Old shapes
         old_shapes = ExploreShape.get_faces(old_shape)
         if not old_shapes:

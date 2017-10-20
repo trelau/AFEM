@@ -847,11 +847,12 @@ class Part(TopoDS_Shape, ViewableItem):
                         self.label])
         raise RuntimeError(msg)
 
-    def fix(self, min_tol=None, max_tol=None, context=None,
+    def fix(self, precision=None, min_tol=None, max_tol=None, context=None,
             include_subassy=True):
         """
         Attempt to fix the shape of the part.
 
+        :param float precision: Basic precision value.
         :param float min_tol: Minimum tolerance.
         :param float max_tol: Maximum tolerance.
         :param context: The context shape or assembly.
@@ -866,7 +867,7 @@ class Part(TopoDS_Shape, ViewableItem):
             if not isinstance(context, TopoDS_Shape):
                 context = AssemblyAPI.as_compound(context, include_subassy)
 
-        new_shape = FixShape(self, min_tol, max_tol, context).shape
+        new_shape = FixShape(self, precision, min_tol, max_tol, context).shape
         self.set_shape(new_shape)
 
     def cut(self, cutter):
