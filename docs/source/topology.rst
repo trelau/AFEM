@@ -281,6 +281,10 @@ CutCylindricalHole
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: CutCylindricalHole
 
+LocalSplit
+~~~~~~~~~~
+.. autoclass:: LocalSplit
+
 Offset
 ------
 .. py:currentmodule:: afem.topology.offset

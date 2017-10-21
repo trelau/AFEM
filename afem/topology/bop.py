@@ -3,7 +3,7 @@ from warnings import warn
 from OCC.BOPAlgo import BOPAlgo_MakerVolume
 from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
-from OCC.BRepFeat import BRepFeat_MakeCylindricalHole
+from OCC.BRepFeat import BRepFeat_Builder, BRepFeat_MakeCylindricalHole
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
 from OCC.TopoDS import topods_Solid
 
@@ -15,7 +15,7 @@ from afem.topology.explore import ExploreShape
 
 __all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes", "VolumesFromShapes",
-           "CutCylindricalHole"]
+           "CutCylindricalHole", "LocalSplit"]
 
 
 class BopAlgo(object):
@@ -103,7 +103,8 @@ class BopAlgo(object):
         :rtype: bool
         """
         if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole)):
+                                  BRepFeat_MakeCylindricalHole,
+                                  BRepFeat_Builder)):
             return self._bop.ErrorStatus() == 0
         return self._bop.IsDone()
 
@@ -138,7 +139,8 @@ class BopAlgo(object):
         :return: None.
         """
         if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole)):
+                                  BRepFeat_MakeCylindricalHole,
+                                  BRepFeat_Builder)):
             warn('Refining edges not available. Doing nothing.',
                  RuntimeWarning)
         else:
@@ -151,7 +153,8 @@ class BopAlgo(object):
         :rtype: bool
         """
         if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole)):
+                                  BRepFeat_MakeCylindricalHole,
+                                  BRepFeat_Builder)):
             return False
         else:
             return self._bop.FuseEdges()
@@ -164,7 +167,8 @@ class BopAlgo(object):
         :rtype: list[OCC.TopoDS.TopoDS_Edge]
         """
         if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole)):
+                                  BRepFeat_MakeCylindricalHole,
+                                  BRepFeat_Builder)):
             warn('Getting section edges not available. Returning an empty '
                  'list.', RuntimeWarning)
             return []
@@ -564,6 +568,24 @@ class CutCylindricalHole(BopAlgo):
 
         self._bop.Init(shape, ax1)
         self._bop.Perform(radius)
+
+
+class LocalSplit(BopAlgo):
+    """
+    Perform a local split of a shape in the context of a basis shape.
+    """
+
+    def __init__(self, shape, basis_shape, tool, parallel=True,
+                 fuzzy_val=None):
+        raise NotImplementedError('LocalSplit not yet implemented.')
+        super(LocalSplit, self).__init__(None, None, parallel, fuzzy_val,
+                                         BRepFeat_Builder)
+
+        self._bop.Init(shape, tool)
+        self._bop.SetOperation(0)
+        self._bop.KeepPart(basis_shape)
+        self._bop.Perform()
+        self._bop.RebuildFaces()
 
 
 if __name__ == "__main__":
