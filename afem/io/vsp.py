@@ -153,6 +153,8 @@ def _import_vsp_step(fname, divide_closed):
         entity = transfer_reader.EntityFromShapeResult(compound, 1)
         rep_item = StepRepr_RepresentationItem().GetHandle().DownCast(entity)
         name = rep_item.GetObject().Name().GetObject().ToCString()
+
+        # Unnamed body
         if not name:
             indx += 1
             comp_name = '.'.join(['Body', str(indx)])
@@ -202,6 +204,13 @@ def _import_vsp_step(fname, divide_closed):
             if fuse is not None:
                 fuse.set_name(comp_name)
                 bodies[comp_name] = fuse
+
+        # Unknown
+        else:
+            solid = _build_solid(compound, divide_closed)
+            if solid:
+                body = Body(solid)
+                bodies[comp_name] = body
 
         # Next shape.
         iterator.Next()
