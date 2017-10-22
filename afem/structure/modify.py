@@ -16,8 +16,11 @@ class DiscardByCref(object):
         self._status = {}
 
         for part in parts:
-            status = part.discard_by_cref()
-            self._status[part] = status
+            if part.has_cref:
+                status = part.discard_by_cref()
+                self._status[part] = status
+            else:
+                self._status[part] = False
 
     def was_modified(self, part):
         """
