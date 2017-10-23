@@ -3,9 +3,9 @@ from warnings import warn
 from OCC.BOPAlgo import BOPAlgo_MakerVolume
 from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
-from OCC.BRepFeat import BRepFeat_Builder, BRepFeat_MakeCylindricalHole
+from OCC.BRepFeat import BRepFeat_SplitShape, BRepFeat_MakeCylindricalHole
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
-from OCC.TopoDS import topods_Solid
+from OCC.TopoDS import topods_Solid, TopoDS_Face
 
 from afem.geometry.check import CheckGeom
 from afem.occ.utils import (to_lst_from_toptools_listofshape,
@@ -423,6 +423,36 @@ class IntersectShapes(BopAlgo):
         if build1 and build2:
             self._bop.Build()
 
+    def has_ancestor_face1(self, edge):
+        """
+        Get the ancestor face on the intersection edge on the first shape
+        if available.
+
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+
+        :return: *True* and the face if available, *False* and *None* if not.
+        :rtype: tuple(bool, OCC.TopoDS.TopoDS_Face or None)
+        """
+        f = TopoDS_Face()
+        if self._bop.HasAncestorFaceOn1(edge, f):
+            return True, f
+        return False, None
+
+    def has_ancestor_face2(self, edge):
+        """
+        Get the ancestor face on the intersection edge on the second shape
+        if available.
+
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+
+        :return: *True* and the face if available, *False* and *None* if not.
+        :rtype: tuple(bool, OCC.TopoDS.TopoDS_Face or None)
+        """
+        f = TopoDS_Face()
+        if self._bop.HasAncestorFaceOn2(edge, f):
+            return True, f
+        return False, None
+
 
 class SplitShapes(BopAlgo):
     """
@@ -575,22 +605,30 @@ class CutCylindricalHole(BopAlgo):
         self._bop.Perform(radius)
 
 
-class LocalSplit(BopAlgo):
+class LocalSplit(object):
     """
     Perform a local split of a shape in the context of a basis shape.
     """
 
-    def __init__(self, shape, basis_shape, tool, parallel=True,
-                 fuzzy_val=None):
-        raise NotImplementedError('LocalSplit not yet implemented.')
-        super(LocalSplit, self).__init__(None, None, parallel, fuzzy_val,
-                                         BRepFeat_Builder)
+    def __init__(self, shape, basis_shape, tool, approximate=False,
+                 parallel=True, fuzzy_val=None):
 
-        self._bop.Init(shape, tool)
-        self._bop.SetOperation(0)
-        self._bop.KeepPart(basis_shape)
-        self._bop.Perform()
-        self._bop.RebuildFaces()
+        # Intersect
+        bop = IntersectShapes(shape, tool, True, False, approximate, parallel,
+                              fuzzy_val)
+        sec_edges = bop.edges
+
+        # Split
+        self._split = BRepFeat_SplitShape(basis_shape)
+        for e in sec_edges:
+            f = TopoDS_Face()
+            if bop.
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
