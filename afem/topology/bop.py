@@ -13,7 +13,7 @@ from afem.occ.utils import (to_lst_from_toptools_listofshape,
 from afem.topology.check import CheckShape
 from afem.topology.explore import ExploreShape
 
-__all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
+__all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes", "VolumesFromShapes",
            "CutCylindricalHole", "LocalSplit"]
 
@@ -629,6 +629,18 @@ class LocalSplit(BopCore):
     :param bool approximate: Option to approximate intersection curves.
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> from afem.topology import *
+    >>> pln = PlaneByAxes().plane
+    >>> builder = SolidByPlane(pln, 5., 5., 5.)
+    >>> box = builder.solid
+    >>> tool = PlaneByAxes(axes='xy').plane
+    >>> face = ExploreShape.get_faces(box)[0]
+    >>> split = LocalSplit(face, tool, box)
+    >>> assert split.is_done
     """
 
     def __init__(self, shape, tool, basis_shape, approximate=False,

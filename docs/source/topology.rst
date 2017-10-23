@@ -249,6 +249,10 @@ Boolean
 -------
 .. py:currentmodule:: afem.topology.bop
 
+BopCore
+~~~~~~~
+.. autoclass:: BopCore
+
 BopAlgo
 ~~~~~~~
 .. autoclass:: BopAlgo
