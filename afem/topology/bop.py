@@ -3,9 +3,9 @@ from warnings import warn
 from OCC.BOPAlgo import BOPAlgo_MakerVolume
 from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
-from OCC.BRepFeat import BRepFeat_SplitShape, BRepFeat_MakeCylindricalHole
+from OCC.BRepFeat import BRepFeat_MakeCylindricalHole, BRepFeat_SplitShape
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
-from OCC.TopoDS import topods_Solid, TopoDS_Face
+from OCC.TopoDS import TopoDS_Face, topods_Solid
 
 from afem.geometry.check import CheckGeom
 from afem.occ.utils import (to_lst_from_toptools_listofshape,
@@ -103,8 +103,7 @@ class BopAlgo(object):
         :rtype: bool
         """
         if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole,
-                                  BRepFeat_Builder)):
+                                  BRepFeat_MakeCylindricalHole)):
             return self._bop.ErrorStatus() == 0
         return self._bop.IsDone()
 
@@ -139,8 +138,7 @@ class BopAlgo(object):
         :return: None.
         """
         if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole,
-                                  BRepFeat_Builder)):
+                                  BRepFeat_MakeCylindricalHole)):
             warn('Refining edges not available. Doing nothing.',
                  RuntimeWarning)
         else:
@@ -153,8 +151,7 @@ class BopAlgo(object):
         :rtype: bool
         """
         if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole,
-                                  BRepFeat_Builder)):
+                                  BRepFeat_MakeCylindricalHole)):
             return False
         else:
             return self._bop.FuseEdges()
@@ -167,8 +164,7 @@ class BopAlgo(object):
         :rtype: list[OCC.TopoDS.TopoDS_Edge]
         """
         if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole,
-                                  BRepFeat_Builder)):
+                                  BRepFeat_MakeCylindricalHole)):
             warn('Getting section edges not available. Returning an empty '
                  'list.', RuntimeWarning)
             return []
@@ -367,6 +363,9 @@ class IntersectShapes(BopAlgo):
     :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     :param shape2: The second shape.
     :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :param bool compute_pcurve1: Option to compute p-curves on shape 1.
+    :param bool compute_pcurve2: Option to compute p-curves on shape 2.
+    :param bool approximate: Option to approximate intersection curves.
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
 
@@ -607,10 +606,19 @@ class CutCylindricalHole(BopAlgo):
 
 class LocalSplit(object):
     """
-    Perform a local split of a shape in the context of a basis shape.
+    Perform a local split of a shape in the context of a basis shape. This tool
+    only splits faces.
+
+    :param OCC.TopoDS.TopoDS_Shape shape: The local shape.
+    :param OCC.TopoDS.TopoDS_Shape tool: The tool to split with.
+    :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape that the local
+        shape is part of.
+    :param bool approximate: Option to approximate intersection curves.
+    :param bool parallel: Option to run in parallel mode.
+    :param float fuzzy_val: Fuzzy tolerance value.
     """
 
-    def __init__(self, shape, basis_shape, tool, approximate=False,
+    def __init__(self, shape, tool, basis_shape, approximate=False,
                  parallel=True, fuzzy_val=None):
 
         # Intersect
@@ -621,14 +629,51 @@ class LocalSplit(object):
         # Split
         self._split = BRepFeat_SplitShape(basis_shape)
         for e in sec_edges:
-            f = TopoDS_Face()
-            if bop.
+            status, f = bop.has_ancestor_face1(e)
+            if status:
+                self._split.Add(e, f)
+        self._split.Build()
 
+    @property
+    def shape(self):
+        """
+        :return: The resulting shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._split.Shape()
 
+    def modified(self, shape):
+        """
+        Return a list of shapes modified from the given shape.
 
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
 
+        :return: List of modified shapes.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._split.Modified(shape))
 
+    def generated(self, shape):
+        """
+        Return a list of shapes generated from the given shape.
 
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: List of generated shapes.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._split.Generated(shape))
+
+    def is_deleted(self, shape):
+        """
+        Check to see if shape is deleted.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if deleted, *False* if not.
+        :rtype: bool
+        """
+        return self._split.IsDeleted(shape)
 
 
 if __name__ == "__main__":
