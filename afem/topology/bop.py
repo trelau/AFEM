@@ -395,10 +395,15 @@ class IntersectShapes(BopAlgo):
     >>> assert bop.is_done
     """
 
-    def __init__(self, shape1=None, shape2=None, parallel=True,
+    def __init__(self, shape1=None, shape2=None, compute_pcurve1=False,
+                 compute_pcurve2=False, approximate=False, parallel=True,
                  fuzzy_val=None):
         super(IntersectShapes, self).__init__(None, None, parallel,
                                               fuzzy_val, BRepAlgoAPI_Section)
+
+        self._bop.ComputePCurveOn1(compute_pcurve1)
+        self._bop.ComputePCurveOn2(compute_pcurve2)
+        self._bop.Approximation(approximate)
 
         build1, build2 = False, False
         if CheckShape.is_shape(shape1):
