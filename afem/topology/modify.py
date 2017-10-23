@@ -362,7 +362,7 @@ class RebuildShapeByTool(object):
 
     :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape.
     :param tool: The tool.
-    :type tool: afem.topology.bop.BopAlgo
+    :type tool: afem.topology.bop.BopCore
 
     :raise ValueError: If there are no sub-shapes to substitute.
 
@@ -439,7 +439,7 @@ class RebuildShapesByTool(object):
 
     :param list[OCC.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
     :param tool: The tool.
-    :type tool: afem.topology.bop.BopAlgo
+    :type tool: afem.topology.bop.BopCore
     """
 
     def __init__(self, old_shapes, tool):

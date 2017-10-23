@@ -18,7 +18,80 @@ __all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "CutCylindricalHole", "LocalSplit"]
 
 
-class BopAlgo(object):
+class BopCore(object):
+    """
+    Core class for Boolean operations and enabling attributes and methods for
+    rebuilding shapes.
+    """
+
+    def __init__(self):
+        self._bop = None
+
+    def build(self):
+        """
+        Build the results.
+
+        :return: None.
+        """
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+            self._bop.Perform()
+        else:
+            self._bop.Build()
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if operation is done, *False* if not.
+        :rtype: bool
+        """
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+                                  BRepFeat_MakeCylindricalHole)):
+            return self._bop.ErrorStatus() == 0
+        return self._bop.IsDone()
+
+    @property
+    def shape(self):
+        """
+        :return: The resulting shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._bop.Shape()
+
+    def modified(self, shape):
+        """
+        Return a list of shapes modified from the given shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: List of modified shapes.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._bop.Modified(shape))
+
+    def generated(self, shape):
+        """
+        Return a list of shapes generated from the given shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: List of generated shapes.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._bop.Generated(shape))
+
+    def is_deleted(self, shape):
+        """
+        Check to see if shape is deleted.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if deleted, *False* if not.
+        :rtype: bool
+        """
+        return self._bop.IsDeleted(shape)
+
+
+class BopAlgo(BopCore):
     """
     Base class for Boolean operations.
 
@@ -37,6 +110,8 @@ class BopAlgo(object):
     """
 
     def __init__(self, shape1, shape2, parallel, fuzzy_val, bop):
+        super(BopAlgo, self).__init__()
+
         if CheckShape.is_shape(shape1) and CheckShape.is_shape(shape2):
             self._bop = bop(shape1, shape2)
         else:
@@ -84,36 +159,6 @@ class BopAlgo(object):
 
         tools = to_toptools_listofshape(shapes)
         self._bop.SetTools(tools)
-
-    def build(self):
-        """
-        Build the results.
-
-        :return: None.
-        """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
-            self._bop.Perform()
-        else:
-            self._bop.Build()
-
-    @property
-    def is_done(self):
-        """
-        :return: *True* if operation is done, *False* if not.
-        :rtype: bool
-        """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole)):
-            return self._bop.ErrorStatus() == 0
-        return self._bop.IsDone()
-
-    @property
-    def shape(self):
-        """
-        :return: The resulting shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
-        """
-        return self._bop.Shape()
 
     @property
     def vertices(self):
@@ -194,39 +239,6 @@ class BopAlgo(object):
         :rtype: bool
         """
         return self._bop.HasDeleted()
-
-    def modified(self, shape):
-        """
-        Return a list of shapes modified from the given shape.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: List of modified shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
-        """
-        return to_lst_from_toptools_listofshape(self._bop.Modified(shape))
-
-    def generated(self, shape):
-        """
-        Return a list of shapes generated from the given shape.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: List of generated shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
-        """
-        return to_lst_from_toptools_listofshape(self._bop.Generated(shape))
-
-    def is_deleted(self, shape):
-        """
-        Check to see if shape is deleted.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: *True* if deleted, *False* if not.
-        :rtype: bool
-        """
-        return self._bop.IsDeleted(shape)
 
 
 class FuseShapes(BopAlgo):
@@ -604,7 +616,7 @@ class CutCylindricalHole(BopAlgo):
         self._bop.Perform(radius)
 
 
-class LocalSplit(object):
+class LocalSplit(BopCore):
     """
     Perform a local split of a shape in the context of a basis shape. This tool
     only splits faces.
@@ -620,60 +632,20 @@ class LocalSplit(object):
 
     def __init__(self, shape, tool, basis_shape, approximate=False,
                  parallel=True, fuzzy_val=None):
+        super(LocalSplit, self).__init__()
 
         # Intersect
-        bop = IntersectShapes(shape, tool, True, False, approximate, parallel,
-                              fuzzy_val)
-        sec_edges = bop.edges
+        section = IntersectShapes(shape, tool, True, False, approximate,
+                                  parallel, fuzzy_val)
+        sec_edges = section.edges
 
         # Split
-        self._split = BRepFeat_SplitShape(basis_shape)
+        self._bop = BRepFeat_SplitShape(basis_shape)
         for e in sec_edges:
-            status, f = bop.has_ancestor_face1(e)
+            status, f = section.has_ancestor_face1(e)
             if status:
-                self._split.Add(e, f)
-        self._split.Build()
-
-    @property
-    def shape(self):
-        """
-        :return: The resulting shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
-        """
-        return self._split.Shape()
-
-    def modified(self, shape):
-        """
-        Return a list of shapes modified from the given shape.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: List of modified shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
-        """
-        return to_lst_from_toptools_listofshape(self._split.Modified(shape))
-
-    def generated(self, shape):
-        """
-        Return a list of shapes generated from the given shape.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: List of generated shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
-        """
-        return to_lst_from_toptools_listofshape(self._split.Generated(shape))
-
-    def is_deleted(self, shape):
-        """
-        Check to see if shape is deleted.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: *True* if deleted, *False* if not.
-        :rtype: bool
-        """
-        return self._split.IsDeleted(shape)
+                self._bop.Add(e, f)
+        self.build()
 
 
 if __name__ == "__main__":

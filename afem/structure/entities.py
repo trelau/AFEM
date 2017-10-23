@@ -932,7 +932,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Rebuild the part shape with a supported tool.
 
-        :param afem.topology.bop.BopAlgo tool: The tool.
+        :param afem.topology.bop.BopCore tool: The tool.
 
         :return: *True* if modified, *False* if not.
         :rtype: bool
