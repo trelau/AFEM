@@ -7,15 +7,15 @@ from afem.fem.elements import Elm1D, Elm2D
 from afem.fem.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
-                                  PointFromParameter, TrimmedCurveByCurve,
-                                  PointsAlongCurveByNumber)
+                                  PointFromParameter, PointsAlongCurveByNumber,
+                                  TrimmedCurveByCurve)
 from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
 from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
-                               IntersectShapes, SplitShapes, LocalSplit)
+                               IntersectShapes, LocalSplit, SplitShapes)
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   PointAlongShape, PointsAlongShapeByDistance,
@@ -45,6 +45,9 @@ class Part(TopoDS_Shape, ViewableItem):
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
     :type sref: afem.geometry.entities.Surface or None
+    :param assy: The assembly to add the part to. If not provided the part will
+        be added to the active assembly.
+    :type assy: str or afem.structure.assembly.Assembly or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -52,7 +55,7 @@ class Part(TopoDS_Shape, ViewableItem):
     _indx = 1
     _all = {}
 
-    def __init__(self, label, shape, cref=None, sref=None):
+    def __init__(self, label, shape, cref=None, sref=None, assy=None):
         # Initialize
         super(Part, self).__init__()
         ViewableItem.__init__(self)
@@ -73,8 +76,8 @@ class Part(TopoDS_Shape, ViewableItem):
         if sref is not None:
             self.set_sref(sref)
 
-        # Add to active assembly
-        AssemblyAPI.add_parts(None, self)
+        # Add to assembly
+        AssemblyAPI.add_parts(assy, self)
 
         msg = ' '.join(['Creating part:', label])
         logger.info(msg)
@@ -1127,13 +1130,16 @@ class CurvePart(Part):
     :param OCC.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
+    :param assy: The assembly to add the part to. If not provided the part will
+        be added to the active assembly.
+    :type assy: str or afem.structure.assembly.Assembly or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
     """
 
-    def __init__(self, label, shape, cref=None):
-        super(CurvePart, self).__init__(label, shape, cref, None)
+    def __init__(self, label, shape, cref=None, assy=None):
+        super(CurvePart, self).__init__(label, shape, cref, None, assy)
 
     @property
     def length(self):
@@ -1187,18 +1193,8 @@ class CurvePart(Part):
 class Beam(CurvePart):
     """
     Beam.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None):
-        super(Beam, self).__init__(label, shape, cref)
+    pass
 
 
 class SurfacePart(Part):
@@ -1211,13 +1207,16 @@ class SurfacePart(Part):
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
     :type sref: afem.geometry.entities.Surface or None
+    :param assy: The assembly to add the part to. If not provided the part will
+        be added to the active assembly.
+    :type assy: str or afem.structure.assembly.Assembly or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
     """
 
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(SurfacePart, self).__init__(label, shape, cref, sref)
+    def __init__(self, label, shape, cref=None, sref=None, assy=None):
+        super(SurfacePart, self).__init__(label, shape, cref, sref, assy)
 
     @property
     def length(self):
@@ -1339,7 +1338,8 @@ class SurfacePart(Part):
 
         tol = mean([ExploreShape.global_tolerance(part, 0) for part in parts],
                    dtype=float)
-        max_tol = max([ExploreShape.global_tolerance(part, 1) for part in parts])
+        max_tol = max(
+                [ExploreShape.global_tolerance(part, 1) for part in parts])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
                        non_manifold=True)
@@ -1513,205 +1513,75 @@ class SurfacePart(Part):
 class WingPart(SurfacePart):
     """
     Base class for wing parts.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(WingPart, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class Spar(WingPart):
     """
     Wing spar.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(Spar, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class Rib(WingPart):
     """
     Wing rib.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(Rib, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class FuselagePart(SurfacePart):
     """
     Base class for fuselage parts.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(FuselagePart, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class Bulkhead(FuselagePart):
     """
     Bulkhead.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(Bulkhead, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class Floor(FuselagePart):
     """
     Floor.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(Floor, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class Frame(FuselagePart):
     """
     Frame.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(Frame, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class Skin(SurfacePart):
     """
     Skin.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(Skin, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class Stiffener1D(CurvePart):
     """
     1-D stiffener for surface parts.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None):
-        super(Stiffener1D, self).__init__(label, shape, cref)
+    pass
 
 
 class Stiffener2D(SurfacePart):
     """
     2-D stiffener for surface parts.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(Stiffener2D, self).__init__(label, shape, cref, sref)
+    pass
 
 
 class Stringer(SurfacePart):
     """
     Stringer.
-
-    :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None):
-        super(Stringer, self).__init__(label, shape, cref, sref)
+    pass
