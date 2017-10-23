@@ -218,7 +218,7 @@ class PointsAlongCurveByNumber(object):
             else:
                 msg = "GCPnts_AbscissaPoint failed for u1."
                 warn(msg, RuntimeWarning)
-        if d1 is not None:
+        if d2 is not None:
             ap = GCPnts_AbscissaPoint(tol, adp_crv, d2, u2)
             if ap.IsDone():
                 u2 = ap.Parameter()
@@ -351,7 +351,7 @@ class PointsAlongCurveByDistance(object):
             else:
                 msg = "GCPnts_AbscissaPoint failed for u1."
                 warn(msg, RuntimeWarning)
-        if d1 is not None:
+        if d2 is not None:
             ap = GCPnts_AbscissaPoint(tol, adp_crv, d2, u2)
             if ap.IsDone():
                 u2 = ap.Parameter()
