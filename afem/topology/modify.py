@@ -408,7 +408,9 @@ class RebuildShapeByTool(object):
                 continue
 
             # Modified
-            mod_shapes = tool.modified(shape)
+            mod_shapes = [s for s in tool.modified(shape)
+                          if not s.IsSame(shape)]
+
             if mod_shapes:
                 new_shape = CompoundByShapes(mod_shapes).compound
                 reshape.Replace(shape, new_shape)
