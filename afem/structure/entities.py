@@ -15,7 +15,7 @@ from afem.geometry.project import (ProjectPointToCurve,
 from afem.graphics.viewer import ViewableItem
 from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
-                               IntersectShapes, SplitShapes)
+                               IntersectShapes, SplitShapes, LocalSplit)
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   PointAlongShape, PointsAlongShapeByDistance,
@@ -1395,6 +1395,25 @@ class SurfacePart(Part):
         unify = UnifyShape(self, edges, faces, bsplines)
         new_shape = unify.shape
         self.set_shape(new_shape)
+
+    def split_local(self, subshape, tool):
+        """
+        Locally split the faces of he sub-shape in the context of the part
+        shape.
+
+        :param OCC.TopoDS.TopoDS_Shape subshape: The sub-shape.
+        :param tool: The tool to split the sub-shape with.
+        :type tool: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+
+        :return: *True* if split, *False* if not.
+        :rtype: bool
+        """
+        bop = LocalSplit(subshape, tool, self)
+        if not bop.is_done:
+            return False
+
+        self.rebuild(bop)
+        return True
 
     def shared_edges(self, other):
         """

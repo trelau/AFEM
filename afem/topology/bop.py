@@ -622,7 +622,8 @@ class LocalSplit(BopCore):
     only splits faces.
 
     :param OCC.TopoDS.TopoDS_Shape shape: The local shape.
-    :param OCC.TopoDS.TopoDS_Shape tool: The tool to split with.
+    :param tool: The tool to split with.
+    :type tool: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape that the local
         shape is part of.
     :param bool approximate: Option to approximate intersection curves.
