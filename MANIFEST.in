@@ -1,5 +1,5 @@
 recursive-include examples *.py
-graft examples/models
+graft models
 include README.md
 include LICENSE.md
 include AUTHORS.md
