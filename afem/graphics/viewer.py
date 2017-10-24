@@ -116,11 +116,15 @@ class Viewer:
         self._items = shapes
         self._meshes = meshes
         self._draw_edges = draw_edges
+        self._white_bg = white_bg
         view_scale = 0.9
         screen_res = (int(view_scale * ctypes.windll.user32.GetSystemMetrics(0)),
                       int(view_scale * ctypes.windll.user32.GetSystemMetrics(1)))
-        self._disp, self._start_display, add_menu, add_function_to_menu = init_display(size=screen_res)
+        self._disp, self._start_display, add_menu, add_function_to_menu = init_display()
         self._win = add_menu.__closure__[0].cell_contents
+        self._win.move(0, 0)
+        self._win.resize(*screen_res)
+        self._win.centerOnScreen()
         self.set_display_shapes()
         self.change_view(view)
 
@@ -143,6 +147,14 @@ class Viewer:
         self._disp.Repaint()
         self._win.close()
         return
+
+    @property
+    def white_bg(self):
+        return self._white_bg
+
+    @white_bg.setter
+    def white_bg(self, b):
+        self._white_bg = b
 
     @property
     def draw_edges(self):
