@@ -98,7 +98,7 @@ class BeamByShape(object):
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
     :param assy: The assembly to add the part to. If not provided the part will
-    be added to the active assembly.
+        be added to the active assembly.
     :type assy: str or afem.structure.assembly.Assembly or None
 
     Usage:
