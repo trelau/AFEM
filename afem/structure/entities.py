@@ -15,7 +15,7 @@ from afem.geometry.project import (ProjectPointToCurve,
 from afem.graphics.viewer import ViewableItem
 from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
-                               IntersectShapes, SplitShapes)
+                               IntersectShapes, SplitShapes, LocalSplit)
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   PointAlongShape, PointsAlongShapeByDistance,
@@ -117,7 +117,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The average tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.get_tolerance(self, 0)
+        return ExploreShape.global_tolerance(self, 0)
 
     @property
     def max_tol(self):
@@ -125,7 +125,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The maximum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.get_tolerance(self, 1)
+        return ExploreShape.global_tolerance(self, 1)
 
     @property
     def min_tol(self):
@@ -133,7 +133,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The minimum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.get_tolerance(self, 2)
+        return ExploreShape.global_tolerance(self, 2)
 
     @property
     def metadata(self):
@@ -847,11 +847,12 @@ class Part(TopoDS_Shape, ViewableItem):
                         self.label])
         raise RuntimeError(msg)
 
-    def fix(self, min_tol=None, max_tol=None, context=None,
+    def fix(self, precision=None, min_tol=None, max_tol=None, context=None,
             include_subassy=True):
         """
         Attempt to fix the shape of the part.
 
+        :param float precision: Basic precision value.
         :param float min_tol: Minimum tolerance.
         :param float max_tol: Maximum tolerance.
         :param context: The context shape or assembly.
@@ -866,7 +867,7 @@ class Part(TopoDS_Shape, ViewableItem):
             if not isinstance(context, TopoDS_Shape):
                 context = AssemblyAPI.as_compound(context, include_subassy)
 
-        new_shape = FixShape(self, min_tol, max_tol, context).shape
+        new_shape = FixShape(self, precision, min_tol, max_tol, context).shape
         self.set_shape(new_shape)
 
     def cut(self, cutter):
@@ -931,7 +932,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Rebuild the part shape with a supported tool.
 
-        :param afem.topology.bop.BopAlgo tool: The tool.
+        :param afem.topology.bop.BopCore tool: The tool.
 
         :return: *True* if modified, *False* if not.
         :rtype: bool
@@ -1336,9 +1337,9 @@ class SurfacePart(Part):
         """
         parts = [self] + list(other_parts)
 
-        tol = mean([ExploreShape.get_tolerance(part, 0) for part in parts],
+        tol = mean([ExploreShape.global_tolerance(part, 0) for part in parts],
                    dtype=float)
-        max_tol = max([ExploreShape.get_tolerance(part, 1) for part in parts])
+        max_tol = max([ExploreShape.global_tolerance(part, 1) for part in parts])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
                        non_manifold=True)
@@ -1394,6 +1395,25 @@ class SurfacePart(Part):
         unify = UnifyShape(self, edges, faces, bsplines)
         new_shape = unify.shape
         self.set_shape(new_shape)
+
+    def split_local(self, subshape, tool):
+        """
+        Locally split the faces of he sub-shape in the context of the part
+        shape.
+
+        :param OCC.TopoDS.TopoDS_Shape subshape: The sub-shape.
+        :param tool: The tool to split the sub-shape with.
+        :type tool: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+
+        :return: *True* if split, *False* if not.
+        :rtype: bool
+        """
+        bop = LocalSplit(subshape, tool, self)
+        if not bop.is_done:
+            return False
+
+        self.rebuild(bop)
+        return True
 
     def shared_edges(self, other):
         """

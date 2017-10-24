@@ -10,6 +10,7 @@ from afem.topology.bop import IntersectShapes
 from afem.topology.check import CheckShape
 from afem.topology.create import FaceBySurface, WiresByConnectedEdges
 from afem.topology.distance import DistancePointToShapes
+from afem.topology.entities import BBox
 from afem.topology.modify import DivideC0Shape, DivideClosedShape
 
 __all__ = ["Body"]
@@ -355,3 +356,19 @@ class Body(TopoDS_Solid, ViewableItem):
         else:
             msg = 'Invalid parameter input.'
             raise TypeError(msg)
+
+    def bbox(self, tol=None):
+        """
+        Return a bounding box of the body.
+
+        :param tol: Optional tolerance to enlarge the bounding box.
+        :type tol: float or None
+
+        :return: Bounding box of the body.
+        :rtype: afem.topology.entities.BBox
+        """
+        bbox = BBox()
+        bbox.add_shape(self)
+        if tol is not None:
+            bbox.enlarge(tol)
+        return bbox

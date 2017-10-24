@@ -389,7 +389,7 @@ class WiresByConnectedEdges(object):
             hedges.Append(e)
 
         if tol is None:
-            tol = max([ExploreShape.get_tolerance(e, 1) for e in edges])
+            tol = max([ExploreShape.global_tolerance(e, 1) for e in edges])
 
         hwires = Handle_TopTools_HSequenceOfShape()
         ShapeAnalysis_FreeBounds_ConnectEdgesToWires(hedges.GetHandle(),
@@ -919,7 +919,7 @@ class ShellBySewing(object):
     def __init__(self, faces, tol=None, cut_free_edges=False,
                  non_manifold=False):
         if tol is None:
-            tol = max([ExploreShape.get_tolerance(f, 1) for f in faces])
+            tol = max([ExploreShape.global_tolerance(f, 1) for f in faces])
 
         tool = BRepBuilderAPI_Sewing(tol, True, True, cut_free_edges,
                                      non_manifold)

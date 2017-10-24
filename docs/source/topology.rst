@@ -249,6 +249,10 @@ Boolean
 -------
 .. py:currentmodule:: afem.topology.bop
 
+BopCore
+~~~~~~~
+.. autoclass:: BopCore
+
 BopAlgo
 ~~~~~~~
 .. autoclass:: BopAlgo
@@ -280,6 +284,10 @@ VolumesFromShapes
 CutCylindricalHole
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: CutCylindricalHole
+
+LocalSplit
+~~~~~~~~~~
+.. autoclass:: LocalSplit
 
 Offset
 ------
@@ -320,10 +328,6 @@ DistanceShapeToShapes
 Fix
 ---
 .. py:currentmodule:: afem.topology.fix
-
-FixTolerance
-~~~~~~~~~~~~
-.. autoclass:: FixTolerance
 
 FixShape
 ~~~~~~~~

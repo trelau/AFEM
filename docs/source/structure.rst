@@ -310,6 +310,14 @@ DiscardByCref
 ~~~~~~~~~~~~~
 .. autoclass:: DiscardByCref
 
+Fix
+---
+.. py:currentmodule:: afem.structure.fix
+
+FixAssembly
+~~~~~~~~~~~
+.. autoclass:: FixAssembly
+
 Check
 -----
 .. autoclass:: afem.structure.check.CheckPart

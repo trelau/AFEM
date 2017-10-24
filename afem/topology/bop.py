@@ -3,9 +3,9 @@ from warnings import warn
 from OCC.BOPAlgo import BOPAlgo_MakerVolume
 from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
-from OCC.BRepFeat import BRepFeat_MakeCylindricalHole
+from OCC.BRepFeat import BRepFeat_MakeCylindricalHole, BRepFeat_SplitShape
 from OCC.GEOMAlgo import GEOMAlgo_Splitter
-from OCC.TopoDS import topods_Solid
+from OCC.TopoDS import TopoDS_Face, topods_Solid
 
 from afem.geometry.check import CheckGeom
 from afem.occ.utils import (to_lst_from_toptools_listofshape,
@@ -13,12 +13,85 @@ from afem.occ.utils import (to_lst_from_toptools_listofshape,
 from afem.topology.check import CheckShape
 from afem.topology.explore import ExploreShape
 
-__all__ = ["BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
+__all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes", "VolumesFromShapes",
-           "CutCylindricalHole"]
+           "CutCylindricalHole", "LocalSplit"]
 
 
-class BopAlgo(object):
+class BopCore(object):
+    """
+    Core class for Boolean operations and enabling attributes and methods for
+    rebuilding shapes.
+    """
+
+    def __init__(self):
+        self._bop = None
+
+    def build(self):
+        """
+        Build the results.
+
+        :return: None.
+        """
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+            self._bop.Perform()
+        else:
+            self._bop.Build()
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if operation is done, *False* if not.
+        :rtype: bool
+        """
+        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+                                  BRepFeat_MakeCylindricalHole)):
+            return self._bop.ErrorStatus() == 0
+        return self._bop.IsDone()
+
+    @property
+    def shape(self):
+        """
+        :return: The resulting shape.
+        :rtype: OCC.TopoDS.TopoDS_Shape
+        """
+        return self._bop.Shape()
+
+    def modified(self, shape):
+        """
+        Return a list of shapes modified from the given shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: List of modified shapes.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._bop.Modified(shape))
+
+    def generated(self, shape):
+        """
+        Return a list of shapes generated from the given shape.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: List of generated shapes.
+        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._bop.Generated(shape))
+
+    def is_deleted(self, shape):
+        """
+        Check to see if shape is deleted.
+
+        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if deleted, *False* if not.
+        :rtype: bool
+        """
+        return self._bop.IsDeleted(shape)
+
+
+class BopAlgo(BopCore):
     """
     Base class for Boolean operations.
 
@@ -37,6 +110,8 @@ class BopAlgo(object):
     """
 
     def __init__(self, shape1, shape2, parallel, fuzzy_val, bop):
+        super(BopAlgo, self).__init__()
+
         if CheckShape.is_shape(shape1) and CheckShape.is_shape(shape2):
             self._bop = bop(shape1, shape2)
         else:
@@ -84,36 +159,6 @@ class BopAlgo(object):
 
         tools = to_toptools_listofshape(shapes)
         self._bop.SetTools(tools)
-
-    def build(self):
-        """
-        Build the results.
-
-        :return: None.
-        """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
-            self._bop.Perform()
-        else:
-            self._bop.Build()
-
-    @property
-    def is_done(self):
-        """
-        :return: *True* if operation is done, *False* if not.
-        :rtype: bool
-        """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
-                                  BRepFeat_MakeCylindricalHole)):
-            return self._bop.ErrorStatus() == 0
-        return self._bop.IsDone()
-
-    @property
-    def shape(self):
-        """
-        :return: The resulting shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
-        """
-        return self._bop.Shape()
 
     @property
     def vertices(self):
@@ -194,39 +239,6 @@ class BopAlgo(object):
         :rtype: bool
         """
         return self._bop.HasDeleted()
-
-    def modified(self, shape):
-        """
-        Return a list of shapes modified from the given shape.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: List of modified shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
-        """
-        return to_lst_from_toptools_listofshape(self._bop.Modified(shape))
-
-    def generated(self, shape):
-        """
-        Return a list of shapes generated from the given shape.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: List of generated shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
-        """
-        return to_lst_from_toptools_listofshape(self._bop.Generated(shape))
-
-    def is_deleted(self, shape):
-        """
-        Check to see if shape is deleted.
-
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: *True* if deleted, *False* if not.
-        :rtype: bool
-        """
-        return self._bop.IsDeleted(shape)
 
 
 class FuseShapes(BopAlgo):
@@ -363,6 +375,9 @@ class IntersectShapes(BopAlgo):
     :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     :param shape2: The second shape.
     :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :param bool compute_pcurve1: Option to compute p-curves on shape 1.
+    :param bool compute_pcurve2: Option to compute p-curves on shape 2.
+    :param bool approximate: Option to approximate intersection curves.
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
 
@@ -391,10 +406,15 @@ class IntersectShapes(BopAlgo):
     >>> assert bop.is_done
     """
 
-    def __init__(self, shape1=None, shape2=None, parallel=True,
+    def __init__(self, shape1=None, shape2=None, compute_pcurve1=False,
+                 compute_pcurve2=False, approximate=False, parallel=True,
                  fuzzy_val=None):
         super(IntersectShapes, self).__init__(None, None, parallel,
                                               fuzzy_val, BRepAlgoAPI_Section)
+
+        self._bop.ComputePCurveOn1(compute_pcurve1)
+        self._bop.ComputePCurveOn2(compute_pcurve2)
+        self._bop.Approximation(approximate)
 
         build1, build2 = False, False
         if CheckShape.is_shape(shape1):
@@ -413,6 +433,36 @@ class IntersectShapes(BopAlgo):
 
         if build1 and build2:
             self._bop.Build()
+
+    def has_ancestor_face1(self, edge):
+        """
+        Get the ancestor face on the intersection edge on the first shape
+        if available.
+
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+
+        :return: *True* and the face if available, *False* and *None* if not.
+        :rtype: tuple(bool, OCC.TopoDS.TopoDS_Face or None)
+        """
+        f = TopoDS_Face()
+        if self._bop.HasAncestorFaceOn1(edge, f):
+            return True, f
+        return False, None
+
+    def has_ancestor_face2(self, edge):
+        """
+        Get the ancestor face on the intersection edge on the second shape
+        if available.
+
+        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+
+        :return: *True* and the face if available, *False* and *None* if not.
+        :rtype: tuple(bool, OCC.TopoDS.TopoDS_Face or None)
+        """
+        f = TopoDS_Face()
+        if self._bop.HasAncestorFaceOn2(edge, f):
+            return True, f
+        return False, None
 
 
 class SplitShapes(BopAlgo):
@@ -564,6 +614,51 @@ class CutCylindricalHole(BopAlgo):
 
         self._bop.Init(shape, ax1)
         self._bop.Perform(radius)
+
+
+class LocalSplit(BopCore):
+    """
+    Perform a local split of a shape in the context of a basis shape. This tool
+    only splits faces.
+
+    :param OCC.TopoDS.TopoDS_Shape shape: The local shape.
+    :param tool: The tool to split with.
+    :type tool: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape that the local
+        shape is part of.
+    :param bool approximate: Option to approximate intersection curves.
+    :param bool parallel: Option to run in parallel mode.
+    :param float fuzzy_val: Fuzzy tolerance value.
+
+    Usage:
+
+    >>> from afem.geometry import *
+    >>> from afem.topology import *
+    >>> pln = PlaneByAxes().plane
+    >>> builder = SolidByPlane(pln, 5., 5., 5.)
+    >>> box = builder.solid
+    >>> tool = PlaneByAxes(axes='xy').plane
+    >>> face = ExploreShape.get_faces(box)[0]
+    >>> split = LocalSplit(face, tool, box)
+    >>> assert split.is_done
+    """
+
+    def __init__(self, shape, tool, basis_shape, approximate=False,
+                 parallel=True, fuzzy_val=None):
+        super(LocalSplit, self).__init__()
+
+        # Intersect
+        section = IntersectShapes(shape, tool, True, False, approximate,
+                                  parallel, fuzzy_val)
+        sec_edges = section.edges
+
+        # Split
+        self._bop = BRepFeat_SplitShape(basis_shape)
+        for e in sec_edges:
+            status, f = section.has_ancestor_face1(e)
+            if status:
+                self._bop.Add(e, f)
+        self.build()
 
 
 if __name__ == "__main__":

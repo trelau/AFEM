@@ -149,7 +149,7 @@ class SewShape(object):
             if shape is None:
                 tol = 1.0e-7
             else:
-                tol = ExploreShape.get_tolerance(shape)
+                tol = ExploreShape.global_tolerance(shape)
 
         self._tool = BRepBuilderAPI_Sewing(tol, True, True, cut_free_edges,
                                            non_manifold)
@@ -362,7 +362,7 @@ class RebuildShapeByTool(object):
 
     :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape.
     :param tool: The tool.
-    :type tool: afem.topology.bop.BopAlgo
+    :type tool: afem.topology.bop.BopCore
 
     :raise ValueError: If there are no sub-shapes to substitute.
 
@@ -391,8 +391,6 @@ class RebuildShapeByTool(object):
     def __init__(self, old_shape, tool):
         reshape = ShapeBuild_ReShape()
 
-        # TODO Consider iterating through all shapes?
-
         # Old shapes
         old_shapes = ExploreShape.get_faces(old_shape)
         if not old_shapes:
@@ -410,7 +408,9 @@ class RebuildShapeByTool(object):
                 continue
 
             # Modified
-            mod_shapes = tool.modified(shape)
+            mod_shapes = [s for s in tool.modified(shape)
+                          if not s.IsSame(shape)]
+
             if mod_shapes:
                 new_shape = CompoundByShapes(mod_shapes).compound
                 reshape.Replace(shape, new_shape)
@@ -439,7 +439,7 @@ class RebuildShapesByTool(object):
 
     :param list[OCC.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
     :param tool: The tool.
-    :type tool: afem.topology.bop.BopAlgo
+    :type tool: afem.topology.bop.BopCore
     """
 
     def __init__(self, old_shapes, tool):
