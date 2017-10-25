@@ -662,33 +662,49 @@ class Point(gp_Pnt, Geometry):
     def rotate_xyz(self, origin, x, y, z):
         """
         Rotate the point about the global x-, y-, and z-axes using
-        *origin* as the point of rotation. Rotations follow the right-hand
+        *origin* as the point of rotation if *origin* is a point. Otherwise, if
+        *origin* is an :class:`.Axis3`, rotate the point about the axes of the
+        coordinate system. Rotations follow the right-hand
         rule for each axis.
 
-        :param point_like origin: The origin of rotation.
+        :param origin: The origin of rotation.
+        :type origin: point_like or afem.geometry.entities.Axis3
         :param float x: Rotation about x-axis in degrees.
         :param float y: Rotation about y-axis in degrees.
         :param float z: Rotation about z-axis in degrees.
 
         :return: None.
 
-        :raise TypeError: If *origin* cannot be converted to a Point.
+        :raise TypeError: If *origin* cannot be converted to a Point or is not
+            ax Axis3.
         """
-        if is_array_like(origin) and len(origin) == 3:
+        is_local = False
+        if isinstance(origin, Axis3):
+            is_local = True
+        elif is_array_like(origin) and len(origin) == 3:
             origin = gp_Pnt(*origin)
-        if not isinstance(origin, gp_Pnt):
+        if not isinstance(origin, (gp_Pnt, Axis3)):
             raise TypeError('Invalid origin provided.')
 
         # x-axis
-        ax = gp_Ax1(origin, gp_Dir(1., 0., 0.))
+        if is_local:
+            ax = origin.x_axis
+        else:
+            ax = gp_Ax1(origin, gp_Dir(1., 0., 0.))
         self.Rotate(ax, radians(x))
 
         # y-axis
-        ax = gp_Ax1(origin, gp_Dir(0., 1., 0.))
+        if is_local:
+            ax = origin.y_axis
+        else:
+            ax = gp_Ax1(origin, gp_Dir(0., 1., 0.))
         self.Rotate(ax, radians(y))
 
         # z-axis
-        ax = gp_Ax1(origin, gp_Dir(0., 0., 1.))
+        if is_local:
+            ax = origin.z_axis
+        else:
+            ax = gp_Ax1(origin, gp_Dir(0., 0., 1.))
         self.Rotate(ax, radians(z))
 
     def copy(self):
@@ -989,6 +1005,15 @@ class Axis1(gp_Ax1):
     def __init__(self, *args):
         super(Axis1, self).__init__(*args)
 
+    @property
+    def origin(self):
+        """
+        :return: The origin of the axis.
+        :rtype: afem.geometry.entities.Point
+        """
+        p = self.Location()
+        return Point(p.X(), p.Y(), p.Z())
+
 
 class Axis3(gp_Ax3):
     """
@@ -1010,6 +1035,63 @@ class Axis3(gp_Ax3):
 
     def __init__(self, *args):
         super(Axis3, self).__init__(*args)
+
+    @property
+    def origin(self):
+        """
+        :return: The origin of the coordinate system.
+        :rtype: afem.geometry.entities.Point
+        """
+        p = self.Location()
+        return Point(p.X(), p.Y(), p.Z())
+
+    @property
+    def x_dir(self):
+        """
+        :return: The x-direction.
+        :rtype: afem.geometry.entities.Direction
+        """
+        return Direction(self.XDirection().XYZ())
+
+    @property
+    def y_dir(self):
+        """
+        :return: The y-direction.
+        :rtype: afem.geometry.entities.Direction
+        """
+        return Direction(self.YDirection().XYZ())
+
+    @property
+    def z_dir(self):
+        """
+        :return: The z-direction.
+        :rtype: afem.geometry.entities.Direction
+        """
+        return Direction(self.Direction().XYZ())
+
+    @property
+    def x_axis(self):
+        """
+        :return: The x-axis.
+        :rtype: afem.geometry.entities.Axis1
+        """
+        return Axis1(self.origin, self.x_dir)
+
+    @property
+    def y_axis(self):
+        """
+        :return: The y-axis.
+        :rtype: afem.geometry.entities.Axis1
+        """
+        return Axis1(self.origin, self.y_dir)
+
+    @property
+    def z_axis(self):
+        """
+        :return: The z-axis.
+        :rtype: afem.geometry.entities.Axis1
+        """
+        return Axis1(self.origin, self.z_dir)
 
 
 class Curve(Geometry):
