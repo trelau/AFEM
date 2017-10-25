@@ -183,7 +183,7 @@ class Viewer(object):
 
         :param items: Item(s) to view.
         :type items: afem.graphics.viewer.ViewableItem or TopoDS.TopoDS_Shape
-            or afem.structure.assembly.Assembly
+            or afem.structure.assembly.Assembly or str
 
         :return: None.
         """
