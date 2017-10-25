@@ -9,9 +9,12 @@ from afem.topology import *
 
 
 def _show(*items):
+    v = Viewer()
     for item in items:
-        Viewer.add(item)
-    Viewer.show()
+        v.add(item)
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
 
 class TestStructure(unittest.TestCase):

@@ -95,6 +95,7 @@ if __name__ == '__main__':
 
     print('Complete in ', time.time() - start, ' seconds.')
 
-    Viewer.add(*assy.parts)
-
-    Viewer.show()
+    v = Viewer()
+    v.add(*assy.parts)
+    v.set_display_shapes()
+    v.show()

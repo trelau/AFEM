@@ -1,6 +1,6 @@
 from afem.graphics import Viewer
 from afem.io import ImportVSP
-
+v = Viewer()
 fn = r'..\models\777-200LR.stp'
 # fn = r'..\models\TBW_SUGAR.stp'
 # fn = r'..\models\F-16.stp'
@@ -16,6 +16,7 @@ ImportVSP.step_file(fn)
 bodies = ImportVSP.get_bodies()
 for name in bodies:
     b = bodies[name]
-    Viewer.add(b)
+    v.add(b)
 print()
-Viewer.show()
+v.set_display_shapes()
+v.show()

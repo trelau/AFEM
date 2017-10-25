@@ -9,6 +9,7 @@ from afem.structure import *
 from afem.topology import *
 
 Settings.log_to_console(True)
+v = Viewer()
 
 fname = r'..\models\777-200LR.stp'
 ImportVSP.step_file(fname)
@@ -95,11 +96,12 @@ print(time.time() - start)
 shape = bop.fused_shape
 tool = ExploreFreeEdges(shape)
 print(tool.free_edges)
-Viewer.add(*tool.free_edges)
+v.add(*tool.free_edges)
 
 parts = AssemblyAPI.get_master().get_parts()
-Viewer.add(*parts)
-Viewer.show(False)
+v.add(*parts)
+v.set_display_shapes()
+v.show()
 
 # MESH
 master_assy = AssemblyAPI.get_master()
@@ -121,5 +123,6 @@ if not status:
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-Viewer.add_meshes(MeshAPI.get_active())
-Viewer.show()
+v.add_meshes(MeshAPI.get_active())
+v.set_display_shapes()
+v.show()

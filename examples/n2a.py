@@ -7,6 +7,8 @@ from afem.topology import *
 
 Settings.log_to_console(True)
 
+v = Viewer()
+
 # Inputs
 fname = r'..\models\N2A_nosplit.stp'
 # Length of flight deck from nose.
@@ -158,5 +160,6 @@ xz_pln = PlaneByAxes().plane
 for part in parts:
     part.set_mirror(xz_pln)
 
-Viewer.add(*AssemblyAPI.get_master().get_parts())
-Viewer.show()
+v.add(*AssemblyAPI.get_master().get_parts())
+v.set_display_shapes()
+v.show()

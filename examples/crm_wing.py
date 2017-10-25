@@ -10,6 +10,8 @@ from afem.fem import MeshAPI
 Settings.set_units('in')
 Settings.log_to_console(True)
 
+v = Viewer()
+
 # IMPORT SOLIDS ---------------------------------------------------------------
 fn1 = r'..\models\uCRM\fuselage.brep'
 fn2 = r'..\models\uCRM\lhs_wing.brep'
@@ -23,8 +25,9 @@ fuselage = Body(shape1, 'fuselage')
 lhs_wing = Body(shape2, 'lhs wing')
 rhs_wing = Body(shape3, 'rhs wing')
 
-# Viewer.add(fuselage, lhs_wing, rhs_wing)
-# Viewer.show()
+# v.add(fuselage, lhs_wing, rhs_wing)
+# v.set_display_shapes()
+# v.show()
 
 fuselage.set_transparency(0.75)
 fuselage.set_color(0.5, 0.5, 0.5)
@@ -163,8 +166,9 @@ skin.set_transparency(0.5)
 
 parts = AssemblyAPI.get_parts()
 
-Viewer.add(fuselage, rhs_wing, *parts)
-Viewer.show(False)
+v.add(fuselage, rhs_wing, *parts)
+v.set_display_shapes()
+v.show()
 
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
@@ -191,5 +195,6 @@ for part in internal_parts:
 print('Computing mesh...')
 MeshAPI.compute_mesh()
 
-Viewer.add_meshes(MeshAPI.get_active())
-Viewer.show()
+v.add_meshes(MeshAPI.get_active())
+v.set_display_shapes()
+v.show()
