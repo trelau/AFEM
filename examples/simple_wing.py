@@ -26,7 +26,7 @@ skin = SkinByBody('skin', wing).skin
 FuseSurfaceParts([skin], internal_parts)
 
 skin.set_transparency(0.75)
-Viewer.add(*wingbox.parts)
+Viewer.add('wing box')
 Viewer.show(False)
 
 # Mesh

@@ -664,8 +664,7 @@ class Point(gp_Pnt, Geometry):
         Rotate the point about the global x-, y-, and z-axes using
         *origin* as the point of rotation if *origin* is a point. Otherwise, if
         *origin* is an :class:`.Axis3`, rotate the point about the axes of the
-        coordinate system. Rotations follow the right-hand
-        rule for each axis.
+        coordinate system. Rotations follow the right-hand rule for each axis.
 
         :param origin: The origin of rotation.
         :type origin: point_like or afem.geometry.entities.Axis3

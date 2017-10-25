@@ -239,13 +239,24 @@ class Viewer:
 
         :param items: Item(s) to view.
         :type items: afem.graphics.viewer.ViewableItem or TopoDS.TopoDS_Shape
+            or afem.structure.assembly.Assembly or str
 
         :return: None.
         """
+        # Avoid circular imports
+        from afem.structure.assembly import Assembly, AssemblyAPI
+
         for item in items:
             if isinstance(item, (ViewableItem, TopoDS_Shape)):
                 self._items.append(item)
-        return
+            elif isinstance(item, Assembly):
+                for part in item.get_parts():
+                    self._items.append(part)
+            elif isinstance(item, str):
+                assy = AssemblyAPI.get_assy(item)
+                if isinstance(assy, Assembly):
+                    for part in assy.get_parts():
+                        self._items.append(part)
 
     def set_display_shapes(self):
         """
