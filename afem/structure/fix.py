@@ -6,8 +6,8 @@ __all__ = ["FixAssembly"]
 
 class FixAssembly(object):
     """
-    Attempt to fix the shapes of each part in an assembly. Sub-assemblies are
-    included by default.
+    Attempt to fix the shapes of each part in an assembly using
+    :class:`.FixShape`. Sub-assemblies are included by default.
 
     :param assy: The assembly. If ``None`` then the active assembly is used.
     :type assy: str or afem.structure.assembly.Assembly or None

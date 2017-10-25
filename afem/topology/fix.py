@@ -16,6 +16,12 @@ class FixShape(object):
     :param float min_tol: Minimum allowed tolerance.
     :param float max_tol: Maximum allowed tolerance.
     :param OCC.TopoDS.TopoDS_Shape context: The context shape.
+
+    .. note::
+
+        By default, the precision, minimum, and maximum tolerance values are
+        Precision::Confusion() with OCCT, which is typically 1.0e-7.
+
     """
 
     def __init__(self, shape, precision=None, min_tol=None, max_tol=None,
