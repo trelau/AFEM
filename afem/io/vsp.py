@@ -159,7 +159,7 @@ class ImportVSP(object):
             key = 'm_SurfType'
             if key in metadata and metadata[key] == 99:
                 # Get surface
-                sref = _process_sref(compound)
+                sref = cls.process_sref(compound)
                 # Get Sref ID
                 sref_id = metadata['ID']
                 ref_surfs[sref_id] = sref
@@ -243,6 +243,32 @@ class ImportVSP(object):
             return _build_solid(compound, divide_closed)
         else:
             raise ValueError('No surfaces provided.')
+
+    @staticmethod
+    def process_sref(compound):
+        """
+        Process a wing reference surface.
+        """
+        # Wing reference surfaces should be a single bilinear surface. Extract
+        # this from the compound.
+        top_exp = TopExp_Explorer(compound, TopAbs_FACE)
+        face = CheckShape.to_face(top_exp.Current())
+        hsrf = BRep_Tool.Surface(face)
+
+        # Convert to AFEM NurbsSurface.
+        # srf = Surface(hsrf)
+        srf = NurbsSurface.downcast(hsrf)
+
+        # The surface originally has uniform parameterization from OpenVSP,
+        # extract curves at each knot value and wing_skin a C0 surface using chord
+        # length parameterization.
+        vknots = srf.vknots
+        crvs = []
+        for vi in vknots:
+            c = srf.v_iso(vi)
+            crvs.append(c)
+        srf = NurbsSurfaceByInterp(crvs, 1).surface
+        return srf
 
 
 def _build_solid(compound, divide_closed):
@@ -433,32 +459,6 @@ def _process_fuse(compound, divide_closed):
         fuselage.add_metadata('vsp surface', vsp_surf)
 
     return fuselage
-
-
-def _process_sref(compound):
-    """
-    Process a wing reference surface.
-    """
-    # Wing reference surfaces should be a single bilinear surface. Extract
-    # this from the compound.
-    top_exp = TopExp_Explorer(compound, TopAbs_FACE)
-    face = CheckShape.to_face(top_exp.Current())
-    hsrf = BRep_Tool.Surface(face)
-
-    # Convert to AFEM NurbsSurface.
-    # srf = Surface(hsrf)
-    srf = NurbsSurface.downcast(hsrf)
-
-    # The surface originally has uniform parameterization from OpenVSP,
-    # extract curves at each knot value and wing_skin a C0 surface using chord
-    # length parameterization.
-    vknots = srf.vknots
-    crvs = []
-    for vi in vknots:
-        c = srf.v_iso(vi)
-        crvs.append(c)
-    srf = NurbsSurfaceByInterp(crvs, 1).surface
-    return srf
 
 
 def _process_unsplit_wing(compound, divide_closed):
