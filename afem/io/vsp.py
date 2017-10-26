@@ -247,21 +247,33 @@ class ImportVSP(object):
     @staticmethod
     def process_sref(compound):
         """
-        Process a wing reference surface.
+        Process a wing reference surface. The compound should contain a single
+        face. The underlying surface of this faces will be used to generate a
+        new NurbsSurface. Since the OpenVSP surface uses uniform
+        parametrization, a chord line is extracted at each unique knot in the
+        v-direction. Then a linear surface is lofted through these lines to
+        form a bilinear surface where the u-direction is chordwise and the
+        v-direction is spanwise.
+
+        :param OCC.TopoDS.TopoDS_Compound compound: The compound.
+
+        :return: The reference surface.
+        :rtype: afem.geometry.entities.NurbsSurface
+
+        :raise TypeError: If the underlying surface cannot be downcasted to a
+            NurbsSurface.
         """
-        # Wing reference surfaces should be a single bilinear surface. Extract
-        # this from the compound.
+        # Get underlying surface
         top_exp = TopExp_Explorer(compound, TopAbs_FACE)
         face = CheckShape.to_face(top_exp.Current())
         hsrf = BRep_Tool.Surface(face)
 
-        # Convert to AFEM NurbsSurface.
-        # srf = Surface(hsrf)
+        # Downcast to AFEM NurbsSurface
         srf = NurbsSurface.downcast(hsrf)
+        if not isinstance(srf, NurbsSurface):
+            raise TypeError('Cannot downcast to NurbsSurface.')
 
-        # The surface originally has uniform parameterization from OpenVSP,
-        # extract curves at each knot value and wing_skin a C0 surface using chord
-        # length parameterization.
+        # Loft new surface
         vknots = srf.vknots
         crvs = []
         for vi in vknots:

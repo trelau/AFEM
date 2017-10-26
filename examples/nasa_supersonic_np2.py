@@ -372,6 +372,7 @@ def build(wing, fuselage):
     step.write('nasa_supersonic_np2.step')
 
     # Export the mesh (nodes and elements) to a bulk data file
+    the_mesh = MeshAPI.get_active()
     afem.io.nastran.export_bdf(the_mesh, 'nasa_supersonic_np2.bdf')
 
 
