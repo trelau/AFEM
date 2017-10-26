@@ -42,6 +42,7 @@ line = CreateGeom.line_by_points(r1.p1, r1.p2)
 p0 = line.eval(4. * r1.cref.length)
 vn = CreateGeom.direction_by_xyz(0, 0, 1)
 
+v = Viewer()
 # Takes a while to run...
 for i in range(22, 31):
     geom_circle = GC_MakeCircle(p0, vn, r0 * (i + 1)).Value().GetObject()
@@ -52,7 +53,8 @@ for i in range(22, 31):
         print(stringer, ShapeTools.is_valid(stringer))
         if not ShapeTools.is_valid(stringer):
             stringer.fix()
-        Viewer.add(stringer)
+        v.add(stringer)
 
-Viewer.add(skin)
-Viewer.show()
+v.add(skin)
+v.set_display_shapes()
+v.show()

@@ -4,6 +4,8 @@ from afem.graphics import Viewer
 from afem.io import ImportVSP
 from afem.topology import *
 
+v = Viewer()
+
 Settings.log_to_console(True)
 
 # Do not split or divide closed surfaces
@@ -45,11 +47,13 @@ for u in parms:
     assert builder.nwires == 1
     wire = builder.wires[0]
     assert wire.Closed()
-    Viewer.add(wire)
+    v.add(wire)
     wires.append(wire)
 
-Viewer.add(*wires)
-Viewer.show()
+v.add(*wires)
+v.set_display_shapes()
+v.show()
+v.clear_all()
 
 # Loft the sections into a continuous surface. This may result in unexpected
 # behavior since you are potentially skinning a complex shape with a single
@@ -67,8 +71,10 @@ srf = ExploreShape.surface_of_face(face)
 # Should be a NURBS surface
 srf = NurbsSurface.downcast(srf)
 
-Viewer.add(srf)
-Viewer.show()
+v.add(srf)
+v.set_display_shapes()
+v.show()
+v.clear_all()
 
 srf.set_color(0.5, 0.5, 0.5)
 srf.set_transparency(0.5)
@@ -77,9 +83,11 @@ srf.set_transparency(0.5)
 c = srf.v_iso(0.5)
 c = NurbsCurve.downcast(c)
 
-Viewer.add(srf)
-Viewer.add(c)
-Viewer.show()
+v.add(srf)
+v.add(c)
+v.set_display_shapes()
+v.show()
+v.clear_all()
 
 # Grab a column of control points and move them to see what happens
 i1, i2 = srf.locate_v(0.5, with_knot_repetition=True)
@@ -89,13 +97,15 @@ cp = srf.cp
 for i in range(1, srf.n + 1):
     # Use "- 1" since OCC index starts at 1 while Python starts at 0
     p = Point(*cp[i - 1, i1 - 1])
-    Viewer.add(p)
+    v.add(p)
     new_p = p.copy()
     new_p.translate((0., 0., 48.))
-    Viewer.add(new_p)
+    v.add(new_p)
     srf.set_cp(i, i1, new_p)
-Viewer.add(srf)
-Viewer.show()
+v.add(srf)
+v.set_display_shapes()
+v.show()
+v.clear_all()
 
 # Open issues:
 # - Figure out right index for bounding control points
@@ -104,18 +114,21 @@ Viewer.show()
 # Can access raw VSP surface this way and modify control points directly
 vsp_surf = wing.get_metadata('vsp surface')
 
-Viewer.add(vsp_surf)
-Viewer.show()
+v.add(vsp_surf)
+v.set_display_shapes()
+v.show()
+v.clear_all()
 
 # Grab some control points and modify
 cp = vsp_surf.cp
 indx = 3
 for i in range(1, vsp_surf.m + 1):
     p = Point(*cp[indx - 1, i - 1])
-    Viewer.add(p)
+    v.add(p)
     new_p = p.copy()
     new_p.translate((0., 0., 48.))
-    Viewer.add(new_p)
+    v.add(new_p)
     vsp_surf.set_cp(indx, i, new_p)
-Viewer.add(vsp_surf)
-Viewer.show()
+v.add(vsp_surf)
+v.set_display_shapes()
+v.show()

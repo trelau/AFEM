@@ -5,6 +5,7 @@ from afem.oml import *
 from afem.structure import *
 from afem.topology import *
 
+v = Viewer()
 # Inputs
 diameter = 244
 length = 360
@@ -14,7 +15,7 @@ frame_height = 3.5
 frame_spacing = 24
 floor_beam_height = 6
 
-Viewer.add(Point())
+v.add(Point())
 
 # Calculate
 radius = diameter / 2.
@@ -94,8 +95,9 @@ all_parts = AssemblyAPI.get_parts(order=True)
 # Split all parts together
 join = SplitParts(all_parts)
 
-Viewer.add(*all_parts)
-Viewer.show(False)
+v.add(*all_parts)
+v.set_display_shapes()
+v.show(False)
 
 # Mesh
 the_shape = AssemblyAPI.prepare_shape_to_mesh()
@@ -123,5 +125,6 @@ for face in ExploreShape.get_faces(the_shape):
 
 MeshAPI.compute_mesh()
 
-Viewer.add_meshes(MeshAPI.get_active())
-Viewer.show()
+v.add_meshes(MeshAPI.get_active())
+v.set_display_shapes()
+v.show()

@@ -7,6 +7,8 @@ from afem.oml import *
 from afem.structure import *
 from afem.topology import *
 
+v = Viewer()
+
 Settings.log_to_console(True)
 
 # Import wing solid from STEP file
@@ -132,8 +134,9 @@ skin.discard_by_solid(hs)
 
 # View geometry
 skin.set_transparency(0.5)
-Viewer.add(*AssemblyAPI.get_parts())
-Viewer.show(False)
+v.add(*AssemblyAPI.get_parts())
+v.set_display_shapes()
+v.show()
 
 # Mesh
 print('Meshing the shape...')
@@ -145,5 +148,6 @@ MeshAPI.add_hypothesis('netgen')
 MeshAPI.add_hypothesis('netgen algo')
 MeshAPI.compute_mesh()
 
-Viewer.add_meshes(MeshAPI.get_active())
-Viewer.show()
+v.add_meshes(MeshAPI.get_active())
+v.set_display_shapes()
+v.show()

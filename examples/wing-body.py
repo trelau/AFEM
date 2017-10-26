@@ -11,6 +11,8 @@ from afem.misc.check import pairwise
 from afem.structure import *
 from afem.topology import *
 
+v = Viewer()
+
 Settings.log_to_console(True)
 
 # Set units to inch.
@@ -226,11 +228,12 @@ bop = FuseAssemblies([wing_assy, fuse_assy])
 print('complete', time.time() - start)
 
 for part in wing_assy.get_parts() + fuse_assy.get_parts():
-    Viewer.add(part)
+    v.add(part)
 
 tool = ExploreFreeEdges(bop.fused_shape)
-Viewer.add(*tool.free_edges)
-Viewer.show(False)
+v.add(*tool.free_edges)
+v.set_display_shapes()
+v.show()
 
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
@@ -251,5 +254,6 @@ if not status:
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-Viewer.add_meshes(MeshAPI.get_active())
-Viewer.show()
+v.add_meshes(MeshAPI.get_active())
+v.set_display_shapes()
+v.show()

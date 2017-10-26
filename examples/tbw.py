@@ -28,11 +28,13 @@ other_jury = ImportVSP.get_body('Jury.4')
 strut = ImportVSP.get_body('Strut')
 other_strut = ImportVSP.get_body('Strut.5')
 
+v = Viewer()
+
 for body in [fuselage, wing, other_wing, gear, other_gear, htail, other_htail,
              vtail]:
     body.set_color(0.5, 0.5, 0.5)
     body.set_transparency(0.5)
-    Viewer.add(body)
+    v.add(body)
 
 # WING ------------------------------------------------------------------------
 AssemblyAPI.create_assy('wing assy')
@@ -133,7 +135,7 @@ wskin.discard_by_dmin(wing.sref_shape, 1.)
 # shells (upper and lower skin).
 wskin.fix()
 
-Viewer.add(*AssemblyAPI.get_parts())
+v.add(*AssemblyAPI.get_parts())
 
 # HTAIL -----------------------------------------------------------------------
 AssemblyAPI.create_assy('htail assy')
@@ -154,7 +156,7 @@ skin.fuse(*internal_parts)
 skin.discard_by_dmin(htail.sref_shape, 1.)
 skin.fix()
 
-Viewer.add(*AssemblyAPI.get_parts())
+v.add(*AssemblyAPI.get_parts())
 
 # VTAIL -----------------------------------------------------------------------
 AssemblyAPI.create_assy('vtail assy')
@@ -179,7 +181,7 @@ skin.fuse(*internal_parts)
 skin.discard_by_dmin(vtail.sref_shape, 1.)
 skin.fix()
 
-Viewer.add(*AssemblyAPI.get_parts())
+v.add(*AssemblyAPI.get_parts())
 
 # FUSELAGE --------------------------------------------------------------------
 AssemblyAPI.create_assy('fuselage assy')
@@ -236,7 +238,7 @@ skin.set_transparency(0.5)
 
 FuseSurfaceParts([skin], internal_parts)
 
-Viewer.add(*AssemblyAPI.get_parts())
+v.add(*AssemblyAPI.get_parts())
 
 # MIRROR ----------------------------------------------------------------------
 xz_pln = PlaneByAxes().plane
@@ -295,5 +297,6 @@ parts = AssemblyAPI.get_parts()
 for part in parts:
     part.set_mirror(xz_pln)
 
-Viewer.add(*AssemblyAPI.get_parts())
-Viewer.show()
+v.add(*AssemblyAPI.get_parts())
+v.set_display_shapes()
+v.show()

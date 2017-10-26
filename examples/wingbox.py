@@ -233,8 +233,11 @@ def build_wingbox(wing, params):
     FuseSurfacePartsByCref(internal_parts)
     DiscardByCref(internal_parts)
 
-    Viewer.add(*AssemblyAPI.get_parts())
-    Viewer.show()
+    v = Viewer()
+    v.add(*AssemblyAPI.get_parts())
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
     # SKIN --------------------------------------------------------------------
     skin = SkinByBody('wing skin', wing, False).skin
@@ -253,15 +256,19 @@ def build_wingbox(wing, params):
     # Viewing
     skin.set_transparency(0.5)
 
-    Viewer.add(*AssemblyAPI.get_parts())
-    Viewer.show()
+    v.add(*AssemblyAPI.get_parts())
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
     # Check free edges.
     cmp = CompoundByShapes(all_parts).compound
     tool = ExploreFreeEdges(cmp)
     wing.set_transparency(0.5)
-    Viewer.add(wing, *tool.free_edges)
-    Viewer.show()
+    v.add(wing, *tool.free_edges)
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
     # VOLUMES -----------------------------------------------------------------
     # Demonstrate creating volumes from shapes (i.e., parts). Do not use the
@@ -269,8 +276,10 @@ def build_wingbox(wing, params):
 
     # Volumes using all parts. This generates multiple solids.
     shape1 = VolumesFromShapes(all_parts).shape
-    Viewer.add(shape1)
-    Viewer.show()
+    v.add(shape1)
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
     # Volume using front spar, rear spar, root rib, tip rib, and upper and
     # lower skins. This should produce a single solid since no internal ribs
@@ -280,8 +289,10 @@ def build_wingbox(wing, params):
     print('Volume is ', VolumeProps(shape2).volume)
     # You can also use TopoDS_Shape.volume property (i.e., shape.volume).
 
-    Viewer.add(shape2)
-    Viewer.show()
+    v.add(shape2)
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
     # Create a semi-infinite box to cut volume with.
     p0 = wing.eval(0.5, 0.1)
@@ -292,8 +303,10 @@ def build_wingbox(wing, params):
     # Cut the volume with an infinite plane (use a large box for robustness).
     new_shape = CutShapes(shape1, cut_space).shape
     cut_space.set_transparency(0.5)
-    Viewer.add(new_shape, cut_space)
-    Viewer.show()
+    v.add(new_shape, cut_space)
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
     # Calculate cg of cut shape.
     cg = VolumeProps(new_shape).cg
@@ -301,9 +314,11 @@ def build_wingbox(wing, params):
     print('Volume of cut shape is ', VolumeProps(new_shape).volume)
 
     for solid in ExploreShape.get_solids(new_shape):
-        Viewer.add(solid)
-    Viewer.add(cg)
-    Viewer.show()
+        v.add(solid)
+    v.add(cg)
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
     # Cut the volume with an infinite plane (use a large box for robustness).
     new_shape = CutShapes(shape2, cut_space).shape
@@ -314,9 +329,11 @@ def build_wingbox(wing, params):
     print('Volume of cut shape is ', VolumeProps(new_shape).volume)
     # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
 
-    Viewer.add(new_shape)
-    Viewer.add(cg)
-    Viewer.show()
+    v.add(new_shape)
+    v.add(cg)
+    v.set_display_shapes()
+    v.show()
+    v.clear_all()
 
     # MESH --------------------------------------------------------------------
     # Initialize
@@ -373,12 +390,13 @@ if __name__ == '__main__':
     assy = build_wingbox(wing_in, {})
 
     print('Complete in ', time.time() - start, ' seconds.')
-
-    Viewer.add(*assy.parts)
+    v = Viewer()
+    v.add(*assy.parts)
 
     xz_pln = PlaneByAxes().plane
     for part in assy.parts:
         part.set_mirror(xz_pln)
 
-    Viewer.add_meshes(MeshAPI.get_active())
-    Viewer.show()
+    v.add_meshes(MeshAPI.get_active())
+    v.set_display_shapes()
+    v.show()

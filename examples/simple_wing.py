@@ -6,6 +6,8 @@ from afem.structure import *
 
 Settings.log_to_console(True)
 
+v = Viewer()
+
 # Set units to inch.
 Settings.set_units('in')
 
@@ -26,8 +28,9 @@ skin = SkinByBody('skin', wing).skin
 FuseSurfaceParts([skin], internal_parts)
 
 skin.set_transparency(0.75)
-Viewer.add('wing box')
-Viewer.show(False)
+v.add('wing box')
+v.set_display_shapes()
+v.show()
 
 # Mesh
 the_shape = wingbox.prepare_shape_to_mesh()
@@ -40,5 +43,6 @@ MeshAPI.add_hypothesis('netgen')
 MeshAPI.add_hypothesis('netgen algo')
 MeshAPI.compute_mesh()
 
-Viewer.add_meshes(MeshAPI.get_active())
-Viewer.show()
+v.add_meshes(MeshAPI.get_active())
+v.set_display_shapes()
+v.show()

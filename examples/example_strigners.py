@@ -4,6 +4,8 @@ from afem.io import ImportVSP
 from afem.structure import CreatePart, PartTools
 from afem.topology import ShapeTools
 
+v = Viewer()
+
 # Inputs
 height = 3.
 pitch = 8.
@@ -44,7 +46,8 @@ for p in pnts:
     stringer = CreatePart.stringer.by_section('stringer', skin, pln, height)
     # Some stringers needs fixed to resolve topology.
     stringer.fix()
-    Viewer.add(stringer)
+    v.add(stringer)
 
-Viewer.add(skin)
-Viewer.show()
+v.add(skin)
+v.set_display_shapes()
+v.show()
