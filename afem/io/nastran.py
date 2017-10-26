@@ -1,10 +1,18 @@
 __all__ = ["export_bdf"]
 
 
-def export_bdf(assy, fn):
+def export_bdf(the_mesh, fn):
     """
     Export assembly of parts to Nastran bulk data format (only nodes and
-    elements).
+    elements). Dummy materials and properties are applied to enable import into
+    some pre-processors. Intended for development and debugging. Only supports
+    tri and quad elements for now.
+
+    :param afem.fem.meshes.Mesh the_mesh: The mesh.
+    :param str fn: The filename.
+
+    :return: *True* if done, *False* if not.
+    :rtype: bool
     """
     fout = open(fn, 'w')
     if not fout:
@@ -23,7 +31,7 @@ def export_bdf(assy, fn):
     fout.write('\n')
 
     # Write grids.
-    for node in assy.nodes:
+    for node in the_mesh.nodes:
         fout.write("%-8s" % "GRID")
         # ID
         _write_field(node.nid, fout)
@@ -40,11 +48,13 @@ def export_bdf(assy, fn):
         fout.write('\n')
 
     # Write elements.
-    for elm in assy.elements:
+    for elm in the_mesh.elements:
         if elm.is_tri:
             fout.write("%-8s" % "CTRIA3")
-        else:
+        elif elm.is_quad:
             fout.write("%-8s" % "CQUAD4")
+        else:
+            continue
         # EID
         _write_field(elm.eid, fout)
         # PID
@@ -56,6 +66,7 @@ def export_bdf(assy, fn):
     fout.write("ENDDATA")
 
     fout.close()
+    return True
 
 
 def _write_field(value, fout, fmt='small'):

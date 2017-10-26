@@ -1,5 +1,6 @@
 from OCC.SMESH import SMESH_Gen_get
 
+from afem.fem.elements import Element
 from afem.fem.hypotheses import HypothesisAPI
 from afem.fem.nodes import Node
 from afem.topology.check import CheckShape
@@ -105,6 +106,19 @@ class Mesh(object):
         :rtype: list[afem.fem.nodes.Node]
         """
         return self.get_nodes()
+
+    @property
+    def elements(self):
+        """
+        :return: The mesh elements.
+        :rtype: list[afem.fem.elements.Element]
+        """
+        elm_iter = self._ds.elementsIterator()
+        elms = []
+        while elm_iter.more():
+            elm = Element(elm_iter.next())
+            elms.append(elm)
+        return elms
 
     @classmethod
     def get_mesh(cls, mesh):
