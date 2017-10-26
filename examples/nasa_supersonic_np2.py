@@ -1,3 +1,4 @@
+import afem.io.nastran
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
@@ -198,7 +199,7 @@ def build(wing, fuselage):
     # intended part, we must devise a way to (at least semi-automatically)
     # refine the shape.
     Viewer.add(*internal_wing_parts)
-    Viewer.show(clear=False)
+    Viewer.show()
 
     # When a wing part is created and if a wing reference surface is available,
     # a part "reference curve" gets created and attached to the part. This
@@ -207,8 +208,14 @@ def build(wing, fuselage):
     # end points of the part. These curves can be used to test for possible
     # intersection with other parts since they are trimmed. Also, faces of
     # shapes that may be beyond the intended part boundaries after trimming can
-    # be identified and discard with these curves. That is what the following
+    # be identified and discarded with these curves. That is what the following
     # tools do.
+
+    # Show the wing reference surface and the underlying part reference curves
+    Viewer.add(wing.sref)
+    for part in internal_wing_parts:
+        Viewer.add(part.cref)
+    Viewer.show()
 
     # Fuse the interfacing wing parts together first using their reference
     # curves. Then discard faces of the parts using the reference curves again.
@@ -216,6 +223,7 @@ def build(wing, fuselage):
     DiscardByCref(internal_wing_parts)
 
     # Show the parts again to see the difference
+    Viewer.add(*internal_wing_parts)
     Viewer.show()
 
     # Fuselage skin using the shell of the fuselage body
@@ -338,13 +346,17 @@ def build(wing, fuselage):
     # internal mesh better.
     wskin.set_transparency(0.)
     fskin.set_transparency(0.)
-    Viewer.add_meshes(MeshAPI.get_active())
+    the_mesh = MeshAPI.get_active()
+    Viewer.add_meshes(the_mesh)
     Viewer.show()
 
     # Export the shape to a STEP file
     step = StepExport('AP203', 'in')
     step.transfer(the_shape)
     step.write('nasa_supersonic_np2.step')
+
+    # Export the mesh (nodes and elements) to a bulk data file
+    afem.io.nastran.export_bdf(the_mesh, 'nasa_supersonic_np2.bdf')
 
 
 if __name__ == '__main__':

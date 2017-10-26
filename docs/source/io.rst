@@ -17,3 +17,7 @@ STL
 OpenVSP
 -------
 .. automodule:: afem.io.vsp
+
+NASTRAN
+-------
+.. automodule:: afem.io.nastran
