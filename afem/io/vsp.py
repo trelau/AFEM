@@ -23,7 +23,7 @@ from OCC.TopExp import TopExp_Explorer
 from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
 from afem.config import Settings, logger
-from afem.geometry.create import NurbsSurfaceByInterp
+from afem.geometry.create import NurbsSurfaceByInterp, NurbsCurveByPoints
 from afem.geometry.entities import NurbsSurface
 from afem.oml.entities import Body
 from afem.topology.check import CheckShape
@@ -138,7 +138,7 @@ class ImportVSP(object):
             # Get the metadata.
             entity = transfer_reader.EntityFromShapeResult(compound, 1)
             rep_item = StepRepr_RepresentationItem().GetHandle().DownCast(
-                    entity)
+                entity)
             name = rep_item.GetObject().Name().GetObject().ToCString()
 
             # Unnamed body
@@ -281,6 +281,53 @@ class ImportVSP(object):
             crvs.append(c)
         srf = NurbsSurfaceByInterp(crvs, 1).surface
         return srf
+
+    @staticmethod
+    def rebuild_wing_sref(srf):
+        """
+        Attempt to rebuild a wing reference surface using the given OML
+        surface. This method is intended to operate on OpenVSP surfaces that
+        define the OML of a wing component and/or have similar parametrization.
+
+        :param afem.geometry.entities.NurbsSurface srf: The surface.
+
+        :return: The reference surface.
+        :rtype: afem.geometry.entities.NurbsSurface
+        """
+        # For VSP, wing surfaces are degree=1 in the spanwise direction, so
+        # each knot vector usually represents where a wing cross section is
+        # located. For each knot vector in spanwise direction, generate a
+        # straight line segment between the LE and TE (i.e., the chord line).
+        # These chords will serve as the wing reference surface. This assumes
+        # that the LE is at v=0.5 in the local parametric domain.
+        uknots = srf.uknots
+        le_param = srf.local_to_global_param('v', 0.5)
+        te_param = srf.local_to_global_param('v', 0.)
+        chords = []
+        for u in uknots:
+            le = srf.eval(u, le_param)
+            te = srf.eval(u, te_param)
+            c = NurbsCurveByPoints([le, te]).curve
+            chords.append(c)
+
+        # VSP wing components wrap around the ends and there may be duplicate
+        # chord lines at the root and tip. Retain only unique lines based on LE
+        # point.
+        unique_chords = [chords[0]]
+        for i in range(1, len(chords)):
+            c0 = unique_chords[-1]
+            ci = chords[i]
+            if not ci.eval(0.).is_equal(c0.eval(0.)):
+                unique_chords.append(ci)
+
+        # Create degree=1 reference surface by skinning chord lines
+        sref = NurbsSurfaceByInterp(unique_chords, 1).surface
+
+        # Set domains to be 0 to 1.
+        sref.set_udomain(0., 1.)
+        sref.set_vdomain(0., 1.)
+
+        return sref
 
 
 def _build_solid(compound, divide_closed):
