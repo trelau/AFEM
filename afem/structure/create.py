@@ -1,9 +1,6 @@
-from OCC.TopoDS import TopoDS_Shape, TopoDS_Solid
-
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import *
 from afem.geometry.entities import *
-from afem.oml.entities import Body
 from afem.structure.entities import *
 from afem.topology.bop import *
 from afem.topology.check import CheckShape
@@ -30,17 +27,6 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "SkinByBody"]
 
 
-def _validate_type(input_, type_, required=True):
-    """
-    Validate the input is of the required type.
-    """
-    if not required and not input_:
-        return None
-    if not isinstance(input_, type_):
-        msg = 'Invalid input type.'
-        raise TypeError(msg)
-
-
 # CURVE PART ------------------------------------------------------------------
 
 class CurvePartByShape(object):
@@ -65,9 +51,6 @@ class CurvePartByShape(object):
     """
 
     def __init__(self, label, shape, cref=None, assy=None):
-        _validate_type(shape, (Curve, TopoDS_Shape))
-        _validate_type(cref, Curve, False)
-
         if isinstance(shape, Curve):
             cref = shape
             shape = EdgeByCurve(shape).edge
@@ -110,9 +93,6 @@ class BeamByShape(object):
     """
 
     def __init__(self, label, shape, cref=None, assy=None):
-        _validate_type(shape, (Curve, TopoDS_Shape))
-        _validate_type(cref, Curve, False)
-
         if isinstance(shape, Curve):
             shape = EdgeByCurve(shape).edge
 
@@ -149,8 +129,6 @@ class BeamByCurve(BeamByShape):
     """
 
     def __init__(self, label, crv, assy=None):
-        _validate_type(crv, Curve)
-
         e = EdgeByCurve(crv).edge
         super(BeamByCurve, self).__init__(label, e, crv, assy)
 
@@ -177,10 +155,6 @@ class BeamByPoints(BeamByCurve):
     def __init__(self, label, p1, p2, assy=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
-
-        _validate_type(p1, Point)
-        _validate_type(p2, Point)
-
         c = NurbsCurveByPoints([p1, p2]).curve
         super(BeamByPoints, self).__init__(label, c, assy)
 
@@ -214,10 +188,6 @@ class SurfacePartByShape(object):
     """
 
     def __init__(self, label, shape, cref=None, sref=None, assy=None):
-        _validate_type(shape, (Surface, TopoDS_Shape))
-        _validate_type(cref, Curve, False)
-        _validate_type(sref, Surface, False)
-
         if isinstance(shape, Surface):
             sref = shape
             shape = FaceBySurface(shape).face
@@ -270,9 +240,6 @@ class SparByParameters(object):
 
     def __init__(self, label, u1, v1, u2, v2, body, basis_shape=None,
                  assy=None):
-        _validate_type(body, Body)
-        _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
-
         # Determine reference surface and basis shape
         if basis_shape is None:
             pln = body.extract_plane(u1, v1, u2, v2)
@@ -339,9 +306,6 @@ class SparByPoints(SparByParameters):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
 
-        _validate_type(p1, Point)
-        _validate_type(p2, Point)
-
         # Invert points
         u1, v1 = body.invert(p1)
         u2, v2 = body.invert(p2)
@@ -382,7 +346,7 @@ class SparByEnds(SparByParameters):
         elif CheckGeom.is_point_like(e1):
             u1, v1 = body.invert(e1)
         else:
-            raise TypeError('Invalid type for first e1')
+            raise TypeError('Invalid type for e1.')
 
         if len(e2) == 2:
             u2, v2 = e2
@@ -414,9 +378,6 @@ class SparBySurface(object):
     """
 
     def __init__(self, label, srf, body, assy=None):
-        _validate_type(srf, Surface)
-        _validate_type(body, Body)
-
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
@@ -478,9 +439,6 @@ class SparByShape(object):
     """
 
     def __init__(self, label, basis_shape, body, assy=None):
-        _validate_type(basis_shape, TopoDS_Shape)
-        _validate_type(body, Body)
-
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape)
         edges = ExploreShape.get_edges(section.shape)
@@ -544,11 +502,6 @@ class SparBetweenShapes(SparByPoints):
     """
 
     def __init__(self, label, shape1, shape2, body, basis_shape, assy=None):
-        _validate_type(shape1, (TopoDS_Shape, Curve, Surface))
-        _validate_type(shape2, (TopoDS_Shape, Curve, Surface))
-        _validate_type(body, Body)
-        _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
-
         if isinstance(basis_shape, Surface):
             shape = FaceBySurface(basis_shape).face
         else:
@@ -578,8 +531,12 @@ class SparsBetweenPlanesByNumber(object):
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -597,12 +554,6 @@ class SparsBetweenPlanesByNumber(object):
 
     def __init__(self, label, pln1, pln2, n, shape1, shape2, body, d1=None,
                  d2=None, first_index=1, delimiter=' ', assy=None):
-        _validate_type(pln1, Plane)
-        _validate_type(pln2, Plane)
-        _validate_type(body, Body)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-
         n = int(n)
         first_index = int(first_index)
 
@@ -664,8 +615,12 @@ class SparsBetweenPlanesByDistance(object):
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -684,12 +639,6 @@ class SparsBetweenPlanesByDistance(object):
 
     def __init__(self, label, pln1, pln2, maxd, shape1, shape2, body, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' ', assy=None):
-        _validate_type(pln1, Plane)
-        _validate_type(pln2, Plane)
-        _validate_type(body, Body)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-
         first_index = int(first_index)
 
         builder = PlanesBetweenPlanesByDistance(pln1, pln2, maxd, d1, d2, nmin)
@@ -747,8 +696,12 @@ class SparsAlongCurveByNumber(object):
     :param str label: Part label.
     :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -774,12 +727,6 @@ class SparsAlongCurveByNumber(object):
     def __init__(self, label, crv, n, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, first_index=1,
                  delimiter=' ', tol=1.0e-7, assy=None):
-        _validate_type(crv, Curve)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-        _validate_type(body, Body)
-        _validate_type(ref_pln, Plane, False)
-
         n = int(n)
         first_index = int(first_index)
 
@@ -840,8 +787,12 @@ class SparsAlongCurveByDistance(object):
     :param afem.geometry.entities.Curve crv: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -868,12 +819,6 @@ class SparsAlongCurveByDistance(object):
     def __init__(self, label, crv, maxd, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
                  delimiter=' ', tol=1.0e-7, assy=None):
-        _validate_type(crv, Curve)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-        _validate_type(body, Body)
-        _validate_type(ref_pln, Plane, False)
-
         first_index = int(first_index)
 
         builder = PlanesAlongCurveByDistance(crv, maxd, ref_pln, u1, u2, d1,
@@ -955,9 +900,6 @@ class RibByParameters(object):
 
     def __init__(self, label, u1, v1, u2, v2, body, basis_shape=None,
                  assy=None):
-        _validate_type(body, Body)
-        _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
-
         # Determine reference surface and basis shape
         if basis_shape is None:
             pln = body.extract_plane(u1, v1, u2, v2)
@@ -1024,9 +966,6 @@ class RibByPoints(RibByParameters):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
 
-        _validate_type(p1, Point)
-        _validate_type(p2, Point)
-
         # Invert points
         u1, v1 = body.invert(p1)
         u2, v2 = body.invert(p2)
@@ -1055,9 +994,6 @@ class RibBySurface(object):
     """
 
     def __init__(self, label, srf, body, assy=None):
-        _validate_type(srf, Surface)
-        _validate_type(body, Body)
-
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
@@ -1119,9 +1055,6 @@ class RibByShape(object):
     """
 
     def __init__(self, label, basis_shape, body, assy=None):
-        _validate_type(basis_shape, TopoDS_Shape)
-        _validate_type(body, Body)
-
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape)
         edges = ExploreShape.get_edges(section.shape)
@@ -1185,11 +1118,6 @@ class RibBetweenShapes(RibByPoints):
     """
 
     def __init__(self, label, shape1, shape2, body, basis_shape, assy=None):
-        _validate_type(shape1, (TopoDS_Shape, Curve, Surface))
-        _validate_type(shape2, (TopoDS_Shape, Curve, Surface))
-        _validate_type(body, Body)
-        _validate_type(basis_shape, (Surface, TopoDS_Shape), False)
-
         if isinstance(basis_shape, Surface):
             shape = FaceBySurface(basis_shape).face
         else:
@@ -1245,8 +1173,12 @@ class RibsBetweenPlanesByNumber(object):
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1264,12 +1196,6 @@ class RibsBetweenPlanesByNumber(object):
 
     def __init__(self, label, pln1, pln2, n, shape1, shape2, body, d1=None,
                  d2=None, first_index=1, delimiter=' ', assy=None):
-        _validate_type(pln1, Plane)
-        _validate_type(pln2, Plane)
-        _validate_type(body, Body)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-
         n = int(n)
         first_index = int(first_index)
 
@@ -1331,8 +1257,12 @@ class RibsBetweenPlanesByDistance(object):
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1351,12 +1281,6 @@ class RibsBetweenPlanesByDistance(object):
 
     def __init__(self, label, pln1, pln2, maxd, shape1, shape2, body, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' ', assy=None):
-        _validate_type(pln1, Plane)
-        _validate_type(pln2, Plane)
-        _validate_type(body, Body)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-
         first_index = int(first_index)
 
         builder = PlanesBetweenPlanesByDistance(pln1, pln2, maxd, d1, d2, nmin)
@@ -1414,8 +1338,12 @@ class RibsAlongCurveByNumber(object):
     :param str label: Part label.
     :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1441,12 +1369,6 @@ class RibsAlongCurveByNumber(object):
     def __init__(self, label, crv, n, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, first_index=1,
                  delimiter=' ', tol=1.0e-7, assy=None):
-        _validate_type(crv, Curve)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-        _validate_type(body, Body)
-        _validate_type(ref_pln, Plane, False)
-
         n = int(n)
         first_index = int(first_index)
 
@@ -1507,8 +1429,12 @@ class RibsAlongCurveByDistance(object):
     :param afem.geometry.entities.Curve crv: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1535,12 +1461,6 @@ class RibsAlongCurveByDistance(object):
     def __init__(self, label, crv, maxd, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
                  delimiter=' ', tol=1.0e-7, assy=None):
-        _validate_type(crv, Curve)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-        _validate_type(body, Body)
-        _validate_type(ref_pln, Plane, False)
-
         first_index = int(first_index)
 
         builder = PlanesAlongCurveByDistance(crv, maxd, ref_pln, u1, u2, d1,
@@ -1602,8 +1522,12 @@ class RibsAlongCurveAndSurfaceByDistance(object):
     :param afem.geometry.entities.Surface srf: The surface.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
-    :param OCC.TopoDS.TopoDS_Shape shape1: Starting shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: Ending shape.
+    :param shape1: Starting shape.
+    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
+    :param shape2: Ending shape.
+    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+        afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float u1: The parameter of the first plane (default=crv.u1).
     :param float u2: The parameter of the last plane (default=crv.u2).
@@ -1630,12 +1554,6 @@ class RibsAlongCurveAndSurfaceByDistance(object):
     def __init__(self, label, crv, srf, maxd, shape1, shape2, body,
                  u1=None, u2=None, d1=None, d2=None, rot_x=None, rot_y=None,
                  nmin=0, first_index=1, delimiter=' ', tol=1.0e-7, assy=None):
-        _validate_type(crv, Curve)
-        _validate_type(srf, Surface)
-        _validate_type(shape1, TopoDS_Shape)
-        _validate_type(shape2, TopoDS_Shape)
-        _validate_type(body, Body)
-
         first_index = int(first_index)
 
         builder = PlanesAlongCurveAndSurfaceByDistance(crv, srf, maxd, u1, u2,
@@ -1708,9 +1626,6 @@ class BulkheadBySurface(object):
     """
 
     def __init__(self, label, srf, body, assy=None):
-        _validate_type(srf, Surface)
-        _validate_type(body, Body)
-
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
@@ -1750,9 +1665,6 @@ class FloorBySurface(object):
     """
 
     def __init__(self, label, srf, body, assy=None):
-        _validate_type(srf, Surface)
-        _validate_type(body, Body)
-
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
@@ -1794,9 +1706,6 @@ class FrameByPlane(object):
     """
 
     def __init__(self, label, pln, body, height, assy=None):
-        _validate_type(pln, Plane)
-        _validate_type(body, Body)
-
         basis_shape = FaceBySurface(pln).face
 
         # Find initial shape
@@ -1859,10 +1768,6 @@ class FramesByPlanes(object):
 
     def __init__(self, label, plns, body, height, first_index=1,
                  delimiter=' ', assy=None):
-        for pln in plns:
-            _validate_type(pln, Plane)
-        _validate_type(body, Body)
-
         first_index = int(first_index)
 
         self._frames = []
@@ -1926,10 +1831,6 @@ class FramesBetweenPlanesByNumber(object):
 
     def __init__(self, label, pln1, pln2, n, body, height, d1=None,
                  d2=None, first_index=1, delimiter=' ', assy=None):
-        _validate_type(pln1, Plane)
-        _validate_type(pln2, Plane)
-        _validate_type(body, Body)
-
         n = int(n)
         first_index = int(first_index)
 
@@ -2007,10 +1908,6 @@ class FramesBetweenPlanesByDistance(object):
 
     def __init__(self, label, pln1, pln2, maxd, body, height, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' ', assy=None):
-        _validate_type(pln1, Plane)
-        _validate_type(pln2, Plane)
-        _validate_type(body, Body)
-
         first_index = int(first_index)
 
         builder = PlanesBetweenPlanesByDistance(pln1, pln2, maxd, d1, d2, nmin)
@@ -2073,8 +1970,6 @@ class SkinBySolid(object):
     """
 
     def __init__(self, label, solid, copy=False, assy=None):
-        _validate_type(solid, TopoDS_Solid)
-
         shell = ExploreShape.outer_shell(solid)
         if copy:
             shell = ExploreShape.copy_shape(shell, False)
@@ -2103,7 +1998,6 @@ class SkinByBody(SkinBySolid):
     """
 
     def __init__(self, label, body, copy=False, assy=None):
-        _validate_type(body, Body)
         super(SkinByBody, self).__init__(label, body, copy, assy)
 
 
