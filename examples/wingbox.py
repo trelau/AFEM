@@ -5,13 +5,14 @@ import time
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics import Viewer
+# from afem.graphics import Viewer
+from afem.graphics.display import display_shape
 from afem.io import ImportVSP
 from afem.structure import *
 from afem.topology import *
 
 
-Settings.log_to_console(True)
+Settings.log_to_console()
 
 
 def build_wingbox(wing, params):
@@ -233,11 +234,11 @@ def build_wingbox(wing, params):
     FuseSurfacePartsByCref(internal_parts)
     DiscardByCref(internal_parts)
 
-    v = Viewer()
-    v.add(*AssemblyAPI.get_parts())
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    # v = Viewer()
+    # v.add(*AssemblyAPI.get_parts())
+    # v.set_display_shapes()
+    # v.show()
+    # v.clear_all()
 
     # SKIN --------------------------------------------------------------------
     skin = SkinByBody('wing skin', wing, False).skin
@@ -256,19 +257,19 @@ def build_wingbox(wing, params):
     # Viewing
     skin.set_transparency(0.5)
 
-    v.add(*AssemblyAPI.get_parts())
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    # v.add(*AssemblyAPI.get_parts())
+    # v.set_display_shapes()
+    # v.show()
+    # v.clear_all()
 
     # Check free edges.
     cmp = CompoundByShapes(all_parts).compound
     tool = ExploreFreeEdges(cmp)
     wing.set_transparency(0.5)
-    v.add(wing, *tool.free_edges)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    # v.add(wing, *tool.free_edges)
+    # v.set_display_shapes()
+    # v.show()
+    # v.clear_all()
 
     # VOLUMES -----------------------------------------------------------------
     # Demonstrate creating volumes from shapes (i.e., parts). Do not use the
@@ -276,10 +277,10 @@ def build_wingbox(wing, params):
 
     # Volumes using all parts. This generates multiple solids.
     shape1 = VolumesFromShapes(all_parts).shape
-    v.add(shape1)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    # v.add(shape1)
+    # v.set_display_shapes()
+    # v.show()
+    # v.clear_all()
 
     # Volume using front spar, rear spar, root rib, tip rib, and upper and
     # lower skins. This should produce a single solid since no internal ribs
@@ -289,10 +290,10 @@ def build_wingbox(wing, params):
     print('Volume is ', VolumeProps(shape2).volume)
     # You can also use TopoDS_Shape.volume property (i.e., shape.volume).
 
-    v.add(shape2)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    # v.add(shape2)
+    # v.set_display_shapes()
+    # v.show()
+    # v.clear_all()
 
     # Create a semi-infinite box to cut volume with.
     p0 = wing.eval(0.5, 0.1)
@@ -303,22 +304,22 @@ def build_wingbox(wing, params):
     # Cut the volume with an infinite plane (use a large box for robustness).
     new_shape = CutShapes(shape1, cut_space).shape
     cut_space.set_transparency(0.5)
-    v.add(new_shape, cut_space)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    # v.add(new_shape, cut_space)
+    # v.set_display_shapes()
+    # v.show()
+    # v.clear_all()
 
     # Calculate cg of cut shape.
     cg = VolumeProps(new_shape).cg
     print('Centroid of cut shape is ', cg)
     print('Volume of cut shape is ', VolumeProps(new_shape).volume)
 
-    for solid in ExploreShape.get_solids(new_shape):
-        v.add(solid)
-    v.add(cg)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    # for solid in ExploreShape.get_solids(new_shape):
+    #     v.add(solid)
+    # v.add(cg)
+    # v.set_display_shapes()
+    # v.show()
+    # v.clear_all()
 
     # Cut the volume with an infinite plane (use a large box for robustness).
     new_shape = CutShapes(shape2, cut_space).shape
@@ -329,11 +330,11 @@ def build_wingbox(wing, params):
     print('Volume of cut shape is ', VolumeProps(new_shape).volume)
     # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
 
-    v.add(new_shape)
-    v.add(cg)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    # v.add(new_shape)
+    # v.add(cg)
+    # v.set_display_shapes()
+    # v.show()
+    # v.clear_all()
 
     # MESH --------------------------------------------------------------------
     # Initialize
@@ -389,14 +390,16 @@ if __name__ == '__main__':
     # Build wing box
     assy = build_wingbox(wing_in, {})
 
+    display_shape(assy.prepare_shape_to_mesh())
+
     print('Complete in ', time.time() - start, ' seconds.')
-    v = Viewer()
-    v.add(*assy.parts)
+    # v = Viewer()
+    # v.add(*assy.parts)
 
     xz_pln = PlaneByAxes().plane
     for part in assy.parts:
         part.set_mirror(xz_pln)
 
-    v.add_meshes(MeshAPI.get_active())
-    v.set_display_shapes()
-    v.show()
+    # v.add_meshes(MeshAPI.get_active())
+    # v.set_display_shapes()
+    # v.show()

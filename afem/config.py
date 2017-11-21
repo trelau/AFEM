@@ -1,4 +1,5 @@
 import logging
+import sys
 
 # Initialize logger.
 with open('afem.log', 'w') as log:
@@ -11,7 +12,6 @@ _fh = logging.FileHandler('afem.log')
 _fmt = logging.Formatter('%(levelname)s: %(message)s')
 _fh.setFormatter(_fmt)
 logger.addHandler(_fh)
-logger.propagate = True
 
 # Dictionary for units
 units_dict = {'i': 'IN',
@@ -49,19 +49,15 @@ class Settings(object):
     units = 'IN'
 
     @staticmethod
-    def log_to_console(option=True):
+    def log_to_console():
         """
-        Option to print logging output to the console.
-
-        :param bool option: *True* will print to the console, *False* will
-            not.
+        Option to add a stream handler to the main file logger to log to
+        stdout.
 
         :return: None.
         """
-        if option:
-            logger.propagate = True
-        else:
-            logger.propagate = False
+        chdlr = logging.StreamHandler(sys.stdout)
+        logger.addHandler(chdlr)
 
     @staticmethod
     def set_loggging_level(level='info'):

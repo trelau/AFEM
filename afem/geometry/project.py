@@ -180,7 +180,7 @@ class ProjectPointToCurve(PointProjector):
                                                 geom_line)
             npts = extrema.NbExtrema()
             for i in range(1, npts + 1):
-                ui, _ = extrema.Parameters(i)
+                ui, _ = extrema.Parameters(i, 0., 0.)
                 di = extrema.Distance(i)
                 pi = crv.eval(ui)
                 self._results.append([pi, ui, di])
