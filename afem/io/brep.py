@@ -1,18 +1,18 @@
-from OCC.BRep import BRep_Builder
-from OCC.BRepTools import breptools_Read, breptools_Write
-from OCC.TopoDS import TopoDS_Shape
+from OCCT.BRep import BRep_Builder
+from OCCT.BRepTools import BRepTools
+from OCCT.TopoDS import TopoDS_Shape
 
 
 def write_brep(shape, fn):
     """
     Write a BREP file using the shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     :param str fn: The filename.
 
     :return: None.
     """
-    breptools_Write(shape, fn)
+    BRepTools.Write_(shape, fn)
 
 
 def read_brep(fn):
@@ -22,10 +22,10 @@ def read_brep(fn):
     :param str fn: The filename.
 
     :return: The shape.
-    :rtype: OCC.TopoDS.TopoDS_Shape
+    :rtype: OCCT.TopoDS.TopoDS_Shape
     """
     shape = TopoDS_Shape()
     builder = BRep_Builder()
-    breptools_Read(shape, fn, builder)
+    BRepTools.Read_(shape, fn, builder)
 
     return shape

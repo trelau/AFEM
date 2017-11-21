@@ -51,7 +51,7 @@ class FuseSurfaceParts(object):
     def fused_shape(self):
         """
         :return: The fused shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._fused_shape
 
@@ -125,7 +125,7 @@ class CutParts(object):
     :param parts: The parts to cut.
     :type parts: collections.Sequence[afem.structure.entities.Part]
     :param shape: The shape to cut with.
-    :type shape: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :type shape: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     """
 
     def __init__(self, parts, shape):
@@ -192,7 +192,7 @@ class SplitParts(object):
         split and rebuilt.
     :param tools: The parts or shapes used to split the parts but are not
         modified.
-    :type tools: list[OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part]
+    :type tools: list[OCCT.TopoDS.TopoDS_Shape or afem.structure.entities.Part]
     :param float fuzzy_val: Fuzzy tolerance value.
     """
 
@@ -226,7 +226,7 @@ class SplitParts(object):
     def split_shape(self):
         """
         :return: The split shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._split_shape
 
@@ -288,6 +288,6 @@ class FuseAssemblies(object):
     def fused_shape(self):
         """
         :return: The fused shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._bop.shape

@@ -1,33 +1,30 @@
-from OCC.BRep import BRep_Builder, BRep_Tool
-from OCC.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve
-from OCC.BRepAlgo import brepalgo_ConcatenateWireC0
-from OCC.BRepAlgoAPI import BRepAlgoAPI_Section
-from OCC.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
-                                BRepBuilderAPI_MakeEdge,
-                                BRepBuilderAPI_MakeFace,
-                                BRepBuilderAPI_MakePolygon,
-                                BRepBuilderAPI_MakeShell,
-                                BRepBuilderAPI_MakeSolid,
-                                BRepBuilderAPI_MakeVertex,
-                                BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
-from OCC.BRepMesh import BRepMesh_IncrementalMesh
-from OCC.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset)
-from OCC.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
-                             BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism)
-from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-from OCC.GEOMAlgo import GEOMAlgo_Splitter
-from OCC.GeomAPI import GeomAPI_ProjectPointOnCurve
-from OCC.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
-from OCC.ShapeAnalysis import ShapeAnalysis_FreeBounds_ConnectEdgesToWires
-from OCC.ShapeBuild import ShapeBuild_ReShape
-from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
-                        TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_WIRE)
-from OCC.TopTools import (Handle_TopTools_HSequenceOfShape,
-                          TopTools_HSequenceOfShape)
-from OCC.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
-                        TopoDS_Shell, topods_Edge, topods_Face, topods_Shell,
-                        topods_Solid,
-                        topods_Vertex, topods_Wire)
+from OCCT.BRep import BRep_Builder, BRep_Tool
+from OCCT.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve
+from OCCT.BRepAlgo import BRepAlgo
+from OCCT.BRepAlgoAPI import BRepAlgoAPI_Section
+from OCCT.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
+                                 BRepBuilderAPI_MakeEdge,
+                                 BRepBuilderAPI_MakeFace,
+                                 BRepBuilderAPI_MakePolygon,
+                                 BRepBuilderAPI_MakeShell,
+                                 BRepBuilderAPI_MakeSolid,
+                                 BRepBuilderAPI_MakeVertex,
+                                 BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
+from OCCT.BRepMesh import BRepMesh_IncrementalMesh
+from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset)
+from OCCT.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
+                              BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism)
+from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
+# from OCCT.GEOMAlgo import GEOMAlgo_Splitter
+from OCCT.GeomAPI import GeomAPI_ProjectPointOnCurve
+from OCCT.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
+from OCCT.ShapeAnalysis import ShapeAnalysis_FreeBounds
+from OCCT.ShapeBuild import ShapeBuild_ReShape
+from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
+                         TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_WIRE)
+from OCCT.TopTools import TopTools_HSequenceOfShape
+from OCCT.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
+                         TopoDS_Shell, TopoDS)
 from numpy import ceil
 
 from afem.geometry.check import CheckGeom
@@ -85,7 +82,7 @@ class VertexByPoint(object):
     def vertex(self):
         """
         :return: The vertex.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return self._v
 
@@ -121,7 +118,7 @@ class EdgeByPoints(object):
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
         """
         return self._e
 
@@ -129,7 +126,7 @@ class EdgeByPoints(object):
     def vertex1(self):
         """
         :return: The first vertex.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return self._v1
 
@@ -137,7 +134,7 @@ class EdgeByPoints(object):
     def vertex2(self):
         """
         :return: The second vertex.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return self._v2
 
@@ -146,8 +143,8 @@ class EdgeByVertices(object):
     """
     Create an edge between two vertices.
 
-    :param OCC.TopoDS.TopoDS_Vertex v1: The first vertex.
-    :param OCC.TopoDS.TopoDS_Vertex v2: The second vertex.
+    :param OCCT.TopoDS.TopoDS_Vertex v1: The first vertex.
+    :param OCCT.TopoDS.TopoDS_Vertex v2: The second vertex.
 
     Usage:
 
@@ -165,7 +162,7 @@ class EdgeByVertices(object):
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
         """
         return self._e
 
@@ -198,7 +195,7 @@ class EdgeByCurve(object):
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
         """
         return self._e
 
@@ -206,7 +203,7 @@ class EdgeByCurve(object):
     def vertex1(self):
         """
         :return: The first vertex.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return self._v1
 
@@ -214,7 +211,7 @@ class EdgeByCurve(object):
     def vertex2(self):
         """
         :return: The second vertex.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return self._v2
 
@@ -223,7 +220,7 @@ class EdgeByDrag(object):
     """
     Create an edge by dragging a vertex along a vector.
 
-    :param OCC.TopoDS.TopoDS_Vertex vertex: The vertex.
+    :param OCCT.TopoDS.TopoDS_Vertex vertex: The vertex.
     :param vector_like v: The vector to drag the shape.
 
     Usage:
@@ -239,15 +236,15 @@ class EdgeByDrag(object):
     def __init__(self, vertex, v):
         v = CheckGeom.to_vector(v)
         builder = BRepPrimAPI_MakePrism(vertex, v)
-        self._e = topods_Edge(builder.Shape())
-        self._v1 = topods_Vertex(builder.FirstShape())
-        self._v2 = topods_Vertex(builder.LastShape())
+        self._e = TopoDS.Edge_(builder.Shape())
+        self._v1 = TopoDS.Vertex_(builder.FirstShape())
+        self._v2 = TopoDS.Vertex_(builder.LastShape())
 
     @property
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
         """
         return self._e
 
@@ -255,7 +252,7 @@ class EdgeByDrag(object):
     def first_vertex(self):
         """
         :return: The vertex at the bottom of the edge.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return self._v1
 
@@ -263,7 +260,7 @@ class EdgeByDrag(object):
     def last_vertex(self):
         """
         :return: The vertex at the top of the edge.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return self._v2
 
@@ -273,7 +270,7 @@ class EdgeByWireConcat(object):
     Create an edge by concatenating all the edges of a wire. The edge may
     have C0 continuity.
 
-    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
 
     Usage:
 
@@ -288,13 +285,13 @@ class EdgeByWireConcat(object):
     """
 
     def __init__(self, wire):
-        self._edge = brepalgo_ConcatenateWireC0(wire)
+        self._edge = BRepAlgo.ConcatenateWireC0_(wire)
 
     @property
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
         """
         return self._edge
 
@@ -306,10 +303,10 @@ class WireByEdges(object):
     """
     Create a wire using up to four edges.
 
-    :param OCC.TopoDS.TopoDS_Edge e1: The first edge.
-    :param OCC.TopoDS.TopoDS_Edge e2: The second edge.
-    :param OCC.TopoDS.TopoDS_Edge e3: The third edge.
-    :param OCC.TopoDS.TopoDS_Edge e4: The fourth edge.
+    :param OCCT.TopoDS.TopoDS_Edge e1: The first edge.
+    :param OCCT.TopoDS.TopoDS_Edge e2: The second edge.
+    :param OCCT.TopoDS.TopoDS_Edge e3: The third edge.
+    :param OCCT.TopoDS.TopoDS_Edge e4: The fourth edge.
 
     >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve, WireByEdges
@@ -338,7 +335,7 @@ class WireByEdges(object):
     def wire(self):
         """
         :return: The wire.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
         """
         return self._w
 
@@ -346,7 +343,7 @@ class WireByEdges(object):
     def last_edge(self):
         """
         :return: The last edge added to the wire.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
         """
         return self._last_e
 
@@ -354,7 +351,7 @@ class WireByEdges(object):
     def last_vertex(self):
         """
         :return: The last vertex added to the wire.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return self._last_v
 
@@ -363,7 +360,7 @@ class WiresByConnectedEdges(object):
     """
     Create wires from a list of unsorted edges.
 
-    :param list[OCC.TopoDS.TopoDS_Edge] edges: List of edges.
+    :param list[OCCT.TopoDS.TopoDS_Edge] edges: List of edges.
     :param float tol: Connection tolerance. If *None* if provided then the
         maximum tolerance of all edge will be used.
     :param bool shared: Option to use only shared vertices to connect edges.
@@ -391,14 +388,12 @@ class WiresByConnectedEdges(object):
         if tol is None:
             tol = max([ExploreShape.global_tolerance(e, 1) for e in edges])
 
-        hwires = Handle_TopTools_HSequenceOfShape()
-        ShapeAnalysis_FreeBounds_ConnectEdgesToWires(hedges.GetHandle(),
-                                                     tol, shared, hwires)
+        hwires = ShapeAnalysis_FreeBounds.ConnectEdgesToWires_(hedges, tol,
+                                                               shared)
 
-        wires_obj = hwires.GetObject()
         wires = []
-        for i in range(1, wires_obj.Length() + 1):
-            w = topods_Wire(wires_obj.Value(i))
+        for i in range(1, hwires.Length() + 1):
+            w = TopoDS.Wire_(hwires.Value(i))
             wires.append(w)
 
         self._wires = wires
@@ -415,7 +410,7 @@ class WiresByConnectedEdges(object):
     def wires(self):
         """
         :return: The wires.
-        :rtype: list[OCC.TopoDS.TopoDS_Wire]
+        :rtype: list[OCCT.TopoDS.TopoDS_Wire]
         """
         return self._wires
 
@@ -426,7 +421,7 @@ class WireByPlanarOffset(object):
 
     :param spine: The wire to offset. If a face is provided the outer wire
         will be used.
-    :type spine: OCC.TopoDS.TopoDS_Wire or OCC.TopoDS.TopoDS_Face
+    :type spine: OCCT.TopoDS.TopoDS_Wire or OCCT.TopoDS.TopoDS_Face
     :param float distance: Offset distance in the plane.
     :param float altitude: Offset altitude normal to the plane.
     :param str join: Join type ('arc', 'tangent', 'intersection').
@@ -450,7 +445,7 @@ class WireByPlanarOffset(object):
     def wire(self):
         """
         :return: The wire.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
         """
         return self._w
 
@@ -461,7 +456,7 @@ class WiresByShape(WiresByConnectedEdges):
     all the unique edges of a shape and then uses
     :class:`.WiresByConnectedEdges`.
 
-    :param OCC.TopoDS.TopoDS_Shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape: The shape.
 
     :raise ValueError: If no edges are found in the shape.
     """
@@ -508,7 +503,7 @@ class WireByPoints(object):
     def wire(self):
         """
         :return: The wire.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
         """
         return self._w
 
@@ -517,8 +512,8 @@ class WireBySplit(object):
     """
     Split a wire with a shape.
 
-    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
-    :param OCC.TopoDS.TopoDS_Shape splitter: The splitter shape.
+    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCCT.TopoDS.TopoDS_Shape splitter: The splitter shape.
     """
 
     def __init__(self, wire, splitter):
@@ -565,13 +560,13 @@ class WireBySplit(object):
             self._wire = wire
         else:
             new_wire = reshape.Apply(wire)
-            self._wire = topods_Wire(new_wire)
+            self._wire = TopoDS.Wire_(new_wire)
 
     @property
     def wire(self):
         """
         :return: The split wire.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
         """
         return self._wire
 
@@ -581,7 +576,7 @@ class WireByConcat(object):
     Create a wire by concatenating all the edges of the wire. The wire may
     have C0 continuity.
 
-    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
 
     Usage:
 
@@ -596,14 +591,14 @@ class WireByConcat(object):
     """
 
     def __init__(self, wire):
-        edge = brepalgo_ConcatenateWireC0(wire)
+        edge = BRepAlgo.ConcatenateWireC0_(wire)
         self._wire = BRepBuilderAPI_MakeWire(edge).Wire()
 
     @property
     def wire(self):
         """
         :return: The wire.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
         """
         return self._wire
 
@@ -633,7 +628,7 @@ class FaceBySurface(object):
     def face(self):
         """
         :return: The face.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :rtype: OCCT.TopoDS.TopoDS_Face
         """
         return self._f
 
@@ -657,7 +652,7 @@ class FaceByPlane(object):
     """
 
     def __init__(self, pln, umin, umax, vmin, vmax):
-        builder = BRepBuilderAPI_MakeFace(pln.object.Pln(), umin, umax, vmin,
+        builder = BRepBuilderAPI_MakeFace(pln.handle.Pln(), umin, umax, vmin,
                                           vmax)
         self._f = builder.Face()
 
@@ -665,7 +660,7 @@ class FaceByPlane(object):
     def face(self):
         """
         :return: The face.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :rtype: OCCT.TopoDS.TopoDS_Face
         """
         return self._f
 
@@ -674,7 +669,7 @@ class FaceByPlanarWire(object):
     """
     Create a face from a planar wire.
 
-    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
 
     Usage:
 
@@ -695,7 +690,7 @@ class FaceByPlanarWire(object):
     def face(self):
         """
         :return: The face.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :rtype: OCCT.TopoDS.TopoDS_Face
         """
         return self._f
 
@@ -704,7 +699,7 @@ class FaceByDrag(object):
     """
     Create a face by dragging an edge along a vector.
 
-    :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+    :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
     :param vector_like v: The vector to drag the shape.
 
     Usage:
@@ -721,15 +716,15 @@ class FaceByDrag(object):
     def __init__(self, edge, v):
         v = CheckGeom.to_vector(v)
         builder = BRepPrimAPI_MakePrism(edge, v)
-        self._f = topods_Face(builder.Shape())
-        self._e1 = topods_Edge(builder.FirstShape())
-        self._e2 = topods_Edge(builder.LastShape())
+        self._f = TopoDS.Face_(builder.Shape())
+        self._e1 = TopoDS.Edge_(builder.FirstShape())
+        self._e2 = TopoDS.Edge_(builder.LastShape())
 
     @property
     def face(self):
         """
         :return: The face.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :rtype: OCCT.TopoDS.TopoDS_Face
         """
         return self._f
 
@@ -737,7 +732,7 @@ class FaceByDrag(object):
     def first_edge(self):
         """
         :return: The edge at the bottom of the face.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
         """
         return self._e1
 
@@ -745,7 +740,7 @@ class FaceByDrag(object):
     def last_edge(self):
         """
         :return: The edge at the top of the face.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
         """
         return self._e2
 
@@ -774,7 +769,7 @@ class ShellBySurface(object):
     def shell(self):
         """
         :return: The shell.
-        :rtype: OCC.TopoDS.TopoDS_Shell
+        :rtype: OCCT.TopoDS.TopoDS_Shell
         """
         return self._shell
 
@@ -785,7 +780,7 @@ class ShellByFaces(object):
     then simply adds the faces to it. The faces should already have shared
     edges. This is not checked.
 
-    :param list[OCC.TopoDS.TopoDS_Face] faces: List of faces.
+    :param list[OCCT.TopoDS.TopoDS_Face] faces: List of faces.
 
     Usage:
 
@@ -811,7 +806,7 @@ class ShellByFaces(object):
     def shell(self):
         """
         :return: The shell.
-        :rtype: OCC.TopoDS.TopoDS_Shell
+        :rtype: OCCT.TopoDS.TopoDS_Shell
         """
         return self._shell
 
@@ -820,7 +815,7 @@ class ShellByDrag(object):
     """
     Create a shell by dragging a wire along a vector.
 
-    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
     :param vector_like v: The vector to drag the shape.
 
     Usage:
@@ -840,15 +835,15 @@ class ShellByDrag(object):
     def __init__(self, wire, v):
         v = CheckGeom.to_vector(v)
         builder = BRepPrimAPI_MakePrism(wire, v)
-        self._shell = topods_Shell(builder.Shape())
-        self._w1 = topods_Wire(builder.FirstShape())
-        self._w2 = topods_Wire(builder.LastShape())
+        self._shell = TopoDS.Shell_(builder.Shape())
+        self._w1 = TopoDS.Wire_(builder.FirstShape())
+        self._w2 = TopoDS.Wire_(builder.LastShape())
 
     @property
     def shell(self):
         """
         :return: The shell.
-        :rtype: OCC.TopoDS.TopoDS_Shell
+        :rtype: OCCT.TopoDS.TopoDS_Shell
         """
         return self._shell
 
@@ -856,7 +851,7 @@ class ShellByDrag(object):
     def first_wire(self):
         """
         :return: The wire at the bottom of the shell.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
         """
         return self._w1
 
@@ -864,7 +859,7 @@ class ShellByDrag(object):
     def last_wire(self):
         """
         :return: The wire at the top of the shell.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
         """
         return self._w2
 
@@ -873,7 +868,7 @@ class ShellBySewing(object):
     """
     Create a shell by sewing faces.
 
-    :param list[OCC.TopoDS.TopoDS_Face] faces: The faces.
+    :param list[OCCT.TopoDS.TopoDS_Face] faces: The faces.
     :param float tol: Sewing tolerance. If *None* the maximum tolerance of all
         the faces is used.
     :param bool cut_free_edges: Option for cutting of free edges.
@@ -938,7 +933,7 @@ class ShellBySewing(object):
             self._shell = CheckShape.to_shell(shape)
             self._nshells = 1
         elif shape.ShapeType() == TopAbs_SHELL:
-            self._shell = topods_Shell(shape)
+            self._shell = TopoDS.Shell_(shape)
             self._nshells = 1
         else:
             msg = 'Invalid shape type in ShellBySewing.'
@@ -956,7 +951,7 @@ class ShellBySewing(object):
     def shell(self):
         """
         :return: The sewn shell.
-        :rtype: OCC.TopoDS.TopoDS_Shell
+        :rtype: OCCT.TopoDS.TopoDS_Shell
         """
         return self._shell
 
@@ -964,7 +959,7 @@ class ShellBySewing(object):
     def shells(self):
         """
         :return: The sewn shells if more than one is found.
-        :rtype: list[OCC.TopoDS.TopoDS_Shell]
+        :rtype: list[OCCT.TopoDS.TopoDS_Shell]
         """
         return self._shells
 
@@ -974,7 +969,7 @@ class SolidByShell(object):
     Create a solid using a shell. The shell can either be closed (finite
     solid) or open (infinite solid).
 
-    :param OCC.TopoDS.TopoDS_Shell shell: The shell.
+    :param OCCT.TopoDS.TopoDS_Shell shell: The shell.
     """
 
     def __init__(self, shell):
@@ -984,7 +979,7 @@ class SolidByShell(object):
     def solid(self):
         """
         :return: The solid.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
         """
         return self._solid
 
@@ -1013,19 +1008,19 @@ class SolidByPlane(object):
     def __init__(self, pln, width, height, depth):
         w = width / 2.
         h = height / 2.
-        gp_pln = pln.object.Pln()
+        gp_pln = pln.handle.Pln()
         face = BRepBuilderAPI_MakeFace(gp_pln, -w, w, -h, h).Face()
         vn = pln.norm(0., 0.)
         vn.Normalize()
         vn.Scale(depth)
         shape = BRepPrimAPI_MakePrism(face, vn).Shape()
-        self._solid = topods_Solid(shape)
+        self._solid = TopoDS.Solid_(shape)
 
     @property
     def solid(self):
         """
         :return: The solid.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
         """
         return self._solid
 
@@ -1034,7 +1029,7 @@ class SolidByDrag(object):
     """
     Create a solid by dragging a face along a vector.
 
-    :param OCC.TopoDS.TopoDS_Face face: The face.
+    :param OCCT.TopoDS.TopoDS_Face face: The face.
     :param vector_like v: The vector to drag the shape.
 
     Usage:
@@ -1055,15 +1050,15 @@ class SolidByDrag(object):
     def __init__(self, face, v):
         v = CheckGeom.to_vector(v)
         builder = BRepPrimAPI_MakePrism(face, v)
-        self._solid = topods_Solid(builder.Shape())
-        self._f1 = topods_Face(builder.FirstShape())
-        self._f2 = topods_Face(builder.LastShape())
+        self._solid = TopoDS.Solid_(builder.Shape())
+        self._f1 = TopoDS.Face_(builder.FirstShape())
+        self._f2 = TopoDS.Face_(builder.LastShape())
 
     @property
     def solid(self):
         """
         :return: The solid.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
         """
         return self._solid
 
@@ -1071,7 +1066,7 @@ class SolidByDrag(object):
     def first_face(self):
         """
         :return: The face at the bottom of the solid.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :rtype: OCCT.TopoDS.TopoDS_Face
         """
         return self._f1
 
@@ -1079,7 +1074,7 @@ class SolidByDrag(object):
     def last_face(self):
         """
         :return: The face at the top of the solid.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :rtype: OCCT.TopoDS.TopoDS_Face
         """
         return self._f2
 
@@ -1113,7 +1108,7 @@ class SolidByCylinder(object):
     def solid(self):
         """
         :return: The solid.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
         """
         return self._solid
 
@@ -1124,7 +1119,7 @@ class CompoundByShapes(object):
     """
     Create a compound from a list of shapes.
 
-    :param list[OCC.TopoDS.TopoDS_Shape] shapes: List of shapes.
+    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: List of shapes.
     """
 
     def __init__(self, shapes):
@@ -1139,7 +1134,7 @@ class CompoundByShapes(object):
     def compound(self):
         """
         :return: The compound.
-        :rtype: OCC.TopoDS.TopoDS_Compound
+        :rtype: OCCT.TopoDS.TopoDS_Compound
         """
         return self._cp
 
@@ -1156,7 +1151,7 @@ class HalfspaceByShape(object):
     shape.
 
     :param shape: The face or shell.
-    :type shape: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell
+    :type shape: OCCT.TopoDS.TopoDS_Face or OCCT.TopoDS.TopoDS_Shell
     :param point_like pnt: The reference point where the matter is located.
 
     :raise RuntimeError: If *shape* is not a face or shell.
@@ -1183,7 +1178,7 @@ class HalfspaceByShape(object):
     def solid(self):
         """
         :return: The half-space as a solid.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
         """
         return self._solid
 
@@ -1207,7 +1202,7 @@ class ShapeByFaces(object):
     """
     Create either a face or a shell from a list of faces.
 
-    :param list[OCC.TopoDS.TopoDS_Face] faces: The faces.
+    :param list[OCCT.TopoDS.TopoDS_Face] faces: The faces.
     :param bool sew: Option to sew the faces if more than one face is provided.
     :param float tol: Sewing tolerance. If *None* the maximum tolerance of all
         the faces is used.
@@ -1242,8 +1237,8 @@ class ShapeByFaces(object):
             list, it will be a shell if only one shell was formed, or it will
             be a compound of shells if more than one shell was found after
             sewing.
-        :rtype: OCC.TopoDS.TopoDS_Face or OCC.TopoDS.TopoDS_Shell or
-            OCC.TopoDS.TopoDS_Compound
+        :rtype: OCCT.TopoDS.TopoDS_Face or OCCT.TopoDS.TopoDS_Shell or
+            OCCT.TopoDS.TopoDS_Compound
         """
         return self._shape
 
@@ -1276,7 +1271,7 @@ class ShapeByDrag(object):
     """
     Create a shape by dragging another shape along a vector.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     :param vector_like v: The vector to drag the shape.
     """
 
@@ -1291,7 +1286,7 @@ class ShapeByDrag(object):
     def shape(self):
         """
         :return: The shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shape
 
@@ -1299,7 +1294,7 @@ class ShapeByDrag(object):
     def first_shape(self):
         """
         :return: The shape at the bottom.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._s1
 
@@ -1307,7 +1302,7 @@ class ShapeByDrag(object):
     def last_shape(self):
         """
         :return: The shape at the top.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._s2
 
@@ -1368,7 +1363,7 @@ class PointAlongShape(object):
     parameter.
 
     :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :type shape: OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire
     :param float ds: The distance along the curve from the given parameter.
     :param float tol: Tolerance.
 
@@ -1381,7 +1376,7 @@ class PointAlongShape(object):
     >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
     >>> tool = PointAlongShape(e, 5.)
     >>> tool.point
-    Point(5.0, 0.0, 0.0)
+    Point(5.000, 0.000, 0.000)
     >>> tool.parameter
     5.0
     """
@@ -1434,15 +1429,15 @@ class PointsAlongShapeByNumber(object):
     Create a specified number of points along an edge or wire.
 
     :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :type shape: OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire
     :param int n: Number of points to create (*n* > 0).
     :param float d1: An offset distance for the first point. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last point. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param OCC.TopoDS.TopoDS_Shape shape1: A shape to define the first point.
+    :param OCCT.TopoDS.TopoDS_Shape shape1: A shape to define the first point.
         This shape is intersected with the edge or wire.
-    :param OCC.TopoDS.TopoDS_Shape shape2: A shape to define the last point.
+    :param OCCT.TopoDS.TopoDS_Shape shape2: A shape to define the last point.
         This shape is intersected with the edge or wire.
     :param float tol: Tolerance.
 
@@ -1569,16 +1564,16 @@ class PointsAlongShapeByDistance(object):
     Create a specified number of points along an edge or wire.
 
     :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+    :type shape: OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire
     :param float maxd: The maximum allowed spacing between points. The
         actual spacing will be adjusted to not to exceed this value.
     :param float d1: An offset distance for the first point. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last point. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param OCC.TopoDS.TopoDS_Shape shape1: A shape to define the first point.
+    :param OCCT.TopoDS.TopoDS_Shape shape1: A shape to define the first point.
         This shape is intersected with the edge or wire.
-    :param OCC.TopoDS.TopoDS_Shape shape2: A shape to define the last point.
+    :param OCCT.TopoDS.TopoDS_Shape shape2: A shape to define the last point.
         This shape is intersected with the edge or wire.
     :param int nmin: Minimum number of points to create.
     :param float tol: Tolerance.
@@ -1657,7 +1652,7 @@ class PointsAlongShapeByDistance(object):
                 u2 = pac.Parameter()
 
         # Determine number of points
-        arc_length = GCPnts_AbscissaPoint.Length(adp_crv, u1, u2, tol)
+        arc_length = GCPnts_AbscissaPoint.Length_(adp_crv, u1, u2, tol)
         n = ceil(arc_length / maxd) + 1
         if n < nmin:
             n = nmin
@@ -1711,7 +1706,7 @@ class PlaneByEdges(object):
     """
     Create a plane by fitting it to all the edges of a shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape containing the edges.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape containing the edges.
     :param float tol: Edges must be within this planar tolerance. The
         tolerance is the largest value between the value provided or the
         largest tolerance of any one of the edges in the shape.
@@ -1761,8 +1756,8 @@ class PlaneByIntersectingShapes(object):
     then the edges are tessellated and the point is added to this list. Then
     the tool :class:`.PlaneByApprox` is used.
 
-    :param OCC.TopoDS.TopoDS_Shape shape1: The first shape.
-    :param OCC.TopoDS.TopoDS_Shape shape2: The second shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape1: The first shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape2: The second shape.
     :param afem.geometry.entities.Point pnt: Additional point to add to the
         edges since they might be collinear.
     :param float tol: Edges must be within this planar tolerance. The
@@ -1792,7 +1787,7 @@ class PlaneByIntersectingShapes(object):
                 hndl_poly3d = BRep_Tool().Polygon3D(edge, edge.Location())
                 if hndl_poly3d.IsNull():
                     continue
-                tcol_pnts = hndl_poly3d.GetObject().Nodes()
+                tcol_pnts = hndl_poly3d.Nodes()
                 for i in range(1, tcol_pnts.Length() + 1):
                     gp_pnt = tcol_pnts.Value(i)
                     pnt = CheckGeom.to_point(gp_pnt)

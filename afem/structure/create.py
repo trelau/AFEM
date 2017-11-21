@@ -35,7 +35,7 @@ class CurvePartByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Curve or OCC.TopoDS.TopoDS_Shape
+    :type shape: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
     :param assy: The assembly to add the part to. If not provided the part will
@@ -77,7 +77,7 @@ class BeamByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Curve or OCC.TopoDS.TopoDS_Shape
+    :type shape: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
     :param assy: The assembly to add the part to. If not provided the part will
@@ -167,7 +167,7 @@ class SurfacePartByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Surface or OCC.TopoDS.TopoDS_Shape
+    :type shape: afem.geometry.entities.Surface or OCCT.TopoDS.TopoDS_Shape
     :param afem.geometry.entities.Curve cref: The reference curve.
     :param afem.geometry.entities.Surface sref: The reference surface. If
         not provided then the basis surface of the largest face of the shape
@@ -223,7 +223,7 @@ class SparByParameters(object):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Shape
+        OCCT.TopoDS.TopoDS_Shape
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
     :type assy: str or afem.structure.assembly.Assembly or None
@@ -287,7 +287,7 @@ class SparByPoints(SparByParameters):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Shape
+        OCCT.TopoDS.TopoDS_Shape
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
     :type assy: str or afem.structure.assembly.Assembly or None
@@ -331,7 +331,7 @@ class SparByEnds(SparByParameters):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Shape
+        OCCT.TopoDS.TopoDS_Shape
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
     :type assy: str or afem.structure.assembly.Assembly or None
@@ -422,7 +422,7 @@ class SparByShape(object):
     Create a spar using a basis shape.
 
     :param str label: Part label.
-    :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape.
+    :param OCCT.TopoDS.TopoDS_Shape basis_shape: The basis shape.
     :param afem.oml.entities.Body body: The body.
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
@@ -487,15 +487,15 @@ class SparBetweenShapes(SparByPoints):
 
     :param str label: Part label.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Shape
+        OCCT.TopoDS.TopoDS_Shape
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
     :type assy: str or afem.structure.assembly.Assembly or None
@@ -532,10 +532,10 @@ class SparsBetweenPlanesByNumber(object):
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
@@ -616,10 +616,10 @@ class SparsBetweenPlanesByDistance(object):
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
@@ -697,10 +697,10 @@ class SparsAlongCurveByNumber(object):
     :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
@@ -788,10 +788,10 @@ class SparsAlongCurveByDistance(object):
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
@@ -886,7 +886,7 @@ class RibByParameters(object):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Shape
+        OCCT.TopoDS.TopoDS_Shape
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
     :type assy: str or afem.structure.assembly.Assembly or None
@@ -947,7 +947,7 @@ class RibByPoints(RibByParameters):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Shape
+        OCCT.TopoDS.TopoDS_Shape
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
     :type assy: str or afem.structure.assembly.Assembly or None
@@ -1038,7 +1038,7 @@ class RibByShape(object):
     Create a rib using a basis shape.
 
     :param str label: Part label.
-    :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape.
+    :param OCCT.TopoDS.TopoDS_Shape basis_shape: The basis shape.
     :param afem.oml.entities.Body body: The body.
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
@@ -1103,15 +1103,15 @@ class RibBetweenShapes(RibByPoints):
 
     :param str label: Part label.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
-        OCC.TopoDS.TopoDS_Shape
+        OCCT.TopoDS.TopoDS_Shape
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.
     :type assy: str or afem.structure.assembly.Assembly or None
@@ -1174,10 +1174,10 @@ class RibsBetweenPlanesByNumber(object):
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
@@ -1258,10 +1258,10 @@ class RibsBetweenPlanesByDistance(object):
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
@@ -1339,10 +1339,10 @@ class RibsAlongCurveByNumber(object):
     :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
@@ -1430,10 +1430,10 @@ class RibsAlongCurveByDistance(object):
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
@@ -1523,10 +1523,10 @@ class RibsAlongCurveAndSurfaceByDistance(object):
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param shape2: Ending shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
         afem.geometry.entities.Surface
     :param afem.oml.entities.Body body: The body.
     :param float u1: The parameter of the first plane (default=crv.u1).
@@ -1962,7 +1962,7 @@ class SkinBySolid(object):
     Create a skin part from the outer shell of the solid.
 
     :param str label: Part label.
-    :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+    :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
     :param bool copy: Option to copy the outer shell.
     :param assy: The assembly to add the part to. If not provided the part will
         be added to the active assembly.

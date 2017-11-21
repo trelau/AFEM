@@ -1,26 +1,27 @@
 import json
 
-import OCC.ShapeAnalysis as ShapeAnalysis
-from OCC.BRep import BRep_Builder, BRep_Tool
-from OCC.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
-                                BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
-from OCC.BRepCheck import BRepCheck_Analyzer
-from OCC.BRepGProp import brepgprop
-from OCC.GProp import GProp_GProps
-from OCC.Geom import Geom_Plane
-from OCC.GeomLib import GeomLib_IsPlanarSurface
-from OCC.IFSelect import IFSelect_ItemsByEntity
-from OCC.Interface import Interface_Static
-from OCC.STEPControl import STEPControl_Reader
-from OCC.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
-from OCC.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
-                              ShapeUpgrade_SplitSurface,
-                              ShapeUpgrade_UnifySameDomain)
-from OCC.StepRepr import StepRepr_RepresentationItem
-from OCC.TColStd import TColStd_HSequenceOfReal
-from OCC.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
-from OCC.TopExp import TopExp_Explorer
-from OCC.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
+from OCCT.BRep import BRep_Builder, BRep_Tool
+from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
+                                 BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
+from OCCT.BRepCheck import BRepCheck_Analyzer
+from OCCT.BRepGProp import BRepGProp
+from OCCT.GProp import GProp_GProps
+from OCCT.Geom import Geom_Plane, Geom_BSplineSurface
+from OCCT.GeomLib import GeomLib_IsPlanarSurface
+from OCCT.IFSelect import (IFSelect_ItemsByEntity, IFSelect_RetDone,
+                           IFSelect_RetVoid)
+from OCCT.Interface import Interface_Static
+from OCCT.STEPControl import STEPControl_Reader
+from OCCT.ShapeAnalysis import ShapeAnalysis
+from OCCT.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
+from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
+                               ShapeUpgrade_SplitSurface,
+                               ShapeUpgrade_UnifySameDomain)
+from OCCT.StepRepr import StepRepr_RepresentationItem
+from OCCT.TColStd import TColStd_HSequenceOfReal
+from OCCT.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
+from OCCT.TopExp import TopExp_Explorer
+from OCCT.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
 from afem.config import Settings, logger
 from afem.geometry.create import NurbsSurfaceByInterp, NurbsCurveByPoints
@@ -93,21 +94,21 @@ class ImportVSP(object):
         ref_surfs = {}
 
         # Set STEP reader parameters.
-        Interface_Static.SetIVal("read.step.ideas", 1)
-        Interface_Static.SetIVal("read.step.nonmanifold", 1)
+        Interface_Static.SetIVal_("read.step.ideas", 1)
+        Interface_Static.SetIVal_("read.step.nonmanifold", 1)
 
         # Build a compound for geometric sets.
         compound = TopoDS_Compound()
         BRep_Builder().MakeCompound(compound)
 
-        # Read file with OCC.
+        # Read file with OCCT.
         step_reader = STEPControl_Reader()
         status = step_reader.ReadFile(fn)
-        if status > 1:
+        if status not in [IFSelect_RetVoid, IFSelect_RetDone]:
             return bodies
 
         # Convert to desired units.
-        Interface_Static.SetCVal("xstep.cascade.unit", Settings.units)
+        Interface_Static.SetCVal_("xstep.cascade.unit", Settings.units)
 
         # Check.
         failsonly = False
@@ -121,7 +122,7 @@ class ImportVSP(object):
 
         # Things needed to extract names from STEP entities.
         session = step_reader.WS()
-        transfer_reader = session.GetObject().TransferReader().GetObject()
+        transfer_reader = session.TransferReader()
 
         # Iterate over master shape to find compounds for geometric sets. These
         # sets contain the metadata and the surfaces that make up the
@@ -136,10 +137,8 @@ class ImportVSP(object):
                 compound = master_shape
                 more = False
             # Get the metadata.
-            entity = transfer_reader.EntityFromShapeResult(compound, 1)
-            rep_item = StepRepr_RepresentationItem().GetHandle().DownCast(
-                entity)
-            name = rep_item.GetObject().Name().GetObject().ToCString()
+            rep_item = transfer_reader.EntityFromShapeResult(compound, 1)
+            name = rep_item.Name().ToCString()
 
             # Unnamed body
             if not name:
@@ -229,7 +228,7 @@ class ImportVSP(object):
         :param bool divide_closed: Option to divide closed faces.
 
         :return: The new solid.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
 
         :raise ValueError: If no surfaces are provided.
         """
@@ -255,7 +254,7 @@ class ImportVSP(object):
         form a bilinear surface where the u-direction is chordwise and the
         v-direction is spanwise.
 
-        :param OCC.TopoDS.TopoDS_Compound compound: The compound.
+        :param OCCT.TopoDS.TopoDS_Compound compound: The compound.
 
         :return: The reference surface.
         :rtype: afem.geometry.entities.NurbsSurface
@@ -266,12 +265,10 @@ class ImportVSP(object):
         # Get underlying surface
         top_exp = TopExp_Explorer(compound, TopAbs_FACE)
         face = CheckShape.to_face(top_exp.Current())
-        hsrf = BRep_Tool.Surface(face)
+        hsrf = BRep_Tool.Surface_(face)
 
-        # Downcast to AFEM NurbsSurface
-        srf = NurbsSurface.downcast(hsrf)
-        if not isinstance(srf, NurbsSurface):
-            raise TypeError('Cannot downcast to NurbsSurface.')
+        # Create NurbsSurface
+        srf = NurbsSurface(hsrf)
 
         # Loft new surface
         vknots = srf.vknots
@@ -339,7 +336,7 @@ def _build_solid(compound, divide_closed):
         shape = top_exp.Current()
         face = CheckShape.to_face(shape)
         fprop = GProp_GProps()
-        brepgprop.SurfaceProperties(face, fprop, 1.0e-7)
+        BRepGProp.SurfaceProperties_(face, fprop, 1.0e-7)
         a = fprop.Mass()
         if a <= 1.0e-7:
             top_exp.Next()
@@ -351,11 +348,11 @@ def _build_solid(compound, divide_closed):
     non_planar_faces = []
     planar_faces = []
     for f in faces:
-        hsrf = BRep_Tool.Surface(f)
+        hsrf = BRep_Tool.Surface_(f)
         try:
             is_pln = GeomLib_IsPlanarSurface(hsrf, 1.0e-7)
             if is_pln.IsPlanar():
-                w = ShapeAnalysis.shapeanalysis_OuterWire(f)
+                w = ShapeAnalysis.OuterWire_(f)
                 # Fix the wire because they are usually degenerate edges in
                 # the planar end caps.
                 builder = BRepBuilderAPI_MakeWire()
@@ -366,7 +363,7 @@ def _build_solid(compound, divide_closed):
                 fix = ShapeFix_Wire()
                 fix.Load(w)
                 geom_pln = Geom_Plane(is_pln.Plan())
-                fix.SetSurface(geom_pln.GetHandle())
+                fix.SetSurface(geom_pln)
                 fix.FixReorder()
                 fix.FixConnected()
                 fix.FixEdgeCurves()
@@ -488,7 +485,7 @@ def _process_wing(compound, divide_closed):
     wing = Body(solid)
 
     if vsp_surf:
-        vsp_surf = NurbsSurface.downcast(vsp_surf)
+        vsp_surf = NurbsSurface(vsp_surf)
         wing.add_metadata('vsp surface', vsp_surf)
         upr_srf = vsp_surf.copy()
         v_le = vsp_surf.local_to_global_param('v', 0.5)
@@ -514,7 +511,7 @@ def _process_fuse(compound, divide_closed):
     faces = ExploreShape.get_faces(compound)
     if len(faces) == 1:
         vsp_surf = ExploreShape.surface_of_face(faces[0])
-        vsp_surf = NurbsSurface.downcast(vsp_surf)
+        vsp_surf = NurbsSurface(vsp_surf)
         fuselage.add_metadata('vsp surface', vsp_surf)
 
     return fuselage
@@ -530,7 +527,7 @@ def _process_unsplit_wing(compound, divide_closed):
 
     # Get the surface.
     master_surf = ExploreShape.surface_of_face(face)
-    master_surf = NurbsSurface.downcast(master_surf)
+    master_surf = NurbsSurface(master_surf)
     uknots, vknots = master_surf.uknots, master_surf.vknots
     vsplit = master_surf.local_to_global_param('v', 0.5)
 
@@ -585,15 +582,15 @@ def _process_unsplit_wing(compound, divide_closed):
 
     split = ShapeUpgrade_SplitSurface()
     split.Init(s6.handle)
-    split.SetUSplitValues(usplits.GetHandle())
+    split.SetUSplitValues(usplits)
     split.Perform()
-    comp_surf1 = split.ResSurfaces().GetObject()
+    comp_surf1 = split.ResSurfaces()
 
     split = ShapeUpgrade_SplitSurface()
     split.Init(s7.handle)
-    split.SetUSplitValues(usplits.GetHandle())
+    split.SetUSplitValues(usplits)
     split.Perform()
-    comp_surf2 = split.ResSurfaces().GetObject()
+    comp_surf2 = split.ResSurfaces()
 
     # For each patch in the composite surfaces create a face.
     for i in range(1, comp_surf1.NbUPatches() + 1):

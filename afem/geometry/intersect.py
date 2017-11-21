@@ -1,10 +1,10 @@
-from OCC.BRepBuilderAPI import BRepBuilderAPI_MakeEdge
-from OCC.Extrema import Extrema_ExtPC
-from OCC.GeomAPI import GeomAPI_IntCS
-from OCC.GeomInt import GeomInt_IntSS
-from OCC.IntTools import IntTools_EdgeEdge
-from OCC.ShapeFix import ShapeFix_ShapeTolerance
-from OCC.TopAbs import TopAbs_VERTEX
+from OCCT.BRepBuilderAPI import BRepBuilderAPI_MakeEdge
+from OCCT.Extrema import Extrema_ExtPC
+from OCCT.GeomAPI import GeomAPI_IntCS
+from OCCT.GeomInt import GeomInt_IntSS
+from OCCT.IntTools import IntTools_EdgeEdge
+from OCCT.ShapeFix import ShapeFix_ShapeTolerance
+from OCCT.TopAbs import TopAbs_VERTEX
 from numpy import float64, inf, mean, sqrt, zeros
 from scipy.spatial import KDTree
 
@@ -124,7 +124,7 @@ class IntersectCurveCurve(CurveIntersector):
 
     For more information see IntTools_EdgeEdge_.
 
-    .. _IntTools_EdgeEdge: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_int_tools___edge_edge.html
+    .. _IntTools_EdgeEdge: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_int_tools___edge_edge.html
 
     Usage:
 
@@ -136,7 +136,7 @@ class IntersectCurveCurve(CurveIntersector):
     >>> cci.npts
     1
     >>> cci.point(1)
-    Point(4.999999999999886, 2.5000361106880673e-08, 0.0)
+    Point(5.000, 0.000, 0.000)
     """
 
     def __init__(self, crv1, crv2, itol=1.0e-7):
@@ -184,7 +184,7 @@ class IntersectCurveSurface(CurveIntersector):
 
     For more information see GeomAPI_IntCS_.
 
-    .. _GeomAPI_IntCS: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___int_c_s.html
+    .. _GeomAPI_IntCS: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___int_c_s.html
 
     Usage:
 
@@ -199,7 +199,7 @@ class IntersectCurveSurface(CurveIntersector):
     >>> csi.npts
     1
     >>> csi.point(1)
-    Point(5.0, 5.0, 5.0)
+    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, crv, srf):
@@ -211,7 +211,7 @@ class IntersectCurveSurface(CurveIntersector):
         csi = GeomAPI_IntCS(crv.handle, srf.handle)
         results = []
         for i in range(1, csi.NbPoints() + 1):
-            u, v, t = csi.Parameters(i)
+            u, v, t = csi.Parameters(i, 0., 0., 0.)
             pc = crv.eval(t)
             ps = srf.eval(u, v)
             pi = mean([pc, ps], axis=0)
@@ -296,7 +296,7 @@ class IntersectSurfaceSurface(SurfaceIntersector):
 
     For more information see GeomAPI_IntSS_.
 
-    .. _GeomAPI_IntSS: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___int_s_s.html
+    .. _GeomAPI_IntSS: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___int_s_s.html
 
     Usage:
 
@@ -312,7 +312,7 @@ class IntersectSurfaceSurface(SurfaceIntersector):
     1
     >>> c = ssi.curve(1)
     >>> c.eval(0.5)
-    Point(5.0, 4.999983574755282, 4.99999990730418)
+    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, srf1, srf2, itol=1.0e-7):

@@ -1,11 +1,11 @@
-from OCC.BRepBuilderAPI import BRepBuilderAPI_Sewing
-from OCC.ShapeBuild import ShapeBuild_ReShape
-from OCC.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
-                              ShapeUpgrade_ShapeDivideContinuity,
-                              ShapeUpgrade_UnifySameDomain)
-from OCC.TopTools import (TopTools_DataMapOfShapeShape,
-                          TopTools_IndexedMapOfShape)
-from OCC.TopoDS import topods_Edge
+from OCCT.BRepBuilderAPI import BRepBuilderAPI_Sewing
+from OCCT.ShapeBuild import ShapeBuild_ReShape
+from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
+                               ShapeUpgrade_ShapeDivideContinuity,
+                               ShapeUpgrade_UnifySameDomain)
+from OCCT.TopTools import (TopTools_DataMapOfShapeShape,
+                           TopTools_IndexedMapOfShape)
+from OCCT.TopoDS import TopoDS
 
 from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
@@ -19,7 +19,7 @@ class DivideClosedShape(object):
     """
     Divide all closed faces in a shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     """
 
     def __init__(self, shape):
@@ -31,7 +31,7 @@ class DivideClosedShape(object):
     def shape(self):
         """
         :return: The divided shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shape
 
@@ -40,7 +40,7 @@ class DivideC0Shape(object):
     """
     Divide a shape at all C0 boundaries to form a C1 shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     """
 
     def __init__(self, shape):
@@ -52,7 +52,7 @@ class DivideC0Shape(object):
     def shape(self):
         """
         :return: The divided shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shape
 
@@ -61,7 +61,7 @@ class UnifyShape(object):
     """
     Unify edges and faces of a shape that lie on the same geometry.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     :param bool edges: Option to unify all possible edges.
     :param bool faces: Option to unify all possible faces.
     :param bool bsplines: Option to concatenate the curves of edges if they
@@ -77,7 +77,7 @@ class UnifyShape(object):
     def shape(self):
         """
         :return: The unified shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shape
 
@@ -85,18 +85,19 @@ class UnifyShape(object):
         """
         Get a shape generated from the old one.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The old shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The old shape.
 
         :return: The new shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
+        # TODO Finish UnifyShape.generated
 
 
 class SewShape(object):
     """
     Sew the shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The context shape to sew.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The context shape to sew.
     :param float tol: Sewing tolerance. If *None* is provided then the
         average tolerance of the shape will be used. If no shape is
         provided, then a default value of 1.0e-7 is used.
@@ -112,7 +113,7 @@ class SewShape(object):
 
     For more information see BRepBuilderAPI_Sewing_.
 
-    .. _BRepBuilderAPI_Sewing: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_builder_a_p_i___sewing.html
+    .. _BRepBuilderAPI_Sewing: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_builder_a_p_i___sewing.html
 
     Usage:
 
@@ -167,7 +168,7 @@ class SewShape(object):
         """
         Load the context shape to sew.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: None.
         """
@@ -177,7 +178,7 @@ class SewShape(object):
         """
         Add a shape to be sewed or controlled.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: None.
         """
@@ -196,9 +197,9 @@ class SewShape(object):
         """
         :return: The sewed shape. May be a null shape if nothing is
             constructed.
-        :rtype: OCC.TopoDS.TopoDS_Shape or OCC.TopoDS.TopoDS_Face or
-            OCC.TopoDS.TopoDS_Shell or OCC.TopoDS.TopoDS_Solid or
-            OCC.TopoDS.TopoDS_Compound
+        :rtype: OCCT.TopoDS.TopoDS_Shape or OCCT.TopoDS.TopoDS_Face or
+            OCCT.TopoDS.TopoDS_Shell or OCCT.TopoDS.TopoDS_Solid or
+            OCCT.TopoDS.TopoDS_Compound
         """
         return self._tool.SewedShape()
 
@@ -214,11 +215,11 @@ class SewShape(object):
     def free_edges(self):
         """
         :return: Free edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         edges = []
         for i in range(1, self.n_free_edges + 1):
-            e = topods_Edge(self._tool.FreeEdge(i))
+            e = TopoDS.Edge_(self._tool.FreeEdge(i))
             edges.append(e)
         return edges
 
@@ -234,11 +235,11 @@ class SewShape(object):
     def multiple_edges(self):
         """
         :return: Multiple edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         edges = []
         for i in range(1, self.n_free_edges + 1):
-            e = topods_Edge(self._tool.MultipleEdge(i))
+            e = TopoDS.Edge_(self._tool.MultipleEdge(i))
             edges.append(e)
         return edges
 
@@ -254,11 +255,11 @@ class SewShape(object):
     def manifold_edges(self):
         """
         :return: Manifold edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         edges = []
         for i in range(1, self.n_free_edges + 1):
-            e = topods_Edge(self._tool.ContigousEdge(i))
+            e = TopoDS.Edge_(self._tool.ContigousEdge(i))
             edges.append(e)
         return edges
 
@@ -266,7 +267,7 @@ class SewShape(object):
         """
         Check to see if input shape has been modified.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if modified, *False* if not.
         :rtype: bool
@@ -277,10 +278,10 @@ class SewShape(object):
         """
         Get a modified shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: The modified shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.Modified(shape)
 
@@ -288,7 +289,7 @@ class SewShape(object):
         """
         Check to see if input sub-shape has been modified.
 
-        :param OCC.TopoDS.TopoDS_Shape subshape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape subshape: The shape.
 
         :return: *True* if modified, *False* if not.
         :rtype: bool
@@ -299,10 +300,10 @@ class SewShape(object):
         """
         Get a modified sub-shape.
 
-        :param OCC.TopoDS.TopoDS_Shape subshape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape subshape: The shape.
 
         :return: The modified sub-shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.ModifiedSubShape(subshape)
 
@@ -311,7 +312,7 @@ class RebuildShapeWithShapes(object):
     """
     Rebuild a shape by requesting substitutions on a shape.
 
-    :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape that will be
+    :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape that will be
         rebuilt.
     """
 
@@ -323,7 +324,7 @@ class RebuildShapeWithShapes(object):
         """
         Request to remove the old shape.
 
-        :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape. This is
+        :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape. This is
             usually a sub-shape of the original old shape.
 
         :return: None.
@@ -334,9 +335,9 @@ class RebuildShapeWithShapes(object):
         """
         Request to replace the old shape with a list of new shapes.
 
-        :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape. This is
+        :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape. This is
             usually a sub-shape of the original old shape.
-        :param list[OCC.TopoDS.TopoDS_Shape] new_shapes: The new shapes.
+        :param list[OCCT.TopoDS.TopoDS_Shape] new_shapes: The new shapes.
 
         :return: None.
         """
@@ -349,7 +350,7 @@ class RebuildShapeWithShapes(object):
         shape.
 
         :return: The new shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.Apply(self._old_shape)
 
@@ -360,7 +361,7 @@ class RebuildShapeByTool(object):
     substitutions on the faces of the shape. If not faces exist it will try
     the edges. If no edges exist it will try the vertices.
 
-    :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape.
+    :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopCore
 
@@ -368,7 +369,7 @@ class RebuildShapeByTool(object):
 
     For more information see ShapeBuild_ReShape_.
 
-    .. _ShapeBuild_ReShape: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_shape_build___re_shape.html
+    .. _ShapeBuild_ReShape: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_shape_build___re_shape.html
 
     Usage:
 
@@ -380,11 +381,12 @@ class RebuildShapeByTool(object):
     >>> box2 = SolidByPlane(pln2, 5., 15., 5.).solid
     >>> cut = CutShapes(box1, box2)
     >>> assert cut.is_done
-    >>> rebuild = RebuildShapeByTool(box1, cut, fix=True)
+    >>> rebuild = RebuildShapeByTool(box1, cut)
     >>> new_shape = rebuild.new_shape
     >>> CheckShape.is_solid(box1)
     True
-    >>> CheckShape.is_shell(new_shape)
+    >>> shape = FixShape(new_shape).shape
+    >>> CheckShape.is_shell(shape)
     True
     """
 
@@ -421,7 +423,7 @@ class RebuildShapeByTool(object):
     def new_shape(self):
         """
         :return: The new shape after substitutions.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._new_shape
 
@@ -437,7 +439,7 @@ class RebuildShapesByTool(object):
     make substitutions on the faces of the shape. If not faces exist it will
     try the edges. If no edges exist it will try the vertices.
 
-    :param list[OCC.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
+    :param list[OCCT.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopCore
     """
@@ -485,11 +487,11 @@ class RebuildShapesByTool(object):
         """
         Get the new shape from the old shape.
 
-        :param OCC.TopoDS.TopoDS_Shape old_shape: The old shape provided in
+        :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape provided in
             the initial inputs.
 
         :return: The new shape after substitutions.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
 
         :raises RuntimeError: If the old shape is not a key in the final
             results.

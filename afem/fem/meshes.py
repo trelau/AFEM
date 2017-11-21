@@ -1,11 +1,11 @@
-from OCC.SMESH import SMESH_Gen_get
+from OCCT.SMESH import SMESH_Gen
 
 from afem.fem.elements import Element
 from afem.fem.hypotheses import HypothesisAPI
 from afem.fem.nodes import Node
 from afem.topology.check import CheckShape
 
-_mesh_gen = SMESH_Gen_get()
+_mesh_gen = SMESH_Gen()
 
 __all__ = ["Mesh", "SubMesh", "MeshAPI"]
 
@@ -28,10 +28,10 @@ class Mesh(object):
         Mesh._indx += 1
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying mesh object.
-        :rtype: OCC.SMESH.SMESH_Mesh
+        :rtype: OCCT.SMESH.SMESH_Mesh
         """
         return self._mesh
 
@@ -47,9 +47,9 @@ class Mesh(object):
     def shape(self):
         """
         :return: The shape to mesh.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
-        return self.object.GetShapeToMesh()
+        return self.handle.GetShapeToMesh()
 
     @property
     def has_shape(self):
@@ -57,7 +57,7 @@ class Mesh(object):
         :return: ``True`` if the mesh has a shape, ``False`` if not.
         :rtype: bool
         """
-        return self.object.HasShapeToMesh()
+        return self.handle.HasShapeToMesh()
 
     @property
     def nb_nodes(self):
@@ -152,12 +152,12 @@ class Mesh(object):
         """
         Set the shape to mesh.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: None
         """
         shape = CheckShape.to_shape(shape)
-        self.object.ShapeToMesh(shape)
+        self.handle.ShapeToMesh(shape)
 
     def add_hypothesis(self, hypothesis, shape=None):
         """
@@ -185,7 +185,7 @@ class Mesh(object):
         if not hypothesis:
             raise ValueError('No hypothesis could be found.')
 
-        self.object.AddHypothesis(shape, hypothesis.id)
+        self.handle.AddHypothesis(shape, hypothesis.id)
 
     def compute(self):
         """
@@ -202,18 +202,18 @@ class Mesh(object):
 
         :return: None.
         """
-        self.object.Clear()
+        self.handle.Clear()
 
     def get_submesh(self, sub_shape):
         """
         Get a SubMesh from a sub-shape.
 
-        :param OCC.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
+        :param OCCT.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
 
         :return: A sub-mesh.
         :rtype: afem.fem.meshes.SubMesh
         """
-        the_mesh = self.object.GetSubMesh(sub_shape)
+        the_mesh = self.handle.GetSubMesh(sub_shape)
         return SubMesh(the_mesh)
 
     def get_nodes(self, order=False):
@@ -237,7 +237,7 @@ class SubMesh(object):
     """
     SubMesh.
 
-    :param OCC.SMESH.SMESH_subMesh: The sub-mesh.
+    :param OCCT.SMESH.SMESH_subMesh: The sub-mesh.
     """
 
     def __init__(self, the_submesh):
@@ -248,7 +248,7 @@ class SubMesh(object):
     def object(self):
         """
         :return: The underlying sub-mesh object.
-        :rtype: OCC.SMESH.SMESH_subMesh
+        :rtype: OCCT.SMESH.SMESH_subMesh
         """
         return self._mesh
 
@@ -258,7 +258,7 @@ class SubMesh(object):
         :return: ``True`` if the sub-mesh is empty, ``False`` if not.
         :rtype: bool
         """
-        return self.object.IsEmpty()
+        return self.handle.IsEmpty()
 
     @property
     def is_computed(self):
@@ -266,7 +266,7 @@ class SubMesh(object):
         :return: ``True`` if the sub-mesh is computed, ``False`` if not.
         :rtype: bool
         """
-        return self.object.IsMeshComputed()
+        return self.handle.IsMeshComputed()
 
     @property
     def nb_nodes(self):
@@ -376,7 +376,7 @@ class MeshAPI(object):
         Create a mesh.
 
         :param str label: The label.
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
         :param bool active: Option to make this mesh active.
 
         :return: The new mesh.
@@ -427,7 +427,7 @@ class MeshAPI(object):
         """
         Get a SubMesh from the sub-shape.
 
-        :param OCC.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
+        :param OCCT.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
         :param mesh: The mesh to retrieve the sub-mesh from. If ``None`` is
             provided then the active mesh is used.
         :type mesh: afem.fem.meshes.Mesh or str or None

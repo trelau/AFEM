@@ -1,7 +1,7 @@
 from math import sqrt
 
-from OCC.Extrema import (Extrema_ExtCC, Extrema_ExtCS, Extrema_ExtPC,
-                         Extrema_ExtPS, Extrema_ExtSS)
+from OCCT.Extrema import (Extrema_ExtCC, Extrema_ExtCS, Extrema_ExtPC,
+                          Extrema_ExtPS, Extrema_ExtSS)
 
 from afem.geometry.check import CheckGeom
 

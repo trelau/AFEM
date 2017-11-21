@@ -1,22 +1,23 @@
 from math import ceil, radians
 from warnings import warn
 
-import OCC.BSplCLib as CLib
-from OCC.Approx import (Approx_ChordLength)
-from OCC.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-from OCC.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
-                      Geom_Line, Geom_Plane, Geom_TrimmedCurve)
-from OCC.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
-                         GeomAPI_PointsToBSpline)
-from OCC.GeomAbs import (GeomAbs_C2)
-from OCC.GeomAdaptor import GeomAdaptor_Curve
-from OCC.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
-                          GeomFill_SectionGenerator)
-from OCC.GeomPlate import GeomPlate_BuildAveragePlane
-from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal)
-from OCC.TColgp import (TColgp_Array1OfPnt)
-from OCC.gce import gce_MakeCirc
-from OCC.gp import gp_Ax3, gp_Pln, gp_Quaternion, gp_Trsf
+from OCCT.Approx import Approx_ChordLength
+from OCCT.BSplCLib import BSplCLib
+from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
+from OCCT.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
+                       Geom_Line, Geom_Plane, Geom_TrimmedCurve)
+from OCCT.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
+                          GeomAPI_PointsToBSpline)
+from OCCT.GeomAbs import (GeomAbs_C2)
+from OCCT.GeomAdaptor import GeomAdaptor_Curve
+from OCCT.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
+                           GeomFill_SectionGenerator)
+from OCCT.GeomPlate import GeomPlate_BuildAveragePlane
+from OCCT.TColStd import TColStd_Array1OfInteger, TColStd_Array1OfReal
+from OCCT.TColgp import TColgp_Array1OfPnt
+from OCCT.gce import gce_MakeCirc
+from OCCT.gp import gp_Ax3, gp_Pln, gp_Quaternion, gp_Trsf
+from OCCT.gp import gp_Extrinsic_XYZ
 from numpy import array, cross, mean, ones, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
@@ -71,7 +72,7 @@ class PointByXYZ(object):
 
     >>> from afem.geometry import PointByXYZ
     >>> PointByXYZ(1., 2., 3.).point
-    Point(1.0, 2.0, 3.0)
+    Point(1.000, 2.000, 3.000)
     """
 
     def __init__(self, x=0., y=0., z=0.):
@@ -99,7 +100,7 @@ class PointByArray(PointByXYZ):
 
     >>> from afem.geometry import PointByArray
     >>> PointByArray([1., 2., 3.]).point
-    Point(1.0, 2.0, 3.0)
+    Point(1.000, 2.000, 3.000)
     """
 
     def __init__(self, xyz=(0., 0., 0.)):
@@ -129,7 +130,7 @@ class PointFromParameter(object):
     >>> line = LineByPoints(p1, p2).line
     >>> builder = PointFromParameter(line, 0., 1.)
     >>> builder.point
-    Point(1.0, 0.0, 0.0)
+    Point(1.000, 0.000, 0.000)
     >>> builder.parameter
     1.0
     """
@@ -183,7 +184,7 @@ class PointsAlongCurveByNumber(object):
 
     For more information see GCPnts_UniformAbscissa_.
 
-    .. _GCPnts_UniformAbscissa: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_g_c_pnts___uniform_abscissa.html
+    .. _GCPnts_UniformAbscissa: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_g_c_pnts___uniform_abscissa.html
 
     Usage:
 
@@ -195,7 +196,7 @@ class PointsAlongCurveByNumber(object):
     >>> builder.npts
     3
     >>> builder.points
-    [Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)]
+    [Point(0.000, 0.000, 0.000), Point(5.000, 0.000, 0.000), Point(10.000, 0.000, 0.000)]
     >>> builder.parameters
     [0.0, 5.0, 10.0]
     """
@@ -325,7 +326,7 @@ class PointsAlongCurveByDistance(object):
     >>> builder.npts
     3
     >>> builder.points
-    [Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)]
+    [Point(0.000, 0.000, 0.000), Point(5.000, 0.000, 0.000), Point(10.000, 0.000, 0.000)]
     >>> builder.parameters
     [0.0, 5.0, 10.0]
     """
@@ -360,7 +361,7 @@ class PointsAlongCurveByDistance(object):
                 warn(msg, RuntimeWarning)
 
         # Determine number of points
-        arc_length = GCPnts_AbscissaPoint.Length(adp_crv, u1, u2, tol)
+        arc_length = GCPnts_AbscissaPoint.Length_(adp_crv, u1, u2, tol)
         n = ceil(arc_length / maxd) + 1
         if n < nmin:
             n = nmin
@@ -629,7 +630,7 @@ class LineByVector(object):
             msg = "Invalid direction."
             raise TypeError(msg)
 
-        self._line = Line(Geom_Line(p, d).GetHandle())
+        self._line = Line(Geom_Line(p, d))
 
     @property
     def line(self):
@@ -670,7 +671,7 @@ class LineByPoints(object):
 
         d = DirectionByArray(p2 - p1).direction
 
-        self._line = Line(Geom_Line(p1, d).GetHandle())
+        self._line = Line(Geom_Line(p1, d))
 
     @property
     def line(self):
@@ -695,7 +696,7 @@ class CircleByNormal(object):
     >>> builder = CircleByNormal((0., 0., 0.), (1., 0., 0.), 1.)
     >>> c = builder.circle
     >>> c.eval(0.)
-    Point(0.0, 0.0, 1.0)
+    Point(0.000, 0.000, 1.000)
     """
 
     def __init__(self, center, normal, radius):
@@ -710,7 +711,7 @@ class CircleByNormal(object):
 
         gp_circ = gce_MakeCirc(center, normal, radius).Value()
 
-        self._circle = Circle(Geom_Circle(gp_circ).GetHandle())
+        self._circle = Circle(Geom_Circle(gp_circ))
 
     @property
     def circle(self):
@@ -736,7 +737,7 @@ class CircleByPlane(object):
     >>> builder = CircleByPlane((0., 0., 0.), pln, 1.)
     >>> c = builder.circle
     >>> c.eval(0.)
-    Point(1.0, 0.0, 0.0)
+    Point(1.000, 0.000, 0.000)
     """
 
     def __init__(self, center, plane, radius):
@@ -748,9 +749,9 @@ class CircleByPlane(object):
             msg = "Invalid plane."
             raise TypeError(msg)
 
-        gp_circ = gce_MakeCirc(center, plane.object.Pln(), radius).Value()
+        gp_circ = gce_MakeCirc(center, plane.handle.Pln(), radius).Value()
 
-        self._circle = Circle(Geom_Circle(gp_circ).GetHandle())
+        self._circle = Circle(Geom_Circle(gp_circ))
 
     @property
     def circle(self):
@@ -788,7 +789,7 @@ class NurbsCurveByData(object):
     >>> c.mult
     array([2, 2])
     >>> c.eval(0.5)
-    Point(5.0, 0.0, 0.0)
+    Point(5.000, 0.000, 0.000)
     """
 
     def __init__(self, cp, knots, mult, p, weights=None, is_periodic=False):
@@ -802,7 +803,7 @@ class NurbsCurveByData(object):
 
         c = Geom_BSplineCurve(tcol_cp, tcol_weights, tcol_knots, tcol_mult, p,
                               is_periodic)
-        self._c = NurbsCurve(c.GetHandle())
+        self._c = NurbsCurve(c)
 
     @property
     def curve(self):
@@ -829,7 +830,7 @@ class NurbsCurveByInterp(object):
 
     For more information see GeomAPI_Interpolate_.
 
-    .. _GeomAPI_Interpolate: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___interpolate.html
+    .. _GeomAPI_Interpolate: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___interpolate.html
 
     Usage:
 
@@ -841,15 +842,15 @@ class NurbsCurveByInterp(object):
     2
     >>> c.u1
     0.0
-    >>> c.u2
-    14.142135623730951
+    >>> round(c.u2, 3)
+    14.142
     >>> c.eval(5.)
-    Point(3.5355339059327373, 4.571067811865475, 0.0)
+    Point(3.536, 4.571, 0.000)
     """
 
     def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
         tcol_hpnts = to_tcolgp_harray1_pnt(qp)
-        interp = GeomAPI_Interpolate(tcol_hpnts.GetHandle(),
+        interp = GeomAPI_Interpolate(tcol_hpnts,
                                      is_periodic, tol)
 
         if None not in [v1, v2]:
@@ -893,7 +894,7 @@ class NurbsCurveByApprox(object):
 
     For more information see GeomAPI_PointsToBSpline_.
 
-    .. _GeomAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___points_to_b_spline.html
+    .. _GeomAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___points_to_b_spline.html
 
     Usage:
 
@@ -908,7 +909,7 @@ class NurbsCurveByApprox(object):
     >>> c.u2
     1.0
     >>> c.eval(0.5)
-    Point(5.0, 5.0, 0.0)
+    Point(5.000, 5.000, 0.000)
     """
 
     def __init__(self, qp, dmin=3, dmax=8, continuity='C2',
@@ -964,7 +965,7 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
     >>> c.u2
     1.0
     >>> c.eval(0.5)
-    Point(5.0, 5.0, 0.0)
+    Point(5.000, 5.000, 0.000)
     """
 
     def __init__(self, qp):
@@ -998,13 +999,13 @@ class TrimmedCurveByParameters(object):
     >>> basis_curve.u1
     0.0
     >>> basis_curve.p1
-    Point(0.0, 0.0, 0.0)
+    Point(0.000, 0.000, 0.000)
     >>> builder = TrimmedCurveByParameters(basis_curve, 1., 10.)
     >>> c = builder.curve
-    >>> c.u1
+    >>> round(c.u1, 1)
     1.0
     >>> c.p1
-    Point(0.7071067811865475, 1.314213562373095, 0.0)
+    Point(0.707, 1.314, 0.000)
     """
 
     def __init__(self, basis_curve, u1, u2, sense=True, adjust_periodic=True):
@@ -1016,7 +1017,7 @@ class TrimmedCurveByParameters(object):
 
         crv = Geom_TrimmedCurve(basis_curve.handle, u1, u2, sense,
                                 adjust_periodic)
-        self._c = TrimmedCurve(crv.GetHandle())
+        self._c = TrimmedCurve(crv)
 
     @property
     def curve(self):
@@ -1080,15 +1081,15 @@ class TrimmedCurveByPoints(TrimmedCurveByParameters):
     >>> basis_curve.u1
     0.0
     >>> basis_curve.p1
-    Point(0.0, 0.0, 0.0)
+    Point(0.000, 0.000, 0.000)
     >>> p1 = basis_curve.eval(1.0)
     >>> p2 = basis_curve.eval(10.0)
     >>> builder = TrimmedCurveByPoints(basis_curve, p1, p2)
     >>> c = builder.curve
-    >>> c.u1
+    >>> round(c.u1, 1)
     1.0
     >>> c.p1
-    Point(0.7071067811865475, 1.314213562373095, 0.0)
+    Point(0.707, 1.314, 0.000)
     """
 
     def __init__(self, basis_curve, p1, p2, sense=True,
@@ -1121,7 +1122,7 @@ class PlaneByNormal(object):
     >>> builder = PlaneByNormal((0., 0., 0.), (0., 0., 1.))
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
-    Point(1.0, 1.0, 0.0)
+    Point(1.000, 1.000, 0.000)
     """
 
     def __init__(self, origin=(0., 0., 0.), vnorm=(0., 0., 1.)):
@@ -1134,7 +1135,7 @@ class PlaneByNormal(object):
             msg = 'Invalid normal vector.'
             raise TypeError(msg)
 
-        self._pln = Plane(Geom_Plane(p0, vn).GetHandle())
+        self._pln = Plane(Geom_Plane(p0, vn))
 
     @property
     def plane(self):
@@ -1161,7 +1162,7 @@ class PlaneByAxes(object):
     >>> builder = PlaneByAxes((0., 0., 0.), 'xz')
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
-    Point(1.0, 0.0, 1.0)
+    Point(1.000, 0.000, -1.000)
     """
 
     def __init__(self, origin=(0., 0., 0.), axes='xz'):
@@ -1175,25 +1176,22 @@ class PlaneByAxes(object):
             raise ValueError(msg)
 
         if axes in ['xy', 'yx']:
+            vx = Direction(1., 0., 0.)
             n = Direction(0., 0., 1.)
-            vx = Direction(1., 0., 0.)
-            ax3 = gp_Ax3(origin, n, vx)
-            pln = Geom_Plane(ax3)
         elif axes in ['yz', 'zy']:
-            n = Direction(1., 0., 0.)
             vx = Direction(0., 1., 0.)
-            ax3 = gp_Ax3(origin, n, vx)
-            pln = Geom_Plane(ax3)
+            n = Direction(1., 0., 0.)
         elif axes in ['xz', 'zx']:
-            n = Direction(0., 1., 0.)
             vx = Direction(1., 0., 0.)
-            ax3 = gp_Ax3(origin, n, vx)
-            pln = Geom_Plane(ax3)
+            n = Direction(0., 1., 0.)
         else:
             msg = 'Unknown axes.'
             raise ValueError(msg)
 
-        self._pln = Plane(pln.GetHandle())
+        ax3 = gp_Ax3(origin, n, vx)
+        pln = Geom_Plane(ax3)
+
+        self._pln = Plane(pln)
 
     @property
     def plane(self):
@@ -1226,7 +1224,7 @@ class PlaneByPoints(object):
     >>> builder = PlaneByPoints(p1, p2, p3)
     >>> pln = builder.plane
     >>> pln.eval(1., 1.)
-    Point(1.0, 1.0, 0.0)
+    Point(1.000, 1.000, 0.000)
     """
 
     def __init__(self, p1, p2, p3):
@@ -1254,7 +1252,7 @@ class PlaneByPoints(object):
         vx = Direction(*vx)
         ax = Axis3(p1, n, vx)
 
-        self._pln = Plane(Geom_Plane(gp_Pln(ax)).GetHandle())
+        self._pln = Plane(Geom_Plane(gp_Pln(ax)))
 
     @property
     def plane(self):
@@ -1277,7 +1275,7 @@ class PlaneByApprox(object):
 
     For more information see GeomPlate_BuildAveragePlane_.
 
-    .. _GeomPlate_BuildAveragePlane: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_plate___build_average_plane.html
+    .. _GeomPlate_BuildAveragePlane: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_plate___build_average_plane.html
 
     Usage:
 
@@ -1295,7 +1293,7 @@ class PlaneByApprox(object):
             raise ValueError(msg)
 
         tcol_pnts = to_tcolgp_harray1_pnt(pnts)
-        avg_pln = GeomPlate_BuildAveragePlane(tcol_pnts.GetHandle(),
+        avg_pln = GeomPlate_BuildAveragePlane(tcol_pnts,
                                               tcol_pnts.Length(),
                                               tol, 1, 1)
         if not avg_pln.IsPlane():
@@ -1304,11 +1302,11 @@ class PlaneByApprox(object):
             raise RuntimeError(msg)
 
         # Move to centroid.
-        gp_pln = avg_pln.Plane().GetObject().Pln()
+        gp_pln = avg_pln.Plane().Pln()
         pcg = Point(*mean(pnts, axis=0))
         gp_pln.SetLocation(pcg)
 
-        self._pln = Plane(Geom_Plane(gp_pln).GetHandle())
+        self._pln = Plane(Geom_Plane(gp_pln))
 
     @property
     def plane(self):
@@ -1359,10 +1357,10 @@ class PlaneFromParameter(object):
         self._u = u
         p = c.eval(u)
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.object.Pln()
+            gp_pln = ref_pln.handle.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
-            self._pln = Plane(Geom_Plane(p, dn).GetHandle())
+            self._pln = Plane(Geom_Plane(p, dn))
         else:
             v = c.deriv(u, 1)
             self._pln = PlaneByNormal(p, v).plane
@@ -1407,7 +1405,8 @@ class PlaneByOrientation(object):
 
         # Build a quaternion for rotation angles
         r = gp_Quaternion()
-        r.SetEulerAngles(2, radians(alpha), radians(beta), radians(gamma))
+        r.SetEulerAngles(gp_Extrinsic_XYZ, radians(alpha), radians(beta),
+                         radians(gamma))
 
         # Build transformation matrix and rotate about global origin and
         # translate to desired plane origin.
@@ -1415,7 +1414,7 @@ class PlaneByOrientation(object):
         v = CheckGeom.to_vector(origin)
 
         tf.SetTransformation(r, v)
-        pln.object.Transform(tf)
+        pln.handle.Transform(tf)
 
         self._pln = pln
 
@@ -1449,7 +1448,7 @@ class PlaneByCurveAndSurface(object):
         vx = Direction(srf_nrm.Crossed(crv_deriv))
         n = Direction(crv_deriv)
         ax3 = gp_Ax3(origin, n, vx)
-        self._pln = Plane(Geom_Plane(ax3).GetHandle())
+        self._pln = Plane(Geom_Plane(ax3))
 
     @property
     def plane(self):
@@ -1509,11 +1508,11 @@ class PlanesAlongCurveByNumber(object):
 
         plns = []
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.object.Pln()
+            gp_pln = ref_pln.handle.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             for p in pnts:
-                pln = Plane(Geom_Plane(p, dn).GetHandle())
+                pln = Plane(Geom_Plane(p, dn))
                 plns.append(pln)
         else:
             for i in range(npts):
@@ -1521,7 +1520,7 @@ class PlanesAlongCurveByNumber(object):
                 u = prms[i]
                 vn = c.deriv(u, 1)
                 dn = Direction(vn)
-                pln = Plane(Geom_Plane(p, dn).GetHandle())
+                pln = Plane(Geom_Plane(p, dn))
                 plns.append(pln)
 
         self._plns = plns
@@ -1627,11 +1626,11 @@ class PlanesAlongCurveByDistance(object):
 
         plns = []
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.object.Pln()
+            gp_pln = ref_pln.handle.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             for p in pnts:
-                pln = Plane(Geom_Plane(p, dn).GetHandle())
+                pln = Plane(Geom_Plane(p, dn))
                 plns.append(pln)
         else:
             for i in range(npts):
@@ -1639,7 +1638,7 @@ class PlanesAlongCurveByDistance(object):
                 u = prms[i]
                 vn = c.deriv(u, 1)
                 dn = Direction(vn)
-                pln = Plane(Geom_Plane(p, dn).GetHandle())
+                pln = Plane(Geom_Plane(p, dn))
                 plns.append(pln)
 
         self._plns = plns
@@ -1723,13 +1722,13 @@ class PlanesBetweenPlanesByNumber(object):
     2.5
     >>> pln1 = builder.planes[0]
     >>> pln1.eval(0., 0.)
-    Point(2.5, 0.0, 0.0)
+    Point(2.500, 0.000, 0.000)
     >>> pln2 = builder.planes[1]
     >>> pln2.eval(0., 0.)
-    Point(5.0, 0.0, 0.0)
+    Point(5.000, 0.000, 0.000)
     >>> pln3 = builder.planes[2]
     >>> pln3.eval(0., 0.)
-    Point(7.5, 0.0, 0.0)
+    Point(7.500, 0.000, 0.000)
     """
 
     def __init__(self, pln1, pln2, n, d1=None, d2=None):
@@ -1842,16 +1841,16 @@ class PlanesBetweenPlanesByDistance(object):
     2.0
     >>> pln1 = builder.planes[0]
     >>> pln1.eval(0., 0.)
-    Point(2.0, 0.0, 0.0)
+    Point(2.000, 0.000, 0.000)
     >>> pln2 = builder.planes[1]
     >>> pln2.eval(0., 0.)
-    Point(4.0, 0.0, 0.0)
+    Point(4.000, 0.000, 0.000)
     >>> pln3 = builder.planes[2]
     >>> pln3.eval(0., 0.)
-    Point(6.000000000000001, 0.0, 0.0)
+    Point(6.000, 0.000, 0.000)
     >>> pln4 = builder.planes[3]
     >>> pln4.eval(0., 0.)
-    Point(8.0, 0.0, 0.0)
+    Point(8.000, 0.000, 0.000)
     """
 
     def __init__(self, pln1, pln2, maxd, d1=None, d2=None, nmin=0):
@@ -2070,7 +2069,7 @@ class NurbsSurfaceByData(object):
     >>> builder = NurbsSurfaceByData(cp, uknots, vknots, umult, vmult, p, q)
     >>> s = builder.surface
     >>> s.eval(0.5, 0.5)
-    Point(5.0, 5.0, 0.0)
+    Point(5.000, 5.000, 0.000)
     """
 
     def __init__(self, cp, uknots, vknots, umult, vmult, p, q, weights=None,
@@ -2094,7 +2093,7 @@ class NurbsSurfaceByData(object):
             for j in range(1, tcol_weights.RowLength() + 1):
                 s.SetWeight(i, j, tcol_weights.Value(i, j))
 
-        self._s = NurbsSurface(s.GetHandle())
+        self._s = NurbsSurface(s)
 
     @property
     def surface(self):
@@ -2128,7 +2127,7 @@ class NurbsSurfaceByInterp(object):
     >>> assert builder.surface
     >>> s = builder.surface
     >>> s.eval(0.5, 0.5)
-    Point(5.0, 5.0, 5.0)
+    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, crvs, q=3, parm_type='chord', tol2d=1.0e-9):
@@ -2192,10 +2191,11 @@ class NurbsSurfaceByInterp(object):
             vk[j + q] = 1.0 / q * temp
         # Compute OCC vknots and vmult.
         tcol_vknot_seq = to_tcolstd_array1_real(vk)
-        nv = CLib.bsplclib_KnotsLength(tcol_vknot_seq, False)
+
+        nv = BSplCLib.KnotsLength_(tcol_vknot_seq, False)
         tcol_vknots = TColStd_Array1OfReal(1, nv)
         tcol_vmult = TColStd_Array1OfInteger(1, nv)
-        CLib.bsplclib_Knots(tcol_vknot_seq, tcol_vknots, tcol_vmult, False)
+        BSplCLib.Knots_(tcol_vknot_seq, tcol_vknots, tcol_vmult, False)
 
         # Perform n + 1 interpolations in v-direction to generate surface
         # control points.
@@ -2228,7 +2228,7 @@ class NurbsSurfaceByInterp(object):
                                 tcol_vknots, tcol_umult, tcol_vmult, p, q,
                                 is_u_periodic, False)
 
-        self._s = NurbsSurface(s.GetHandle())
+        self._s = NurbsSurface(s)
 
     @property
     def surface(self):
@@ -2259,7 +2259,7 @@ class NurbsSurfaceByApprox(object):
 
     For more information see GeomFill_AppSurf_.
 
-    .. _GeomFill_AppSurf: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_fill___app_surf.html
+    .. _GeomFill_AppSurf: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_fill___app_surf.html
 
     Usage:
 
@@ -2275,7 +2275,7 @@ class NurbsSurfaceByApprox(object):
     0.0
     >>> s = builder.surface
     >>> s.eval(0.5, 0.5)
-    Point(5.0, 5.0, 5.0)
+    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, crvs, dmin=3, dmax=8, tol3d=1.0e-3, tol2d=1.0e-6,
@@ -2310,7 +2310,7 @@ class NurbsSurfaceByApprox(object):
         line_tool = GeomFill_Line(len(crvs))
 
         # Perform the approximation
-        app_tool.Perform(line_tool.GetHandle(), sec_gen, False)
+        app_tool.Perform(line_tool, sec_gen, False)
         if not app_tool.IsDone():
             msg = 'OCC method failed.'
             raise RuntimeError(msg)
@@ -2330,8 +2330,8 @@ class NurbsSurfaceByApprox(object):
                                 tcol_vknots, tcol_umult, tcol_vmult, p, q,
                                 is_u_periodic, is_v_periodic)
 
-        tol3d_reached, tol2d_reached = app_tool.TolReached()
-        self._s = NurbsSurface(s.GetHandle())
+        tol3d_reached, tol2d_reached = app_tool.TolReached(0., 0.)
+        self._s = NurbsSurface(s)
         self._tol3d_reached = tol3d_reached
         self._tol2d_reached = tol2d_reached
 

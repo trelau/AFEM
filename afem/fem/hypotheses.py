@@ -1,15 +1,12 @@
-from OCC.NETGENPlugin import (NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D,
+from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D,
                               NETGENPlugin_NETGEN_2D_ONLY,
                               NETGENPlugin_SimpleHypothesis_2D)
-from OCC.SMESH import SMESH_Gen_get
-from OCC.StdMeshers import (QUAD_STANDARD, StdMeshers_Adaptive1D,
+from OCCT.StdMeshers import (QUAD_STANDARD, StdMeshers_Adaptive1D,
                             StdMeshers_Deflection1D, StdMeshers_LocalLength,
                             StdMeshers_MaxLength,
                             StdMeshers_NumberOfSegments,
                             StdMeshers_QuadrangleParams,
                             StdMeshers_Quadrangle_2D, StdMeshers_Regular_1D)
-
-_mesh_gen = SMESH_Gen_get()
 
 __all__ = ["Hypothesis", "Regular1D", "MaxLength1D", "LocalLength1D",
            "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
@@ -90,7 +87,7 @@ class Regular1D(Hypothesis):
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.StdMeshers.StdMeshers_Regular_1D
+        :rtype: OCCT.StdMeshers.StdMeshers_Regular_1D
         """
         return self._hypothesis
 
@@ -104,13 +101,13 @@ class MaxLength1D(Hypothesis):
         self._hypothesis = StdMeshers_MaxLength(Hypothesis._indx, 0, _mesh_gen)
         super(MaxLength1D, self).__init__(label)
 
-        self.object.SetLength(max_length)
+        self.handle.SetLength(max_length)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.StdMeshers.StdMeshers_MaxLength
+        :rtype: OCCT.StdMeshers.StdMeshers_MaxLength
         """
         return self._hypothesis
 
@@ -125,13 +122,13 @@ class LocalLength1D(Hypothesis):
                                                   _mesh_gen)
         super(LocalLength1D, self).__init__(label)
 
-        self.object.SetLength(local_length)
+        self.handle.SetLength(local_length)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.StdMeshers.StdMeshers_LocalLength
+        :rtype: OCCT.StdMeshers.StdMeshers_LocalLength
         """
         return self._hypothesis
 
@@ -146,13 +143,13 @@ class NumberOfSegments1D(Hypothesis):
                                                        _mesh_gen)
         super(NumberOfSegments1D, self).__init__(label)
 
-        self.object.SetNumberOfSegments(nseg)
+        self.handle.SetNumberOfSegments(nseg)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.StdMeshers.StdMeshers_NumberOfSegments
+        :rtype: OCCT.StdMeshers.StdMeshers_NumberOfSegments
         """
         return self._hypothesis
 
@@ -167,15 +164,15 @@ class Adaptive1D(Hypothesis):
                                                  _mesh_gen)
         super(Adaptive1D, self).__init__(label)
 
-        self.object.SetMinSize(min_size)
-        self.object.SetMaxSize(max_size)
-        self.object.SetDeflection(deflection)
+        self.handle.SetMinSize(min_size)
+        self.handle.SetMaxSize(max_size)
+        self.handle.SetDeflection(deflection)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.StdMeshers.StdMeshers_Adaptive1D
+        :rtype: OCCT.StdMeshers.StdMeshers_Adaptive1D
         """
         return self._hypothesis
 
@@ -190,13 +187,13 @@ class Deflection1D(Hypothesis):
                                                    _mesh_gen)
         super(Deflection1D, self).__init__(label)
 
-        self.object.SetDeflection(deflection)
+        self.handle.SetDeflection(deflection)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.StdMeshers.StdMeshers_Deflection1D
+        :rtype: OCCT.StdMeshers.StdMeshers_Deflection1D
         """
         return self._hypothesis
 
@@ -214,23 +211,23 @@ class NetgenHypothesis(Hypothesis):
                                                    _mesh_gen)
         super(NetgenHypothesis, self).__init__(label)
 
-        self.object.SetMaxSize(max_size)
-        self.object.SetMinSize(min_size)
-        self.object.SetQuadAllowed(allow_quads)
-        self.object.SetSecondOrder(second_order)
-        self.object.SetOptimize(optimize)
-        self.object.SetFineness(fineness)
-        self.object.SetGrowthRate(growth_rate)
-        self.object.SetNbSegPerEdge(nseg_per_edge)
-        self.object.SetNbSegPerRadius(nseg_per_radius)
-        self.object.SetSurfaceCurvature(surface_curvature)
-        self.object.SetFuseEdges(fuse_edges)
+        self.handle.SetMaxSize(max_size)
+        self.handle.SetMinSize(min_size)
+        self.handle.SetQuadAllowed(allow_quads)
+        self.handle.SetSecondOrder(second_order)
+        self.handle.SetOptimize(optimize)
+        self.handle.SetFineness(fineness)
+        self.handle.SetGrowthRate(growth_rate)
+        self.handle.SetNbSegPerEdge(nseg_per_edge)
+        self.handle.SetNbSegPerRadius(nseg_per_radius)
+        self.handle.SetSurfaceCurvature(surface_curvature)
+        self.handle.SetFuseEdges(fuse_edges)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.NETGENPlugin.NETGENPlugin_Hypothesis
+        :rtype: OCCT.NETGENPlugin.NETGENPlugin_Hypothesis
         """
         return self._hypothesis
 
@@ -246,18 +243,18 @@ class NetgenSimple2D(Hypothesis):
                                                             0, _mesh_gen)
         super(NetgenSimple2D, self).__init__(label)
 
-        self.object.SetLocalLength(local_length)
-        self.object.SetAllowQuadrangles(allow_quads)
+        self.handle.SetLocalLength(local_length)
+        self.handle.SetAllowQuadrangles(allow_quads)
         if length_from_edges:
-            self.object.LengthFromEdges()
+            self.handle.LengthFromEdges()
         if max_area > 0.:
-            self.object.SetMaxElementArea(max_area)
+            self.handle.SetMaxElementArea(max_area)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.NETGENPlugin.NETGENPlugin_SimpleHypothesis_2D
+        :rtype: OCCT.NETGENPlugin.NETGENPlugin_SimpleHypothesis_2D
         """
         return self._hypothesis
 
@@ -276,7 +273,7 @@ class NetgenAlgo2D(Hypothesis):
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.NETGENPlugin.NETGENPlugin_NETGEN_2D
+        :rtype: OCCT.NETGENPlugin.NETGENPlugin_NETGEN_2D
         """
         return self._hypothesis
 
@@ -295,7 +292,7 @@ class NetgenAlgoOnly2D(Hypothesis):
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.NETGENPlugin.NETGENPlugin_NETGEN_2D_ONLY
+        :rtype: OCCT.NETGENPlugin.NETGENPlugin_NETGEN_2D_ONLY
         """
         return self._hypothesis
 
@@ -311,13 +308,13 @@ class QuadrangleParams2D(Hypothesis):
 
         super(QuadrangleParams2D, self).__init__(label)
 
-        self.object.SetQuadType(QUAD_STANDARD)
+        self.handle.SetQuadType(QUAD_STANDARD)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.StdMeshers.StdMeshers_QuadrangleParams
+        :rtype: OCCT.StdMeshers.StdMeshers_QuadrangleParams
         """
         return self._hypothesis
 
@@ -345,13 +342,13 @@ class Quadrangle2D(Hypothesis):
         :return: Check whether aglorithm is applicable.
         :rtype: bool
         """
-        return self.object.IsApplicable(shape, check_all)
+        return self.handle.IsApplicable(shape, check_all)
 
     @property
     def object(self):
         """
         :return: The underlying hypothesis.
-        :rtype: OCC.StdMeshers.StdMeshers_Quadrangle_2D
+        :rtype: OCCT.StdMeshers.StdMeshers_Quadrangle_2D
         """
         return self._hypothesis
 

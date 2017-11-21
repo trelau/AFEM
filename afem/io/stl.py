@@ -1,4 +1,4 @@
-from OCC.StlAPI import StlAPI_Writer
+from OCCT.StlAPI import StlAPI_Writer
 
 __all__ = ["StlExport"]
 
@@ -15,7 +15,7 @@ class StlExport(StlAPI_Writer):
         """
         Converts shape to STL format and writes to a file.
         
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
         :param str fn: The filename.
          
         :return: None.

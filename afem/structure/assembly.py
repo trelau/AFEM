@@ -176,7 +176,7 @@ class Assembly(object):
             from any sub-assemblies.
 
         :return: The parts as a compound.
-        :rtype: OCC.TopoDS.TopoDS_Compound
+        :rtype: OCCT.TopoDS.TopoDS_Compound
         """
         parts = self.get_parts(include_subassy)
         return CompoundByShapes(parts).compound
@@ -189,7 +189,7 @@ class Assembly(object):
             from any sub-assemblies.
 
         :return: The parts as a compound.
-        :rtype: OCC.TopoDS.TopoDS_Compound
+        :rtype: OCCT.TopoDS.TopoDS_Compound
         """
         return self.prepare_shape_to_mesh(include_subassy)
 
@@ -364,7 +364,7 @@ class AssemblyAPI(object):
             from any sub-assemblies.
 
         :return: The parts as a compound.
-        :rtype: OCC.TopoDS.TopoDS_Compound
+        :rtype: OCCT.TopoDS.TopoDS_Compound
         """
         assy = cls.get_assy(assy)
         return assy.prepare_shape_to_mesh(include_subassy)
@@ -381,7 +381,7 @@ class AssemblyAPI(object):
             from any sub-assemblies.
 
         :return: The parts as a compound.
-        :rtype: OCC.TopoDS.TopoDS_Compound
+        :rtype: OCCT.TopoDS.TopoDS_Compound
         """
         assy = cls.get_assy(assy)
         return assy.as_compound(include_subassy)

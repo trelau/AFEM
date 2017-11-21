@@ -1,8 +1,8 @@
-from OCC.BRepBuilderAPI import BRepBuilderAPI_Transform
-from OCC.Quantity import Quantity_Color, Quantity_TOC_RGB
-from OCC.ShapeAnalysis import ShapeAnalysis_Edge
-from OCC.TopoDS import TopoDS_Shape
-from OCC.gce import gce_MakeMirror
+from OCCT.BRepBuilderAPI import BRepBuilderAPI_Transform
+from OCCT.Quantity import Quantity_Color, Quantity_TOC_RGB
+from OCCT.ShapeAnalysis import ShapeAnalysis_Edge
+from OCCT.TopoDS import TopoDS_Shape
+from OCCT.gce import gce_MakeMirror
 
 from afem.topology.check import CheckShape
 
@@ -46,7 +46,7 @@ def _set_mirror(self, pln):
 def _get_mirrored(self):
     if not self.mirror:
         return None
-    trsf = gce_MakeMirror(self.mirror.object.Pln()).Value()
+    trsf = gce_MakeMirror(self.mirror.handle.Pln()).Value()
     builder = BRepBuilderAPI_Transform(self, trsf, True)
     if not builder.IsDone():
         return None

@@ -1,4 +1,4 @@
-from OCC.gp import gp_Pnt, gp_Vec
+from OCCT.gp import gp_Pnt, gp_Vec
 from numpy import ndarray
 
 from afem.geometry.entities import *

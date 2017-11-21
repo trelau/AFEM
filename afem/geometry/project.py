@@ -1,9 +1,9 @@
-from OCC import GeomProjLib
-from OCC.Geom import Geom_Line
-from OCC.GeomAPI import (GeomAPI_ExtremaCurveCurve,
-                         GeomAPI_ExtremaCurveSurface,
-                         GeomAPI_ProjectPointOnCurve,
-                         GeomAPI_ProjectPointOnSurf)
+from OCCT.Geom import Geom_Line
+from OCCT.GeomAPI import (GeomAPI_ExtremaCurveCurve,
+                          GeomAPI_ExtremaCurveSurface,
+                          GeomAPI_ProjectPointOnCurve,
+                          GeomAPI_ProjectPointOnSurf)
+from OCCT.GeomProjLib import GeomProjLib
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Curve
@@ -134,7 +134,7 @@ class ProjectPointToCurve(PointProjector):
 
     For more information see GeomAPI_ProjectPointOnCurve_.
 
-    .. _GeomAPI_ProjectPointOnCurve: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___project_point_on_curve.html
+    .. _GeomAPI_ProjectPointOnCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___project_point_on_curve.html
 
     Usage:
 
@@ -148,7 +148,7 @@ class ProjectPointToCurve(PointProjector):
     >>> proj.npts
     1
     >>> proj.nearest_point
-    Point(5.0, 0.0, 0.0)
+    Point(5.000, 0.000, 0.000)
     >>> proj.nearest_param
     5.0
     >>> proj.dmin
@@ -177,7 +177,7 @@ class ProjectPointToCurve(PointProjector):
             # along a direction.
             geom_line = Geom_Line(pnt, direction)
             extrema = GeomAPI_ExtremaCurveCurve(crv.handle,
-                                                geom_line.GetHandle())
+                                                geom_line)
             npts = extrema.NbExtrema()
             for i in range(1, npts + 1):
                 ui, _ = extrema.Parameters(i)
@@ -208,7 +208,7 @@ class ProjectPointToSurface(PointProjector):
 
     For more information see GeomAPI_ProjectPointOnSurf_.
 
-    .. _GeomAPI_ProjectPointOnSurf: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_a_p_i___project_point_on_surf.html
+    .. _GeomAPI_ProjectPointOnSurf: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___project_point_on_surf.html
 
     Usage:
 
@@ -222,7 +222,7 @@ class ProjectPointToSurface(PointProjector):
     >>> proj.npts
     1
     >>> proj.nearest_point
-    Point(1.0, 1.0, 0.0)
+    Point(1.000, 1.000, 0.000)
     >>> proj.nearest_param
     (1.0, 1.0)
     >>> proj.dmin
@@ -242,7 +242,7 @@ class ProjectPointToSurface(PointProjector):
             proj = GeomAPI_ProjectPointOnSurf(pnt, srf.handle)
             npts = proj.NbPoints()
             for i in range(1, npts + 1):
-                ui, vi = proj.Parameters(i)
+                ui, vi = proj.Parameters(i, 0., 0.)
                 di = proj.Distance(i)
                 pi = srf.eval(ui, vi)
                 self._results.append([pi, (ui, vi), di])
@@ -250,11 +250,11 @@ class ProjectPointToSurface(PointProjector):
             # Use minimum distance between line and surface to project point
             # along a direction.
             geom_line = Geom_Line(pnt, direction)
-            extrema = GeomAPI_ExtremaCurveSurface(geom_line.GetHandle(),
+            extrema = GeomAPI_ExtremaCurveSurface(geom_line,
                                                   srf.handle)
             npts = extrema.NbExtrema()
             for i in range(1, npts + 1):
-                _, ui, vi = extrema.Parameters(i)
+                _, ui, vi = extrema.Parameters(i, 0., 0., 0.)
                 di = extrema.Distance(i)
                 pi = srf.eval(ui, vi)
                 self._results.append([pi, (ui, vi), di])
@@ -306,7 +306,7 @@ class ProjectCurveToPlane(CurveProjector):
 
     For more information see GeomProjLib_ProjectOnPlane_.
 
-    .. _GeomProjLib_ProjectOnPlane: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_proj_lib.html
+    .. _GeomProjLib_ProjectOnPlane: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_proj_lib.html
 
     Usage:
 
@@ -318,9 +318,9 @@ class ProjectCurveToPlane(CurveProjector):
     >>> assert proj.success
     >>> cnew = proj.curve
     >>> cnew.p1
-    Point(0.0, 0.0, 0.0)
+    Point(0.000, 0.000, 0.000)
     >>> cnew.p2
-    Point(10.0, 5.0, 0.0)
+    Point(10.000, 5.000, 0.000)
     """
 
     def __init__(self, crv, pln, direction=None, keep_param=True):
@@ -328,15 +328,11 @@ class ProjectCurveToPlane(CurveProjector):
 
         direction = CheckGeom.to_direction(direction)
         if not CheckGeom.is_direction(direction):
-            direction = pln.object.Pln().Axis().Direction()
+            direction = pln.handle.Pln().Axis().Direction()
 
         # OCC projection
-        hcrv = GeomProjLib.geomprojlib_ProjectOnPlane(crv.handle,
-                                                      pln.handle,
-                                                      direction, keep_param)
-        if hcrv.IsNull():
-            msg = 'OCC failed to project the curve to the plane.'
-            raise RuntimeError(msg)
+        hcrv = GeomProjLib.ProjectOnPlane_(crv.handle, pln.handle, direction,
+                                           keep_param)
 
         self._crv = Curve(hcrv)
 
@@ -353,7 +349,7 @@ class ProjectCurveToSurface(CurveProjector):
 
     For more information see GeomProjLib_Project_.
 
-    .. _GeomProjLib_Project: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_geom_proj_lib.html
+    .. _GeomProjLib_Project: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_proj_lib.html
 
     Usage:
 
@@ -367,19 +363,14 @@ class ProjectCurveToSurface(CurveProjector):
     >>> assert proj.success
     >>> cproj = proj.curve
     >>> cproj.eval(0.5)
-    Point(5.0, 5.0, 5.0)
+    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, crv, srf):
         super(ProjectCurveToSurface, self).__init__()
 
         # OCC projection
-        hcrv = GeomProjLib.geomprojlib_Project(crv.handle,
-                                               srf.handle)
-        if hcrv.IsNull():
-            msg = 'OCC failed to project the curve to the plane.'
-            raise RuntimeError(msg)
-
+        hcrv = GeomProjLib.Project_(crv.handle, srf.handle)
         self._crv = Curve(hcrv)
 
 

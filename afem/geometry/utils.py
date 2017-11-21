@@ -1,6 +1,6 @@
 from __future__ import division, division
 
-import OCC.BSplCLib as CLib
+from OCCT.BSplCLib import BSplCLib
 from numpy import array, diff, float64, floor, hstack, sqrt, sum, zeros
 from numpy.linalg import norm
 
@@ -163,7 +163,7 @@ def reparameterize_knots(u1, u2, tcol_knots):
     """
     Reparameterize the knot values between *u1* and *u2*
     """
-    CLib.bsplclib_Reparametrize(u1, u2, tcol_knots)
+    BSplCLib.Reparametrize_(u1, u2, tcol_knots)
 
 
 def find_span(n, p, u, uk):

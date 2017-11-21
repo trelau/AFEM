@@ -1,23 +1,20 @@
-from OCC.BRep import (BRep_Builder, BRep_Tool_SameParameter,
-                      BRep_Tool_SameRange)
-from OCC.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge,
+from OCCT.BRep import BRep_Builder, BRep_Tool
+from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge,
                                 BRepBuilderAPI_MakeFace,
                                 BRepBuilderAPI_MakeVertex,
                                 BRepBuilderAPI_MakeWire)
-from OCC.BRepCheck import BRepCheck_Analyzer
-from OCC.BRepClass3d import BRepClass3d_SolidClassifier
-from OCC.ShapeAnalysis import ShapeAnalysis_Edge
-from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
+from OCCT.BRepCheck import BRepCheck_Analyzer
+from OCCT.BRepClass3d import BRepClass3d_SolidClassifier
+from OCCT.ShapeAnalysis import ShapeAnalysis_Edge
+from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
                         TopAbs_FACE, TopAbs_IN, TopAbs_ON, TopAbs_OUT,
                         TopAbs_SHELL,
                         TopAbs_SOLID, TopAbs_UNKNOWN, TopAbs_VERTEX,
                         TopAbs_WIRE)
-from OCC.TopoDS import (TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge,
+from OCCT.TopoDS import (TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge,
                         TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid,
-                        TopoDS_Vertex, TopoDS_Wire, topods_CompSolid,
-                        topods_Compound, topods_Edge, topods_Face,
-                        topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
-from OCC.gp import gp_Pnt
+                        TopoDS_Vertex, TopoDS_Wire, TopoDS)
+from OCCT.gp import gp_Pnt
 
 from afem.geometry.check import CheckGeom
 
@@ -46,7 +43,7 @@ class CheckShape(object):
         """
         Check if the shape is a shell.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if a shell, *False* if not.
         :rtype: bool
@@ -61,7 +58,7 @@ class CheckShape(object):
         """
         Check if the shape is a solid.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if a solid, *False* if not.
         :rtype: bool
@@ -76,7 +73,7 @@ class CheckShape(object):
         """
         Check the shape for errors.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if valid, *False* if not.
         :rtype: bool
@@ -88,8 +85,8 @@ class CheckShape(object):
         """
         Check to see if the edge is a seam edge on the face.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
-        :param OCC.TopoDS.TopoDS_Face face: The face.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Face face: The face.
 
         :return: *True* if a seam, *False* if not.
         :rtype: bool
@@ -104,7 +101,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: A vertex.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
 
         :raise TypeError: If entity cannot be converted to a vertex.
         """
@@ -119,7 +116,7 @@ class CheckShape(object):
             return BRepBuilderAPI_MakeVertex(p).Vertex()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_VERTEX:
-            return topods_Vertex(entity)
+            return TopoDS.Vertex_(entity)
 
         raise TypeError('Failed to convert entity to a vertex.')
 
@@ -131,7 +128,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: An edge.
-        :rtype: OCC.TopoDS.TopoDS_Edge
+        :rtype: OCCT.TopoDS.TopoDS_Edge
 
         :raise TypeError: If entity cannot be converted to an edge.
         """
@@ -142,7 +139,7 @@ class CheckShape(object):
             return BRepBuilderAPI_MakeEdge(entity.handle).Edge()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_EDGE:
-            return topods_Edge(entity)
+            return TopoDS.Edge_(entity)
 
         raise TypeError('Failed to convert entity to an edge.')
 
@@ -154,7 +151,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: A wire.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
 
         :raise TypeError: If entity cannot be converted to a wire.
         """
@@ -181,7 +178,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: A face.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :rtype: OCCT.TopoDS.TopoDS_Face
 
         :raise TypeError: If entity cannot be converted to a face.
         """
@@ -192,7 +189,7 @@ class CheckShape(object):
             return BRepBuilderAPI_MakeFace(entity.handle, 0.).Face()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_FACE:
-            return topods_Face(entity)
+            return TopoDS.Face_(entity)
 
         raise TypeError('Failed to convert entity to a face.')
 
@@ -204,7 +201,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: A shell.
-        :rtype: OCC.TopoDS.TopoDS_Shell
+        :rtype: OCCT.TopoDS.TopoDS_Shell
 
         :raise TypeError: If entity cannot be converted to a shell.
         """
@@ -212,7 +209,7 @@ class CheckShape(object):
             return entity
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_SHELL:
-            return topods_Shell(entity)
+            return TopoDS.Shell_(entity)
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_FACE:
             shell = TopoDS_Shell()
@@ -239,7 +236,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: A solid.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
 
         :raise TypeError: If entity cannot be converted to a solid.
         """
@@ -247,7 +244,7 @@ class CheckShape(object):
             return entity
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_SOLID:
-            return topods_Solid(entity)
+            return TopoDS.Solid_(entity)
 
         raise TypeError('Failed to convert entity to a solid.')
 
@@ -259,7 +256,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: A compsolid.
-        :rtype: OCC.TopoDS.TopoDS_CompSolid
+        :rtype: OCCT.TopoDS.TopoDS_CompSolid
 
         :raise TypeError: If entity cannot be converted to a compsolid.
         """
@@ -267,7 +264,7 @@ class CheckShape(object):
             return entity
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_COMPSOLID:
-            return topods_CompSolid(entity)
+            return TopoDS.CompSolid_(entity)
 
         raise TypeError('Failed to convert entity to a compsolid.')
 
@@ -279,7 +276,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: A compound
-        :rtype: OCC.TopoDS.TopoDS_Compound
+        :rtype: OCCT.TopoDS.TopoDS_Compound
 
         :raise TypeError: If entity cannot be converted to a compound.
         """
@@ -287,7 +284,7 @@ class CheckShape(object):
             return entity
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_COMPOUND:
-            return topods_Compound(entity)
+            return TopoDS.Compound_(entity)
 
         if cls.is_shape(entity):
             cp = TopoDS_Compound
@@ -307,7 +304,7 @@ class CheckShape(object):
         :param entity: The entity.
 
         :return: A shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
 
         :raise TypeError: If entity cannot be converted to a shape.
         """
@@ -317,21 +314,21 @@ class CheckShape(object):
         # Shapes
         if isinstance(entity, TopoDS_Shape):
             if entity.ShapeType() == TopAbs_VERTEX:
-                return topods_Vertex(entity)
+                return TopoDS.Vertex_(entity)
             elif entity.ShapeType() == TopAbs_EDGE:
-                return topods_Edge(entity)
+                return TopoDS.Edge_(entity)
             elif entity.ShapeType() == TopAbs_WIRE:
                 return topods_Wire(entity)
             elif entity.ShapeType() == TopAbs_FACE:
-                return topods_Face(entity)
+                return TopoDS.Face_(entity)
             elif entity.ShapeType() == TopAbs_SHELL:
-                return topods_Shell(entity)
+                return TopoDS.Shell_(entity)
             elif entity.ShapeType() == TopAbs_SOLID:
-                return topods_Solid(entity)
+                return TopoDS.Solid_(entity)
             elif entity.ShapeType() == TopAbs_COMPSOLID:
-                return topods_CompSolid(entity)
+                return TopoDS.CompSolid_(entity)
             elif entity.ShapeType() == TopAbs_COMPOUND:
-                return topods_Compound(entity)
+                return TopoDS.Compound_(entity)
             else:
                 raise TypeError('Failed to convert entity to a shape.')
 
@@ -350,7 +347,7 @@ class CheckShape(object):
         """
         Returns the SameParameter flag for the edge.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: The same parameter flag.
         :rtype: bool
@@ -362,7 +359,7 @@ class CheckShape(object):
         """
         Returns the SameRange flag for the edge.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: The same range flag.
         :rtype: bool
@@ -374,7 +371,7 @@ class ClassifyPointInSolid(object):
     """
     Classify a point in a solid.
 
-    :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+    :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
     :param point_like pnt: The point. If not provided the *perform()* method
         will need to be used.
     :param float tol: The tolerance.
@@ -445,6 +442,6 @@ class ClassifyPointInSolid(object):
         Get the face the point is on.
 
         :return: The face.
-        :rtype: OCC.TopoDS.TopoDS_Face
+        :rtype: OCCT.TopoDS.TopoDS_Face
         """
         return self._tool.Face()

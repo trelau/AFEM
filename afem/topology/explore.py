@@ -1,22 +1,21 @@
 from itertools import product
 
-from OCC.BRep import BRep_Tool, BRep_Tool_Parameter
-from OCC.BRepAdaptor import BRepAdaptor_Curve
-from OCC.BRepBuilderAPI import BRepBuilderAPI_Copy
-from OCC.BRepClass3d import brepclass3d
-from OCC.BRepTools import BRepTools_WireExplorer, breptools_OuterWire
-from OCC.GeomAbs import (GeomAbs_BSplineCurve, GeomAbs_BezierCurve)
-from OCC.GeomConvert import GeomConvert_CompCurveToBSplineCurve
-from OCC.ShapeAnalysis import (ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds,
-                               ShapeAnalysis_ShapeTolerance)
-from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE,
-                        TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE,
-                        TopAbs_SHAPE)
-from OCC.TopExp import TopExp_Explorer
-from OCC.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
-                        TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex,
-                        TopoDS_Wire, topods_Compound, topods_Edge, topods_Face,
-                        topods_Shell, topods_Solid, topods_Vertex, topods_Wire)
+from OCCT.BRep import BRep_Tool
+from OCCT.BRepAdaptor import BRepAdaptor_Curve
+from OCCT.BRepBuilderAPI import BRepBuilderAPI_Copy
+from OCCT.BRepClass3d import BRepClass3d
+from OCCT.BRepTools import BRepTools_WireExplorer, BRepTools
+from OCCT.Geom import Geom_BSplineCurve
+from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
+from OCCT.ShapeAnalysis import (ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds,
+                                ShapeAnalysis_ShapeTolerance)
+from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE,
+                         TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE,
+                         TopAbs_SHAPE)
+from OCCT.TopExp import TopExp_Explorer
+from OCCT.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
+                         TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex,
+                         TopoDS_Wire, TopoDS)
 
 from afem.geometry.entities import Curve, NurbsCurve, Point, Surface
 from afem.topology.props import AreaOfShapes
@@ -34,11 +33,11 @@ class ExploreShape(object):
         """
         Get vertices from a shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
         :param bool unique: Option to return only unique vertices.
 
         :return: Vertices of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Vertex]
+        :rtype: list[OCCT.TopoDS.TopoDS_Vertex]
         """
         if isinstance(shape, TopoDS_Vertex):
             return [shape]
@@ -47,7 +46,7 @@ class ExploreShape(object):
         vertices = []
         while exp.More():
             vi = exp.Current()
-            vertex = topods_Vertex(vi)
+            vertex = TopoDS.Vertex_(vi)
             if unique:
                 is_unique = True
                 for v in vertices:
@@ -66,11 +65,11 @@ class ExploreShape(object):
         """
         Get edges from a shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
         :param bool unique: Option to return only unique edges.
 
         :return: Edges of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         if isinstance(shape, TopoDS_Edge):
             return [shape]
@@ -79,7 +78,7 @@ class ExploreShape(object):
         edges = []
         while exp.More():
             ei = exp.Current()
-            edge = topods_Edge(ei)
+            edge = TopoDS.Edge_(ei)
             if unique:
                 is_unique = True
                 for e in edges:
@@ -98,10 +97,10 @@ class ExploreShape(object):
         """
         Get wires from a shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: Wires of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Wire]
+        :rtype: list[OCCT.TopoDS.TopoDS_Wire]
         """
         if isinstance(shape, TopoDS_Wire):
             return [shape]
@@ -110,7 +109,7 @@ class ExploreShape(object):
         wires = []
         while exp.More():
             wi = exp.Current()
-            wire = topods_Wire(wi)
+            wire = TopoDS.Wire_(wi)
             wires.append(wire)
             exp.Next()
         return wires
@@ -120,10 +119,10 @@ class ExploreShape(object):
         """
         Get faces from a shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: Faces of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Face]
+        :rtype: list[OCCT.TopoDS.TopoDS_Face]
         """
         if isinstance(shape, TopoDS_Face):
             return [shape]
@@ -132,7 +131,7 @@ class ExploreShape(object):
         faces = []
         while exp.More():
             fi = exp.Current()
-            face = topods_Face(fi)
+            face = TopoDS.Face_(fi)
             faces.append(face)
             exp.Next()
         return faces
@@ -142,10 +141,10 @@ class ExploreShape(object):
         """
         Get shells from a shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: Shells of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Shell]
+        :rtype: list[OCCT.TopoDS.TopoDS_Shell]
         """
         if isinstance(shape, TopoDS_Shell):
             return [shape]
@@ -154,7 +153,7 @@ class ExploreShape(object):
         shells = []
         while exp.More():
             si = exp.Current()
-            shell = topods_Shell(si)
+            shell = TopoDS.Shell_(si)
             shells.append(shell)
             exp.Next()
         return shells
@@ -164,10 +163,10 @@ class ExploreShape(object):
         """
         Get solids from a shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: Solids of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Solid]
+        :rtype: list[OCCT.TopoDS.TopoDS_Solid]
         """
         if isinstance(shape, TopoDS_Solid):
             return [shape]
@@ -176,7 +175,7 @@ class ExploreShape(object):
         solids = []
         while exp.More():
             si = exp.Current()
-            solid = topods_Solid(si)
+            solid = TopoDS.Solid_(si)
             solids.append(solid)
             exp.Next()
         return solids
@@ -186,10 +185,10 @@ class ExploreShape(object):
         """
         Get compounds from a shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: Compounds of shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Compound]
+        :rtype: list[OCCT.TopoDS.TopoDS_Compound]
         """
         if isinstance(shape, TopoDS_Compound):
             return [shape]
@@ -198,7 +197,7 @@ class ExploreShape(object):
         compounds = []
         while exp.More():
             ci = exp.Current()
-            compound = topods_Compound(ci)
+            compound = TopoDS.Compound_(ci)
             compounds.append(compound)
             exp.Next()
         return compounds
@@ -212,7 +211,7 @@ class ExploreShape(object):
         :param TopoDS.TopoDS_Shape shape2: The second shape.
 
         :rtype: List of shared edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         edges1 = ExploreShape.get_edges(shape1)
         edges2 = ExploreShape.get_edges(shape2)
@@ -237,36 +236,36 @@ class ExploreShape(object):
         """
         Get outer wire of face.
 
-        :param OCC.TopoDS.TopoDS_Face face: The face.
+        :param OCCT.TopoDS.TopoDS_Face face: The face.
 
         :return: Outer wire.
-        :rtype: OCC.TopoDS.TopoDS_Wire
+        :rtype: OCCT.TopoDS.TopoDS_Wire
         """
-        return breptools_OuterWire(face)
+        return BRepTools.OuterWire_(face)
 
     @staticmethod
     def outer_shell(solid):
         """
         Get the outer shell of the solid.
 
-        :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+        :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
 
         :return: Outer shell.
-        :rtype: OCC.TopoDS.TopoDS_Shell
+        :rtype: OCCT.TopoDS.TopoDS_Shell
         """
-        return brepclass3d.OuterShell(solid)
+        return BRepClass3d.OuterShell_(solid)
 
     @staticmethod
     def pnt_of_vertex(vertex):
         """
         Get the underlying point of the vertex.
 
-        :param OCC.TopoDS.TopoDS_Vertex vertex: The vertex.
+        :param OCCT.TopoDS.TopoDS_Vertex vertex: The vertex.
 
         :return: The point.
         :rtype: afem.geometry.entities.Point
         """
-        gp_pnt = BRep_Tool.Pnt(vertex)
+        gp_pnt = BRep_Tool.Pnt_(vertex)
         return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
 
     @staticmethod
@@ -274,12 +273,12 @@ class ExploreShape(object):
         """
         Get the curve of the edge.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: Underlying curve of edge.
         :rtype: afem.geometry.entities.Curve
         """
-        h_crv = BRep_Tool.Curve(edge)
+        h_crv = BRep_Tool.Curve_(edge)
         return Curve(h_crv[0])
 
     @staticmethod
@@ -288,7 +287,7 @@ class ExploreShape(object):
         Get the curve of the wire. The edges are concatenated so the
         resulting curve may be C0 continuous.
 
-        :param OCC.TopoDS.TopoDS_Wire wire: The wire.
+        :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
 
         :return: Concatenated curve of wire.
         :rtype: afem.geometry.entities.NurbsCurve
@@ -298,13 +297,13 @@ class ExploreShape(object):
         geom_convert = GeomConvert_CompCurveToBSplineCurve()
         exp = BRepTools_WireExplorer(wire)
         while exp.More():
-            e = topods_Edge(exp.Current())
+            e = TopoDS.Edge_(exp.Current())
             exp.Next()
             adp_crv = BRepAdaptor_Curve(e)
             tol = ExploreShape.global_tolerance(e, 1)
             geom_convert.Add(adp_crv.BSpline(), tol)
         h_crv = geom_convert.BSplineCurve()
-        if h_crv.IsNull():
+        if not isinstance(h_crv, Geom_BSplineCurve):
             msg = 'Unsupported curve type.'
             raise RuntimeError(msg)
         crv = NurbsCurve(h_crv)
@@ -316,7 +315,7 @@ class ExploreShape(object):
         Get the curve of the shape if possible.
 
         :param shape: The edge or wire.
-        :type shape: OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire
+        :type shape: OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire
 
         :return: The underlying curve of the edge or wire.
         :rtype: afem.geometry.entities.Curve
@@ -336,12 +335,12 @@ class ExploreShape(object):
         """
         Get the surface of the face.
 
-        :param OCC.TopoDS.TopoDS_Face face: The face.
+        :param OCCT.TopoDS.TopoDS_Face face: The face.
 
         :return: Underlying surface of face.
         :rtype: afem.geometry.entities.Surface
         """
-        hsrf = BRep_Tool.Surface(face)
+        hsrf = BRep_Tool.Surface_(face)
         return Surface(hsrf)
 
     @classmethod
@@ -349,7 +348,7 @@ class ExploreShape(object):
         """
         Get the surface of the largest face in the shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: The surface.
         :rtype: afem.geometry.entities.Surface
@@ -366,10 +365,10 @@ class ExploreShape(object):
         """
         Return the first vertex of the edge considering orientation.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: The first vertex.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return ShapeAnalysis_Edge().FirstVertex(edge)
 
@@ -378,10 +377,10 @@ class ExploreShape(object):
         """
         Return the last vertex of the edge considering orientation.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: The last vertex.
-        :rtype: OCC.TopoDS.TopoDS_Vertex
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
         """
         return ShapeAnalysis_Edge().LastVertex(edge)
 
@@ -390,10 +389,10 @@ class ExploreShape(object):
         """
         Return the first and last vertex of the edge.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: The first and last vertices (v1, v2).
-        :rtype: tuple(OCC.TopoDS.TopoDS_Vertex)
+        :rtype: tuple(OCCT.TopoDS.TopoDS_Vertex)
         """
         return cls.first_vertex(edge), cls.last_vertex(edge)
 
@@ -402,25 +401,25 @@ class ExploreShape(object):
         """
         Return the parameter of the vertex on the edge.
 
-        :param OCC.TopoDS.TopoDS_Vertex vertex: The vertex.
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
-        :param OCC.TopoDS.TopoDS_Face face: The face.
+        :param OCCT.TopoDS.TopoDS_Vertex vertex: The vertex.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Face face: The face.
 
         :return: The parameter.
         :rtype: float
         """
         if not face:
-            return BRep_Tool_Parameter(vertex, edge)
+            BRep_Tool.Parameter_(vertex, edge)
         else:
-            return BRep_Tool_Parameter(vertex, edge, face)
+            return BRep_Tool.Parameter_(vertex, edge, face)
 
     @classmethod
     def parameters(cls, edge, face=None):
         """
         Return the first and last parameters on the edge.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
-        :param OCC.TopoDS.TopoDS_Face face: The face.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Face face: The face.
 
         :return: The parameters (u1, u2).
         :rtype: tuple(float)
@@ -435,9 +434,9 @@ class ExploreShape(object):
         """
         Compute the local tolerance of the shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
         :param int mode: Average (0), maximal (1), minimal (2)
-        :param OCC.TopAbs.TopAbs_ShapeEnum styp: The level of shape to examine
+        :param OCCT.TopAbs.TopAbs_ShapeEnum styp: The level of shape to examine
             (i.e., only vertices, only edges, only faces, or all shapes).
 
         :return: The tolerance.
@@ -451,7 +450,7 @@ class ExploreShape(object):
         """
         Compute the global tolerance of the shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
         :param int mode: Average (0), maximal (1), minimal (2)
 
         :return: The tolerance.
@@ -466,11 +465,11 @@ class ExploreShape(object):
         """
         Copy a shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape,
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape,
         :param bool copy_geom: Option to copy geometry.
 
         :return: The copied shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return BRepBuilderAPI_Copy(shape, copy_geom).Shape()
 
@@ -479,8 +478,8 @@ class ExploreWire(object):
     """
     Explore the edges of a wire.
 
-    :param OCC.TopoDS.TopoDS_Wire wire: The wire.
-    :param OCC.TopoDS.TopoDS_Face face: The face.
+    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCCT.TopoDS.TopoDS_Face face: The face.
 
     Usage:
 
@@ -503,7 +502,7 @@ class ExploreWire(object):
 
         edges = []
         while explorer.More():
-            ei = topods_Edge(explorer.Current())
+            ei = TopoDS.Edge_(explorer.Current())
             edges.append(ei)
             explorer.Next()
         self._edges = edges
@@ -520,7 +519,7 @@ class ExploreWire(object):
     def edges(self):
         """
         :return: The ordered edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         return self._edges
 
@@ -529,7 +528,7 @@ class ExploreFreeEdges(object):
     """
     Explore the free bounds of a shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     """
 
     def __init__(self, shape):
@@ -545,7 +544,7 @@ class ExploreFreeEdges(object):
     def closed_wires(self):
         """
         :return: Closed wires of free edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Wire]
+        :rtype: list[OCCT.TopoDS.TopoDS_Wire]
         """
         return self._closed_wires
 
@@ -553,7 +552,7 @@ class ExploreFreeEdges(object):
     def open_wires(self):
         """
         :return: Open wires of free edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Wire]
+        :rtype: list[OCCT.TopoDS.TopoDS_Wire]
         """
         return self._open_wires
 
@@ -561,7 +560,7 @@ class ExploreFreeEdges(object):
     def free_edges(self):
         """
         :return: All free edges of the shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         return self._edges
 

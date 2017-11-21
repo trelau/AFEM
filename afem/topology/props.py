@@ -1,7 +1,5 @@
-from OCC.BRepGProp import (brepgprop_LinearProperties,
-                           brepgprop_SurfaceProperties,
-                           brepgprop_VolumeProperties)
-from OCC.GProp import GProp_GProps
+from OCCT.BRepGProp import BRepGProp
+from OCCT.GProp import GProp_GProps
 from numpy import array
 
 from afem.geometry.entities import Point
@@ -44,7 +42,7 @@ class ShapeProps(object):
         :return: The static moments of inertia Ix, Iy, and Iz.
         :rtype: tuple(float)
         """
-        return self._props.StaticMoments()
+        return self._props.StaticMoments(0., 0., 0.)
 
     @property
     def matrix_of_inertia(self):
@@ -77,7 +75,7 @@ class LinearProps(ShapeProps):
     """
     Calculate linear properties of a shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
     Usage:
 
@@ -87,12 +85,12 @@ class LinearProps(ShapeProps):
     >>> props.length
     1.0
     >>> props.cg
-    Point(0.5, 0.0, 0.0)
+    Point(0.500, 0.000, 0.000)
     """
 
     def __init__(self, shape):
         super(LinearProps, self).__init__()
-        brepgprop_LinearProperties(shape, self._props)
+        BRepGProp.LinearProperties_(shape, self._props)
 
     @property
     def length(self):
@@ -107,7 +105,7 @@ class SurfaceProps(ShapeProps):
     """
     Calculate surface properties of a shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
     Usage:
 
@@ -116,14 +114,14 @@ class SurfaceProps(ShapeProps):
     >>> f = FaceByDrag(e, (0., 1., 0.)).face
     >>> props = SurfaceProps(f)
     >>> props.area
-    0.9999999999999998
+    1.0
     >>> props.cg
-    Point(0.5, 0.5, 0.0)
+    Point(0.500, 0.500, 0.000)
     """
 
     def __init__(self, shape):
         super(SurfaceProps, self).__init__()
-        brepgprop_SurfaceProperties(shape, self._props)
+        BRepGProp.SurfaceProperties_(shape, self._props)
 
     @property
     def area(self):
@@ -138,7 +136,7 @@ class VolumeProps(ShapeProps):
     """
     Calculate volume properties of a shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
     Usage:
 
@@ -150,12 +148,12 @@ class VolumeProps(ShapeProps):
     >>> props.volume
     0.9999999999999998
     >>> props.cg
-    Point(0.5, 0.5, 0.5)
+    Point(0.500, 0.500, 0.500)
     """
 
     def __init__(self, shape):
         super(VolumeProps, self).__init__()
-        brepgprop_VolumeProperties(shape, self._props)
+        BRepGProp.VolumeProperties_(shape, self._props)
 
     @property
     def volume(self):
@@ -170,7 +168,7 @@ class LengthOfShapes(object):
     """
     Calculate the total length of all edges of each shape and sort the results.
 
-    :param list[OCC.TopoDS.TopoDS_Shape] shapes: The shapes.
+    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The shapes.
     """
 
     def __init__(self, shapes):
@@ -212,7 +210,7 @@ class LengthOfShapes(object):
     def shortest_shape(self):
         """
         :return: The shortest shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shapes[0]
 
@@ -220,7 +218,7 @@ class LengthOfShapes(object):
     def longest_shape(self):
         """
         :return: The longest shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shapes[-1]
 
@@ -228,7 +226,7 @@ class LengthOfShapes(object):
     def sorted_shapes(self):
         """
         :return: List of shapes sorted by length.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
         """
         return self._shapes
 
@@ -237,7 +235,7 @@ class AreaOfShapes(object):
     """
     Calculate the total area of each face for each shape and sort the results.
 
-    :param list[OCC.TopoDS.TopoDS_Shape] shapes: The shapes.
+    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The shapes.
     """
 
     def __init__(self, shapes):
@@ -279,7 +277,7 @@ class AreaOfShapes(object):
     def smallest_shape(self):
         """
         :return: The smallest shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shapes[0]
 
@@ -287,7 +285,7 @@ class AreaOfShapes(object):
     def largest_shape(self):
         """
         :return: The largest shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shapes[-1]
 
@@ -295,7 +293,7 @@ class AreaOfShapes(object):
     def sorted_shape(self):
         """
         :return: List of shapes sorted by area.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
         """
         return self._shapes
 

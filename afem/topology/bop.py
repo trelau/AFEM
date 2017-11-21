@@ -1,11 +1,11 @@
 from warnings import warn
 
-from OCC.BOPAlgo import BOPAlgo_MakerVolume
-from OCC.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
-                             BRepAlgoAPI_Fuse, BRepAlgoAPI_Section)
-from OCC.BRepFeat import BRepFeat_MakeCylindricalHole, BRepFeat_SplitShape
-from OCC.GEOMAlgo import GEOMAlgo_Splitter
-from OCC.TopoDS import TopoDS_Face, topods_Solid
+from OCCT.BOPAlgo import BOPAlgo_MakerVolume
+from OCCT.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
+                              BRepAlgoAPI_Fuse, BRepAlgoAPI_Section,
+                              BRepAlgoAPI_Splitter)
+from OCCT.BRepFeat import BRepFeat_MakeCylindricalHole, BRepFeat_SplitShape
+from OCCT.TopoDS import TopoDS_Face, TopoDS
 
 from afem.geometry.check import CheckGeom
 from afem.occ.utils import (to_lst_from_toptools_listofshape,
@@ -33,7 +33,7 @@ class BopCore(object):
 
         :return: None.
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+        if isinstance(self._bop, BOPAlgo_MakerVolume):
             self._bop.Perform()
         else:
             self._bop.Build()
@@ -44,16 +44,16 @@ class BopCore(object):
         :return: *True* if operation is done, *False* if not.
         :rtype: bool
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+        if isinstance(self._bop, (BOPAlgo_MakerVolume,
                                   BRepFeat_MakeCylindricalHole)):
-            return self._bop.ErrorStatus() == 0
+            return not self._bop.HasErrors()
         return self._bop.IsDone()
 
     @property
     def shape(self):
         """
         :return: The resulting shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._bop.Shape()
 
@@ -61,10 +61,10 @@ class BopCore(object):
         """
         Return a list of shapes modified from the given shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: List of modified shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
         """
         return to_lst_from_toptools_listofshape(self._bop.Modified(shape))
 
@@ -72,10 +72,10 @@ class BopCore(object):
         """
         Return a list of shapes generated from the given shape.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: List of generated shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Shape]
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
         """
         return to_lst_from_toptools_listofshape(self._bop.Generated(shape))
 
@@ -83,7 +83,7 @@ class BopCore(object):
         """
         Check to see if shape is deleted.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if deleted, *False* if not.
         :rtype: bool
@@ -96,9 +96,9 @@ class BopAlgo(BopCore):
     Base class for Boolean operations.
 
     :param shape1: The first shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or None
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
     :param shape2: The second shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or None
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bop: The OpenCASCADE class for the Boolean operation.
@@ -112,10 +112,7 @@ class BopAlgo(BopCore):
     def __init__(self, shape1, shape2, parallel, fuzzy_val, bop):
         super(BopAlgo, self).__init__()
 
-        if CheckShape.is_shape(shape1) and CheckShape.is_shape(shape2):
-            self._bop = bop(shape1, shape2)
-        else:
-            self._bop = bop()
+        self._bop = bop()
 
         if parallel:
             self._bop.SetRunParallel(True)
@@ -125,15 +122,22 @@ class BopAlgo(BopCore):
         if fuzzy_val is not None:
             self._bop.SetFuzzyValue(fuzzy_val)
 
+        # TODO New options for OCCT 7.2.0 Boolean ops
+
+        if CheckShape.is_shape(shape1) and CheckShape.is_shape(shape2):
+            self.set_args([shape1])
+            self.set_tools([shape2])
+            self.build()
+
     def set_args(self, shapes):
         """
         Set the arguments.
 
-        :param list[OCC.TopoDS.TopoDS_Shape] shapes: The arguments.
+        :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The arguments.
 
         :return: None.
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume)):
+        if isinstance(self._bop, BOPAlgo_MakerVolume):
             for shape in shapes:
                 self._bop.AddArgument(shape)
             return None
@@ -144,17 +148,12 @@ class BopAlgo(BopCore):
         """
         Set the tools.
 
-        :param list[OCC.TopoDS.TopoDS_Shape] shapes: The tools.
+        :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The tools.
 
         :return: None.
         """
         if isinstance(self._bop, BOPAlgo_MakerVolume):
             warn('Setting tools not available. Doing nothing.', RuntimeWarning)
-            return None
-
-        if isinstance(self._bop, GEOMAlgo_Splitter):
-            for shape in shapes:
-                self._bop.AddTool(shape)
             return None
 
         tools = to_toptools_listofshape(shapes)
@@ -164,7 +163,7 @@ class BopAlgo(BopCore):
     def vertices(self):
         """
         :return: The vertices of the resulting shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Vertex]
+        :rtype: list[OCCT.TopoDS.TopoDS_Vertex]
         """
         return ExploreShape.get_vertices(self.shape)
 
@@ -172,7 +171,7 @@ class BopAlgo(BopCore):
     def edges(self):
         """
         :return: The edges of the resulting shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         return ExploreShape.get_edges(self.shape)
 
@@ -182,7 +181,7 @@ class BopAlgo(BopCore):
 
         :return: None.
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+        if isinstance(self._bop, (BRepAlgoAPI_Splitter, BOPAlgo_MakerVolume,
                                   BRepFeat_MakeCylindricalHole)):
             warn('Refining edges not available. Doing nothing.',
                  RuntimeWarning)
@@ -195,7 +194,7 @@ class BopAlgo(BopCore):
         :return: The result flag of edge refining.
         :rtype: bool
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+        if isinstance(self._bop, (BRepAlgoAPI_Splitter, BOPAlgo_MakerVolume,
                                   BRepFeat_MakeCylindricalHole)):
             return False
         else:
@@ -206,9 +205,9 @@ class BopAlgo(BopCore):
         """
         :return: A list of section edges as a result of intersection between
             the shapes.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
-        if isinstance(self._bop, (GEOMAlgo_Splitter, BOPAlgo_MakerVolume,
+        if isinstance(self._bop, (BRepAlgoAPI_Splitter, BOPAlgo_MakerVolume,
                                   BRepFeat_MakeCylindricalHole)):
             warn('Getting section edges not available. Returning an empty '
                  'list.', RuntimeWarning)
@@ -246,9 +245,9 @@ class FuseShapes(BopAlgo):
     Boolean fuse operation.
 
     :param shape1: The first shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or None
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
     :param shape2: The second shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or None
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
 
@@ -259,7 +258,7 @@ class FuseShapes(BopAlgo):
 
     For more information see BRepAlgoAPI_Fuse_.
 
-    .. _BRepAlgoAPI_Fuse: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_algo_a_p_i___fuse.html
+    .. _BRepAlgoAPI_Fuse: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_algo_a_p_i___fuse.html
 
     Usage:
 
@@ -288,9 +287,9 @@ class CutShapes(BopAlgo):
     Boolean cut operation.
 
     :param shape1: The first shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or None
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
     :param shape2: The second shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or None
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
 
@@ -301,13 +300,13 @@ class CutShapes(BopAlgo):
 
     For more information see BRepAlgoAPI_Cut_.
 
-    .. _BRepAlgoAPI_Cut: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_algo_a_p_i___cut.html
+    .. _BRepAlgoAPI_Cut: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_algo_a_p_i___cut.html
 
     Usage:
 
     >>> from afem.topology import *
     >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
+    >>> e2 = EdgeByPoints((5., 0., 0.), (6., 0., 0.)).edge
     >>> bop = CutShapes(e1, e2)
     >>> assert bop.is_done
     >>> shape = bop.shape
@@ -330,9 +329,9 @@ class CommonShapes(BopAlgo):
     Boolean common operation.
 
     :param shape1: The first shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or None
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
     :param shape2: The second shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or None
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
 
@@ -343,13 +342,13 @@ class CommonShapes(BopAlgo):
 
     For more information see BRepAlgoAPI_Common_.
 
-    .. _BRepAlgoAPI_Common: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_algo_a_p_i___common.html
+    .. _BRepAlgoAPI_Common: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_algo_a_p_i___common.html
 
     Usage:
 
     >>> from afem.topology import *
     >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
+    >>> e2 = EdgeByPoints((5., 0., 0.), (6., 0., 0.)).edge
     >>> bop = CommonShapes(e1, e2)
     >>> assert bop.is_done
     >>> shape = bop.shape
@@ -372,9 +371,9 @@ class IntersectShapes(BopAlgo):
     Boolean intersect operation.
 
     :param shape1: The first shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     :param shape2: The second shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     :param bool compute_pcurve1: Option to compute p-curves on shape 1.
     :param bool compute_pcurve2: Option to compute p-curves on shape 2.
     :param bool approximate: Option to approximate intersection curves.
@@ -388,7 +387,7 @@ class IntersectShapes(BopAlgo):
 
     For more information see BRepAlgoAPI_Section_.
 
-    .. _BRepAlgoAPI_Section: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_algo_a_p_i___section.html
+    .. _BRepAlgoAPI_Section: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_algo_a_p_i___section.html
 
     Usage:
 
@@ -439,10 +438,10 @@ class IntersectShapes(BopAlgo):
         Get the ancestor face on the intersection edge on the first shape
         if available.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: *True* and the face if available, *False* and *None* if not.
-        :rtype: tuple(bool, OCC.TopoDS.TopoDS_Face or None)
+        :rtype: tuple(bool, OCCT.TopoDS.TopoDS_Face or None)
         """
         f = TopoDS_Face()
         if self._bop.HasAncestorFaceOn1(edge, f):
@@ -454,10 +453,10 @@ class IntersectShapes(BopAlgo):
         Get the ancestor face on the intersection edge on the second shape
         if available.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: *True* and the face if available, *False* and *None* if not.
-        :rtype: tuple(bool, OCC.TopoDS.TopoDS_Face or None)
+        :rtype: tuple(bool, OCCT.TopoDS.TopoDS_Face or None)
         """
         f = TopoDS_Face()
         if self._bop.HasAncestorFaceOn2(edge, f):
@@ -471,9 +470,9 @@ class SplitShapes(BopAlgo):
     GEOMAlgo_Splitter tool.
 
     :param shape1: The first shape.
-    :type shape1: OCC.TopoDS.TopoDS_Shape or None
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
     :param shape2: The second shape.
-    :type shape2: OCC.TopoDS.TopoDS_Shape or None
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
 
@@ -500,18 +499,14 @@ class SplitShapes(BopAlgo):
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
                  fuzzy_val=None):
-        super(SplitShapes, self).__init__(None, None, parallel,
-                                          fuzzy_val, GEOMAlgo_Splitter)
-        if CheckShape.is_shape(shape1) and CheckShape.is_shape(shape2):
-            self._bop.AddArgument(shape1)
-            self._bop.AddArgument(shape2)
-            self._bop.Perform()
+        super(SplitShapes, self).__init__(shape1, shape2, parallel,
+                                          fuzzy_val, BRepAlgoAPI_Splitter)
 
     def add_arg(self, shape):
         """
         Add an argument.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The argument.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The argument.
 
         :return: None.
         """
@@ -521,7 +516,7 @@ class SplitShapes(BopAlgo):
         """
         Add a tool.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The tool.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The tool.
 
         :return: None.
         """
@@ -532,7 +527,7 @@ class VolumesFromShapes(BopAlgo):
     """
     Build solids from a list of shapes.
 
-    :param list[OCC.TopoDS.TopoDS_Shape] shapes: The shapes.
+    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The shapes.
     :param bool intersect: Option to intersect the shapes before building
         solids.
     :param bool parallel: Option to run in parallel mode.
@@ -555,13 +550,13 @@ class VolumesFromShapes(BopAlgo):
 
         self._solids = []
         for solid in ExploreShape.get_solids(self.shape):
-            self._solids.append(topods_Solid(solid))
+            self._solids.append(TopoDS.Solid_(solid))
 
     @property
     def box(self):
         """
         :return: The bounding box of all provided shapes.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
         """
         return self._bop.Box()
 
@@ -577,7 +572,7 @@ class VolumesFromShapes(BopAlgo):
     def solids(self):
         """
         :return: The list of solids.
-        :rtype: list[OCC.TopoDS.TopoDS_Solid]
+        :rtype: list[OCCT.TopoDS.TopoDS_Solid]
         """
         return self._solids
 
@@ -587,7 +582,7 @@ class CutCylindricalHole(BopAlgo):
     Cut a cylindrical hole on a shape.
 
     :param shape: The shape.
-    :type shape: OCC.TopoDS.TopoDS_Shape
+    :type shape: OCCT.TopoDS.TopoDS_Shape
     :param float radius: The radius of the hole.
     :param afem.geometry.entities.Axis1: The axis for the hole.
     :param bool parallel: Option to run in parallel mode.
@@ -621,10 +616,10 @@ class LocalSplit(BopCore):
     Perform a local split of a shape in the context of a basis shape. This tool
     only splits faces.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The local shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The local shape.
     :param tool: The tool to split with.
-    :type tool: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
-    :param OCC.TopoDS.TopoDS_Shape basis_shape: The basis shape that the local
+    :type tool: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :param OCCT.TopoDS.TopoDS_Shape basis_shape: The basis shape that the local
         shape is part of.
     :param bool approximate: Option to approximate intersection curves.
     :param bool parallel: Option to run in parallel mode.

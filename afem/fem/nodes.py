@@ -1,4 +1,4 @@
-from OCC.SMDS import SMDS_MeshNode
+from OCCT.SMDS import SMDS_MeshNode
 from numpy import array
 
 __all__ = ["Node"]
@@ -8,7 +8,7 @@ class Node(object):
     """
     Generic mesh node.
 
-    :param OCC.SMDS.SMDS_MeshNode the_node: The node.
+    :param OCCT.SMDS.SMDS_MeshNode the_node: The node.
     """
 
     def __init__(self, the_node):
@@ -28,7 +28,7 @@ class Node(object):
     def object(self):
         """
         :return: The underlying node.
-        :rtype: OCC.SMDS.SMDS_MeshNode
+        :rtype: OCCT.SMDS.SMDS_MeshNode
         """
         return self._node
 

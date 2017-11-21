@@ -1,13 +1,13 @@
 from math import sqrt
 
-from OCC.BRepOffset import BRepOffset_Skin
-from OCC.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
-                               BRepOffsetAPI_MakePipe,
-                               BRepOffsetAPI_MakePipeShell,
-                               BRepOffsetAPI_NormalProjection,
-                               BRepOffsetAPI_ThruSections)
-from OCC.GeomAbs import GeomAbs_C2
-from OCC.TopAbs import TopAbs_EDGE, TopAbs_VERTEX, TopAbs_WIRE
+from OCCT.BRepOffset import BRepOffset_Skin
+from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
+                                BRepOffsetAPI_MakePipe,
+                                BRepOffsetAPI_MakePipeShell,
+                                BRepOffsetAPI_NormalProjection,
+                                BRepOffsetAPI_ThruSections)
+from OCCT.GeomAbs import GeomAbs_C2
+from OCCT.TopAbs import TopAbs_EDGE, TopAbs_VERTEX, TopAbs_WIRE
 
 from afem.occ.utils import (occ_continuity, occ_join_type, occ_parm_type,
                             occ_transition_mode)
@@ -22,9 +22,9 @@ class ProjectShape(object):
     """
     Project edges and wires onto a basis shape.
 
-    :param OCC.TopoDS.TopoDS_Shape: The shape to project to.
+    :param OCCT.TopoDS.TopoDS_Shape: The shape to project to.
     :param to_project: List of edges or wires to project.
-    :type to_project: list[OCC.TopoDS.TopoDS_Edge or OCC.TopoDS.TopoDS_Wire]
+    :type to_project: list[OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire]
     :param float tol3d: The 3-D tolerance.
     :param float tol2d: The 2-D tolerance. If not provided then
         *sqrt(tol3d)* is used.
@@ -39,7 +39,7 @@ class ProjectShape(object):
 
     For more information see BRepOffsetAPI_NormalProjection_.
 
-    .. _BRepOffsetAPI_NormalProjection: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_offset_a_p_i___normal_projection.html
+    .. _BRepOffsetAPI_NormalProjection: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___normal_projection.html
 
     Usage:
 
@@ -93,7 +93,7 @@ class ProjectShape(object):
         """
         :return: The projected shape. Tries to build the result as a
             compound of wires.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.Projection()
 
@@ -109,7 +109,7 @@ class ProjectShape(object):
     def wires(self):
         """
         :return: A list of wires in the projected shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Wire]
+        :rtype: list[OCCT.TopoDS.TopoDS_Wire]
         """
         return ExploreShape.get_wires(self.projection)
 
@@ -125,7 +125,7 @@ class ProjectShape(object):
     def edges(self):
         """
         :return: A list of edges in the projected shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         return ExploreShape.get_edges(self.projection)
 
@@ -134,7 +134,7 @@ class OffsetShape(object):
     """
     Offset a shape.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape. It may be a face,
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape. It may be a face,
         shell, a solid, or a compound of these kinds.
     :param float offset: The offset value. The offset will be outside the
         shape if positive and inside if negative.
@@ -145,7 +145,7 @@ class OffsetShape(object):
 
     For more information see BRepOffsetAPI_MakeOffsetShape_.
 
-    .. _BRepOffsetAPI_MakeOffsetShape: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_offset_a_p_i___make_offset_shape.html
+    .. _BRepOffsetAPI_MakeOffsetShape: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___make_offset_shape.html
 
     Usage:
 
@@ -173,7 +173,7 @@ class OffsetShape(object):
     def shape(self):
         """
         :return: The offset shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shape
 
@@ -185,8 +185,8 @@ class LoftShape(object):
     :param sections: The sections of the loft. These
         are usually wires but the first and last section can be vertices.
         Edges are converted to wires before adding to the loft tool.
-    :type sections: list[OCC.TopoDS.TopoDS_Vertex or OCC.TopoDS.TopoDS_Edge or
-        OCC.TopoDS.TopoDS_Wire]
+    :type sections: list[OCCT.TopoDS.TopoDS_Vertex or OCCT.TopoDS.TopoDS_Edge or
+        OCCT.TopoDS.TopoDS_Wire]
     :param bool is_solid: If *True* the tool will build a solid, otherwise
         it will build a shell.
     :param bool make_ruled: If *True* the faces between sections will be ruled
@@ -208,7 +208,7 @@ class LoftShape(object):
 
     For more information see BRepOffsetAPI_ThruSections_.
 
-    .. _BRepOffsetAPI_ThruSections: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_offset_a_p_i___thru_sections.html
+    .. _BRepOffsetAPI_ThruSections: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___thru_sections.html
 
     Usage:
 
@@ -271,7 +271,7 @@ class LoftShape(object):
     def shape(self):
         """
         :return: The lofted shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.Shape()
 
@@ -280,7 +280,7 @@ class LoftShape(object):
         """
         :return: The first/bottom shape of the loft if a solid was
             constructed.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.FirstShape()
 
@@ -288,7 +288,7 @@ class LoftShape(object):
     def last_shape(self):
         """
         :return: The last/top shape of the loft if a solid was constructed.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.LastShape()
 
@@ -306,10 +306,10 @@ class LoftShape(object):
         then this returns each face generated by the edge. If the smoothing
         option was used, then this returns the face generated by the edge.
 
-        :param OCC.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
 
         :return: The face(s) generated by the edge.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.GeneratedFace(edge)
 
@@ -318,13 +318,13 @@ class SweepShape(object):
     """
     Sweep a profile along a spine.
 
-    :param OCC.TopoDS.TopoDS_Wire spine: The path for the sweep. This must
+    :param OCCT.TopoDS.TopoDS_Wire spine: The path for the sweep. This must
         be at least G1 continuous.
-    :param OCC.TopoDS.TopoDS_Shape profile: The profile.
+    :param OCCT.TopoDS.TopoDS_Shape profile: The profile.
 
     For more information see BRepOffsetAPI_MakePipe_.
 
-    .. _BRepOffsetAPI_MakePipe: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_offset_a_p_i___make_pipe.html
+    .. _BRepOffsetAPI_MakePipe: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___make_pipe.html
     """
 
     def __init__(self, spine, profile):
@@ -344,7 +344,7 @@ class SweepShape(object):
     def shape(self):
         """
         :return: The swept shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.Shape()
 
@@ -352,7 +352,7 @@ class SweepShape(object):
     def first_shape(self):
         """
         :return: The first/bottom shape of the sweep.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.FirstShape()
 
@@ -360,7 +360,7 @@ class SweepShape(object):
     def last_shape(self):
         """
         :return: The last/top shape of the sweep.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.LastShape()
 
@@ -370,8 +370,8 @@ class SweepShapeWithNormal(object):
     Sweep sections along a spine using a support shape to define the
     local orientation.
 
-    :param OCC.TopoDS.TopoDS_Wire spine: The spine.
-    :param OCC.TopoDS.TopoDS_Shape spine_support: The shape that will define
+    :param OCCT.TopoDS.TopoDS_Wire spine: The spine.
+    :param OCCT.TopoDS.TopoDS_Shape spine_support: The shape that will define
         the normal during the sweeping algorithm. To be effective, each edge of
         the spine must have a representation on one face of the spine support.
     :param float tol3d: The 3-D tolerance.
@@ -387,7 +387,7 @@ class SweepShapeWithNormal(object):
 
     For more information see BRepOffsetAPI_MakePipeShell_.
 
-    .. _BRepOffsetAPI_MakePipeShell: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_b_rep_offset_a_p_i___make_pipe_shell.html
+    .. _BRepOffsetAPI_MakePipeShell: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___make_pipe_shell.html
     """
 
     def __init__(self, spine, spine_support, tol3d=1.0e-4, tol_bound=1.0e-4,
@@ -416,8 +416,8 @@ class SweepShapeWithNormal(object):
         Add the profile to the tool.
 
         :param profile: The profile to add.
-        :type profile: OCC.TopoDS.TopoDS_Vertex or OCC.TopoDS.TopoDS_Edge or
-            OCC.TopoDS.TopoDS_Wire
+        :type profile: OCCT.TopoDS.TopoDS_Vertex or OCCT.TopoDS.TopoDS_Edge or
+            OCCT.TopoDS.TopoDS_Wire
         :param bool with_contact: If *True*, then the profile is translated
             to be in contact with the spine.
         :param bool with_correction: If *True*, then the profile is rotated
@@ -473,7 +473,7 @@ class SweepShapeWithNormal(object):
     def shape(self):
         """
         :return: The resulting shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.Shape()
 
@@ -481,7 +481,7 @@ class SweepShapeWithNormal(object):
     def first_shape(self):
         """
         :return: The first/bottom shape of the sweep.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.FirstShape()
 
@@ -489,6 +489,6 @@ class SweepShapeWithNormal(object):
     def last_shape(self):
         """
         :return: The last/top shape of the sweep.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._tool.LastShape()

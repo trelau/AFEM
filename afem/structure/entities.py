@@ -1,5 +1,5 @@
-from OCC.SMESH import SMESH_Mesh
-from OCC.TopoDS import TopoDS_Shape
+from OCCT.SMESH import SMESH_Mesh
+from OCCT.TopoDS import TopoDS_Shape
 from numpy import mean
 
 from afem.config import logger
@@ -39,7 +39,7 @@ class Part(TopoDS_Shape, ViewableItem):
     Base class for all parts.
 
     :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve. If it is not a :class:`.TrimmedCurve`,
         then it will be converted to one.
     :type cref: afem.geometry.entities.Curve or None
@@ -102,7 +102,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def shape(self):
         """
         :return: The part shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self
 
@@ -244,7 +244,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def edges(self):
         """
         :return: All the edges of the part shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         return ExploreShape.get_edges(self)
 
@@ -260,7 +260,7 @@ class Part(TopoDS_Shape, ViewableItem):
     def faces(self):
         """
         :return: All the faces of the part shape.
-        :rtype: list[OCC.TopoDS.TopoDS_Face]
+        :rtype: list[OCCT.TopoDS.TopoDS_Face]
         """
         return ExploreShape.get_faces(self)
 
@@ -361,7 +361,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :param entity: The entity.
         :type entity: afem.geometry.entities.Geometry or
-            OCC.TopoDS.TopoDS_Shape
+            OCCT.TopoDS.TopoDS_Shape
 
         :return: None.
 
@@ -385,7 +385,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :param entity: The entity.
         :type entity: afem.geometry.entities.Geometry or
-            OCC.TopoDS.TopoDS_Shape
+            OCCT.TopoDS.TopoDS_Shape
 
         :return: None.
 
@@ -484,7 +484,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         Set the shape of the part.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: None.
 
@@ -591,9 +591,9 @@ class Part(TopoDS_Shape, ViewableItem):
         :param float d2: An offset distance for the last point. This is
             typically a negative number indicating a distance from *u2*
             towards *u1*.
-        :param OCC.TopoDS.TopoDS_Shape shape1: A shape to define the first
+        :param OCCT.TopoDS.TopoDS_Shape shape1: A shape to define the first
             point. This shape is intersected with the edge or wire.
-        :param OCC.TopoDS.TopoDS_Shape shape2: A shape to define the last
+        :param OCCT.TopoDS.TopoDS_Shape shape2: A shape to define the last
             point. This shape is intersected with the edge or wire.
         :param float tol: Tolerance.
 
@@ -625,9 +625,9 @@ class Part(TopoDS_Shape, ViewableItem):
         :param float d2: An offset distance for the last point. This is
             typically a negative number indicating a distance from *u2*
             towards *u1*.
-        :param OCC.TopoDS.TopoDS_Shape shape1: A shape to define the first
+        :param OCCT.TopoDS.TopoDS_Shape shape1: A shape to define the first
             point. This shape is intersected with the edge or wire.
-        :param OCC.TopoDS.TopoDS_Shape shape2: A shape to define the last
+        :param OCCT.TopoDS.TopoDS_Shape shape2: A shape to define the last
             point. This shape is intersected with the edge or wire.
         :param float tol: Tolerance.
 
@@ -820,7 +820,7 @@ class Part(TopoDS_Shape, ViewableItem):
         Find the minimum distance between the part and other shape.
 
         :param other: Other part or shape.
-        :type other: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+        :type other: OCCT.TopoDS.TopoDS_Shape or afem.structure.entities.Part
 
         :return: The minimum distance.
         :rtype: float
@@ -859,7 +859,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :param float min_tol: Minimum tolerance.
         :param float max_tol: Maximum tolerance.
         :param context: The context shape or assembly.
-        :type context: OCC.TopoDS.TopoDS_Shape or
+        :type context: OCCT.TopoDS.TopoDS_Shape or
             afem.structure.entities.Assembly or str
         :param bool include_subassy: Option to recursively include parts
             from any sub-assemblies.
@@ -879,7 +879,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :param cutter: The cutter. If geometry is provided it will be
             converted to a shape before the Boolean operation.
-        :type cutter: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+        :type cutter: OCCT.TopoDS.TopoDS_Shape or afem.structure.entities.Part
             or afem.geometry.entities.Geometry
 
         :return: *True* if shape was cut, *False* if not.
@@ -903,7 +903,7 @@ class Part(TopoDS_Shape, ViewableItem):
         edge).
 
         :param splitter: The splitter.
-        :type splitter: OCC.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+        :type splitter: OCCT.TopoDS.TopoDS_Shape or afem.structure.entities.Part
         :param bool rebuild_both: Option to rebuild both if *splitter* is a
             part.
 
@@ -958,7 +958,7 @@ class Part(TopoDS_Shape, ViewableItem):
         have centroids inside the solid will be removed. Edges are checked
         for curve parts and faces are checked for surface parts.
 
-        :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+        :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
         :param float tol: The tolerance. If not provided then the part
             tolerance will be used.
 
@@ -1008,7 +1008,7 @@ class Part(TopoDS_Shape, ViewableItem):
         for curve parts and faces are checked for surface parts.
 
         :param entity: The shape.
-        :type entity: OCC.TopoDS.TopoDS_Shape or
+        :type entity: OCCT.TopoDS.TopoDS_Shape or
             afem.geometry.entities.Geometry
         :param float dmax: The maximum distance.
 
@@ -1051,7 +1051,7 @@ class Part(TopoDS_Shape, ViewableItem):
         for curve parts and faces are checked for surface parts.
 
         :param entity: The shape.
-        :type entity: OCC.TopoDS.TopoDS_Shape or
+        :type entity: OCCT.TopoDS.TopoDS_Shape or
             afem.geometry.entities.Geometry
         :param float dmin: The minimum distance.
 
@@ -1135,7 +1135,7 @@ class CurvePart(Part):
     Base class for curve parts.
 
     :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param assy: The assembly to add the part to. If not provided the part will
@@ -1210,7 +1210,7 @@ class SurfacePart(Part):
     Base class for surface parts.
 
     :param str label: The label.
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
@@ -1300,7 +1300,7 @@ class SurfacePart(Part):
         shape.
 
         :return: A new shell from the shape of the part.
-        :rtype: OCC.TopoDS.TopoDS_Shell
+        :rtype: OCCT.TopoDS.TopoDS_Shell
         """
         return ShellByFaces(self.faces).shell
 
@@ -1369,7 +1369,7 @@ class SurfacePart(Part):
 
         :param other: The other part or shape.
         :type other: afem.structure.entities.SurfacePart or
-            OCC.TopoDS.TopoDS_Shape
+            OCCT.TopoDS.TopoDS_Shape
         :param bool unify: Option to attempt to unify same domains.
 
         :return: *True* if merged, *False* if not.
@@ -1409,9 +1409,9 @@ class SurfacePart(Part):
         Locally split the faces of he sub-shape in the context of the part
         shape.
 
-        :param OCC.TopoDS.TopoDS_Shape subshape: The sub-shape.
+        :param OCCT.TopoDS.TopoDS_Shape subshape: The sub-shape.
         :param tool: The tool to split the sub-shape with.
-        :type tool: OCC.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+        :type tool: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
 
         :return: *True* if split, *False* if not.
         :rtype: bool
@@ -1428,10 +1428,10 @@ class SurfacePart(Part):
         Get edges shared between the two parts.
 
         :param other: The other part or shape.
-        :type other: afem.structure.entities.Part or OCC.TopoDS.TopoDS_Shape
+        :type other: afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
 
         :return: Shared edges.
-        :rtype: list[OCC.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         return ExploreShape.get_shared_edges(self, other)
 

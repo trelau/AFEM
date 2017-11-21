@@ -1,7 +1,7 @@
-from OCC.IFSelect import IFSelect_ItemsByEntity, IFSelect_RetError
-from OCC.Interface import Interface_Static_SetCVal
-from OCC.STEPControl import (STEPControl_AsIs, STEPControl_Reader,
-                             STEPControl_Writer)
+from OCCT.IFSelect import IFSelect_ItemsByEntity, IFSelect_RetError
+from OCCT.Interface import Interface_Static
+from OCCT.STEPControl import (STEPControl_AsIs, STEPControl_Reader,
+                              STEPControl_Writer)
 
 from afem.config import Settings, units_dict
 from afem.topology.check import CheckShape
@@ -19,18 +19,18 @@ class StepExport(STEPControl_Writer):
 
     def __init__(self, schema='AP203', units=None):
         super(StepExport, self).__init__()
-        Interface_Static_SetCVal('write.step.schema', schema)
+        Interface_Static.SetCVal('write.step.schema', schema)
         try:
             units = units_dict[units]
         except KeyError:
             units = Settings.units
-        Interface_Static_SetCVal('write.step.unit', units)
+        Interface_Static.SetCVal('write.step.unit', units)
 
     def transfer(self, *shapes):
         """
         Transfer and add the shapes to the exported entities.
 
-        :param OCC.TopoDS.TopoDS_Shape shapes: The shape(s).
+        :param OCCT.TopoDS.TopoDS_Shape shapes: The shape(s).
 
         :return: *True* if shape was transferred, *False* if not.
         :rtype: bool
@@ -91,7 +91,7 @@ class StepImport(STEPControl_Reader):
             return False
 
         # Convert to desired units.
-        Interface_Static_SetCVal("xstep.cascade.unit", Settings.units)
+        Interface_Static.SetCVal("xstep.cascade.unit", Settings.units)
 
         # Check
         self.PrintCheckLoad(False, IFSelect_ItemsByEntity)

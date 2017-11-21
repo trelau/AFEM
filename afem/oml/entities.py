@@ -1,4 +1,4 @@
-from OCC.TopoDS import TopoDS_Solid
+from OCCT.TopoDS import TopoDS_Solid
 
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import NurbsCurve, Surface
@@ -22,7 +22,7 @@ class Body(TopoDS_Solid, ViewableItem):
 
     :param solid: The solid. It will be downcasted to a solid if a generic
         shape is provided.
-    :type solid: OCC.TopoDS.TopoDS_Shape or OCC.TopoDS.TopoDS_Solid
+    :type solid: OCCT.TopoDS.TopoDS_Shape or OCCT.TopoDS.TopoDS_Solid
     :param str name: The name.
 
     :raise TypeError: If *shape* is not a solid.
@@ -49,7 +49,7 @@ class Body(TopoDS_Solid, ViewableItem):
     def solid(self):
         """
         :return: The shape.
-        :rtype: OCC.TopoDS.TopoDS_Solid
+        :rtype: OCCT.TopoDS.TopoDS_Solid
         """
         return self
 
@@ -57,7 +57,7 @@ class Body(TopoDS_Solid, ViewableItem):
     def outer_shell(self):
         """
         :return: The outer shell.
-        :rtype: OCC.TopoDS.TopoDS_Shell
+        :rtype: OCCT.TopoDS.TopoDS_Shell
         """
         return ExploreShape.outer_shell(self)
 
@@ -81,7 +81,7 @@ class Body(TopoDS_Solid, ViewableItem):
     def sref_shape(self):
         """
         :return: The reference shape.
-        :rtype: OCC.TopoDS.TopoDS_Shape
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._sref_shape
 
@@ -156,7 +156,7 @@ class Body(TopoDS_Solid, ViewableItem):
         """
         Set the shape for the OML body.
 
-        :param OCC.TopoDS.TopoDS_Solid solid: The solid.
+        :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
 
         :return: None.
 
@@ -280,7 +280,7 @@ class Body(TopoDS_Solid, ViewableItem):
             between these two shapes. If they are not they will be projected to
             the intersection which could yield unanticipated results.
         :type basis_shape: afem.geometry.entities.Surface or
-            OCC.TopoDS.TopoDS_Shape
+            OCCT.TopoDS.TopoDS_Shape
         :param bool refine_edges: Option to refine the edges after the
             Boolean operation between the reference shape and the basis
             shape.

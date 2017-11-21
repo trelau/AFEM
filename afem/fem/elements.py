@@ -1,4 +1,4 @@
-from OCC.SMDS import SMDS_MeshElement
+from OCCT.SMDS import SMDS_MeshElement
 
 from .nodes import Node
 
@@ -9,7 +9,7 @@ class Element(object):
     """
     Base class for elements.
 
-    :param OCC.SMDS.SMDS_MeshElement the_element: The element.
+    :param OCCT.SMDS.SMDS_MeshElement the_element: The element.
     """
 
     def __init__(self, the_element):
@@ -31,7 +31,7 @@ class Element(object):
     def object(self):
         """
         :return: The underlying element.
-        :rtype: OCC.SMDS.SMDS_Element
+        :rtype: OCCT.SMDS.SMDS_Element
         """
         return self._elm
 
@@ -118,7 +118,7 @@ class Elm0D(Element):
     """
     Generic 0-D element.
 
-    :param OCC.SMDS.SMDS_MeshElement the_element: The SMESH element.
+    :param OCCT.SMDS.SMDS_MeshElement the_element: The SMESH element.
     """
 
     def __init__(self, the_element):
@@ -129,7 +129,7 @@ class Elm1D(Element):
     """
     Generic 1-D element.
 
-    :param OCC.SMDS.SMDS_MeshElement the_element: The SMESH element.
+    :param OCCT.SMDS.SMDS_MeshElement the_element: The SMESH element.
     """
 
     def __init__(self, the_element):
@@ -140,7 +140,7 @@ class Elm2D(Element):
     """
     Generic 2-D element.
 
-    :param OCC.SMDS.SMDS_MeshElement the_element: The SMESH element.
+    :param OCCT.SMDS.SMDS_MeshElement the_element: The SMESH element.
     """
 
     def __init__(self, the_element):

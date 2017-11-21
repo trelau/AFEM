@@ -1,7 +1,7 @@
 from math import sqrt
 
-from OCC.BRepBndLib import brepbndlib_Add
-from OCC.Bnd import Bnd_Box
+from OCCT.BRepBndLib import BRepBndLib
+from OCCT.Bnd import Bnd_Box
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Point
@@ -15,7 +15,7 @@ class BBox(Bnd_Box):
 
     For more information see Bnd_Box_.
 
-    .. _Bnd_Box: https://www.opencascade.com/doc/occt-7.1.0/refman/html/class_bnd___box.html
+    .. _Bnd_Box: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_bnd___box.html
 
     Usage:
 
@@ -27,9 +27,9 @@ class BBox(Bnd_Box):
     >>> bbox.gap
     0.0
     >>> bbox.pmin
-    Point(0.0, 0.0, 0.0)
+    Point(0.000, 0.000, 0.000)
     >>> bbox.pmax
-    Point(10.0, 0.0, 0.0)
+    Point(10.000, 0.000, 0.000)
     >>> bbox.diagonal
     10.0
     """
@@ -198,11 +198,11 @@ class BBox(Bnd_Box):
         """
         Add shape to the bounding box.
 
-        :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: None.
         """
-        brepbndlib_Add(shape, self, True)
+        BRepBndLib.Add_(shape, self, True)
 
     def is_pnt_out(self, pnt):
         """

@@ -1,25 +1,22 @@
-from OCC.Approx import (Approx_Centripetal, Approx_ChordLength,
-                        Approx_IsoParametric)
-from OCC.BRepBuilderAPI import (BRepBuilderAPI_RightCorner,
-                                BRepBuilderAPI_RoundCorner,
-                                BRepBuilderAPI_Transformed)
-from OCC.GeomAbs import (GeomAbs_Arc, GeomAbs_C0, GeomAbs_C1, GeomAbs_C2,
-                         GeomAbs_C3, GeomAbs_G1, GeomAbs_G2,
-                         GeomAbs_Intersection)
-from OCC.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
-                         TColStd_Array2OfReal)
-from OCC.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
-                        TColgp_Array2OfPnt, TColgp_HArray1OfPnt)
-from OCC.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
-                        TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID,
-                        TopAbs_VERTEX,
-                        TopAbs_WIRE)
-from OCC.TopTools import TopTools_ListOfShape
-from OCC.TopoDS import (topods_CompSolid, topods_Compound,
-                        topods_Edge, topods_Face, topods_Shell, topods_Solid,
-                        topods_Vertex,
-                        topods_Wire)
-from OCC.gp import gp_Pnt, gp_Pnt2d
+from OCCT.Approx import (Approx_Centripetal, Approx_ChordLength,
+                         Approx_IsoParametric)
+from OCCT.BRepBuilderAPI import (BRepBuilderAPI_RightCorner,
+                                 BRepBuilderAPI_RoundCorner,
+                                 BRepBuilderAPI_Transformed)
+from OCCT.GeomAbs import (GeomAbs_Arc, GeomAbs_C0, GeomAbs_C1, GeomAbs_C2,
+                          GeomAbs_C3, GeomAbs_G1, GeomAbs_G2,
+                          GeomAbs_Intersection)
+from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
+                          TColStd_Array2OfReal)
+from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
+                         TColgp_Array2OfPnt, TColgp_HArray1OfPnt)
+from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
+                         TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID,
+                         TopAbs_VERTEX,
+                         TopAbs_WIRE)
+from OCCT.TopTools import TopTools_ListOfShape
+from OCCT.TopoDS import TopoDS
+from OCCT.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
 from afem.misc.check import is_array_like
@@ -335,10 +332,10 @@ def to_toptools_listofshape(shapes):
     """
     Create TopTools_ListOfShape from shapes.
 
-    :param list[OCC.TopoDS.TopoDS_Shape] shapes: List of shapes.
+    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: List of shapes.
 
     :return: TopTools_ListOfShape
-    :rtype: OCC.TopTools.TopTools_ListOfShape
+    :rtype: OCCT.TopTools.TopTools_ListOfShape
     """
     lst = TopTools_ListOfShape()
     for s in shapes:
@@ -350,11 +347,11 @@ def to_lst_from_toptools_listofshape(toptools_list):
     """
     Create a list from a TopTools_ListOfShape.
 
-    :param OCC.TopTools.TopTools_ListOfShape toptools_list: The
+    :param OCCT.TopTools.TopTools_ListOfShape toptools_list: The
         TopTools_ListOfShape.
 
     :return: A list of shapes.
-    :rtype: list[OCC.TopoDS.TopoDS_Shape]
+    :rtype: list[OCCT.TopoDS.TopoDS_Shape]
     """
     if toptools_list.IsEmpty():
         return []
@@ -370,28 +367,28 @@ def downcast_shape(shape):
     """
     Downcast a shape to its specific type.
 
-    :param OCC.TopoDS.TopoDS_Shape shape: The shape.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
     :return: The downcasted shape.
-    :rtype: OCC.TopoDS.TopoDS_Vertex or OCC.TopoDS.TopoDS_Edge or
-        OCC.TopoDS.TopoDS_Wire or OCC.TopoDS.TopoDS_Face or
-        OCC.TopoDS.TopoDS_Shell or OCC.TopoDS.TopoDS_CompSolid or
-        OCC.TopoDS.TopoDS_Compound
+    :rtype: OCCT.TopoDS.TopoDS_Vertex or OCCT.TopoDS.TopoDS_Edge or
+        OCCT.TopoDS.TopoDS_Wire or OCCT.TopoDS.TopoDS_Face or
+        OCCT.TopoDS.TopoDS_Shell or OCCT.TopoDS.TopoDS_CompSolid or
+        OCCT.TopoDS.TopoDS_Compound
     """
     if shape.ShapeType() == TopAbs_VERTEX:
-        return topods_Vertex(shape)
+        return TopoDS.Vertex_(shape)
     if shape.ShapeType() == TopAbs_EDGE:
-        return topods_Edge(shape)
+        return TopoDS.Edge_(shape)
     if shape.ShapeType() == TopAbs_WIRE:
-        return topods_Wire(shape)
+        return TopoDS.Wire_(shape)
     if shape.ShapeType() == TopAbs_FACE:
-        return topods_Face(shape)
+        return TopoDS.Face_(shape)
     if shape.ShapeType() == TopAbs_SHELL:
-        return topods_Shell(shape)
+        return TopoDS.Shell_(shape)
     if shape.ShapeType() == TopAbs_SOLID:
-        return topods_Solid(shape)
+        return TopoDS.Solid_(shape)
     if shape.ShapeType() == TopAbs_COMPSOLID:
-        return topods_CompSolid(shape)
+        return TopoDS.CompSolid_(shape)
     if shape.ShapeType() == TopAbs_COMPOUND:
-        return topods_Compound(shape)
+        return TopoDS.Compound_(shape)
     raise ValueError('Could not downcast shape.')
