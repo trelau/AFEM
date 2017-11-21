@@ -1,7 +1,6 @@
 from afem.config import Settings
 from afem.fem import MeshAPI
 # from afem.graphics import Viewer
-from afem.graphics.display import display_shape
 from afem.io import ImportVSP
 from afem.structure import *
 
@@ -26,10 +25,7 @@ RibByPoints('tip rib', fspar.p2, rspar.p2, wing)
 RibsAlongCurveByDistance('rib', rspar.cref, 762, fspar, rspar, wing, d1=762, d2=-762)
 internal_parts = wingbox.get_parts()
 skin = SkinByBody('skin', wing).skin
-import time
-start = time.time()
 FuseSurfaceParts([skin], internal_parts)
-print(time.time() - start)
 
 skin.set_transparency(0.75)
 # v.add('wing box')
@@ -38,15 +34,10 @@ skin.set_transparency(0.75)
 
 # Mesh
 the_shape = wingbox.prepare_shape_to_mesh()
-MeshAPI.create_mesh('the mesh', the_shape)
-
-display_shape(the_shape)
-
-from afem.topology import ExploreShape
-print(ExploreShape.global_tolerance(the_shape, 1))
+the_mesh = MeshAPI.create_mesh('the mesh', the_shape)
 
 # Unstructured quad-dominant
-MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
+MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 101.6)
 MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
 MeshAPI.add_hypothesis('netgen')
 MeshAPI.add_hypothesis('netgen algo')
@@ -55,3 +46,7 @@ MeshAPI.compute_mesh()
 # v.add_meshes(MeshAPI.get_active())
 # v.set_display_shapes()
 # v.show()
+
+from afem.graphics.display import display_shape
+
+display_shape(None, the_mesh.handle)

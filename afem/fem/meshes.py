@@ -1,11 +1,7 @@
-from OCCT.SMESH import SMESH_Gen
-
 from afem.fem.elements import Element
-from afem.fem.hypotheses import HypothesisAPI
+from afem.fem.hypotheses import HypothesisAPI, the_gen
 from afem.fem.nodes import Node
 from afem.topology.check import CheckShape
-
-_mesh_gen = SMESH_Gen()
 
 __all__ = ["Mesh", "SubMesh", "MeshAPI"]
 
@@ -22,7 +18,7 @@ class Mesh(object):
     def __init__(self, label):
         self._label = label
         Mesh._all[label] = self
-        self._mesh = _mesh_gen.CreateMesh(Mesh._indx, True)
+        self._mesh = the_gen.CreateMesh(Mesh._indx, True)
         self._ds = self._mesh.GetMeshDS()
         self._id = Mesh._indx
         Mesh._indx += 1
@@ -194,7 +190,7 @@ class Mesh(object):
         :return: ``True`` if performed, ``False`` if not.
         :rtype: bool
         """
-        return _mesh_gen.Compute(self.object, self.shape)
+        return the_gen.Compute(self.handle, self.shape)
 
     def clear(self):
         """

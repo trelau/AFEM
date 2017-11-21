@@ -25,7 +25,7 @@ class Node(object):
         return hash(self.nid)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying node.
         :rtype: OCCT.SMDS.SMDS_MeshNode

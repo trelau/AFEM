@@ -1,18 +1,22 @@
 from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D,
-                              NETGENPlugin_NETGEN_2D_ONLY,
-                              NETGENPlugin_SimpleHypothesis_2D)
+                               NETGENPlugin_NETGEN_2D_ONLY,
+                               NETGENPlugin_SimpleHypothesis_2D)
+from OCCT.SMESH import SMESH_Gen
 from OCCT.StdMeshers import (QUAD_STANDARD, StdMeshers_Adaptive1D,
-                            StdMeshers_Deflection1D, StdMeshers_LocalLength,
-                            StdMeshers_MaxLength,
-                            StdMeshers_NumberOfSegments,
-                            StdMeshers_QuadrangleParams,
-                            StdMeshers_Quadrangle_2D, StdMeshers_Regular_1D)
+                             StdMeshers_Deflection1D, StdMeshers_LocalLength,
+                             StdMeshers_MaxLength,
+                             StdMeshers_NumberOfSegments,
+                             StdMeshers_QuadrangleParams,
+                             StdMeshers_Quadrangle_2D, StdMeshers_Regular_1D)
 
 __all__ = ["Hypothesis", "Regular1D", "MaxLength1D", "LocalLength1D",
            "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
            "NetgenHypothesis", "NetgenSimple2D", "NetgenAlgo2D",
            "NetgenAlgoOnly2D", "QuadrangleParams2D", "Quadrangle2D",
            "HypothesisAPI"]
+
+# Use a single instance of SMESH_Gen
+the_gen = SMESH_Gen()
 
 
 class Hypothesis(object):
@@ -25,16 +29,8 @@ class Hypothesis(object):
     def __init__(self, label):
         self._label = label
         Hypothesis._all[label] = self
-        # self._hypothesis = the_hypothesis(Hypothesis._indx, 0, _mesh_gen)
         self._id = Hypothesis._indx
         Hypothesis._indx += 1
-
-    # @property
-    # def object(self):
-    #     """
-    #     :return: The underlying hypothesis.
-    #     """
-    #     return self._hypothesis
 
     @property
     def label(self):
@@ -80,11 +76,11 @@ class Regular1D(Hypothesis):
 
     def __init__(self, label):
         self._hypothesis = StdMeshers_Regular_1D(Hypothesis._indx, 0,
-                                                 _mesh_gen)
+                                                 the_gen)
         super(Regular1D, self).__init__(label)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.StdMeshers.StdMeshers_Regular_1D
@@ -98,13 +94,13 @@ class MaxLength1D(Hypothesis):
     """
 
     def __init__(self, label, max_length):
-        self._hypothesis = StdMeshers_MaxLength(Hypothesis._indx, 0, _mesh_gen)
+        self._hypothesis = StdMeshers_MaxLength(Hypothesis._indx, 0, the_gen)
         super(MaxLength1D, self).__init__(label)
 
         self.handle.SetLength(max_length)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.StdMeshers.StdMeshers_MaxLength
@@ -119,13 +115,13 @@ class LocalLength1D(Hypothesis):
 
     def __init__(self, label, local_length):
         self._hypothesis = StdMeshers_LocalLength(Hypothesis._indx, 0,
-                                                  _mesh_gen)
+                                                  the_gen)
         super(LocalLength1D, self).__init__(label)
 
         self.handle.SetLength(local_length)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.StdMeshers.StdMeshers_LocalLength
@@ -140,13 +136,13 @@ class NumberOfSegments1D(Hypothesis):
 
     def __init__(self, label, nseg):
         self._hypothesis = StdMeshers_NumberOfSegments(Hypothesis._indx, 0,
-                                                       _mesh_gen)
+                                                       the_gen)
         super(NumberOfSegments1D, self).__init__(label)
 
         self.handle.SetNumberOfSegments(nseg)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.StdMeshers.StdMeshers_NumberOfSegments
@@ -161,7 +157,7 @@ class Adaptive1D(Hypothesis):
 
     def __init__(self, label, min_size, max_size, deflection):
         self._hypothesis = StdMeshers_Adaptive1D(Hypothesis._indx, 0,
-                                                 _mesh_gen)
+                                                 the_gen)
         super(Adaptive1D, self).__init__(label)
 
         self.handle.SetMinSize(min_size)
@@ -169,7 +165,7 @@ class Adaptive1D(Hypothesis):
         self.handle.SetDeflection(deflection)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.StdMeshers.StdMeshers_Adaptive1D
@@ -184,13 +180,13 @@ class Deflection1D(Hypothesis):
 
     def __init__(self, label, deflection):
         self._hypothesis = StdMeshers_Deflection1D(Hypothesis._indx, 0,
-                                                   _mesh_gen)
+                                                   the_gen)
         super(Deflection1D, self).__init__(label)
 
         self.handle.SetDeflection(deflection)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.StdMeshers.StdMeshers_Deflection1D
@@ -208,7 +204,7 @@ class NetgenHypothesis(Hypothesis):
                  growth_rate=0.3, nseg_per_edge=1, nseg_per_radius=2,
                  surface_curvature=False, fuse_edges=False):
         self._hypothesis = NETGENPlugin_Hypothesis(Hypothesis._indx, 0,
-                                                   _mesh_gen)
+                                                   the_gen)
         super(NetgenHypothesis, self).__init__(label)
 
         self.handle.SetMaxSize(max_size)
@@ -224,7 +220,7 @@ class NetgenHypothesis(Hypothesis):
         self.handle.SetFuseEdges(fuse_edges)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.NETGENPlugin.NETGENPlugin_Hypothesis
@@ -240,7 +236,7 @@ class NetgenSimple2D(Hypothesis):
     def __init__(self, label, local_length, allow_quads=True,
                  length_from_edges=False, max_area=0.):
         self._hypothesis = NETGENPlugin_SimpleHypothesis_2D(Hypothesis._indx,
-                                                            0, _mesh_gen)
+                                                            0, the_gen)
         super(NetgenSimple2D, self).__init__(label)
 
         self.handle.SetLocalLength(local_length)
@@ -251,7 +247,7 @@ class NetgenSimple2D(Hypothesis):
             self.handle.SetMaxElementArea(max_area)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.NETGENPlugin.NETGENPlugin_SimpleHypothesis_2D
@@ -266,11 +262,11 @@ class NetgenAlgo2D(Hypothesis):
 
     def __init__(self, label):
         self._hypothesis = NETGENPlugin_NETGEN_2D(Hypothesis._indx, 0,
-                                                  _mesh_gen)
+                                                  the_gen)
         super(NetgenAlgo2D, self).__init__(label)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.NETGENPlugin.NETGENPlugin_NETGEN_2D
@@ -285,11 +281,11 @@ class NetgenAlgoOnly2D(Hypothesis):
 
     def __init__(self, label):
         self._hypothesis = NETGENPlugin_NETGEN_2D_ONLY(Hypothesis._indx, 0,
-                                                       _mesh_gen)
+                                                       the_gen)
         super(NetgenAlgoOnly2D, self).__init__(label)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.NETGENPlugin.NETGENPlugin_NETGEN_2D_ONLY
@@ -304,14 +300,14 @@ class QuadrangleParams2D(Hypothesis):
 
     def __init__(self, label):
         self._hypothesis = StdMeshers_QuadrangleParams(Hypothesis._indx, 0,
-                                                       _mesh_gen)
+                                                       the_gen)
 
         super(QuadrangleParams2D, self).__init__(label)
 
         self.handle.SetQuadType(QUAD_STANDARD)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.StdMeshers.StdMeshers_QuadrangleParams
@@ -326,7 +322,7 @@ class Quadrangle2D(Hypothesis):
 
     def __init__(self, label):
         self._hypothesis = StdMeshers_Quadrangle_2D(Hypothesis._indx, 0,
-                                                    _mesh_gen)
+                                                    the_gen)
         super(Quadrangle2D, self).__init__(label)
 
     def is_applicable(self, shape, check_all=True):
@@ -345,7 +341,7 @@ class Quadrangle2D(Hypothesis):
         return self.handle.IsApplicable(shape, check_all)
 
     @property
-    def object(self):
+    def handle(self):
         """
         :return: The underlying hypothesis.
         :rtype: OCCT.StdMeshers.StdMeshers_Quadrangle_2D
