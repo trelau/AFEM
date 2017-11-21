@@ -4,7 +4,7 @@ from afem.fem import MeshAPI
 from afem.io import ImportVSP
 from afem.structure import *
 
-Settings.log_to_console(True)
+Settings.log_to_console()
 
 # v = Viewer()
 
@@ -22,7 +22,7 @@ fspar = SparByParameters('front spar', 0.15, 0., 0.15, 1., wing).spar
 rspar = SparByParameters('rear spar', 0.70, 0., 0.70, 1., wing).spar
 RibByPoints('root rib', fspar.p1, rspar.p1, wing)
 RibByPoints('tip rib', fspar.p2, rspar.p2, wing)
-RibsAlongCurveByDistance('rib', rspar.cref, 762, fspar, rspar, wing, d1=762, d2=-762)
+RibsAlongCurveByDistance('rib', rspar.cref, 30, fspar, rspar, wing, d1=30, d2=-30)
 internal_parts = wingbox.get_parts()
 skin = SkinByBody('skin', wing).skin
 FuseSurfaceParts([skin], internal_parts)
@@ -37,7 +37,7 @@ the_shape = wingbox.prepare_shape_to_mesh()
 the_mesh = MeshAPI.create_mesh('the mesh', the_shape)
 
 # Unstructured quad-dominant
-MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 101.6)
+MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
 MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
 MeshAPI.add_hypothesis('netgen')
 MeshAPI.add_hypothesis('netgen algo')

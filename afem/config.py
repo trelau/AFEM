@@ -14,14 +14,14 @@ _fh.setFormatter(_fmt)
 logger.addHandler(_fh)
 
 # Dictionary for units
-units_dict = {'i': 'IN',
-              'in': 'IN',
-              'inch': 'IN',
-              'inches': 'IN',
-              'f': 'FT',
-              'ft': 'FT',
-              'foot': 'FT',
-              'feet': 'FT',
+units_dict = {'i': 'INCH',
+              'in': 'INCH',
+              'inch': 'INCH',
+              'inches': 'INCH',
+              'f': 'FOOT',
+              'ft': 'FOOT',
+              'foot': 'FOOT',
+              'feet': 'FOOT',
               'm': 'M',
               'meter': 'M',
               'meters': 'M',
@@ -46,7 +46,7 @@ class Settings(object):
         value is inches.
     """
     # Class variables for settings
-    units = 'IN'
+    units = 'INCH'
 
     @staticmethod
     def log_to_console():

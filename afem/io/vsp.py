@@ -93,10 +93,6 @@ class ImportVSP(object):
         wing_bodies = {}
         ref_surfs = {}
 
-        # Set STEP reader parameters.
-        Interface_Static.SetIVal_("read.step.ideas", 1)
-        Interface_Static.SetIVal_("read.step.nonmanifold", 1)
-
         # Build a compound for geometric sets.
         compound = TopoDS_Compound()
         BRep_Builder().MakeCompound(compound)
