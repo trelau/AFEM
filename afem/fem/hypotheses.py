@@ -335,10 +335,10 @@ class Quadrangle2D(Hypothesis):
             shapes are applicable. If *False* this check returns *True* if at
             least one shape is ok.
 
-        :return: Check whether aglorithm is applicable.
+        :return: Check whether algorithm is applicable.
         :rtype: bool
         """
-        return self.handle.IsApplicable(shape, check_all)
+        return self.handle.IsApplicable_(shape, check_all)
 
     @property
     def handle(self):

@@ -11,7 +11,6 @@ from afem.io import ImportVSP
 from afem.structure import *
 from afem.topology import *
 
-
 Settings.log_to_console()
 
 
@@ -212,18 +211,6 @@ def build_wingbox(wing, params):
             p2 = p1.copy()
             aspar.point_to_cref(p2)
             sref = PlaneByIntersectingShapes(rspar, rib, p2).plane
-
-            # edges = ShapeTools.bsection(rspar, rib, 'e')
-            # if not edges:
-            #     continue
-            # edge = edges[0]
-            # pnts = ShapeTools.points_along_edge(edge, 3)
-            # p1 = rib.p2
-            # p2 = p1.copy()
-            # aspar.points_to_cref([p2])
-            # sref = CreateGeom.fit_plane([p2] + pnts)
-            # if not sref:
-            #     continue
             aux_rib_name = ' '.join(['aux rib', str(aux_rib_id)])
             RibByPoints(aux_rib_name, p1, p2, wing, sref)
             aux_rib_id += 1
@@ -233,12 +220,6 @@ def build_wingbox(wing, params):
     internal_parts = AssemblyAPI.get_parts(order=True)
     FuseSurfacePartsByCref(internal_parts)
     DiscardByCref(internal_parts)
-
-    # v = Viewer()
-    # v.add(*AssemblyAPI.get_parts())
-    # v.set_display_shapes()
-    # v.show()
-    # v.clear_all()
 
     # SKIN --------------------------------------------------------------------
     skin = SkinByBody('wing skin', wing, False).skin
@@ -254,22 +235,9 @@ def build_wingbox(wing, params):
     # shells (upper and lower skin).
     skin.fix()
 
-    # Viewing
-    skin.set_transparency(0.5)
-
-    # v.add(*AssemblyAPI.get_parts())
-    # v.set_display_shapes()
-    # v.show()
-    # v.clear_all()
-
     # Check free edges.
     cmp = CompoundByShapes(all_parts).compound
     tool = ExploreFreeEdges(cmp)
-    wing.set_transparency(0.5)
-    # v.add(wing, *tool.free_edges)
-    # v.set_display_shapes()
-    # v.show()
-    # v.clear_all()
 
     # VOLUMES -----------------------------------------------------------------
     # Demonstrate creating volumes from shapes (i.e., parts). Do not use the
@@ -277,10 +245,6 @@ def build_wingbox(wing, params):
 
     # Volumes using all parts. This generates multiple solids.
     shape1 = VolumesFromShapes(all_parts).shape
-    # v.add(shape1)
-    # v.set_display_shapes()
-    # v.show()
-    # v.clear_all()
 
     # Volume using front spar, rear spar, root rib, tip rib, and upper and
     # lower skins. This should produce a single solid since no internal ribs
@@ -288,12 +252,6 @@ def build_wingbox(wing, params):
     shape2 = VolumesFromShapes([rspar, fspar, root, tip, skin]).shape
     # Calculate volume.
     print('Volume is ', VolumeProps(shape2).volume)
-    # You can also use TopoDS_Shape.volume property (i.e., shape.volume).
-
-    # v.add(shape2)
-    # v.set_display_shapes()
-    # v.show()
-    # v.clear_all()
 
     # Create a semi-infinite box to cut volume with.
     p0 = wing.eval(0.5, 0.1)
@@ -303,23 +261,11 @@ def build_wingbox(wing, params):
 
     # Cut the volume with an infinite plane (use a large box for robustness).
     new_shape = CutShapes(shape1, cut_space).shape
-    cut_space.set_transparency(0.5)
-    # v.add(new_shape, cut_space)
-    # v.set_display_shapes()
-    # v.show()
-    # v.clear_all()
 
     # Calculate cg of cut shape.
     cg = VolumeProps(new_shape).cg
     print('Centroid of cut shape is ', cg)
     print('Volume of cut shape is ', VolumeProps(new_shape).volume)
-
-    # for solid in ExploreShape.get_solids(new_shape):
-    #     v.add(solid)
-    # v.add(cg)
-    # v.set_display_shapes()
-    # v.show()
-    # v.clear_all()
 
     # Cut the volume with an infinite plane (use a large box for robustness).
     new_shape = CutShapes(shape2, cut_space).shape
@@ -328,38 +274,35 @@ def build_wingbox(wing, params):
     cg = VolumeProps(new_shape).cg
     print('Centroid of cut shape is ', cg)
     print('Volume of cut shape is ', VolumeProps(new_shape).volume)
-    # You can also use the TopoDS_Shape.cg property (i.e., shape.cg).
-
-    # v.add(new_shape)
-    # v.add(cg)
-    # v.set_display_shapes()
-    # v.show()
-    # v.clear_all()
 
     # MESH --------------------------------------------------------------------
     # Initialize
     shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
-    MeshAPI.create_mesh('wing-box mesh', shape_to_mesh)
+    the_mesh = MeshAPI.create_mesh('wing-box mesh', shape_to_mesh)
 
     # Use a single global hypothesis based on maximum length.
-    MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
-    MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-    MeshAPI.add_hypothesis('netgen hypo')
-    MeshAPI.add_hypothesis('netgen algo')
-
     MeshAPI.hypotheses.create_max_length_1d('max length', 4.)
     MeshAPI.hypotheses.create_regular_1d('algo 1d')
-
     MeshAPI.add_hypothesis('max length')
     MeshAPI.add_hypothesis('algo 1d')
+
+    # Netgen unstructured quad-dominated
+    MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
+    MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
+    MeshAPI.add_hypothesis('netgen hypo', skin)
+    MeshAPI.add_hypothesis('netgen algo', skin)
 
     # Apply mapped quadrangle to internal structure
     mapped_hyp = MeshAPI.hypotheses.create_quadrangle_parameters('quad hyp')
     mapped_algo = MeshAPI.hypotheses.create_quadrangle_aglo('quad algo')
     for part_ in internal_parts:
-        if mapped_algo.is_applicable(part_):
-            MeshAPI.add_hypothesis(mapped_hyp, part_)
-            MeshAPI.add_hypothesis(mapped_algo, part_)
+        for face in part_.faces:
+            if mapped_algo.is_applicable(part_):
+                MeshAPI.add_hypothesis(mapped_hyp, face)
+                MeshAPI.add_hypothesis(mapped_algo, face)
+            else:
+                MeshAPI.add_hypothesis('netgen hypo', face)
+                MeshAPI.add_hypothesis('netgen algo', face)
 
     # Compute the mesh
     mesh_start = time.time()
@@ -369,6 +312,8 @@ def build_wingbox(wing, params):
         print('Failed to compute mesh')
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
+
+    display_shape(None, the_mesh.handle)
 
     # Uncomment this to export STEP file.
     # from afem.io import StepExport
@@ -390,16 +335,4 @@ if __name__ == '__main__':
     # Build wing box
     assy = build_wingbox(wing_in, {})
 
-    display_shape(assy.prepare_shape_to_mesh())
-
     print('Complete in ', time.time() - start, ' seconds.')
-    # v = Viewer()
-    # v.add(*assy.parts)
-
-    xz_pln = PlaneByAxes().plane
-    for part in assy.parts:
-        part.set_mirror(xz_pln)
-
-    # v.add_meshes(MeshAPI.get_active())
-    # v.set_display_shapes()
-    # v.show()

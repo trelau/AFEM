@@ -22,6 +22,7 @@ from OCCT.ShapeAnalysis import ShapeAnalysis_FreeBounds
 from OCCT.ShapeBuild import ShapeBuild_ReShape
 from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
                          TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_WIRE)
+from OCCT.TopLoc import TopLoc_Location
 from OCCT.TopTools import TopTools_HSequenceOfShape
 from OCCT.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
                          TopoDS_Shell, TopoDS)
@@ -518,6 +519,7 @@ class WireBySplit(object):
 
     def __init__(self, wire, splitter):
         # Split algorithm
+        # FIXME Remove use of GEOMAlgo_Splitter
         bop = GEOMAlgo_Splitter()
         bop.AddArgument(wire)
         bop.AddTool(splitter)
@@ -1784,10 +1786,11 @@ class PlaneByIntersectingShapes(object):
             pnts = [pnt]
             for edge in edges:
                 BRepMesh_IncrementalMesh(edge, 0.001)
-                hndl_poly3d = BRep_Tool().Polygon3D(edge, edge.Location())
-                if hndl_poly3d.IsNull():
+                loc = TopLoc_Location()
+                poly3d = BRep_Tool.Polygon3D_(edge, loc)
+                if poly3d.NbNodes == 0:
                     continue
-                tcol_pnts = hndl_poly3d.Nodes()
+                tcol_pnts = poly3d.Nodes()
                 for i in range(1, tcol_pnts.Length() + 1):
                     gp_pnt = tcol_pnts.Value(i)
                     pnt = CheckGeom.to_point(gp_pnt)
