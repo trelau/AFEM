@@ -1,20 +1,20 @@
 import unittest
 
 from afem.geometry import *
-from afem.graphics import Viewer
+# from afem.graphics import Viewer
 from afem.io import ImportVSP
 from afem.structure.create import *
 from afem.structure.entities import *
 from afem.topology import *
 
 
-def _show(*items):
-    v = Viewer()
-    for item in items:
-        v.add(item)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+# def _show(*items):
+#     v = Viewer()
+#     for item in items:
+#         v.add(item)
+#     v.set_display_shapes()
+#     v.show()
+#     v.clear_all()
 
 
 class TestStructure(unittest.TestCase):

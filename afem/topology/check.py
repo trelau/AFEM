@@ -166,7 +166,7 @@ class CheckShape(object):
             return BRepBuilderAPI_MakeWire(entity).Wire()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_WIRE:
-            return topods_Wire(entity)
+            return TopoDS.Wire_(entity)
 
         raise TypeError('Failed to convert entity to a wire.')
 
@@ -318,7 +318,7 @@ class CheckShape(object):
             elif entity.ShapeType() == TopAbs_EDGE:
                 return TopoDS.Edge_(entity)
             elif entity.ShapeType() == TopAbs_WIRE:
-                return topods_Wire(entity)
+                return TopoDS.Wire_(entity)
             elif entity.ShapeType() == TopAbs_FACE:
                 return TopoDS.Face_(entity)
             elif entity.ShapeType() == TopAbs_SHELL:
