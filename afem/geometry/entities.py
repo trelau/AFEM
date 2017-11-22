@@ -1732,7 +1732,7 @@ class Surface(Geometry):
         :return: The first parameter in u-direction.
         :rtype: float
         """
-        return self.handle.Bounds(0., 0., 0., 0.)[0]
+        return self.handle.U1()
 
     @property
     def u2(self):
@@ -1740,7 +1740,7 @@ class Surface(Geometry):
         :return: The last parameter in u-direction.
         :rtype: float
         """
-        return self.handle.Bounds(0., 0., 0., 0.)[1]
+        return self.handle.U2()
 
     @property
     def v1(self):
@@ -1748,7 +1748,7 @@ class Surface(Geometry):
         :return: The first parameter in v-direction.
         :rtype: float
         """
-        return self.handle.Bounds(0., 0., 0., 0.)[2]
+        return self.handle.V1()
 
     @property
     def v2(self):
@@ -1756,7 +1756,7 @@ class Surface(Geometry):
         :return: The last parameter in v-direction.
         :rtype: float
         """
-        return self.handle.Bounds(0., 0., 0., 0.)[3]
+        return self.handle.V2()
 
     @property
     def area(self):
