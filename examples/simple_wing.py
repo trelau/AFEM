@@ -1,7 +1,6 @@
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.graphics.display import display_shape
-# from afem.graphics import Viewer
 from afem.io import ImportVSP
 from afem.structure import *
 

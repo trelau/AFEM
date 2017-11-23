@@ -1,15 +1,13 @@
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics import Viewer
+from afem.graphics.display import display_shape
 from afem.io import StepImport
 from afem.oml import *
 from afem.structure import *
 from afem.topology import *
 
-v = Viewer()
-
-Settings.log_to_console(True)
+Settings.log_to_console()
 
 # Import wing solid from STEP file
 step_read = StepImport()
@@ -132,22 +130,14 @@ skin.fuse(*wing_parts)
 hs = HalfspaceBySurface(tip_rib.sref, [0, 1e6, 0]).solid
 skin.discard_by_solid(hs)
 
-# View geometry
-skin.set_transparency(0.5)
-v.add(*AssemblyAPI.get_parts())
-v.set_display_shapes()
-v.show()
-
 # Mesh
 print('Meshing the shape...')
 the_shape = AssemblyAPI.prepare_shape_to_mesh()
-MeshAPI.create_mesh('the mesh', the_shape)
+the_mesh = MeshAPI.create_mesh('the mesh', the_shape)
 MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
 MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
 MeshAPI.add_hypothesis('netgen')
 MeshAPI.add_hypothesis('netgen algo')
 MeshAPI.compute_mesh()
 
-v.add_meshes(MeshAPI.get_active())
-v.set_display_shapes()
-v.show()
+display_shape(None, the_mesh.handle)

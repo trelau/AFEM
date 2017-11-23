@@ -1,9 +1,7 @@
 from afem.geometry import NurbsCurveByPoints, NurbsSurfaceByInterp
-from afem.graphics import Viewer
+from afem.graphics.display import display_shape
 from afem.io import brep
 from afem.oml import Body
-
-v = Viewer()
 
 fn1 = r'..\models\uCRM\fuselage.brep'
 fn2 = r'..\models\uCRM\lhs_wing.brep'
@@ -20,11 +18,6 @@ rhs_wing = Body(shape3, 'rhs wing')
 fuselage.set_transparency(0.5)
 lhs_wing.set_transparency(0.5)
 rhs_wing.set_transparency(0.5)
-
-v.add(fuselage, lhs_wing, rhs_wing)
-v.set_display_shapes()
-v.show()
-v.clear_all()
 
 # Manually build wing reference surfaces
 p1 = [23.06578, 0., 4.423368]
@@ -65,6 +58,4 @@ c4 = NurbsCurveByPoints([p1, p2]).curve
 sref = NurbsSurfaceByInterp([c1, c2, c3, c4], 1).surface
 lhs_wing.set_sref(sref)
 
-v.add(rhs_wing, rhs_wing.sref, lhs_wing, lhs_wing.sref)
-v.set_display_shapes()
-v.show()
+display_shape(None, None, fuselage, lhs_wing, rhs_wing)

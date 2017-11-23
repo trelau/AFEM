@@ -1,5 +1,4 @@
 from afem.graphics.display import display_shape
-# from afem.graphics import Viewer
 from afem.io import ImportVSP
 
 # v = Viewer()
@@ -22,6 +21,3 @@ for name in bodies:
     shapes.append(b)
 
 display_shape(None, None, *shapes)
-
-# v.set_display_shapes()
-# v.show()

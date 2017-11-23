@@ -1,4 +1,5 @@
-from OCCT.IFSelect import IFSelect_ItemsByEntity, IFSelect_RetError
+from OCCT.IFSelect import (IFSelect_ItemsByEntity, IFSelect_RetError,
+                           IFSelect_RetDone)
 from OCCT.Interface import Interface_Static
 from OCCT.STEPControl import (STEPControl_AsIs, STEPControl_Reader,
                               STEPControl_Writer)
@@ -55,7 +56,7 @@ class StepExport(STEPControl_Writer):
         :rtype: bool
         """
         status = self.Write(fn)
-        if status < IFSelect_RetError:
+        if int(status) < int(IFSelect_RetError):
             return True
         return False
 
@@ -87,11 +88,11 @@ class StepImport(STEPControl_Reader):
         """
         # Read file.
         status = self.ReadFile(fn)
-        if status > 1:
+        if int(status) > int(IFSelect_RetDone):
             return False
 
         # Convert to desired units.
-        Interface_Static.SetCVal("xstep.cascade.unit", Settings.units)
+        Interface_Static.SetCVal_("xstep.cascade.unit", Settings.units)
 
         # Check
         self.PrintCheckLoad(False, IFSelect_ItemsByEntity)

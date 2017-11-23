@@ -106,7 +106,7 @@ class SimpleViewer(QWidget):
         if button == QtCore.Qt.LeftButton:
             self.my_view.Rotation(x, y)
         # Pan
-        elif button == QtCore.Qt.MidButton:
+        elif button in [QtCore.Qt.MidButton, QtCore.Qt.RightButton]:
             dx, dy = x - self._x0, y - self._y0
             self._x0, self._y0 = x, y
             self.my_view.Pan(dx, -dy)

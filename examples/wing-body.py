@@ -5,15 +5,13 @@ import time
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics import Viewer
+from afem.graphics.display import display_shape
 from afem.io import ImportVSP
 from afem.misc.check import pairwise
 from afem.structure import *
 from afem.topology import *
 
-v = Viewer()
-
-Settings.log_to_console(True)
+Settings.log_to_console()
 
 # Set units to inch.
 Settings.set_units('in')
@@ -227,17 +225,9 @@ start = time.time()
 bop = FuseAssemblies([wing_assy, fuse_assy])
 print('complete', time.time() - start)
 
-for part in wing_assy.get_parts() + fuse_assy.get_parts():
-    v.add(part)
-
-tool = ExploreFreeEdges(bop.fused_shape)
-v.add(*tool.free_edges)
-v.set_display_shapes()
-v.show()
-
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
-MeshAPI.create_mesh('wing-body mesh', shape_to_mesh)
+the_mesh = MeshAPI.create_mesh('wing-body mesh', shape_to_mesh)
 
 # Use a single global hypothesis based on local length.
 MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
@@ -254,6 +244,8 @@ if not status:
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-v.add_meshes(MeshAPI.get_active())
-v.set_display_shapes()
-v.show()
+# Find free edges
+tool = ExploreFreeEdges(shape_to_mesh)
+
+# View
+display_shape(None, the_mesh.handle, *tool.free_edges)

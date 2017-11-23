@@ -1,11 +1,10 @@
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics import Viewer
+from afem.graphics.display import display_shape
 from afem.oml import *
 from afem.structure import *
 from afem.topology import *
 
-v = Viewer()
 # Inputs
 diameter = 244
 length = 360
@@ -14,8 +13,6 @@ cargo_floor_yloc = -108
 frame_height = 3.5
 frame_spacing = 24
 floor_beam_height = 6
-
-v.add(Point())
 
 # Calculate
 radius = diameter / 2.
@@ -95,13 +92,9 @@ all_parts = AssemblyAPI.get_parts(order=True)
 # Split all parts together
 join = SplitParts(all_parts)
 
-v.add(*all_parts)
-v.set_display_shapes()
-v.show(False)
-
 # Mesh
 the_shape = AssemblyAPI.prepare_shape_to_mesh()
-MeshAPI.create_mesh('the mesh', the_shape)
+the_mesh = MeshAPI.create_mesh('the mesh', the_shape)
 
 # Unstructured quad-dominant
 MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
@@ -125,6 +118,4 @@ for face in ExploreShape.get_faces(the_shape):
 
 MeshAPI.compute_mesh()
 
-v.add_meshes(MeshAPI.get_active())
-v.set_display_shapes()
-v.show()
+display_shape(None, the_mesh.handle)

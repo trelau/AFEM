@@ -1,16 +1,14 @@
 from afem.config import Settings
+from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics import Viewer
+from afem.graphics.display import display_shape
 from afem.io import brep
 from afem.oml import Body
 from afem.structure import *
 from afem.topology import *
-from afem.fem import MeshAPI
 
 Settings.set_units('in')
-Settings.log_to_console(True)
-
-v = Viewer()
+Settings.log_to_console()
 
 # IMPORT SOLIDS ---------------------------------------------------------------
 fn1 = r'..\models\uCRM\fuselage.brep'
@@ -24,10 +22,6 @@ shape3 = brep.read_brep(fn3)
 fuselage = Body(shape1, 'fuselage')
 lhs_wing = Body(shape2, 'lhs wing')
 rhs_wing = Body(shape3, 'rhs wing')
-
-# v.add(fuselage, lhs_wing, rhs_wing)
-# v.set_display_shapes()
-# v.show()
 
 fuselage.set_transparency(0.75)
 fuselage.set_color(0.5, 0.5, 0.5)
@@ -166,13 +160,9 @@ skin.set_transparency(0.5)
 
 parts = AssemblyAPI.get_parts()
 
-v.add(fuselage, rhs_wing, *parts)
-v.set_display_shapes()
-v.show()
-
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
-MeshAPI.create_mesh('the mesh', shape_to_mesh)
+the_mesh = MeshAPI.create_mesh('the mesh', shape_to_mesh)
 
 # Global mesh defaults
 ngh = MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
@@ -195,6 +185,4 @@ for part in internal_parts:
 print('Computing mesh...')
 MeshAPI.compute_mesh()
 
-v.add_meshes(MeshAPI.get_active())
-v.set_display_shapes()
-v.show()
+display_shape(None, the_mesh.handle)

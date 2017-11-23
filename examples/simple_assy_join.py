@@ -3,13 +3,12 @@ import time
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics import Viewer
+from afem.graphics.display import display_shape
 from afem.io import ImportVSP
 from afem.structure import *
 from afem.topology import *
 
-Settings.log_to_console(True)
-v = Viewer()
+Settings.log_to_console()
 
 fname = r'..\models\777-200LR.stp'
 ImportVSP.step_file(fname)
@@ -96,17 +95,13 @@ print(time.time() - start)
 shape = bop.fused_shape
 tool = ExploreFreeEdges(shape)
 print(tool.free_edges)
-v.add(*tool.free_edges)
 
 parts = AssemblyAPI.get_master().get_parts()
-v.add(*parts)
-v.set_display_shapes()
-v.show()
 
 # MESH
 master_assy = AssemblyAPI.get_master()
 shape_to_mesh = master_assy.prepare_shape_to_mesh()
-MeshAPI.create_mesh('wing-box mesh', shape_to_mesh)
+the_mesh = MeshAPI.create_mesh('wing-box mesh', shape_to_mesh)
 
 # Use a single global hypothesis based on local length.
 MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
@@ -123,6 +118,4 @@ if not status:
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-v.add_meshes(MeshAPI.get_active())
-v.set_display_shapes()
-v.show()
+display_shape(None, the_mesh.handle, *tool.free_edges)
