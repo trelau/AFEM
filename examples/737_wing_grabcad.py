@@ -1,7 +1,7 @@
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics.display import display_shape
+from afem.graphics import Viewer
 from afem.io import StepImport
 from afem.oml import *
 from afem.structure import *
@@ -140,4 +140,10 @@ MeshAPI.add_hypothesis('netgen')
 MeshAPI.add_hypothesis('netgen algo')
 MeshAPI.compute_mesh()
 
-display_shape(None, the_mesh.handle)
+# View
+skin.set_transparency(0.5)
+v = Viewer()
+v.display_assy(AssemblyAPI.get_master())
+v.start()
+v.display_mesh(the_mesh.handle)
+v.start()

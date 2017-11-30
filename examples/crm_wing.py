@@ -1,7 +1,7 @@
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics.display import display_shape
+from afem.graphics import Viewer
 from afem.io import brep
 from afem.oml import Body
 from afem.structure import *
@@ -185,4 +185,9 @@ for part in internal_parts:
 print('Computing mesh...')
 MeshAPI.compute_mesh()
 
-display_shape(None, the_mesh.handle)
+# View
+v = Viewer()
+v.display_assy(AssemblyAPI.get_master())
+v.start()
+v.display_mesh(the_mesh.handle)
+v.start()

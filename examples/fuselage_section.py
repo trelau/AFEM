@@ -1,6 +1,6 @@
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics.display import display_shape
+from afem.graphics import Viewer
 from afem.oml import *
 from afem.structure import *
 from afem.topology import *
@@ -118,4 +118,8 @@ for face in ExploreShape.get_faces(the_shape):
 
 MeshAPI.compute_mesh()
 
-display_shape(None, the_mesh.handle)
+# View
+v = Viewer()
+v.display_assy(AssemblyAPI.get_master())
+v.display_mesh(the_mesh.handle)
+v.start()

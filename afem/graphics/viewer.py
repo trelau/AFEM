@@ -1,9 +1,29 @@
-from OCCT.BRepBuilderAPI import BRepBuilderAPI_Transform
-from OCCT.Quantity import Quantity_Color, Quantity_TOC_RGB
+import os
+
+from OCCT.AIS import AIS_InteractiveContext, AIS_Shaded, AIS_Shape
+from OCCT.Aspect import Aspect_DisplayConnection, Aspect_TOTP_LEFT_LOWER
+from OCCT.BRepBuilderAPI import BRepBuilderAPI_Transform, \
+    BRepBuilderAPI_MakeVertex, BRepBuilderAPI_MakeEdge, BRepBuilderAPI_MakeFace
+from OCCT.Graphic3d import Graphic3d_MaterialAspect
+from OCCT.MeshVS import (MeshVS_DA_DisplayNodes, MeshVS_DA_EdgeColor,
+                         MeshVS_Mesh, MeshVS_MeshPrsBuilder)
+from OCCT.OpenGl import OpenGl_GraphicDriver
+from OCCT.Quantity import (Quantity_TOC_RGB, Quantity_NOC_WHITE,
+                           Quantity_Color,
+                           Quantity_NOC_BLACK)
+from OCCT.TopoDS import TopoDS_Shape
+from OCCT.SMESH import SMESH_MeshVSLink
+from OCCT.V3d import V3d_Viewer, V3d_TypeOfOrientation
+from OCCT.WNT import WNT_Window
 from OCCT.gce import gce_MakeMirror
+from PySide import QtCore
+from PySide.QtGui import QWidget, QApplication, QPalette, QIcon
 from numpy.random import rand
 
 __all__ = ["Viewer", "ViewableItem"]
+
+# Icon location
+_icon = os.path.dirname(__file__) + '/resources/main.png'
 
 
 class ViewableItem(object):
@@ -83,250 +103,392 @@ class ViewableItem(object):
             return None
         return builder.Shape()
 
-# class Viewer:
-#     def __init__(
-#             self, shapes=list(), meshes=list(), view='iso', white_bg=False, fit=True, xy1=None, xy2=None,
-#             draw_edges=True
-#     ):
-#         """
-#         Initializes a viewer object
-#
-#         :param shapes: Item(s) to view.
-#         :type shapes: list of afem.graphics.viewer.ViewableItem or TopoDS.TopoDS_Shape
-#         :param list of afem.fem.meshes.Mesh meshes: Mesh(es) to view.
-#         :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
-#             'right', 'front', 'bottom').
-#         :param bool white_bg: Option to make the background white.
-#         :param bool fit: Option to fit contents to screen.
-#         :param array_like xy1: Lower corner for zooming.
-#         :param array_like xy2: Upper corner for zooming.
-#         :param bool draw_edges: Display edges as black lines if True
-#         """
-#         self._items = shapes
-#         self._meshes = meshes
-#         self._draw_edges = draw_edges
-#         self._white_bg = white_bg
-#         view_scale = 0.9
-#         screen_res = (int(view_scale * ctypes.windll.user32.GetSystemMetrics(0)),
-#                       int(view_scale * ctypes.windll.user32.GetSystemMetrics(1)))
-#         self._disp, self._start_display, add_menu, add_function_to_menu = init_display()
-#         self._win = add_menu.__closure__[0].cell_contents
-#         self._win.move(0, 0)
-#         self._win.resize(*screen_res)
-#         self._win.centerOnScreen()
-#         self.set_display_shapes()
-#         self.change_view(view)
-#
-#         # self._disp.View.ColorScale()
-#         # self._disp.View.ColorScaleDisplay()
-#         self.draw_edges = draw_edges
-#         self._disp.default_drawer.SetFaceBoundaryDraw(self.draw_edges)
-#
-#         if white_bg:
-#             self._disp.set_bg_gradient_color(255, 255, 255, 255, 255, 255)
-#             self._disp.Repaint()
-#
-#         if xy1 is not None and xy2 is not None:
-#             self._disp.View.FitAll(xy1[0], xy1[1], xy2[0], xy2[1])
-#             fit = False
-#
-#         if fit:
-#             self._disp.FitAll()
-#
-#         self._disp.Repaint()
-#         self._win.close()
-#         return
-#
-#     @property
-#     def white_bg(self):
-#         return self._white_bg
-#
-#     @white_bg.setter
-#     def white_bg(self, b):
-#         self._white_bg = b
-#
-#     @property
-#     def draw_edges(self):
-#         return self._draw_edges
-#
-#     @draw_edges.setter
-#     def draw_edges(self, tf):
-#         self._draw_edges = tf
-#
-#     def clear_all(self):
-#         """
-#         Clear entities from viewer and from object memory
-#         :return: None.
-#         """
-#         self._items = []
-#         self._meshes = []
-#         self._disp.EraseAll()
-#         return
-#
-#     def close(self):
-#         """
-#         Close the viewer window
-#         :return: None
-#         """
-#         self._win.close()
-#         return
-#
-#     def delete_viewer(self):
-#         """
-#         Clear the viewer canvas object from memory
-#         :return: None
-#         """
-#         self._win.canva.close()
-#         self._win.canva.deleteLater()
-#         self._win.menu_bar.close()
-#         self._win.menu_bar.deleteLater()
-#         self._win = None
-#         self._disp = None
-#         self._start_display = None
-#         gc.collect()
-#         return
-#
-#     def change_view(self, v):
-#         """
-#         Change the viewing angle of the current viewer.
-#         :param str v: The viewing angle ('iso', 'top', 'bottom', 'left',
-#             'right', 'front', 'bottom').
-#         :return:
-#         """
-#         v = v.lower()
-#         if v in ['i', 'iso', 'isometric']:
-#             self._disp.View_Iso()
-#         elif v in ['t', 'top']:
-#             self._disp.View_Top()
-#         elif v in ['b', 'bottom']:
-#             self._disp.View_Bottom()
-#         elif v in ['l', 'left']:
-#             self._disp.View_Front()
-#         elif v in ['r', 'right']:
-#             self._disp.View_Rear()
-#         elif v in ['f', 'front']:
-#             self._disp.View_Left()
-#         elif v in ['rear']:
-#             self._disp.View_Right()
-#         else:
-#             raise ValueError
-#         return
-#
-#     def show(self):
-#         """
-#         Display the current viewer for interactive use
-#         :return: None
-#         """
-#         self._disp.Repaint()
-#         self._win.show()
-#         self._start_display()
-#         return
-#
-#     def add(self, *items):
-#         """
-#         Add viewable items.
-#
-#         :param items: Item(s) to view.
-#         :type items: afem.graphics.viewer.ViewableItem or TopoDS.TopoDS_Shape
-#             or afem.structure.assembly.Assembly or str
-#
-#         :return: None.
-#         """
-#         # Avoid circular imports
-#         from afem.structure.assembly import Assembly, AssemblyAPI
-#
-#         for item in items:
-#             if isinstance(item, (ViewableItem, TopoDS_Shape)):
-#                 self._items.append(item)
-#             elif isinstance(item, Assembly):
-#                 for part in item.get_parts():
-#                     self._items.append(part)
-#             elif isinstance(item, str):
-#                 assy = AssemblyAPI.get_assy(item)
-#                 if isinstance(assy, Assembly):
-#                     for part in assy.get_parts():
-#                         self._items.append(part)
-#
-#     def set_display_shapes(self):
-#         """
-#         Draws but does not display the current _items list and _meshes list in the viewer
-#         :return: None
-#         """
-#         for item in self._items:
-#             try:
-#                 self._disp.DisplayShape(
-#                     item, color=item.color,
-#                     transparency=item.transparency,
-#                     material=Graphic3d_NOM_DEFAULT
-#                 )
-#             except TypeError:
-#                 # Hack for some geometry items
-#                 self._disp.DisplayShape(
-#                     item.object,
-#                     color=item.color,
-#                     transparency=item.transparency,
-#                     material=Graphic3d_NOM_DEFAULT
-#                 )
-#             if item.mirror:
-#                 mirrored = item.get_mirrored()
-#                 self._disp.DisplayShape(
-#                     mirrored,
-#                     color=item.color,
-#                     transparency=item.transparency,
-#                     material=Graphic3d_NOM_DEFAULT
-#                 )
-#         for mesh in self._meshes:
-#             _display_smesh(self._disp, mesh)
-#         self._disp.Repaint()
-#         return
-#
-#     def add_meshes(self, *meshes):
-#         """
-#         Add meshes to the viewer.
-#
-#         :param afem.fem.meshes.Mesh meshes: The mesh(es) to add.
-#
-#         :return: None.
-#         """
-#         for mesh in meshes:
-#             self._meshes.append(mesh)
-#         return
-#
-#     def capture(self, filename='capture.png', view='iso', fit=True):
-#         """
-#         Take a screen capture of the current viewer configuration
-#         :param str filename: name of the file to be captured
-#         :param str view: The viewing angle ('iso', 'top', 'bottom', 'left',
-#             'right', 'front', 'bottom').
-#         :param bool fit: Option to fit contents to screen.
-#         :return: None
-#         """
-#         self._win.show()
-#         self.change_view(view)
-#         if fit:
-#             self._disp.FitAll()
-#         self._disp.Repaint()
-#         self._disp.View.Dump(filename)
-#         self._win.close()
-#         return
-#
-#
-# def _display_smesh(display, mesh):
-#     """
-#     Display an SMESH generated mesh.
-#     """
-#     ds = SMESH_MeshVSLink(mesh.object)
-#     mesh_vs = MeshVS_Mesh(True)
-#     prs_builder = MeshVS_MeshPrsBuilder(mesh_vs, 1,
-#                                         ds, 0, MeshVS_BP_Mesh)
-#     mesh_vs.SetDataSource(ds)
-#     mesh_vs.AddBuilder(prs_builder, True)
-#     mesh_vs_drawer = mesh_vs.GetDrawer()
-#     assert isinstance(mesh_vs_drawer, MeshVS_Drawer)
-#     mesh_vs_drawer.SetBoolean(MeshVS_DA_DisplayNodes, False)
-#     black = Quantity_Color(0., 0., 0., 0)
-#     mesh_vs_drawer.SetColor(MeshVS_DA_EdgeColor, black)
-#     context = display.Context
-#     context.Display(mesh_vs)
-#     context.Deactivate(mesh_vs)
-#     return True
+
+class Viewer(QWidget):
+    """
+    Simple class for viewing items.
+
+    :param int width: Window width.
+    :param int height: Window height.
+
+    :var OCCT.V3d.V3d_Viewer my_viewer: The viewer.
+    :var OCCT.V3d.V3d_View my_view: The view.
+    :var OCCT.AIS.AIS_InteractiveContext: The context.
+    :var OCCT.Prs3d.Prs3d_Drawer: The default drawer.
+    """
+
+    _app = QApplication.instance()
+    if _app is None:
+        _app = QApplication([])
+
+    def __init__(self, width=800, height=600):
+        super(Viewer, self).__init__()
+
+        # Qt settings
+        self.setBackgroundRole(QPalette.NoRole)
+        self.setMouseTracking(True)
+        self.resize(width, height)
+        self.setWindowTitle('AFEM')
+        icon = QIcon(_icon)
+        self.setWindowIcon(icon)
+
+        # Display connection
+        display_connection = Aspect_DisplayConnection()
+
+        # Graphics driver
+        graphics_driver = OpenGl_GraphicDriver(display_connection)
+
+        # Window handle
+        window_handle = self.winId()
+
+        # Windows window
+        wind = WNT_Window(window_handle)
+
+        # Create viewer and view
+        self.my_viewer = V3d_Viewer(graphics_driver)
+        self.my_view = self.my_viewer.CreateView()
+        self.my_view.SetWindow(wind)
+
+        # Map window
+        wind.Map()
+
+        # AIS interactive context
+        self.my_context = AIS_InteractiveContext(self.my_viewer)
+
+        # Some default settings
+        self.my_context.SetAutomaticHilight(True)
+        self._white = Quantity_Color(Quantity_NOC_WHITE)
+        self._black = Quantity_Color(Quantity_NOC_BLACK)
+        self.my_viewer.SetDefaultLights()
+        self.my_viewer.SetLightOn()
+        self.my_view.SetBackgroundColor(Quantity_TOC_RGB, 0.5, 0.5, 0.5)
+        self.my_context.SetDisplayMode(AIS_Shaded, True)
+        self.my_drawer = self.my_context.DefaultDrawer()
+        self.my_drawer.SetFaceBoundaryDraw(True)
+        self.my_view.TriedronDisplay(Aspect_TOTP_LEFT_LOWER, self._black, 0.08)
+
+        # Keyboard map
+        self._keys = {
+            ord('F'): self.my_view.FitAll
+        }
+
+        # Values for mouse movement
+        self._x0, self._y0 = 0., 0.
+
+    def start(self, fit=True):
+        """
+        Start the application.
+
+        :param bool fit: Option to fit the contents before starting.
+
+        :return: None.
+        """
+        if fit:
+            self.fit()
+        self._app.exec_()
+
+    def resizeEvent(self, *args, **kwargs):
+        self.my_view.MustBeResized()
+
+    def keyPressEvent(self, e):
+        try:
+            self._keys[e.key()]()
+        except KeyError:
+            pass
+
+    def wheelEvent(self, e):
+        if e.delta() > 0:
+            zoom = 1.5
+        else:
+            zoom = 0.75
+        self.my_view.SetZoom(zoom)
+
+    def mousePressEvent(self, e):
+        pos = e.pos()
+        x, y = pos.x(), pos.y()
+        self._x0, self._y0 = x, y
+        self.my_view.StartRotation(x, y)
+
+    def mouseDoubleClickEvent(self, e):
+        pos = e.pos()
+        x, y = pos.x(), pos.y()
+        self._x0, self._y0 = x, y
+        self.my_view.StartRotation(x, y)
+
+    def mouseMoveEvent(self, e):
+        pos = e.pos()
+        x, y = pos.x(), pos.y()
+        button = e.buttons()
+
+        # Rotate
+        if button == QtCore.Qt.LeftButton:
+            self.my_view.Rotation(x, y)
+        # Pan
+        elif button in [QtCore.Qt.MidButton, QtCore.Qt.RightButton]:
+            dx, dy = x - self._x0, y - self._y0
+            self._x0, self._y0 = x, y
+            self.my_view.Pan(dx, -dy)
+
+    def display(self, ais_shape, update=True):
+        """
+        Display an AIS_Shape.
+
+        :param OCCT.AIS.AIS_Shape ais_shape: The AIS shape.
+        :param bool update: Option to update the viewer.
+
+        :return: None.
+        """
+        self.my_context.Display(ais_shape, update)
+
+    def display_body(self, body):
+        """
+        Display a body.
+
+        :param afem.oml.entities.Body body: The body.
+
+        :return: The AIS_Shape created for the body.
+        :rtype: OCCT.AIS.AIS_Shape
+        """
+        return self.display_shape(body, body.color, body.transparency)
+
+    def display_shape(self, shape, rgb=None, transparency=None, material=None):
+        """
+        Display a shape.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param rgb: The RGB color (r, g, b).
+        :type param: collections.Sequence[float] or OCCT.Quantity.Quantity_Color
+        :param float transparency: The transparency (0 to 1).
+        :param OCCT.Graphic3d.Graphic3d_NameOfMaterial material: The material.
+
+        :return: The AIS_Shape created for the part.
+        :rtype: OCCT.AIS.AIS_Shape
+        """
+        ais_shape = AIS_Shape(shape)
+
+        if isinstance(rgb, (tuple, list)):
+            r, g, b = rgb
+            color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
+            ais_shape.SetColor(color)
+        if isinstance(rgb, Quantity_Color):
+            ais_shape.SetColor(rgb)
+
+        if transparency is not None:
+            ais_shape.SetTransparency(transparency)
+
+        if material is not None:
+            ma = Graphic3d_MaterialAspect(material)
+            ais_shape.SetMaterial(ma)
+
+        self.my_context.Display(ais_shape, True)
+        return ais_shape
+
+    def display_geom(self, geom):
+        """
+        Display a geometric entity.
+
+        :param afem.geometry.entities.Geometry geom: The geometry. Must be
+            either a Point, Curve, or Surface.
+
+        :return: The AIS_Shape created for the geometry. Returns *None* if the
+            entity cannot be converted to a shape.
+        :rtype: OCCT.AIS.AIS_Shape or None
+        """
+        from afem.geometry.entities import Point, Curve, Surface
+
+        if isinstance(geom, Point):
+            shape = BRepBuilderAPI_MakeVertex(geom).Vertex()
+        elif isinstance(geom, Curve):
+            shape = BRepBuilderAPI_MakeEdge(geom.handle).Edge()
+        elif isinstance(geom, Surface):
+            shape = BRepBuilderAPI_MakeFace(geom.handle, 1.0e-7).Face()
+        else:
+            return None
+
+        return self.display_shape(shape, geom.color, geom.transparency)
+
+    def display_mesh(self, mesh, mode=1):
+        """
+        Display a mesh.
+
+        :param OCCT.SMESH_SMESH_Mesh mesh: The mesh.
+        :param int mode: Display mode for mesh elements (1=wireframe, 2=solid).
+
+        :return: The MeshVS_Mesh created for the mesh.
+        :rtype: OCCT.MeshVS.MeshVS_Mesh
+        """
+        vs_link = SMESH_MeshVSLink(mesh)
+        mesh_vs = MeshVS_Mesh()
+        mesh_vs.SetDataSource(vs_link)
+        prs_builder = MeshVS_MeshPrsBuilder(mesh_vs)
+        mesh_vs.AddBuilder(prs_builder)
+        mesh_vs_drawer = mesh_vs.GetDrawer()
+        mesh_vs_drawer.SetBoolean(MeshVS_DA_DisplayNodes, False)
+        mesh_vs_drawer.SetColor(MeshVS_DA_EdgeColor, self._black)
+        mesh_vs.SetDisplayMode(mode)
+        self.my_context.Display(mesh_vs, True)
+        return mesh_vs
+
+    def display_part(self, part):
+        """
+        Display a part.
+
+        :param afem.structure.entities.Part part: The part.
+
+        :return: The AIS_Shape created for the part.
+        :rtype: OCCT.AIS.AIS_Shape
+        """
+        return self.display_shape(part, part.color, part.transparency)
+
+    def display_parts(self, parts):
+        """
+        Display a sequence of parts.
+
+        :param collections.Sequence[afem.structure.entities.Part] parts: The
+            parts.
+
+        :return: None.
+        """
+        for part in parts:
+            self.display_part(part)
+
+    def display_assy(self, assy, include_subassy=True):
+        """
+        Display all parts of an assembly.
+
+        :param afem.structure.assembly.Assembly assy: The assembly.
+        :param bool include_subassy: Option to recursively include parts
+            from any sub-assemblies.
+
+        :return: None.
+        """
+        for part in assy.get_parts(include_subassy):
+            self.display_part(part)
+
+    def add(self, *items):
+        """
+        Add items to be displayed.
+
+        :param items: The items.
+
+        :return: None.
+        """
+        from afem.geometry.entities import Geometry
+        from afem.oml.entities import Body
+        from afem.structure.assembly import Assembly
+        from afem.structure.entities import Part
+
+        for item in items:
+            if isinstance(item, Part):
+                self.display_part(item)
+            elif isinstance(item, Assembly):
+                self.display_assy(item)
+            elif isinstance(item, Geometry):
+                self.display_geom(item)
+            elif isinstance(item, Body):
+                self.display_body(item)
+            elif isinstance(item, TopoDS_Shape):
+                self.display_shape(item)
+
+    def fit(self):
+        """
+        Fit the contents.
+
+        :return: None.
+        """
+        self.my_view.FitAll()
+
+    def set_bg_color(self, r, g, b):
+        """
+        Set the background color.
+
+        :param float r: The r-value.
+        :param float g: The g-value.
+        :param float b: The b-value.
+
+        :return: None.
+        """
+        self.my_view.SetBackgroundColor(Quantity_TOC_RGB, r, g, b)
+
+    def set_white_background(self):
+        """
+        Set the background color to white.
+
+        :return: None.
+        """
+        self.my_view.SetBackgroundColor(Quantity_TOC_RGB, 1., 1., 1.)
+
+    def view_iso(self):
+        """
+        Isometric view.
+
+        :return: None.
+        """
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_XposYnegZpos)
+
+    def view_top(self):
+        """
+        Top view.
+
+        :return: None.
+        """
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_Zpos)
+
+    def view_bottom(self):
+        """
+        Bottom view.
+
+        :return: None.
+        """
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_Zneg)
+
+    def view_front(self):
+        """
+        Front view.
+
+        :return: None.
+        """
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_Xneg)
+
+    def view_rear(self):
+        """
+        Rear view.
+
+        :return: None.
+        """
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_Xpos)
+
+    def view_left(self):
+        """
+        Left view.
+
+        :return: None.
+        """
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_Yneg)
+
+    def view_right(self):
+        """
+        Right view.
+
+        :return: None.
+        """
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_Ypos)
+
+    def capture(self, fn):
+        """
+        Capture the screen contents and save to a file. The type of file will be
+        determined by the extension.
+
+        :param str fn: The filename.
+
+        :return: None.
+        """
+        self.my_view.Dump(fn)
+
+    def remove_all(self):
+        """
+        Remove all items from the context.
+
+        :return: None.
+        """
+        self.my_context.RemoveAll(True)

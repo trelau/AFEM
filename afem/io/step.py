@@ -20,12 +20,12 @@ class StepExport(STEPControl_Writer):
 
     def __init__(self, schema='AP203', units=None):
         super(StepExport, self).__init__()
-        Interface_Static.SetCVal('write.step.schema', schema)
+        Interface_Static.SetCVal_('write.step.schema', schema)
         try:
             units = units_dict[units]
         except KeyError:
             units = Settings.units
-        Interface_Static.SetCVal('write.step.unit', units)
+        Interface_Static.SetCVal_('write.step.unit', units)
 
     def transfer(self, *shapes):
         """
@@ -42,7 +42,7 @@ class StepExport(STEPControl_Writer):
             if not shape:
                 continue
             status = self.Transfer(shape, STEPControl_AsIs)
-            if status < IFSelect_RetError:
+            if int(status) < int(IFSelect_RetError):
                 added_shape = True
         return added_shape
 

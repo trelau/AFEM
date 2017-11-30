@@ -5,7 +5,7 @@ import time
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics.display import display_shape
+from afem.graphics import Viewer
 from afem.io import ImportVSP
 from afem.structure import *
 from afem.topology import *
@@ -312,7 +312,9 @@ def build_wingbox(wing, params):
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    display_shape(None, the_mesh.handle)
+    v = Viewer()
+    v.display_mesh(the_mesh.handle, 2)
+    v.start()
 
     # Uncomment this to export STEP file.
     # from afem.io import StepExport

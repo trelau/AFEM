@@ -6,7 +6,7 @@ from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
 from OCCT.BRepCheck import BRepCheck_Analyzer
 from OCCT.BRepGProp import BRepGProp
 from OCCT.GProp import GProp_GProps
-from OCCT.Geom import Geom_Plane, Geom_BSplineSurface
+from OCCT.Geom import Geom_Plane
 from OCCT.GeomLib import GeomLib_IsPlanarSurface
 from OCCT.IFSelect import (IFSelect_ItemsByEntity, IFSelect_RetDone,
                            IFSelect_RetVoid)
@@ -17,7 +17,6 @@ from OCCT.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
 from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                                ShapeUpgrade_SplitSurface,
                                ShapeUpgrade_UnifySameDomain)
-from OCCT.StepRepr import StepRepr_RepresentationItem
 from OCCT.TColStd import TColStd_HSequenceOfReal
 from OCCT.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
 from OCCT.TopExp import TopExp_Explorer
@@ -481,7 +480,7 @@ def _process_wing(compound, divide_closed):
     wing = Body(solid)
 
     if vsp_surf:
-        vsp_surf = NurbsSurface(vsp_surf)
+        vsp_surf = NurbsSurface(vsp_surf.handle)
         wing.add_metadata('vsp surface', vsp_surf)
         upr_srf = vsp_surf.copy()
         v_le = vsp_surf.local_to_global_param('v', 0.5)
@@ -507,7 +506,7 @@ def _process_fuse(compound, divide_closed):
     faces = ExploreShape.get_faces(compound)
     if len(faces) == 1:
         vsp_surf = ExploreShape.surface_of_face(faces[0])
-        vsp_surf = NurbsSurface(vsp_surf)
+        vsp_surf = NurbsSurface(vsp_surf.handle)
         fuselage.add_metadata('vsp surface', vsp_surf)
 
     return fuselage
@@ -523,7 +522,7 @@ def _process_unsplit_wing(compound, divide_closed):
 
     # Get the surface.
     master_surf = ExploreShape.surface_of_face(face)
-    master_surf = NurbsSurface(master_surf)
+    master_surf = NurbsSurface(master_surf.handle)
     uknots, vknots = master_surf.uknots, master_surf.vknots
     vsplit = master_surf.local_to_global_param('v', 0.5)
 

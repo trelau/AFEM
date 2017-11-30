@@ -5,7 +5,7 @@ import time
 from afem.config import Settings
 from afem.fem import MeshAPI
 from afem.geometry import *
-from afem.graphics.display import display_shape
+from afem.graphics import Viewer
 from afem.io import ImportVSP
 from afem.misc.check import pairwise
 from afem.structure import *
@@ -248,4 +248,7 @@ else:
 tool = ExploreFreeEdges(shape_to_mesh)
 
 # View
-display_shape(None, the_mesh.handle, *tool.free_edges)
+v = Viewer()
+v.display_mesh(the_mesh.handle, 2)
+v.add(*tool.free_edges)
+v.start()

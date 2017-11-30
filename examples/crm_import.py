@@ -1,5 +1,5 @@
 from afem.geometry import NurbsCurveByPoints, NurbsSurfaceByInterp
-from afem.graphics.display import display_shape
+from afem.graphics import Viewer
 from afem.io import brep
 from afem.oml import Body
 
@@ -58,4 +58,7 @@ c4 = NurbsCurveByPoints([p1, p2]).curve
 sref = NurbsSurfaceByInterp([c1, c2, c3, c4], 1).surface
 lhs_wing.set_sref(sref)
 
-display_shape(None, None, fuselage, lhs_wing, rhs_wing)
+v = Viewer()
+for shape in [fuselage, lhs_wing, rhs_wing]:
+    v.display_shape(shape)
+v.start()

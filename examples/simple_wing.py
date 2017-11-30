@@ -1,6 +1,6 @@
 from afem.config import Settings
 from afem.fem import MeshAPI
-from afem.graphics.display import display_shape
+from afem.graphics import Viewer
 from afem.io import ImportVSP
 from afem.structure import *
 
@@ -26,6 +26,9 @@ RibsAlongCurveByDistance('rib', rspar.cref, 30, fspar, rspar, wing, d1=30,
                          d2=-30)
 internal_parts = wingbox.get_parts()
 skin = SkinByBody('skin', wing).skin
+cref = wing.isocurve(u=0.5)
+skin.discard_by_dmin(cref, 1.0)
+
 FuseSurfaceParts([skin], internal_parts)
 
 # Mesh
@@ -56,4 +59,10 @@ for part_ in internal_parts + [skin]:
 
 MeshAPI.compute_mesh()
 
-display_shape(None, the_mesh.handle)
+# View
+skin.set_transparency(0.5)
+v = Viewer()
+v.display_assy(wingbox)
+v.start()
+v.display_mesh(the_mesh.handle)
+v.start()

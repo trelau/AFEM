@@ -7,8 +7,6 @@ from afem.io import ImportVSP, StepExport
 from afem.structure import *
 from afem.topology import *
 
-v = Viewer()
-
 
 def build(wing, fuselage):
     """
@@ -201,9 +199,8 @@ def build(wing, fuselage):
     # intended part, we must devise a way to (at least semi-automatically)
     # refine the shape.
     v.add(*internal_wing_parts)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    v.start()
+    v.remove_all()
 
     # When a wing part is created and if a wing reference surface is available,
     # a part "reference curve" gets created and attached to the part. This
@@ -219,9 +216,8 @@ def build(wing, fuselage):
     v.add(wing.sref)
     for part in internal_wing_parts:
         v.add(part.cref)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    v.start()
+    v.remove_all()
 
     # Fuse the interfacing wing parts together first using their reference
     # curves. Then discard faces of the parts using the reference curves again.
@@ -230,9 +226,8 @@ def build(wing, fuselage):
 
     # Show the parts again to see the difference
     v.add(*internal_wing_parts)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    v.start()
+    v.remove_all()
 
     # Fuselage skin using the shell of the fuselage body
     fskin = SkinByBody('fuselage skin', fuselage, assy=fa).skin
@@ -246,15 +241,14 @@ def build(wing, fuselage):
     # only faces that should be near this curve at the caps of the wing skin.
     # Use this curve and a minimum distance to discard these faces.
     v.add(wskin)
-    v.set_display_shapes()
-    v.show()
+    v.start()
 
     cref = wing.sref.u_iso(0.5)
     wskin.discard_by_dmin(cref, 0.01)
 
     # Show after discarding
-    v.show()
-    v.clear_all()
+    v.start()
+    v.remove_all()
 
     # Fuse wing skin and internal parts. This will trim the skin with the parts
     # and update all the shapes of each part.
@@ -275,8 +269,7 @@ def build(wing, fuselage):
     # be discarded. Any face that has a centroid inside the given solid will be
     # removed.
     v.add(fskin)
-    v.set_display_shapes()
-    v.show()
+    v.start()
 
     # Forward faces
     pln = frames[0].plane
@@ -290,8 +283,8 @@ def build(wing, fuselage):
     fskin.discard_by_solid(box)
 
     # Show after
-    v.show()
-    v.clear_all()
+    v.start()
+    v.remove_all()
 
     # The fuselage structure to this point is defined entirely in the fuselage
     # body. If a "half-model" is desired, one option is to simply the cut the
@@ -306,9 +299,8 @@ def build(wing, fuselage):
 
     # Show after
     v.add(*fa.get_parts())
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    v.start()
+    v.remove_all()
 
     # During all the Boolean operations, it's possible that some shapes become
     # corrupt (poor tolerances, invalid topology, etc.) and need repaired
@@ -335,8 +327,7 @@ def build(wing, fuselage):
     fskin.set_transparency(0.5)
     v.add(*wa.get_parts())
     v.add(*fa.get_parts())
-    v.set_display_shapes()
-    v.show()
+    v.start()
 
     # For now, just throw a global unstructured quad-dominant mesh with a
     # constance size at the whole thing. Local mesh control is possible but
@@ -361,10 +352,9 @@ def build(wing, fuselage):
     # internal mesh better.
     wskin.set_transparency(0.)
     fskin.set_transparency(0.)
-    v.add_meshes(MeshAPI.get_active())
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    v.display_mesh(MeshAPI.get_active().handle, 2)
+    v.start()
+    v.remove_all()
 
     # Export the shape to a STEP file
     step = StepExport('AP203', 'in')
@@ -377,8 +367,9 @@ def build(wing, fuselage):
 
 
 if __name__ == '__main__':
-    # Set units to inch
+    # Set units to inch and log to console
     Settings.set_units('in')
+    Settings.log_to_console()
 
     # Import OpenVSP model
     fname = r'..\models\NASA_N+2.stp'
@@ -398,12 +389,13 @@ if __name__ == '__main__':
     #      rather than two faces split between the upper and lower surface.
 
     # View the model
+    v = Viewer()
     bodies = ImportVSP.get_bodies()
     for name in bodies:
         b = bodies[name]
-        v.add(b)
-    v.show()
-    v.clear_all()
+        v.display_shape(b)
+    v.start()
+    v.remove_all()
 
     # Retrieve relative components by name and set transparency for viewing
     wing_ = ImportVSP.get_body('wing')
@@ -418,10 +410,10 @@ if __name__ == '__main__':
     # structure in terms of percent chord and/or semispan. Currently, the
     # u-direction of the surface is in the chordwise and the v-direction is
     # spanwise. Show this surface.
-    v.add(wing_, wing_.sref)
-    v.set_display_shapes()
-    v.show()
-    v.clear_all()
+    v.display_body(wing_)
+    v.display_geom(wing_.sref)
+    v.start()
+    v.remove_all()
 
     # Build the structural model
     build(wing_, fuse_)

@@ -5,9 +5,7 @@ from afem.io import ImportVSP
 from afem.structure import *
 from afem.topology import *
 
-Settings.log_to_console(True)
-
-v = Viewer()
+Settings.log_to_console()
 
 # Inputs
 fname = r'..\models\N2A_nosplit.stp'
@@ -154,12 +152,8 @@ skin.fuse(*internal_parts)
 skin.discard_by_dmin(vtail.sref_shape, 1.)
 skin.fix()
 
-# Mirror and plot
-parts = AssemblyAPI.get_master().get_parts()
-xz_pln = PlaneByAxes().plane
-for part in parts:
-    part.set_mirror(xz_pln)
-
-v.add(*AssemblyAPI.get_master().get_parts())
-v.set_display_shapes()
-v.show()
+# View
+skin.set_transparency(0.5)
+v = Viewer()
+v.display_assy(AssemblyAPI.get_master())
+v.start()
