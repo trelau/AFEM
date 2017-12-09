@@ -1,7 +1,7 @@
 from OCCT.BRep import BRep_Builder, BRep_Tool
 from OCCT.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve
 from OCCT.BRepAlgo import BRepAlgo
-from OCCT.BRepAlgoAPI import BRepAlgoAPI_Section
+from OCCT.BRepAlgoAPI import BRepAlgoAPI_Section, BRepAlgoAPI_Splitter
 from OCCT.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
                                  BRepBuilderAPI_MakeEdge,
                                  BRepBuilderAPI_MakeFace,
@@ -15,7 +15,6 @@ from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset)
 from OCCT.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
                               BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism)
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-# from OCCT.GEOMAlgo import GEOMAlgo_Splitter
 from OCCT.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCCT.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
 from OCCT.ShapeAnalysis import ShapeAnalysis_FreeBounds
@@ -25,7 +24,7 @@ from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
 from OCCT.TopLoc import TopLoc_Location
 from OCCT.TopTools import TopTools_HSequenceOfShape
 from OCCT.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
-                         TopoDS_Shell, TopoDS)
+                         TopoDS_Shell, TopoDS, TopoDS_ListOfShape)
 from numpy import ceil
 
 from afem.geometry.check import CheckGeom
@@ -519,12 +518,15 @@ class WireBySplit(object):
 
     def __init__(self, wire, splitter):
         # Split algorithm
-        # FIXME Remove use of GEOMAlgo_Splitter
-        bop = GEOMAlgo_Splitter()
-        bop.AddArgument(wire)
-        bop.AddTool(splitter)
-        bop.Perform()
-        if bop.ErrorStatus() != 0:
+        bop = BRepAlgoAPI_Splitter()
+        args = TopoDS_ListOfShape()
+        args.Append(wire)
+        tools = TopoDS_ListOfShape()
+        tools.Append(splitter)
+        bop.SetArguments(args)
+        bop.SetTools(tools)
+        bop.Build()
+        if not bop.IsDone():
             msg = 'Failed to split wire.'
             raise RuntimeError(msg)
 
