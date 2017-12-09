@@ -1,3 +1,10 @@
+try:
+    from OCCT.BLSURFPlugin import BLSURFPlugin_BLSURF, BLSURFPlugin_Hypothesis
+
+    has_blsurf = True
+except ImportError:
+    has_blsurf = False
+
 from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D,
                                NETGENPlugin_NETGEN_2D_ONLY,
                                NETGENPlugin_SimpleHypothesis_2D)
@@ -349,6 +356,53 @@ class Quadrangle2D(Hypothesis):
         return self._hypothesis
 
 
+class BlsurfAlgo(Hypothesis):
+    """
+    BLSURF (MGCAD-Surf) algorithm.
+    """
+
+    def __init__(self, label):
+        if not has_blsurf:
+            raise NotImplementedError('BLSURFPlugin not implemented.')
+        self._hypothesis = BLSURFPlugin_BLSURF(Hypothesis._indx, 0, the_gen,
+                                               True)
+        super(BlsurfAlgo, self).__init__(label)
+
+    @property
+    def handle(self):
+        """
+        :return: The underlying hypothesis.
+        :rtype: OCCT.BLSURFPlugin.BLSURFPlugin_BLSURF
+        """
+        return self._hypothesis
+
+
+class BlsurfHypothesis(Hypothesis):
+    """
+    BLSURF (MGCAD-Surf) hypothesis.
+    """
+
+    def __init__(self, label, physical_size, allow_quads=True):
+        if not has_blsurf:
+            raise NotImplementedError('BLSURFPlugin not implemented.')
+        self._hypothesis = BLSURFPlugin_Hypothesis(Hypothesis._indx, 0, the_gen,
+                                                   True)
+        super(BlsurfHypothesis, self).__init__(label)
+        # TODO Finish BLSURFlugin
+        self.handle.SetPhySize(physical_size)
+        self.handle.SetMinSize(physical_size)
+        self.handle.SetMaxSize(physical_size)
+        self.handle.SetQuadAllowed(allow_quads)
+
+    @property
+    def handle(self):
+        """
+        :return: The underlying hypothesis.
+        :rtype: OCCT.BLSURFPlugin.BLSURFPlugin_Hypothesis
+        """
+        return self._hypothesis
+
+
 class HypothesisAPI(object):
     """
     Hypothesis API. This is used to manage hypotheses from one place.
@@ -547,3 +601,27 @@ class HypothesisAPI(object):
         :rtype: afem.fem.hypotheses.Quadrangle2D
         """
         return Quadrangle2D(label)
+
+    @staticmethod
+    def create_blsurf_aglo(label):
+        """
+        Create BlSurfAlgo algorithm.
+
+        :param str label: The label.
+
+        :return: The hypothesis.
+        :rtype: afem.fem.hypotheses.BlSurfAlgo
+        """
+        return BlsurfAlgo(label)
+
+    @staticmethod
+    def create_blsurf_hypothesis(label, physical_size, allow_quads=True):
+        """
+        Create BlSurfHypothesis.
+
+        :param str label: The label.
+
+        :return: The hypothesis.
+        :rtype: afem.fem.hypotheses.BlSurfHypothesis
+        """
+        return BlsurfHypothesis(label, physical_size, allow_quads)
