@@ -20,7 +20,8 @@ from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   PointAlongShape, PointsAlongShapeByDistance,
                                   PointsAlongShapeByNumber,
-                                  ShellByFaces, WiresByShape)
+                                  ShellByFaces, WiresByShape, FaceByPlane,
+                                  SolidByDrag)
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreShape
 from afem.topology.fix import FixShape
@@ -1086,13 +1087,16 @@ class Part(TopoDS_Shape, ViewableItem):
         self.set_shape(new_shape)
         return True
 
-    def discard_by_cref(self):
+    def discard_by_cref(self, size=None):
         """
         Discard shapes of the part by using the reference curve. An infinite
         solid is created at each end of the reference curve using the curve
         tangent. Any shape that has a centroid in these solids is removed.
         For a curve part edges are discarded, for a SurfacePart faces are
         discarded.
+
+        :param float size: Option to define a finite solid box which might be
+            more robust than an infinite solid.
 
         :return: *True* if shapes were discard, *False* if not.
         :rtype: bool
@@ -1118,15 +1122,25 @@ class Part(TopoDS_Shape, ViewableItem):
         pln2 = PlaneByNormal(p2, v2).plane
 
         # Translate points to define half space
-        pref1 = p1 + 100. * v1.xyz
-        pref2 = p2 + 100. * v2.xyz
-        hs1 = HalfspaceBySurface(pln1, pref1).solid
-        hs2 = HalfspaceBySurface(pln2, pref2).solid
+        if size is None:
+            pref1 = p1 + 100. * v1.ijk
+            pref2 = p2 + 100. * v2.ijk
+            hs1 = HalfspaceBySurface(pln1, pref1).solid
+            hs2 = HalfspaceBySurface(pln2, pref2).solid
+        else:
+            w, h = 2 * [size / 2.]
+            f1 = FaceByPlane(pln1, -w, w, -h, h).face
+            f2 = FaceByPlane(pln2, -w, w, -h, h).face
+            v1.normalize()
+            v2.normalize()
+            v1.scale(size)
+            v2.scale(size)
+            hs1 = SolidByDrag(f1, v1).solid
+            hs2 = SolidByDrag(f2, v2).solid
 
         # Discard by solid
         status1 = self.discard_by_solid(hs1)
         status2 = self.discard_by_solid(hs2)
-
         return status1 or status2
 
 
@@ -1347,7 +1361,7 @@ class SurfacePart(Part):
         tol = mean([ExploreShape.global_tolerance(part, 0) for part in parts],
                    dtype=float)
         max_tol = max(
-                [ExploreShape.global_tolerance(part, 1) for part in parts])
+            [ExploreShape.global_tolerance(part, 1) for part in parts])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
                        non_manifold=True)
