@@ -914,11 +914,11 @@ class Part(TopoDS_Shape, ViewableItem):
             surface part.
         """
         split = SplitShapes()
-        split.add_arg(self)
         if rebuild_both:
-            split.add_arg(splitter)
+            split.set_args([self, splitter])
         else:
-            split.add_tool(splitter)
+            split.set_args([self])
+            split.set_tools([splitter])
         split.build()
         if not split.is_done:
             return False

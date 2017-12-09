@@ -502,26 +502,6 @@ class SplitShapes(BopAlgo):
         super(SplitShapes, self).__init__(shape1, shape2, parallel,
                                           fuzzy_val, BRepAlgoAPI_Splitter)
 
-    def add_arg(self, shape):
-        """
-        Add an argument.
-
-        :param OCCT.TopoDS.TopoDS_Shape shape: The argument.
-
-        :return: None.
-        """
-        self._bop.AddArgument(shape)
-
-    def add_tool(self, shape):
-        """
-        Add a tool.
-
-        :param OCCT.TopoDS.TopoDS_Shape shape: The tool.
-
-        :return: None.
-        """
-        self._bop.AddTool(shape)
-
 
 class VolumesFromShapes(BopAlgo):
     """

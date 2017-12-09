@@ -22,9 +22,10 @@ class ProjectShape(object):
     """
     Project edges and wires onto a basis shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape: The shape to project to.
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape to project to.
     :param to_project: List of edges or wires to project.
-    :type to_project: list[OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire]
+    :type to_project: collections.Sequence(OCCT.TopoDS.TopoDS_Edge or
+        OCCT.TopoDS.TopoDS_Wire)
     :param float tol3d: The 3-D tolerance.
     :param float tol2d: The 2-D tolerance. If not provided then
         *sqrt(tol3d)* is used.
@@ -54,7 +55,6 @@ class ProjectShape(object):
     >>> proj.nedges
     1
     """
-
     def __init__(self, shape, to_project, tol3d=1.0e-4, tol2d=None,
                  continuity='C2', max_degree=14, max_seg=16, max_dist=None,
                  limit=True):

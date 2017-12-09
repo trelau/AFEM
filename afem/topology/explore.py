@@ -9,6 +9,8 @@ from OCCT.Geom import Geom_BSplineCurve
 from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCCT.ShapeAnalysis import (ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds,
                                 ShapeAnalysis_ShapeTolerance)
+from OCCT.ShapeExtend import ShapeExtend_WireData
+from OCCT.ShapeFix import ShapeFix_WireSegment
 from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE,
                          TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE,
                          TopAbs_SHAPE)
@@ -501,11 +503,25 @@ class ExploreWire(object):
             explorer = BRepTools_WireExplorer(wire, face)
 
         edges = []
+        current_verts = []
         while explorer.More():
             ei = TopoDS.Edge_(explorer.Current())
+            vi = TopoDS.Vertex_(explorer.CurrentVertex())
             edges.append(ei)
+            current_verts.append(vi)
             explorer.Next()
+
+        # CurrentVertex doesn't get the last vertex. Try to get it.
+        ordered_verts = list(current_verts)
+        if edges:
+            data = ShapeExtend_WireData(wire)
+            fix = ShapeFix_WireSegment(data)
+            v1 = fix.LastVertex()
+            ordered_verts.append(v1)
+
         self._edges = edges
+        self._current_verts = current_verts
+        self._ordered_verts = ordered_verts
 
     @property
     def nedges(self):
@@ -522,6 +538,26 @@ class ExploreWire(object):
         :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
         return self._edges
+
+    @property
+    def current_vertices(self):
+        """
+        :return: The result of the BRepTools_WireExplorer::CurrentVertex method.
+            As the explorer traverses the edges, this stores the vertex
+            connecting the current edge to the previous one. This will not be a
+            complete list of ordered vertices.
+        :rtype: list[OCCT.TopoDS.TopoDS_Vertex]
+        """
+        return self._current_verts
+
+    @property
+    def ordered_vertices(self):
+        """
+        :return: Attempt to provide the ordered vertices of a wire. If the wire
+            is closed the first and last vertices will be the same.
+        :rtype: list[OCCT.TopoDS.TopoDS_Vertex]
+        """
+        return self._ordered_verts
 
 
 class ExploreFreeEdges(object):
