@@ -71,6 +71,10 @@ afem.html file with a web browser.
 The best way to get started is to examine and run the files in the examples and
 test folders.
 
+# Optional MeshGems License
+Optional support for Distene's MeshGems MGCAD-Surf commercial surface meshing
+technology is provided but requires a separate license.
+
 # Notice
 Copyright (c) 2017, Laughlin Research, LLC
 
