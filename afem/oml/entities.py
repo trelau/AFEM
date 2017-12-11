@@ -293,7 +293,7 @@ class Body(TopoDS_Solid, ViewableItem):
             basis_shape = self.extract_plane(u1, v1, u2, v2)
         basis_shape = CheckShape.to_shape(basis_shape)
 
-        bop = IntersectShapes(basis_shape, self.sref_shape)
+        bop = IntersectShapes(basis_shape, self.sref_shape, approximate=True)
         shape = bop.shape
 
         edges = ExploreShape.get_edges(shape)
