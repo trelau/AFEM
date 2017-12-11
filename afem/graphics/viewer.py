@@ -2,17 +2,19 @@ import os
 
 from OCCT.AIS import AIS_InteractiveContext, AIS_Shaded, AIS_Shape
 from OCCT.Aspect import Aspect_DisplayConnection, Aspect_TOTP_LEFT_LOWER
-from OCCT.BRepBuilderAPI import BRepBuilderAPI_Transform, \
-    BRepBuilderAPI_MakeVertex, BRepBuilderAPI_MakeEdge, BRepBuilderAPI_MakeFace
-from OCCT.Graphic3d import Graphic3d_MaterialAspect
+from OCCT.BRepBuilderAPI import (BRepBuilderAPI_Transform,
+                                 BRepBuilderAPI_MakeVertex,
+                                 BRepBuilderAPI_MakeEdge,
+                                 BRepBuilderAPI_MakeFace)
+from OCCT.Graphic3d import (Graphic3d_MaterialAspect, Graphic3d_NOM_DEFAULT)
 from OCCT.MeshVS import (MeshVS_DA_DisplayNodes, MeshVS_DA_EdgeColor,
                          MeshVS_Mesh, MeshVS_MeshPrsBuilder)
 from OCCT.OpenGl import OpenGl_GraphicDriver
 from OCCT.Quantity import (Quantity_TOC_RGB, Quantity_NOC_WHITE,
                            Quantity_Color,
                            Quantity_NOC_BLACK)
-from OCCT.TopoDS import TopoDS_Shape
 from OCCT.SMESH import SMESH_MeshVSLink
+from OCCT.TopoDS import TopoDS_Shape
 from OCCT.V3d import V3d_Viewer, V3d_TypeOfOrientation
 from OCCT.WNT import WNT_Window
 from OCCT.gce import gce_MakeMirror
@@ -166,10 +168,14 @@ class Viewer(QWidget):
         self.my_drawer = self.my_context.DefaultDrawer()
         self.my_drawer.SetFaceBoundaryDraw(True)
         self.my_view.TriedronDisplay(Aspect_TOTP_LEFT_LOWER, self._black, 0.08)
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_XposYposZpos)
+        self.graphic3d_cview = self.my_view.View()
 
         # Keyboard map
         self._keys = {
-            ord('F'): self.my_view.FitAll
+            ord('F'): self.my_view.FitAll,
+            ord('I'): self.view_iso,
+            ord('T'): self.view_top
         }
 
         # Values for mouse movement
@@ -251,13 +257,14 @@ class Viewer(QWidget):
         """
         return self.display_shape(body, body.color, body.transparency)
 
-    def display_shape(self, shape, rgb=None, transparency=None, material=None):
+    def display_shape(self, shape, rgb=None, transparency=None,
+                      material=Graphic3d_NOM_DEFAULT):
         """
         Display a shape.
 
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
         :param rgb: The RGB color (r, g, b).
-        :type param: collections.Sequence[float] or OCCT.Quantity.Quantity_Color
+        :type rgb: collections.Sequence[float] or OCCT.Quantity.Quantity_Color
         :param float transparency: The transparency (0 to 1).
         :param OCCT.Graphic3d.Graphic3d_NameOfMaterial material: The material.
 
@@ -276,9 +283,8 @@ class Viewer(QWidget):
         if transparency is not None:
             ais_shape.SetTransparency(transparency)
 
-        if material is not None:
-            ma = Graphic3d_MaterialAspect(material)
-            ais_shape.SetMaterial(ma)
+        ma = Graphic3d_MaterialAspect(material)
+        ais_shape.SetMaterial(ma)
 
         self.my_context.Display(ais_shape, True)
         return ais_shape
@@ -424,7 +430,7 @@ class Viewer(QWidget):
 
         :return: None.
         """
-        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_XposYnegZpos)
+        self.my_view.SetProj(V3d_TypeOfOrientation.V3d_XposYposZpos)
 
     def view_top(self):
         """
@@ -492,3 +498,12 @@ class Viewer(QWidget):
         :return: None.
         """
         self.my_context.RemoveAll(True)
+
+    def export_pdf(self, fn):
+        """
+        Export the screen contents to PDF.
+        :param str fn: The filename.
+
+        :return: None.
+        """
+        raise NotImplemented('Need gl2ps library.')

@@ -222,6 +222,7 @@ def build_wingbox(wing, params):
 
     # SKIN --------------------------------------------------------------------
     skin = SkinByBody('wing skin', wing, False).skin
+    skin.set_transparency(0.5)
 
     # Join the wing skin and internal structure
     all_parts = AssemblyAPI.get_parts(order=True)
@@ -312,9 +313,7 @@ def build_wingbox(wing, params):
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    v = Viewer()
     v.display_mesh(the_mesh.handle, 2)
-    v.start()
 
     # Uncomment this to export STEP file.
     # from afem.io import StepExport
@@ -326,6 +325,7 @@ def build_wingbox(wing, params):
 
 
 if __name__ == '__main__':
+    v = Viewer(1280, 1024)
     start = time.time()
 
     # Import model
@@ -334,6 +334,13 @@ if __name__ == '__main__':
     wing_in = ImportVSP.get_body('Wing')
 
     # Build wing box
-    assy = build_wingbox(wing_in, {})
+    inputs = {'build aux': True,
+              'mid spar rib': 10,
+              'aux rib list': ['2', '5', '8']}
+    assy = build_wingbox(wing_in, inputs)
+
+    v.add(assy)
+    v.fit()
+    v.start()
 
     print('Complete in ', time.time() - start, ' seconds.')
