@@ -427,12 +427,36 @@ class Geometry(ViewableItem):
     """
     Base class for geometry.
 
-    :param OCCT.Geom.Geom_Geometry the_handle: The geometry handle.
+    :param the_handle: The geometry handle.
     """
 
     def __init__(self, the_handle=None):
         super(Geometry, self).__init__()
         self._handle = the_handle
+
+    def translate(self, v):
+        """
+        Translate the geometry along the vector.
+
+        :param vector_like v: The translation vector.
+
+        :return: *True* if translated, *False* if not.
+        :rtype: bool
+
+        :raise TypeError: If *v* cannot be converted to a vector.
+        """
+        if isinstance(v, (tuple, list, ndarray)):
+            v = Vector(v[0], v[1], v[2])
+        elif isinstance(v, Direction):
+            v = Vector(v)
+        elif isinstance(v, gp_Vec):
+            v = Vector(v.XYZ())
+        else:
+            msg = 'Invalid vector type.'
+            raise TypeError(msg)
+
+        self._handle.Translate(v)
+        return True
 
 
 class Point(gp_Pnt, Geometry):
@@ -472,7 +496,7 @@ class Point(gp_Pnt, Geometry):
 
     def __init__(self, *args):
         super(Point, self).__init__(*args)
-        Geometry.__init__(self)
+        Geometry.__init__(self, self)
 
     def __str__(self):
         return 'Point({0:.3f}, {1:.3f}, {2:.3f})'.format(*self.xyz)
@@ -607,30 +631,6 @@ class Point(gp_Pnt, Geometry):
             return self.IsEqual(other, tol)
         return False
 
-    def translate(self, v):
-        """
-        Translate the point along the vector.
-
-        :param vector_like v: The translation vector.
-
-        :return: *True* if translated, *False* if not.
-        :rtype: bool
-
-        :raise TypeError: If *v* cannot be converted to a vector.
-        """
-        if isinstance(v, (tuple, list, ndarray)):
-            v = Vector(v[0], v[1], v[2])
-        elif isinstance(v, Direction):
-            v = Vector(v)
-        elif isinstance(v, gp_Vec):
-            v = Vector(v.XYZ())
-        else:
-            msg = 'Invalid vector type.'
-            raise TypeError(msg)
-
-        self.Translate(v)
-        return True
-
     def rotate(self, axis, angle):
         """
         Rotate the point about an axis.
@@ -719,7 +719,7 @@ class Direction(gp_Dir, Geometry):
 
     def __init__(self, *args):
         super(Direction, self).__init__(*args)
-        Geometry.__init__(self)
+        Geometry.__init__(self, self)
 
     def __str__(self):
         return 'Direction({0}, {1}, {2})'.format(*self.xyz)
@@ -843,7 +843,7 @@ class Vector(gp_Vec, Geometry):
 
     def __init__(self, *args):
         super(Vector, self).__init__(*args)
-        Geometry.__init__(self)
+        Geometry.__init__(self, self)
 
     def __str__(self):
         return 'Vector({0}, {1}, {2})'.format(*self.xyz)
