@@ -298,11 +298,11 @@ class ExploreShape(object):
         """
         geom_convert = GeomConvert_CompCurveToBSplineCurve()
         exp = BRepTools_WireExplorer(wire)
+        tol = ExploreShape.global_tolerance(wire, 1)
         while exp.More():
             e = TopoDS.Edge_(exp.Current())
             exp.Next()
             adp_crv = BRepAdaptor_Curve(e)
-            tol = ExploreShape.global_tolerance(e, 1)
             geom_convert.Add(adp_crv.BSpline(), tol)
         h_crv = geom_convert.BSplineCurve()
         if not isinstance(h_crv, Geom_BSplineCurve):
