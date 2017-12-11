@@ -381,7 +381,8 @@ class SparBySurface(object):
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
-        section = IntersectShapes(basis_shape, body.sref_shape)
+        section = IntersectShapes(basis_shape, body.sref_shape,
+                                  approximate=True)
         edges = ExploreShape.get_edges(section.shape)
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
@@ -440,7 +441,8 @@ class SparByShape(object):
 
     def __init__(self, label, basis_shape, body, assy=None):
         # Build reference curve
-        section = IntersectShapes(basis_shape, body.sref_shape)
+        section = IntersectShapes(basis_shape, body.sref_shape,
+                                  approximate=True)
         edges = ExploreShape.get_edges(section.shape)
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
@@ -997,7 +999,8 @@ class RibBySurface(object):
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
-        section = IntersectShapes(basis_shape, body.sref_shape)
+        section = IntersectShapes(basis_shape, body.sref_shape,
+                                  approximate=True)
         edges = ExploreShape.get_edges(section.shape)
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
@@ -1056,7 +1059,8 @@ class RibByShape(object):
 
     def __init__(self, label, basis_shape, body, assy=None):
         # Build reference curve
-        section = IntersectShapes(basis_shape, body.sref_shape)
+        section = IntersectShapes(basis_shape, body.sref_shape,
+                                  approximate=True)
         edges = ExploreShape.get_edges(section.shape)
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
