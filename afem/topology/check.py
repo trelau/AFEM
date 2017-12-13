@@ -1,19 +1,32 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2017 Laughlin Research, L.L.C.
+#
+# This file is subject to the license agreement that was delivered
+# with this source code.
+#
+# THE SOFTWARE AND INFORMATION ARE PROVIDED ON AN AS "AS IS" BASIS,
+# WITHOUT ANY WARRANTIES OR REPRESENTATIONS EXPRESS, IMPLIED OR
+# STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
+# PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
 from OCCT.BRep import BRep_Builder, BRep_Tool
 from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge,
-                                BRepBuilderAPI_MakeFace,
-                                BRepBuilderAPI_MakeVertex,
-                                BRepBuilderAPI_MakeWire)
+                                 BRepBuilderAPI_MakeFace,
+                                 BRepBuilderAPI_MakeVertex,
+                                 BRepBuilderAPI_MakeWire)
 from OCCT.BRepCheck import BRepCheck_Analyzer
 from OCCT.BRepClass3d import BRepClass3d_SolidClassifier
 from OCCT.ShapeAnalysis import ShapeAnalysis_Edge
 from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
-                        TopAbs_FACE, TopAbs_IN, TopAbs_ON, TopAbs_OUT,
-                        TopAbs_SHELL,
-                        TopAbs_SOLID, TopAbs_UNKNOWN, TopAbs_VERTEX,
-                        TopAbs_WIRE)
+                         TopAbs_FACE, TopAbs_IN, TopAbs_ON, TopAbs_OUT,
+                         TopAbs_SHELL,
+                         TopAbs_SOLID, TopAbs_UNKNOWN, TopAbs_VERTEX,
+                         TopAbs_WIRE)
 from OCCT.TopoDS import (TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge,
-                        TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid,
-                        TopoDS_Vertex, TopoDS_Wire, TopoDS)
+                         TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid,
+                         TopoDS_Vertex, TopoDS_Wire, TopoDS)
 from OCCT.gp import gp_Pnt
 
 from afem.geometry.check import CheckGeom
@@ -352,7 +365,7 @@ class CheckShape(object):
         :return: The same parameter flag.
         :rtype: bool
         """
-        return BRep_Tool_SameParameter(edge)
+        return BRep_Tool.SameParameter_(edge)
 
     @staticmethod
     def same_range(edge):
@@ -364,7 +377,7 @@ class CheckShape(object):
         :return: The same range flag.
         :rtype: bool
         """
-        return BRep_Tool_SameRange(edge)
+        return BRep_Tool.SameRange_(edge)
 
 
 class ClassifyPointInSolid(object):

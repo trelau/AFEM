@@ -1,3 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2017 Laughlin Research, L.L.C.
+#
+# This file is subject to the license agreement that was delivered
+# with this source code.
+#
+# THE SOFTWARE AND INFORMATION ARE PROVIDED ON AN AS "AS IS" BASIS,
+# WITHOUT ANY WARRANTIES OR REPRESENTATIONS EXPRESS, IMPLIED OR
+# STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
+# PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
 import os
 
 from OCCT.AIS import AIS_InteractiveContext, AIS_Shaded, AIS_Shape
