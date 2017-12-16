@@ -33,7 +33,7 @@ __all__ = ["Hypothesis", "Regular1D", "MaxLength1D", "LocalLength1D",
            "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
            "NetgenHypothesis", "NetgenSimple2D", "NetgenAlgo2D",
            "NetgenAlgoOnly2D", "QuadrangleParams2D", "Quadrangle2D",
-           "HypothesisAPI"]
+           "BlsurfAlgo", "BlsurfHypothesis", "HypothesisAPI"]
 
 # Use a single instance of SMESH_Gen
 the_gen = SMESH_Gen()
