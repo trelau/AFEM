@@ -86,6 +86,14 @@ Quadrangle2D
 ~~~~~~~~~~~~
 .. autoclass:: Quadrangle2D
 
+BlsurfAlgo
+~~~~~~~~~~
+.. autoclass:: BlsurfAlgo
+
+BlsurfHypothesis
+~~~~~~~~~~~~~~~~
+.. autoclass:: BlsurfHypothesis
+
 HypothesisAPI
 ~~~~~~~~~~~~~
 .. autoclass:: HypothesisAPI
