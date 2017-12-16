@@ -249,6 +249,6 @@ tool = ExploreFreeEdges(shape_to_mesh)
 
 # View
 v = Viewer()
-v.display_mesh(the_mesh.handle, 2)
+v.display_mesh(the_mesh.object, 2)
 v.add(*tool.free_edges)
 v.start()

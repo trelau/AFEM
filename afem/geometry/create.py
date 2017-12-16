@@ -149,7 +149,7 @@ class PointFromParameter(object):
     """
 
     def __init__(self, c, u0, ds, tol=1.0e-7):
-        adp_curve = GeomAdaptor_Curve(c.handle)
+        adp_curve = GeomAdaptor_Curve(c.object)
 
         ap = GCPnts_AbscissaPoint(tol, adp_curve, ds, u0)
         if not ap.IsDone():
@@ -216,7 +216,7 @@ class PointsAlongCurveByNumber(object):
 
     def __init__(self, c, n, u1=None, u2=None, d1=None, d2=None, tol=1.0e-7):
         n = int(n)
-        adp_crv = GeomAdaptor_Curve(c.handle)
+        adp_crv = GeomAdaptor_Curve(c.object)
 
         # Set u1 and u2
         if u1 is None:
@@ -349,7 +349,7 @@ class PointsAlongCurveByDistance(object):
         maxd = float(maxd)
         nmin = int(nmin)
 
-        adp_crv = GeomAdaptor_Curve(c.handle)
+        adp_crv = GeomAdaptor_Curve(c.object)
 
         # Set u1 and u2
         if u1 is None:
@@ -762,7 +762,7 @@ class CircleByPlane(object):
             msg = "Invalid plane."
             raise TypeError(msg)
 
-        gp_circ = gce_MakeCirc(center, plane.handle.Pln(), radius).Value()
+        gp_circ = gce_MakeCirc(center, plane.object.Pln(), radius).Value()
 
         self._circle = Circle(Geom_Circle(gp_circ))
 
@@ -1028,7 +1028,7 @@ class TrimmedCurveByParameters(object):
         if u1 >= u2:
             raise ValueError('Parameter values are invalid.')
 
-        crv = Geom_TrimmedCurve(basis_curve.handle, u1, u2, sense,
+        crv = Geom_TrimmedCurve(basis_curve.object, u1, u2, sense,
                                 adjust_periodic)
         self._c = TrimmedCurve(crv)
 
@@ -1359,7 +1359,7 @@ class PlaneFromParameter(object):
     """
 
     def __init__(self, c, u0, ds, ref_pln=None, tol=1.0e-7):
-        adp_curve = GeomAdaptor_Curve(c.handle)
+        adp_curve = GeomAdaptor_Curve(c.object)
 
         ap = GCPnts_AbscissaPoint(tol, adp_curve, ds, u0)
         if not ap.IsDone():
@@ -1370,7 +1370,7 @@ class PlaneFromParameter(object):
         self._u = u
         p = c.eval(u)
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.handle.Pln()
+            gp_pln = ref_pln.object.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             self._pln = Plane(Geom_Plane(p, dn))
@@ -1427,7 +1427,7 @@ class PlaneByOrientation(object):
         v = CheckGeom.to_vector(origin)
 
         tf.SetTransformation(r, v)
-        pln.handle.Transform(tf)
+        pln.object.Transform(tf)
 
         self._pln = pln
 
@@ -1521,7 +1521,7 @@ class PlanesAlongCurveByNumber(object):
 
         plns = []
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.handle.Pln()
+            gp_pln = ref_pln.object.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             for p in pnts:
@@ -1639,7 +1639,7 @@ class PlanesAlongCurveByDistance(object):
 
         plns = []
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.handle.Pln()
+            gp_pln = ref_pln.object.Pln()
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             for p in pnts:
@@ -1748,7 +1748,7 @@ class PlanesBetweenPlanesByNumber(object):
         p1 = pln1.eval(0., 0.)
         vn = pln1.norm(0., 0.)
         line = LineByVector(p1, vn).line
-        csi = GeomAPI_IntCS(line.handle, pln2.handle)
+        csi = GeomAPI_IntCS(line.object, pln2.object)
         if csi.NbPoints() == 0:
             msg = ('Failed to intersect the second plane to create planes '
                    'between them.')
@@ -1870,7 +1870,7 @@ class PlanesBetweenPlanesByDistance(object):
         p1 = pln1.eval(0., 0.)
         vn = pln1.norm(0., 0.)
         line = LineByVector(p1, vn).line
-        csi = GeomAPI_IntCS(line.handle, pln2.handle)
+        csi = GeomAPI_IntCS(line.object, pln2.object)
         if csi.NbPoints() == 0:
             msg = ('Failed to intersect the second plane to create planes '
                    'between them.')
@@ -2153,7 +2153,7 @@ class NurbsSurfaceByInterp(object):
         # Make curves compatible using section generator.
         sec_gen = GeomFill_SectionGenerator()
         for c in crvs:
-            sec_gen.AddCurve(c.handle)
+            sec_gen.AddCurve(c.object)
         sec_gen.Perform(tol2d)
 
         # Use old method since OCC struggles to interpolate curves of low
@@ -2316,7 +2316,7 @@ class NurbsSurfaceByApprox(object):
         # Use section generator to make all curves compatible
         sec_gen = GeomFill_SectionGenerator()
         for c in crvs:
-            sec_gen.AddCurve(c.handle)
+            sec_gen.AddCurve(c.object)
         sec_gen.Perform(tol3d)
 
         # Create line tool

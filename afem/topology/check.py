@@ -149,7 +149,7 @@ class CheckShape(object):
             return entity
 
         if CheckGeom.is_curve(entity):
-            return BRepBuilderAPI_MakeEdge(entity.handle).Edge()
+            return BRepBuilderAPI_MakeEdge(entity.object).Edge()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_EDGE:
             return TopoDS.Edge_(entity)
@@ -172,7 +172,7 @@ class CheckShape(object):
             return entity
 
         if CheckGeom.is_curve(entity):
-            e = BRepBuilderAPI_MakeEdge(entity.handle).Edge()
+            e = BRepBuilderAPI_MakeEdge(entity.object).Edge()
             return BRepBuilderAPI_MakeWire(e).Wire()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_EDGE:
@@ -199,7 +199,7 @@ class CheckShape(object):
             return entity
 
         if CheckGeom.is_surface(entity):
-            return BRepBuilderAPI_MakeFace(entity.handle, 0.).Face()
+            return BRepBuilderAPI_MakeFace(entity.object, 0.).Face()
 
         if cls.is_shape(entity) and entity.ShapeType() == TopAbs_FACE:
             return TopoDS.Face_(entity)
@@ -232,7 +232,7 @@ class CheckShape(object):
             return shell
 
         if CheckGeom.is_surface(entity):
-            f = BRepBuilderAPI_MakeFace(entity.handle, 0.).Face()
+            f = BRepBuilderAPI_MakeFace(entity.object, 0.).Face()
             shell = TopoDS_Shell()
             builder = BRep_Builder()
             builder.MakeShell(shell)

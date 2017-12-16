@@ -156,8 +156,8 @@ class IntersectCurveCurve(CurveIntersector):
         super(IntersectCurveCurve, self).__init__(crv1, crv2)
 
         # Build edges from curve
-        e1 = BRepBuilderAPI_MakeEdge(crv1.handle).Edge()
-        e2 = BRepBuilderAPI_MakeEdge(crv2.handle).Edge()
+        e1 = BRepBuilderAPI_MakeEdge(crv1.object).Edge()
+        e2 = BRepBuilderAPI_MakeEdge(crv2.object).Edge()
 
         # Set tolerance to be half intersection tolerance
         shp_tol = ShapeFix_ShapeTolerance()
@@ -221,7 +221,7 @@ class IntersectCurveSurface(CurveIntersector):
         # Perform
 
         # OCC intersection.
-        csi = GeomAPI_IntCS(crv.handle, srf.handle)
+        csi = GeomAPI_IntCS(crv.object, srf.object)
         results = []
         for i in range(1, csi.NbPoints() + 1):
             u, v, t = csi.Parameters(i, 0., 0., 0.)
@@ -334,7 +334,7 @@ class IntersectSurfaceSurface(SurfaceIntersector):
         # Perform
 
         # OCC intersect
-        ssi = GeomInt_IntSS(srf1.handle, srf2.handle, itol,
+        ssi = GeomInt_IntSS(srf1.object, srf2.object, itol,
                             True, False, False)
 
         # Build curves

@@ -178,7 +178,7 @@ class ProjectPointToCurve(PointProjector):
 
         if not direction:
             # OCC projection.
-            proj = GeomAPI_ProjectPointOnCurve(pnt, crv.handle)
+            proj = GeomAPI_ProjectPointOnCurve(pnt, crv.object)
             npts = proj.NbPoints()
             for i in range(1, npts + 1):
                 ui = proj.Parameter(i)
@@ -189,7 +189,7 @@ class ProjectPointToCurve(PointProjector):
             # Use minimum distance between line and curve to project point
             # along a direction.
             geom_line = Geom_Line(pnt, direction)
-            extrema = GeomAPI_ExtremaCurveCurve(crv.handle,
+            extrema = GeomAPI_ExtremaCurveCurve(crv.object,
                                                 geom_line)
             npts = extrema.NbExtrema()
             for i in range(1, npts + 1):
@@ -252,7 +252,7 @@ class ProjectPointToSurface(PointProjector):
 
         if not direction:
             # OCC projection.
-            proj = GeomAPI_ProjectPointOnSurf(pnt, srf.handle)
+            proj = GeomAPI_ProjectPointOnSurf(pnt, srf.object)
             npts = proj.NbPoints()
             for i in range(1, npts + 1):
                 ui, vi = proj.Parameters(i, 0., 0.)
@@ -264,7 +264,7 @@ class ProjectPointToSurface(PointProjector):
             # along a direction.
             geom_line = Geom_Line(pnt, direction)
             extrema = GeomAPI_ExtremaCurveSurface(geom_line,
-                                                  srf.handle)
+                                                  srf.object)
             npts = extrema.NbExtrema()
             for i in range(1, npts + 1):
                 _, ui, vi = extrema.Parameters(i, 0., 0., 0.)
@@ -341,10 +341,10 @@ class ProjectCurveToPlane(CurveProjector):
 
         direction = CheckGeom.to_direction(direction)
         if not CheckGeom.is_direction(direction):
-            direction = pln.handle.Pln().Axis().Direction()
+            direction = pln.object.Pln().Axis().Direction()
 
         # OCC projection
-        hcrv = GeomProjLib.ProjectOnPlane_(crv.handle, pln.handle, direction,
+        hcrv = GeomProjLib.ProjectOnPlane_(crv.object, pln.object, direction,
                                            keep_param)
 
         self._crv = Curve(hcrv)
@@ -383,7 +383,7 @@ class ProjectCurveToSurface(CurveProjector):
         super(ProjectCurveToSurface, self).__init__()
 
         # OCC projection
-        hcrv = GeomProjLib.Project_(crv.handle, srf.handle)
+        hcrv = GeomProjLib.Project_(crv.object, srf.object)
         self._crv = Curve(hcrv)
 
 

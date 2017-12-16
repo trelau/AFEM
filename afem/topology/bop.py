@@ -433,14 +433,14 @@ class IntersectShapes(BopAlgo):
             self._bop.Init1(shape1)
             build1 = True
         elif CheckGeom.is_surface(shape1):
-            self._bop.Init1(shape1.handle)
+            self._bop.Init1(shape1.object)
             build1 = True
 
         if CheckShape.is_shape(shape2):
             self._bop.Init2(shape2)
             build2 = True
         elif CheckGeom.is_surface(shape2):
-            self._bop.Init2(shape2.handle)
+            self._bop.Init2(shape2.object)
             build2 = True
 
         if build1 and build2:

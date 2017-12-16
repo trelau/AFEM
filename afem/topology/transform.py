@@ -27,7 +27,7 @@ def mirror_shape(shape, pln):
 
     :raise RuntimeError: If the transformation fails or is not done.
     """
-    trsf = gce_MakeMirror(pln.handle.Pln()).Value()
+    trsf = gce_MakeMirror(pln.object.Pln()).Value()
     builder = BRepBuilderAPI_Transform(shape, trsf, True)
     if not builder.IsDone():
         raise RuntimeError('Failed to mirror the shape. The builder is not done.')

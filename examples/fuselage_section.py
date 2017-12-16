@@ -121,5 +121,5 @@ MeshAPI.compute_mesh()
 # View
 v = Viewer()
 v.display_assy(AssemblyAPI.get_master())
-v.display_mesh(the_mesh.handle)
+v.display_mesh(the_mesh.object)
 v.start()

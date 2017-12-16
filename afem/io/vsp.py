@@ -493,7 +493,7 @@ def _process_wing(compound, divide_closed):
     wing = Body(solid)
 
     if vsp_surf:
-        vsp_surf = NurbsSurface(vsp_surf.handle)
+        vsp_surf = NurbsSurface(vsp_surf.object)
         wing.add_metadata('vsp surface', vsp_surf)
         upr_srf = vsp_surf.copy()
         v_le = vsp_surf.local_to_global_param('v', 0.5)
@@ -519,7 +519,7 @@ def _process_fuse(compound, divide_closed):
     faces = ExploreShape.get_faces(compound)
     if len(faces) == 1:
         vsp_surf = ExploreShape.surface_of_face(faces[0])
-        vsp_surf = NurbsSurface(vsp_surf.handle)
+        vsp_surf = NurbsSurface(vsp_surf.object)
         fuselage.add_metadata('vsp surface', vsp_surf)
 
     return fuselage
@@ -535,7 +535,7 @@ def _process_unsplit_wing(compound, divide_closed):
 
     # Get the surface.
     master_surf = ExploreShape.surface_of_face(face)
-    master_surf = NurbsSurface(master_surf.handle)
+    master_surf = NurbsSurface(master_surf.object)
     uknots, vknots = master_surf.uknots, master_surf.vknots
     vsplit = master_surf.local_to_global_param('v', 0.5)
 
@@ -569,7 +569,7 @@ def _process_unsplit_wing(compound, divide_closed):
     # Make faces of surface.
     new_faces = []
     for s in [s1, s2, s3, s4, s5]:
-        f = BRepBuilderAPI_MakeFace(s.handle, 0.).Face()
+        f = BRepBuilderAPI_MakeFace(s.object, 0.).Face()
         new_faces.append(f)
 
     # Segment off TE.
@@ -589,13 +589,13 @@ def _process_unsplit_wing(compound, divide_closed):
         usplits.Append(ui)
 
     split = ShapeUpgrade_SplitSurface()
-    split.Init(s6.handle)
+    split.Init(s6.object)
     split.SetUSplitValues(usplits)
     split.Perform()
     comp_surf1 = split.ResSurfaces()
 
     split = ShapeUpgrade_SplitSurface()
-    split.Init(s7.handle)
+    split.Init(s7.object)
     split.SetUSplitValues(usplits)
     split.Perform()
     comp_surf2 = split.ResSurfaces()

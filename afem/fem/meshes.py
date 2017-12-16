@@ -37,7 +37,7 @@ class Mesh(object):
         Mesh._indx += 1
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The underlying mesh object.
         :rtype: OCCT.SMESH.SMESH_Mesh
@@ -58,7 +58,7 @@ class Mesh(object):
         :return: The shape to mesh.
         :rtype: OCCT.TopoDS.TopoDS_Shape
         """
-        return self.handle.GetShapeToMesh()
+        return self.object.GetShapeToMesh()
 
     @property
     def has_shape(self):
@@ -66,7 +66,7 @@ class Mesh(object):
         :return: ``True`` if the mesh has a shape, ``False`` if not.
         :rtype: bool
         """
-        return self.handle.HasShapeToMesh()
+        return self.object.HasShapeToMesh()
 
     @property
     def nb_nodes(self):
@@ -166,7 +166,7 @@ class Mesh(object):
         :return: None
         """
         shape = CheckShape.to_shape(shape)
-        self.handle.ShapeToMesh(shape)
+        self.object.ShapeToMesh(shape)
 
     def add_hypothesis(self, hypothesis, shape=None):
         """
@@ -194,7 +194,7 @@ class Mesh(object):
         if not hypothesis:
             raise ValueError('No hypothesis could be found.')
 
-        self.handle.AddHypothesis(shape, hypothesis.id)
+        self.object.AddHypothesis(shape, hypothesis.id)
 
     def compute(self):
         """
@@ -203,7 +203,7 @@ class Mesh(object):
         :return: ``True`` if performed, ``False`` if not.
         :rtype: bool
         """
-        return the_gen.Compute(self.handle, self.shape)
+        return the_gen.Compute(self.object, self.shape)
 
     def clear(self):
         """
@@ -211,7 +211,7 @@ class Mesh(object):
 
         :return: None.
         """
-        self.handle.Clear()
+        self.object.Clear()
 
     def get_submesh(self, sub_shape):
         """
@@ -222,7 +222,7 @@ class Mesh(object):
         :return: A sub-mesh.
         :rtype: afem.fem.meshes.SubMesh
         """
-        the_mesh = self.handle.GetSubMesh(sub_shape)
+        the_mesh = self.object.GetSubMesh(sub_shape)
         return SubMesh(the_mesh)
 
     def get_nodes(self, order=False):
@@ -267,7 +267,7 @@ class SubMesh(object):
         :return: ``True`` if the sub-mesh is empty, ``False`` if not.
         :rtype: bool
         """
-        return self.handle.IsEmpty()
+        return self.object.IsEmpty()
 
     @property
     def is_computed(self):
@@ -275,7 +275,7 @@ class SubMesh(object):
         :return: ``True`` if the sub-mesh is computed, ``False`` if not.
         :rtype: bool
         """
-        return self.handle.IsMeshComputed()
+        return self.object.IsMeshComputed()
 
     @property
     def nb_nodes(self):

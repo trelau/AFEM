@@ -52,12 +52,12 @@ class Geometry2D(ViewableItem):
     """
     Base class for 2-D geometry.
 
-    :param OCCT.Geom2d.Geom2d_Geometry the_handle: The geometry handle.
+    :param OCCT.Geom2d.Geom2d_Geometry obj: The geometry object.
     """
 
-    def __init__(self, the_handle=None):
+    def __init__(self, obj=None):
         super(Geometry2D, self).__init__()
-        self._handle = the_handle
+        self._object = obj
 
 
 class Point2D(gp_Pnt2d, Geometry2D):
@@ -229,23 +229,23 @@ class NurbsCurve2D(Geometry2D):
     """
     NURBS curve in 2-D space.
 
-    :param OCCT.Geom2d.Geom2d_BSplineCurve the_handle: The curve handle.
+    :param OCCT.Geom2d.Geom2d_BSplineCurve obj: The curve object.
 
     For more information see Geom2d_BSplineCurve_.
 
     .. _Geom2d_BSplineCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d___b_spline_curve.html
     """
 
-    def __init__(self, the_handle):
-        super(NurbsCurve2D, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(NurbsCurve2D, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom2d.Geom2d_BSplineCurve
         """
-        return self._handle
+        return self._object
 
     @property
     def adaptor(self):
@@ -253,7 +253,7 @@ class NurbsCurve2D(Geometry2D):
         :return: A curve adaptor.
         :rtype: OCCT.Geom2dAdaptor.Geom2dAdaptor_Curve
         """
-        return Geom2dAdaptor_Curve(self.handle)
+        return Geom2dAdaptor_Curve(self.object)
 
     @property
     def u1(self):
@@ -261,7 +261,7 @@ class NurbsCurve2D(Geometry2D):
         :return: The first parameter.
         :rtype: float
         """
-        return self.handle.FirstParameter()
+        return self.object.FirstParameter()
 
     @property
     def u2(self):
@@ -269,7 +269,7 @@ class NurbsCurve2D(Geometry2D):
         :return: The last parameter.
         :rtype: float
         """
-        return self.handle.LastParameter()
+        return self.object.LastParameter()
 
     @property
     def p(self):
@@ -277,7 +277,7 @@ class NurbsCurve2D(Geometry2D):
         :return: Degree of curve.
         :rtype: int
         """
-        return self.handle.Degree()
+        return self.object.Degree()
 
     @property
     def n(self):
@@ -285,7 +285,7 @@ class NurbsCurve2D(Geometry2D):
         :return: Number of control points - 1.
         :rtype: int
         """
-        return self.handle.NbPoles() - 1
+        return self.object.NbPoles() - 1
 
     @property
     def knots(self):
@@ -293,8 +293,8 @@ class NurbsCurve2D(Geometry2D):
         :return: Knot vector.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.handle.NbKnots())
-        self.handle.Knots(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbKnots())
+        self.object.Knots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -303,8 +303,8 @@ class NurbsCurve2D(Geometry2D):
         :return: Multiplicity of knot vector.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfInteger(1, self.handle.NbKnots())
-        self.handle.Multiplicities(tcol_array)
+        tcol_array = TColStd_Array1OfInteger(1, self.object.NbKnots())
+        self.object.Multiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
@@ -313,9 +313,9 @@ class NurbsCurve2D(Geometry2D):
         :return: Knot sequence.
         :rtype: numpy.ndarray
         """
-        tcol_knot_seq = TColStd_Array1OfReal(1, self.handle.NbPoles() +
-                                             self.handle.Degree() + 1)
-        self.handle.KnotSequence(tcol_knot_seq)
+        tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbPoles() +
+                                             self.object.Degree() + 1)
+        self.object.KnotSequence(tcol_knot_seq)
         return to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
@@ -324,7 +324,7 @@ class NurbsCurve2D(Geometry2D):
         :return: *True* if curve is closed, *False* if not.
         :rtype: bool
         """
-        return self.handle.IsClosed()
+        return self.object.IsClosed()
 
     @property
     def is_periodic(self):
@@ -332,7 +332,7 @@ class NurbsCurve2D(Geometry2D):
         :return: *True* if curve is periodic, *False* if not.
         :rtype: bool
         """
-        return self.handle.IsPeriodic()
+        return self.object.IsPeriodic()
 
     def set_domain(self, u1=0., u2=1.):
         """
@@ -346,10 +346,10 @@ class NurbsCurve2D(Geometry2D):
         """
         if u1 > u2:
             return False
-        tcol_knots = TColStd_Array1OfReal(1, self.handle.NbKnots())
-        self.handle.Knots(tcol_knots)
+        tcol_knots = TColStd_Array1OfReal(1, self.object.NbKnots())
+        self.object.Knots(tcol_knots)
         reparameterize_knots(u1, u2, tcol_knots)
-        self.handle.SetKnots(tcol_knots)
+        self.object.SetKnots(tcol_knots)
         return True
 
     def local_to_global_param(self, *args):
@@ -386,7 +386,7 @@ class NurbsCurve2D(Geometry2D):
         :rtype: afem.geometry.entities.Point2D
         """
         p = Point2D()
-        self.handle.D0(u, p)
+        self.object.D0(u, p)
         return p
 
     def reverse(self):
@@ -395,7 +395,7 @@ class NurbsCurve2D(Geometry2D):
 
         :return: None.
         """
-        self.handle.Reverse()
+        self.object.Reverse()
 
     def reversed_u(self, u):
         """
@@ -406,7 +406,7 @@ class NurbsCurve2D(Geometry2D):
         :return: Reversed parameter.
         :rtype: float
         """
-        return self.handle.ReversedParameter(u)
+        return self.object.ReversedParameter(u)
 
     def segment(self, u1, u2):
         """
@@ -420,7 +420,7 @@ class NurbsCurve2D(Geometry2D):
         """
         if u1 > u2:
             return False
-        self.handle.Segment(u1, u2)
+        self.object.Segment(u1, u2)
         return True
 
     def copy(self):
@@ -430,7 +430,7 @@ class NurbsCurve2D(Geometry2D):
         :return: New curve.
         :rtype: afem.geometry.entities.NurbsCurve2D
         """
-        h_crv = self.handle.Copy()
+        h_crv = self.object.Copy()
         return NurbsCurve2D(h_crv)
 
 
@@ -440,12 +440,12 @@ class Geometry(ViewableItem):
     """
     Base class for geometry.
 
-    :param the_handle: The geometry handle.
+    :param obj: The geometry object.
     """
 
-    def __init__(self, the_handle=None):
+    def __init__(self, obj=None):
         super(Geometry, self).__init__()
-        self._handle = the_handle
+        self._object = obj
 
     def translate(self, v):
         """
@@ -468,7 +468,7 @@ class Geometry(ViewableItem):
             msg = 'Invalid vector type.'
             raise TypeError(msg)
 
-        self._handle.Translate(v)
+        self._object.Translate(v)
         return True
 
 
@@ -1093,23 +1093,23 @@ class Curve(Geometry):
     """
     Base class for curves.
 
-    :param OCCT.Geom.Geom_Curve the_handle: The curve handle.
+    :param OCCT.Geom.Geom_Curve obj: The curve object.
 
     For more information see Geom_Curve_.
 
     .. _Geom_Curve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___curve.html
     """
 
-    def __init__(self, the_handle):
-        super(Curve, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(Curve, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_Curve
         """
-        return self._handle
+        return self._object
 
     @property
     def adaptor(self):
@@ -1117,7 +1117,7 @@ class Curve(Geometry):
         :return: A curve adaptor.
         :rtype: OCCT.GeomAdaptor.GeomAdaptor_Curve
         """
-        return GeomAdaptor_Curve(self.handle)
+        return GeomAdaptor_Curve(self.object)
 
     @property
     def u1(self):
@@ -1125,7 +1125,7 @@ class Curve(Geometry):
         :return: The first parameter.
         :rtype: float
         """
-        return self.handle.FirstParameter()
+        return self.object.FirstParameter()
 
     @property
     def u2(self):
@@ -1133,7 +1133,7 @@ class Curve(Geometry):
         :return: The last parameter.
         :rtype: float
         """
-        return self.handle.LastParameter()
+        return self.object.LastParameter()
 
     @property
     def is_closed(self):
@@ -1141,7 +1141,7 @@ class Curve(Geometry):
         :return: *True* if curve is closed, *False* if not.
         :rtype: bool
         """
-        return self.handle.IsClosed()
+        return self.object.IsClosed()
 
     @property
     def is_periodic(self):
@@ -1149,7 +1149,7 @@ class Curve(Geometry):
         :return: *True* if curve is periodic, *False* if not.
         :rtype: bool
         """
-        return self.handle.IsPeriodic()
+        return self.object.IsPeriodic()
 
     @property
     def p1(self):
@@ -1182,7 +1182,7 @@ class Curve(Geometry):
         :return: New curve.
         :rtype: afem.geometry.entities.Curve
         """
-        h_crv = self.handle.Copy()
+        h_crv = self.object.Copy()
         return Curve(h_crv)
 
     def local_to_global_param(self, *args):
@@ -1219,7 +1219,7 @@ class Curve(Geometry):
         :rtype: afem.geometry.entities.Point
         """
         p = Point()
-        self.handle.D0(u, p)
+        self.object.D0(u, p)
         return p
 
     def deriv(self, u, d=1):
@@ -1232,7 +1232,7 @@ class Curve(Geometry):
         :return: Curve derivative.
         :rtype: afem.geometry.entities.Vector
         """
-        return Vector(self.handle.DN(u, d).XYZ())
+        return Vector(self.object.DN(u, d).XYZ())
 
     def reverse(self):
         """
@@ -1240,7 +1240,7 @@ class Curve(Geometry):
 
         :return: None.
         """
-        self.handle.Reverse()
+        self.object.Reverse()
 
     def reversed_u(self, u):
         """
@@ -1251,7 +1251,7 @@ class Curve(Geometry):
         :return: Reversed parameter.
         :rtype: float
         """
-        return self.handle.ReversedParameter(u)
+        return self.object.ReversedParameter(u)
 
     def arc_length(self, u1, u2, tol=1.0e-7):
         """
@@ -1273,23 +1273,23 @@ class Line(Curve):
     """
     Infinite line.
 
-    :param OCCT.Geom.Geom_Line the_handle: The line handle.
+    :param OCCT.Geom.Geom_Line obj: The line object.
 
     For more information see Geom_Line_.
 
     .. _Geom_Line: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___line.html
     """
 
-    def __init__(self, the_handle):
-        super(Line, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(Line, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_Line
         """
-        return self._handle
+        return self._object
 
     @staticmethod
     def downcast(crv):
@@ -1303,9 +1303,9 @@ class Line(Curve):
 
         :raise ValueError: If the curve cannot be downcast to this type.
         """
-        if not isinstance(crv.handle, Geom_Line):
+        if not isinstance(crv.object, Geom_Line):
             raise ValueError('Could not downcast curve.')
-        return Line(crv.handle)
+        return Line(crv.object)
 
     def copy(self):
         """
@@ -1314,7 +1314,7 @@ class Line(Curve):
         :return: New curve.
         :rtype: afem.geometry.entities.Line
         """
-        h_crv = self.handle.Copy()
+        h_crv = self.object.Copy()
         return Line(h_crv)
 
 
@@ -1322,19 +1322,19 @@ class Circle(Curve):
     """
     Circular curve.
 
-    :param OCCT.Geom.Geom_Circle the_handle: The circle handle.
+    :param OCCT.Geom.Geom_Circle obj: The circle object.
     """
 
-    def __init__(self, the_handle):
-        super(Circle, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(Circle, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_Circle
         """
-        return self._handle
+        return self._object
 
     @property
     def radius(self):
@@ -1342,7 +1342,7 @@ class Circle(Curve):
         :return: The radius.
         :rtype: float
         """
-        return self.handle.Radius()
+        return self.object.Radius()
 
     @staticmethod
     def downcast(crv):
@@ -1356,9 +1356,9 @@ class Circle(Curve):
 
         :raise ValueError: If the curve cannot be downcast to this type.
         """
-        if not isinstance(crv.handle, Geom_Circle):
+        if not isinstance(crv.object, Geom_Circle):
             raise ValueError('Could not downcast curve.')
-        return Circle(crv.handle)
+        return Circle(crv.object)
 
     def copy(self):
         """
@@ -1367,7 +1367,7 @@ class Circle(Curve):
         :return: New curve.
         :rtype: afem.geometry.entities.Circle
         """
-        h_crv = self.handle.Copy()
+        h_crv = self.object.Copy()
         return Circle(h_crv)
 
     def set_radius(self, r):
@@ -1378,26 +1378,26 @@ class Circle(Curve):
 
         :return: None.
         """
-        self.handle.SetRadius(r)
+        self.object.SetRadius(r)
 
 
 class Ellipse(Curve):
     """
     Elliptical curve.
 
-    :param OCCT.Geom.Geom_Ellipse the_handle: The ellipse handle.
+    :param OCCT.Geom.Geom_Ellipse obj: The ellipse object.
     """
 
-    def __init__(self, the_handle):
-        super(Ellipse, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(Ellipse, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_Ellipse
         """
-        return self._handle
+        return self._object
 
     @property
     def major_radius(self):
@@ -1405,7 +1405,7 @@ class Ellipse(Curve):
         :return: The major radius.
         :rtype: float
         """
-        return self.handle.MajorRadius()
+        return self.object.MajorRadius()
 
     @property
     def minor_radius(self):
@@ -1413,7 +1413,7 @@ class Ellipse(Curve):
         :return: The minor radius.
         :rtype: float
         """
-        return self.handle.MinorRadius()
+        return self.object.MinorRadius()
 
     @staticmethod
     def downcast(crv):
@@ -1427,9 +1427,9 @@ class Ellipse(Curve):
 
         :raise ValueError: If the curve cannot be downcast to this type.
         """
-        if not isinstance(crv.handle, Geom_Ellipse):
+        if not isinstance(crv.object, Geom_Ellipse):
             raise ValueError('Could not downcast curve.')
-        return Ellipse(crv.handle)
+        return Ellipse(crv.object)
 
     def copy(self):
         """
@@ -1438,7 +1438,7 @@ class Ellipse(Curve):
         :return: New curve.
         :rtype: afem.geometry.entities.Ellipse
         """
-        h_crv = self.handle.Copy()
+        h_crv = self.object.Copy()
         return Ellipse(h_crv)
 
     def set_major_radius(self, r):
@@ -1449,7 +1449,7 @@ class Ellipse(Curve):
 
         :return: None.
         """
-        self.handle.SetMajorRadius(r)
+        self.object.SetMajorRadius(r)
 
     def set_minor_radius(self, r):
         """
@@ -1459,30 +1459,30 @@ class Ellipse(Curve):
 
         :return: None.
         """
-        self.handle.SetMinorRadius(r)
+        self.object.SetMinorRadius(r)
 
 
 class NurbsCurve(Curve):
     """
     NURBS curve in 3-D space.
 
-    :param OCCT.Geom.Geom_BSplineCurve the_handle: The curve handle.
+    :param OCCT.Geom.Geom_BSplineCurve obj: The curve object.
 
     For more information see Geom_BSplineCurve_.
 
     .. _Geom_BSplineCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___b_spline_curve.html
     """
 
-    def __init__(self, the_handle):
-        super(NurbsCurve, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(NurbsCurve, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_BSplineCurve
         """
-        return self._handle
+        return self._object
 
     @property
     def p(self):
@@ -1490,7 +1490,7 @@ class NurbsCurve(Curve):
         :return: Degree of curve.
         :rtype: int
         """
-        return self.handle.Degree()
+        return self.object.Degree()
 
     @property
     def n(self):
@@ -1498,7 +1498,7 @@ class NurbsCurve(Curve):
         :return: Number of control points.
         :rtype: int
         """
-        return self.handle.NbPoles()
+        return self.object.NbPoles()
 
     @property
     def knots(self):
@@ -1506,8 +1506,8 @@ class NurbsCurve(Curve):
         :return: Knot vector.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.handle.NbKnots())
-        self.handle.Knots(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbKnots())
+        self.object.Knots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -1516,8 +1516,8 @@ class NurbsCurve(Curve):
         :return: Multiplicity of knot vector.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfInteger(1, self.handle.NbKnots())
-        self.handle.Multiplicities(tcol_array)
+        tcol_array = TColStd_Array1OfInteger(1, self.object.NbKnots())
+        self.object.Multiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
@@ -1526,9 +1526,9 @@ class NurbsCurve(Curve):
         :return: Knot sequence.
         :rtype: numpy.ndarray
         """
-        tcol_knot_seq = TColStd_Array1OfReal(1, self.handle.NbPoles() +
-                                             self.handle.Degree() + 1)
-        self.handle.KnotSequence(tcol_knot_seq)
+        tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbPoles() +
+                                             self.object.Degree() + 1)
+        self.object.KnotSequence(tcol_knot_seq)
         return to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
@@ -1537,8 +1537,8 @@ class NurbsCurve(Curve):
         :return: Control points.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColgp_Array1OfPnt(1, self.handle.NbPoles())
-        self.handle.Poles(tcol_array)
+        tcol_array = TColgp_Array1OfPnt(1, self.object.NbPoles())
+        self.object.Poles(tcol_array)
         return to_np_from_tcolgp_array1_pnt(tcol_array)
 
     @property
@@ -1547,8 +1547,8 @@ class NurbsCurve(Curve):
         :return: Weights of control points.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.handle.NbPoles())
-        self.handle.Weights(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbPoles())
+        self.object.Weights(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -1571,9 +1571,9 @@ class NurbsCurve(Curve):
 
         :raise ValueError: If the curve cannot be downcast to this type.
         """
-        if not isinstance(crv.handle, Geom_BSplineCurve):
+        if not isinstance(crv.object, Geom_BSplineCurve):
             raise ValueError('Could not downcast curve.')
-        return NurbsCurve(crv.handle)
+        return NurbsCurve(crv.object)
 
     def copy(self):
         """
@@ -1582,7 +1582,7 @@ class NurbsCurve(Curve):
         :return: New curve.
         :rtype: afem.geometry.entities.NurbsCurve
         """
-        h_crv = self.handle.Copy()
+        h_crv = self.object.Copy()
         return NurbsCurve(h_crv)
 
     def set_domain(self, u1=0., u2=1.):
@@ -1597,10 +1597,10 @@ class NurbsCurve(Curve):
         """
         if u1 > u2:
             return False
-        tcol_knots = TColStd_Array1OfReal(1, self.handle.NbKnots())
-        self.handle.Knots(tcol_knots)
+        tcol_knots = TColStd_Array1OfReal(1, self.object.NbKnots())
+        self.object.Knots(tcol_knots)
         reparameterize_knots(u1, u2, tcol_knots)
-        self.handle.SetKnots(tcol_knots)
+        self.object.SetKnots(tcol_knots)
         return True
 
     def segment(self, u1, u2):
@@ -1615,7 +1615,7 @@ class NurbsCurve(Curve):
         """
         if u1 > u2:
             return False
-        self.handle.Segment(u1, u2)
+        self.object.Segment(u1, u2)
         return True
 
     def set_cp(self, i, cp, weight=None):
@@ -1630,28 +1630,28 @@ class NurbsCurve(Curve):
         :return: None.
         """
         if weight is None:
-            self.handle.SetPole(i, cp)
+            self.object.SetPole(i, cp)
         else:
-            self.handle.SetPole(i, cp, weight)
+            self.object.SetPole(i, cp, weight)
 
 
 class TrimmedCurve(Curve):
     """
     Trimmed curve. This defines a basis curve limited by two parameter values.
 
-    :param OCCT.Geom.Geom_TrimmedCurve the_handle: The handle.
+    :param OCCT.Geom.Geom_TrimmedCurve obj: The object.
     """
 
-    def __init__(self, the_handle):
-        super(TrimmedCurve, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(TrimmedCurve, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_TrimmedCurve
         """
-        return self._handle
+        return self._object
 
     @property
     def basis_curve(self):
@@ -1659,7 +1659,7 @@ class TrimmedCurve(Curve):
         :return: The basis curve.
         :rtype: afem.geometry.entities.Curve
         """
-        return Curve(self.handle.BasisCurve())
+        return Curve(self.object.BasisCurve())
 
     @staticmethod
     def downcast(crv):
@@ -1673,9 +1673,9 @@ class TrimmedCurve(Curve):
 
         :raise ValueError: If the curve cannot be downcast to this type.
         """
-        if not isinstance(crv.handle, Geom_TrimmedCurve):
+        if not isinstance(crv.object, Geom_TrimmedCurve):
             raise ValueError('Could not downcast curve.')
-        return TrimmedCurve(crv.handle)
+        return TrimmedCurve(crv.object)
 
     def copy(self):
         """
@@ -1684,7 +1684,7 @@ class TrimmedCurve(Curve):
         :return: New curve.
         :rtype: afem.geometry.entities.Circle
         """
-        h_crv = self.handle.Copy()
+        h_crv = self.object.Copy()
         return TrimmedCurve(h_crv)
 
     def set_trim(self, u1, u2, sense=True, adjust_periodic=True):
@@ -1706,30 +1706,30 @@ class TrimmedCurve(Curve):
         :raise RuntimeError: If *u1* or *u2* is outside the bounds of the basis
             curve.
         """
-        self.handle.SetTrim(u1, u2, sense, adjust_periodic)
+        self.object.SetTrim(u1, u2, sense, adjust_periodic)
 
 
 class Surface(Geometry):
     """
     Base class for surfaces.
 
-    :param OCCT.Geom.Geom_Surface the_handle: The surface handle.
+    :param OCCT.Geom.Geom_Surface obj: The surface object.
 
     For more information see Geom_Surface_.
 
     .. _Geom_Surface: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___surface.html
     """
 
-    def __init__(self, the_handle):
-        super(Surface, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(Surface, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_Surface
         """
-        return self._handle
+        return self._object
 
     @property
     def adaptor(self):
@@ -1737,7 +1737,7 @@ class Surface(Geometry):
         :return: A surface adaptor.
         :rtype: OCCT.GeomAdaptor.GeomAdaptor_Surface
         """
-        return GeomAdaptor_Surface(self.handle)
+        return GeomAdaptor_Surface(self.object)
 
     @property
     def u1(self):
@@ -1745,7 +1745,7 @@ class Surface(Geometry):
         :return: The first parameter in u-direction.
         :rtype: float
         """
-        return self.handle.U1()
+        return self.object.U1()
 
     @property
     def u2(self):
@@ -1753,7 +1753,7 @@ class Surface(Geometry):
         :return: The last parameter in u-direction.
         :rtype: float
         """
-        return self.handle.U2()
+        return self.object.U2()
 
     @property
     def v1(self):
@@ -1761,7 +1761,7 @@ class Surface(Geometry):
         :return: The first parameter in v-direction.
         :rtype: float
         """
-        return self.handle.V1()
+        return self.object.V1()
 
     @property
     def v2(self):
@@ -1769,7 +1769,7 @@ class Surface(Geometry):
         :return: The last parameter in v-direction.
         :rtype: float
         """
-        return self.handle.V2()
+        return self.object.V2()
 
     @property
     def area(self):
@@ -1786,7 +1786,7 @@ class Surface(Geometry):
         :return: New surface.
         :rtype: afem.geometry.entities.Surface
         """
-        h_srf = self.handle.Copy()
+        h_srf = self.object.Copy()
         return Surface(h_srf)
 
     def eval(self, u=0., v=0.):
@@ -1800,7 +1800,7 @@ class Surface(Geometry):
         :rtype: afem.geometry.entities.Point
         """
         p = Point()
-        self.handle.D0(u, v, p)
+        self.object.D0(u, v, p)
         return p
 
     def deriv(self, u, v, nu, nv):
@@ -1815,7 +1815,7 @@ class Surface(Geometry):
         :return: Surface derivative.
         :rtype: afem.geometry.entities.Vector
         """
-        return Vector(self.handle.DN(u, v, nu, nv).XYZ())
+        return Vector(self.object.DN(u, v, nu, nv).XYZ())
 
     def norm(self, u, v):
         """
@@ -1844,7 +1844,7 @@ class Surface(Geometry):
         :return: The area.
         :rtype: float
         """
-        f = BRepBuilderAPI_MakeFace(self.handle, u1, u2, v1, v2, tol).Face()
+        f = BRepBuilderAPI_MakeFace(self.object, u1, u2, v1, v2, tol).Face()
         sprops = GProp_GProps()
         BRepGProp.SurfaceProperties_(f, sprops, tol)
         return sprops.Mass()
@@ -1858,7 +1858,7 @@ class Surface(Geometry):
         :return: The curve.
         :rtype: afem.geometry.entities.Curve
         """
-        h_crv = self.handle.UIso(u)
+        h_crv = self.object.UIso(u)
         return Curve(h_crv)
 
     def v_iso(self, v):
@@ -1870,7 +1870,7 @@ class Surface(Geometry):
         :return: The curve.
         :rtype: afem.geometry.entities.Curve
         """
-        h_crv = self.handle.VIso(v)
+        h_crv = self.object.VIso(v)
         return Curve(h_crv)
 
 
@@ -1878,7 +1878,7 @@ class Plane(Surface):
     """
     Infinite plane.
 
-    :param OCCT.Geom.Geom_Plane the_handle: The plane handle.
+    :param OCCT.Geom.Geom_Plane obj: The plane object.
 
     For more information see Geom_Plane_.
 
@@ -1886,16 +1886,16 @@ class Plane(Surface):
 
     """
 
-    def __init__(self, the_handle):
-        super(Plane, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(Plane, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_Plane
         """
-        return self._handle
+        return self._object
 
     @staticmethod
     def downcast(srf):
@@ -1909,9 +1909,9 @@ class Plane(Surface):
 
         :raise ValueError: If the surface cannot be downcast to this type.
         """
-        if not isinstance(srf.handle, Geom_Plane):
+        if not isinstance(srf.object, Geom_Plane):
             raise ValueError('Could not downcast surface.')
-        return Plane(srf.handle)
+        return Plane(srf.object)
 
     def copy(self):
         """
@@ -1920,7 +1920,7 @@ class Plane(Surface):
         :return: New plane.
         :rtype: afem.geometry.entities.Plane
         """
-        h_srf = self.handle.Copy()
+        h_srf = self.object.Copy()
         return Plane(h_srf)
 
     def distance(self, pnt):
@@ -1942,7 +1942,7 @@ class Plane(Surface):
             msg = 'Invalid point type.'
             raise TypeError(msg)
 
-        return self.handle.Pln().Distance(pnt)
+        return self.object.Pln().Distance(pnt)
 
     def rotate(self, axis, angle):
         """
@@ -1953,9 +1953,9 @@ class Plane(Surface):
 
         :return: None.
         """
-        pln = self.handle.Pln()
+        pln = self.object.Pln()
         pln.Rotate(axis, radians(angle))
-        self.handle.SetPln(pln)
+        self.object.SetPln(pln)
 
     def rotate_x(self, angle):
         """
@@ -1965,9 +1965,9 @@ class Plane(Surface):
 
         :return: None.
         """
-        pln = self.handle.Pln()
+        pln = self.object.Pln()
         pln.Rotate(pln.XAxis(), radians(angle))
-        self.handle.SetPln(pln)
+        self.object.SetPln(pln)
 
     def rotate_y(self, angle):
         """
@@ -1977,16 +1977,16 @@ class Plane(Surface):
 
         :return: None.
         """
-        pln = self.handle.Pln()
+        pln = self.object.Pln()
         pln.Rotate(pln.YAxis(), radians(angle))
-        self.handle.SetPln(pln)
+        self.object.SetPln(pln)
 
 
 class NurbsSurface(Surface):
     """
     NURBS surface in 3-D space.
 
-    :param OCCT.Geom.Geom_BSplineSurface the_handle: The surface handle.
+    :param OCCT.Geom.Geom_BSplineSurface obj: The surface object.
 
     For more information see Geom_BSplineSurface_.
 
@@ -1994,16 +1994,16 @@ class NurbsSurface(Surface):
 
     """
 
-    def __init__(self, the_handle):
-        super(NurbsSurface, self).__init__(the_handle)
+    def __init__(self, obj):
+        super(NurbsSurface, self).__init__(obj)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The smart pointer.
         :rtype: OCCT.Geom.Geom_BSplineSurface
         """
-        return self._handle
+        return self._object
 
     @property
     def p(self):
@@ -2011,7 +2011,7 @@ class NurbsSurface(Surface):
         :return: Degree in u-direction.
         :rtype: int
         """
-        return self.handle.UDegree()
+        return self.object.UDegree()
 
     @property
     def q(self):
@@ -2019,7 +2019,7 @@ class NurbsSurface(Surface):
         :return: Degree in v-direction.
         :rtype: int
         """
-        return self.handle.VDegree()
+        return self.object.VDegree()
 
     @property
     def n(self):
@@ -2027,7 +2027,7 @@ class NurbsSurface(Surface):
         :return: Number of control points in u-direction.
         :rtype: int
         """
-        return self.handle.NbUPoles()
+        return self.object.NbUPoles()
 
     @property
     def m(self):
@@ -2035,7 +2035,7 @@ class NurbsSurface(Surface):
         :return: Number of control points in v-direction.
         :rtype: int
         """
-        return self.handle.NbVPoles()
+        return self.object.NbVPoles()
 
     @property
     def uknots(self):
@@ -2043,8 +2043,8 @@ class NurbsSurface(Surface):
         :return: Knot vector in u-direction.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.handle.NbUKnots())
-        self.handle.UKnots(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbUKnots())
+        self.object.UKnots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -2053,8 +2053,8 @@ class NurbsSurface(Surface):
         :return: Multiplicity of knot vector in u-direction.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfInteger(1, self.handle.NbUKnots())
-        self.handle.UMultiplicities(tcol_array)
+        tcol_array = TColStd_Array1OfInteger(1, self.object.NbUKnots())
+        self.object.UMultiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
@@ -2063,9 +2063,9 @@ class NurbsSurface(Surface):
         :return: Knot sequence in u-direction.
         :rtype: numpy.ndarray
         """
-        tcol_knot_seq = TColStd_Array1OfReal(1, self.handle.NbUPoles() +
-                                             self.handle.UDegree() + 1)
-        self.handle.UKnotSequence(tcol_knot_seq)
+        tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbUPoles() +
+                                             self.object.UDegree() + 1)
+        self.object.UKnotSequence(tcol_knot_seq)
         return to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
@@ -2074,8 +2074,8 @@ class NurbsSurface(Surface):
         :return: Knot vector in v-direction.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfReal(1, self.handle.NbVKnots())
-        self.handle.VKnots(tcol_array)
+        tcol_array = TColStd_Array1OfReal(1, self.object.NbVKnots())
+        self.object.VKnots(tcol_array)
         return to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
@@ -2084,8 +2084,8 @@ class NurbsSurface(Surface):
         :return: Multiplicity of knot vector in v-direction.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array1OfInteger(1, self.handle.NbVKnots())
-        self.handle.VMultiplicities(tcol_array)
+        tcol_array = TColStd_Array1OfInteger(1, self.object.NbVKnots())
+        self.object.VMultiplicities(tcol_array)
         return to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
@@ -2094,9 +2094,9 @@ class NurbsSurface(Surface):
         :return: Knot sequence in v-direction.
         :rtype: numpy.ndarray
         """
-        tcol_knot_seq = TColStd_Array1OfReal(1, self.handle.NbVPoles() +
-                                             self.handle.VDegree() + 1)
-        self.handle.VKnotSequence(tcol_knot_seq)
+        tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbVPoles() +
+                                             self.object.VDegree() + 1)
+        self.object.VKnotSequence(tcol_knot_seq)
         return to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
@@ -2105,9 +2105,9 @@ class NurbsSurface(Surface):
         :return: Control points.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColgp_Array2OfPnt(1, self.handle.NbUPoles(),
-                                        1, self.handle.NbVPoles())
-        self.handle.Poles(tcol_array)
+        tcol_array = TColgp_Array2OfPnt(1, self.object.NbUPoles(),
+                                        1, self.object.NbVPoles())
+        self.object.Poles(tcol_array)
         return to_np_from_tcolgp_array2_pnt(tcol_array)
 
     @property
@@ -2116,9 +2116,9 @@ class NurbsSurface(Surface):
         :return: Weights of control points.
         :rtype: numpy.ndarray
         """
-        tcol_array = TColStd_Array2OfReal(1, self.handle.NbUPoles(),
-                                          1, self.handle.NbVPoles())
-        self.handle.Weights(tcol_array)
+        tcol_array = TColStd_Array2OfReal(1, self.object.NbUPoles(),
+                                          1, self.object.NbVPoles())
+        self.object.Weights(tcol_array)
         return to_np_from_tcolstd_array2_real(tcol_array)
 
     @property
@@ -2141,9 +2141,9 @@ class NurbsSurface(Surface):
 
         :raise ValueError: If the surface cannot be downcast to this type.
         """
-        if not isinstance(srf.handle, Geom_BSplineSurface):
+        if not isinstance(srf.object, Geom_BSplineSurface):
             raise ValueError('Could not downcast surface.')
-        return NurbsSurface(srf.handle)
+        return NurbsSurface(srf.object)
 
     def copy(self):
         """
@@ -2152,7 +2152,7 @@ class NurbsSurface(Surface):
         :return: New surface.
         :rtype: afem.geometry.entities.NurbsSurface
         """
-        h_srf = self.handle.Copy()
+        h_srf = self.object.Copy()
         return NurbsSurface(h_srf)
 
     def set_udomain(self, u1=0., u2=1.):
@@ -2167,10 +2167,10 @@ class NurbsSurface(Surface):
         """
         if u1 > u2:
             return False
-        tcol_knots = TColStd_Array1OfReal(1, self.handle.NbUKnots())
-        self.handle.UKnots(tcol_knots)
+        tcol_knots = TColStd_Array1OfReal(1, self.object.NbUKnots())
+        self.object.UKnots(tcol_knots)
         reparameterize_knots(u1, u2, tcol_knots)
-        self.handle.SetUKnots(tcol_knots)
+        self.object.SetUKnots(tcol_knots)
         return True
 
     def set_vdomain(self, v1=0., v2=1.):
@@ -2185,10 +2185,10 @@ class NurbsSurface(Surface):
         """
         if v1 > v2:
             return False
-        tcol_knots = TColStd_Array1OfReal(1, self.handle.NbVKnots())
-        self.handle.VKnots(tcol_knots)
+        tcol_knots = TColStd_Array1OfReal(1, self.object.NbVKnots())
+        self.object.VKnots(tcol_knots)
         reparameterize_knots(v1, v2, tcol_knots)
-        self.handle.SetVKnots(tcol_knots)
+        self.object.SetVKnots(tcol_knots)
         return True
 
     def local_to_global_param(self, d, *args):
@@ -2237,7 +2237,7 @@ class NurbsSurface(Surface):
         """
         if u1 > u2 or v1 > v2:
             return False
-        self.handle.CheckAndSegment(u1, u2, v1, v2)
+        self.object.CheckAndSegment(u1, u2, v1, v2)
         return True
 
     def locate_u(self, u, tol2d=1.0e-9, with_knot_repetition=False):
@@ -2253,7 +2253,7 @@ class NurbsSurface(Surface):
         :return: Bounding knot locations (i1, i2).
         :rtype: tuple(float)
         """
-        return self.handle.LocateU(u, tol2d, with_knot_repetition)
+        return self.object.LocateU(u, tol2d, with_knot_repetition)
 
     def locate_v(self, v, tol2d=1.0e-9, with_knot_repetition=False):
         """
@@ -2268,7 +2268,7 @@ class NurbsSurface(Surface):
         :return: Bounding knot locations (i1, i2).
         :rtype: tuple(float)
         """
-        return self.handle.LocateV(v, tol2d, with_knot_repetition)
+        return self.object.LocateV(v, tol2d, with_knot_repetition)
 
     def insert_uknot(self, u, m=1, tol2d=1.0e-9):
         """
@@ -2282,7 +2282,7 @@ class NurbsSurface(Surface):
 
         :return: None.
         """
-        self.handle.InsertUKnot(u, m, tol2d)
+        self.object.InsertUKnot(u, m, tol2d)
 
     def insert_vknot(self, v, m=1, tol2d=1.0e-9):
         """
@@ -2296,7 +2296,7 @@ class NurbsSurface(Surface):
 
         :return: None.
         """
-        self.handle.InsertVKnot(v, m, tol2d)
+        self.object.InsertVKnot(v, m, tol2d)
 
     def set_cp(self, i, j, cp, weight=None):
         """
@@ -2311,9 +2311,9 @@ class NurbsSurface(Surface):
         :return: None.
         """
         if weight is None:
-            self.handle.SetPole(i, j, cp)
+            self.object.SetPole(i, j, cp)
         else:
-            self.handle.SetPole(i, j, cp, weight)
+            self.object.SetPole(i, j, cp, weight)
 
     def set_cp_row(self, u_index, cp, weights=None):
         """
@@ -2329,10 +2329,10 @@ class NurbsSurface(Surface):
         """
         tcol_gp = to_tcolgp_array1_pnt(cp)
         if weights is None:
-            self.handle.SetPoleRow(u_index, tcol_gp)
+            self.object.SetPoleRow(u_index, tcol_gp)
         else:
             tcol_w = to_tcolstd_array1_real(weights)
-            self.handle.SetPoleRow(u_index, tcol_gp, tcol_w)
+            self.object.SetPoleRow(u_index, tcol_gp, tcol_w)
 
     def set_cp_col(self, v_index, cp, weights=None):
         """
@@ -2348,10 +2348,10 @@ class NurbsSurface(Surface):
         """
         tcol_gp = to_tcolgp_array1_pnt(cp)
         if weights is None:
-            self.handle.SetPoleCol(v_index, tcol_gp)
+            self.object.SetPoleCol(v_index, tcol_gp)
         else:
             tcol_w = to_tcolstd_array1_real(weights)
-            self.handle.SetPoleCol(v_index, tcol_gp, tcol_w)
+            self.object.SetPoleCol(v_index, tcol_gp, tcol_w)
 
 
 if __name__ == "__main__":

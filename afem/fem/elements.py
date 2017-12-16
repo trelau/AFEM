@@ -41,7 +41,7 @@ class Element(object):
         return hash(self.eid)
 
     @property
-    def handle(self):
+    def object(self):
         """
         :return: The underlying element.
         :rtype: OCCT.SMDS.SMDS_Element

@@ -112,7 +112,7 @@ class ViewableItem(object):
         if not self.mirror:
             return None
 
-        trsf = gce_MakeMirror(self.mirror.handle.Pln()).Value()
+        trsf = gce_MakeMirror(self.mirror.object.Pln()).Value()
         builder = BRepBuilderAPI_Transform(self, trsf, True)
         if not builder.IsDone():
             return None
@@ -318,9 +318,9 @@ class Viewer(QWidget):
         if isinstance(geom, Point):
             shape = BRepBuilderAPI_MakeVertex(geom).Vertex()
         elif isinstance(geom, Curve):
-            shape = BRepBuilderAPI_MakeEdge(geom.handle).Edge()
+            shape = BRepBuilderAPI_MakeEdge(geom.object).Edge()
         elif isinstance(geom, Surface):
-            shape = BRepBuilderAPI_MakeFace(geom.handle, 1.0e-7).Face()
+            shape = BRepBuilderAPI_MakeFace(geom.object, 1.0e-7).Face()
         else:
             return None
 

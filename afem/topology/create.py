@@ -199,7 +199,7 @@ class EdgeByCurve(object):
 
     def __init__(self, crv):
         # Build
-        builder = BRepBuilderAPI_MakeEdge(crv.handle)
+        builder = BRepBuilderAPI_MakeEdge(crv.object)
         self._e = builder.Edge()
         self._v1 = builder.Vertex1()
         self._v2 = builder.Vertex2()
@@ -638,7 +638,7 @@ class FaceBySurface(object):
     """
 
     def __init__(self, srf, tol=1.0e-7):
-        builder = BRepBuilderAPI_MakeFace(srf.handle, tol)
+        builder = BRepBuilderAPI_MakeFace(srf.object, tol)
         self._f = builder.Face()
 
     @property
@@ -669,7 +669,7 @@ class FaceByPlane(object):
     """
 
     def __init__(self, pln, umin, umax, vmin, vmax):
-        builder = BRepBuilderAPI_MakeFace(pln.handle.Pln(), umin, umax, vmin,
+        builder = BRepBuilderAPI_MakeFace(pln.object.Pln(), umin, umax, vmin,
                                           vmax)
         self._f = builder.Face()
 
@@ -779,7 +779,7 @@ class ShellBySurface(object):
     """
 
     def __init__(self, srf):
-        builder = BRepBuilderAPI_MakeShell(srf.handle)
+        builder = BRepBuilderAPI_MakeShell(srf.object)
         self._shell = builder.Shell()
 
     @property
@@ -1025,7 +1025,7 @@ class SolidByPlane(object):
     def __init__(self, pln, width, height, depth):
         w = width / 2.
         h = height / 2.
-        gp_pln = pln.handle.Pln()
+        gp_pln = pln.object.Pln()
         face = BRepBuilderAPI_MakeFace(gp_pln, -w, w, -h, h).Face()
         vn = pln.norm(0., 0.)
         vn.Normalize()

@@ -313,7 +313,7 @@ def build_wingbox(wing, params):
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    v.display_mesh(the_mesh.handle, 2)
+    v.display_mesh(the_mesh.object, 2)
 
     # Uncomment this to export STEP file.
     # from afem.io import StepExport

@@ -118,4 +118,4 @@ if not status:
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-display_shape(None, the_mesh.handle, *tool.free_edges)
+display_shape(None, the_mesh.object, *tool.free_edges)
