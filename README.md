@@ -5,23 +5,13 @@ the use of high-order structural analysis in the early phases of aircraft
 design.
 
 # Installation
-AFEM is currently developed for Python 3.5. Anaconda Python is recommended
-for package management and since pre-built binaries are available for the
-AFEM prerequisites using the Anaconda cloud (only for Windows 32- and 64-bit).
+AFEM is currently only supported for Windows 64-bit Python 3.5. Anaconda
+Python is recommended for package management and since pre-built binaries are
+available for some of the prerequisites.
 
-
-# Prerequisites
-AFEM relies on a number of LGPL licensed open-source tools, including:
-
-* [OpenCASCADE Community Edition](https://github.com/tpaviot/oce/releases/tag/OCE-0.18.1)
-* [pythonocc-core](https://github.com/trelau/pythonocc-core/releases/tag/0.18.2)
-* [Netgen](https://github.com/trelau/netgen/releases/tag/6.3)
-* [SMESH](https://github.com/trelau/smesh/releases/tag/7.7.2)
-
-Pre-built binaries for these tools are available through the Anaconda cloud
-for Python 3.5 Windows 32- and 64-bit. It is recommended that a designated
-environment be created and used for AFEM. An example of creating this
-environment for Anaconda Python within an Anaconda command prompt is:
+It is recommended that a designated environment be created and used for AFEM. An
+example of creating this environment for Anaconda Python within an Anaconda
+command prompt is:
 
     conda create -n afem python=3.5
 
@@ -31,13 +21,12 @@ environment may look like:
 
     activate afem
 
-within an Anaconda command prompt. At this point the prerequisites can be
-installed using specified channels on the Anaconda cloud:
-
-    conda install -c trelau -c oce -c dlr-sc -c conda-forge pythonocc-core=0.18.2
-
-This should automatically resolve all dependencies and install all the
-required packages.
+within an Anaconda command prompt.
+ 
+The **pyOCCT** package developed by Laughlin Research should now be installed.
+The source code, pre-built binaries for Windows Python 3.5, and installation
+instructions can be found
+[here](https://github.gatech.edu/LaughlinResearch/pyOCCT).
 
 Other dependencies such as NumPy and SciPy can be installed as needed using
 the conda package manager:
@@ -51,8 +40,17 @@ AFEM is a pure Python package and can be installed using the command:
 
     python setup.py develop
 
-within the AFEM root folder. The "develop" option links to the source code
+within the AFEM root folder. The ``develop`` option links to the source code
 at runtime so changes in the source are reflected in any programs using AFEM.
+The regular installation command
+
+    python setup.py install
+    
+can be used to actually install the AFEM package into the Python root directory.
+
+Installation files can be cleaned by:
+
+    conda clean -a
 
 # Building Documentation
 The documentation can be built from sources using sphinx. Install sphinx and
