@@ -90,13 +90,13 @@ Quadrangle2D
 ~~~~~~~~~~~~
 .. autoclass:: Quadrangle2D
 
-BlsurfAlgo
-~~~~~~~~~~
-.. autoclass:: BlsurfAlgo
+MeshGemsAlgo2D
+~~~~~~~~~~~~~~
+.. autoclass:: MeshGemsAlgo2D
 
-BlsurfHypothesis
-~~~~~~~~~~~~~~~~
-.. autoclass:: BlsurfHypothesis
+MeshGemsHypothesis2D
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: MeshGemsHypothesis2D
 
 HypothesisAPI
 ~~~~~~~~~~~~~

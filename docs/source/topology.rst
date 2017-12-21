@@ -7,7 +7,7 @@ imported by::
 
 Entities
 --------
-.. py:currentmodule:: OCC.TopoDS
+.. py:currentmodule:: OCCT.TopoDS
 
 OpenCASCADE entities are provided here for reference. Rarely will the user
 ever need to initialize any of these entities. The topology builders should
