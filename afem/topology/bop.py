@@ -11,6 +11,7 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from datetime import datetime
 from warnings import warn
 
 from OCCT.BOPAlgo import BOPAlgo_MakerVolume
@@ -146,6 +147,65 @@ class BopAlgo(BopCore):
             self.set_args([shape1])
             self.set_tools([shape2])
             self.build()
+
+    def debug(self, path='.'):
+        """
+        Export files for debugging Boolean operations.
+
+        :param path:
+
+        :return:
+        """
+        # Generate a suffix using timestamp
+        now = datetime.now()
+        timestamp = str(now.timestamp())
+
+        # Operation name for prefix
+        op = str(self._bop.__class__.__name__)
+
+        # Info file
+        fn = ''.join([path, '/', timestamp, '.info.', op, '.txt'])
+        info = open(fn, 'w')
+        info.write('Date (M-D-Y): {}-{}-{}\n'.format(now.month, now.day,
+                                                     now.year))
+        info.write('Operation: {}\n'.format(op))
+        info.write('Parallel: {}\n'.format(self._bop.RunParallel()))
+        info.write('Fuzzy value: {}\n'.format(self._bop.FuzzyValue()))
+        info.write('Nondestructive: {}\n'.format(self._bop.NonDestructive()))
+
+        # Avoid circular imports
+        from afem.io.brep import write_brep
+        from afem.topology.create import CompoundByShapes
+
+        # Arguments
+        args = self.arguments
+        if args:
+            shape1 = CompoundByShapes(args).compound
+            fn = ''.join([path, '/', timestamp, '.shape1.', op, '.brep'])
+            write_brep(shape1, fn)
+
+        # Tools
+        tools = self.tools
+        if tools:
+            shape2 = CompoundByShapes(tools).compound
+            fn = ''.join([path, '/', timestamp, '.shape2.', op, '.brep'])
+            write_brep(shape2, fn)
+
+    @property
+    def arguments(self):
+        """
+        :return: The arguments.
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._bop.Arguments())
+
+    @property
+    def tools(self):
+        """
+        :return: The tools.
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._bop.Tools())
 
     def set_args(self, shapes):
         """
