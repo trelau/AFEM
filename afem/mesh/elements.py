@@ -60,7 +60,7 @@ class Element(object):
     def nodes(self):
         """
         :return: The nodes of the element.
-        :rtype: list[afem.fem.nodes.Node]
+        :rtype: list[afem.mesh.nodes.Node]
         """
         nodes = []
         niter = self._elm.nodeIterator()

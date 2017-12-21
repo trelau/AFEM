@@ -16,8 +16,8 @@ from OCCT.TopoDS import TopoDS_Shape
 from numpy import mean
 
 from afem.config import logger
-from afem.fem.elements import Elm1D, Elm2D
-from afem.fem.meshes import MeshAPI
+from afem.mesh.elements import Elm1D, Elm2D
+from afem.mesh.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
                                   PointFromParameter, PointsAlongCurveByNumber,
@@ -1188,7 +1188,7 @@ class CurvePart(Part):
     def elements(self):
         """
         :return: The 1-d elements of the part.
-        :rtype: set(afem.fem.entities.Elm1D)
+        :rtype: set(afem.mesh.entities.Elm1D)
         """
         smesh_mesh = MeshAPI.get_mesh().object
         if not isinstance(smesh_mesh, SMESH_Mesh):
@@ -1216,7 +1216,7 @@ class CurvePart(Part):
     def nodes(self):
         """
         :return: The nodes of part.
-        :rtype: set(afem.fem.entities.Node)
+        :rtype: set(afem.mesh.entities.Node)
         """
         node_set = set()
         for e in self.elements:
@@ -1284,7 +1284,7 @@ class SurfacePart(Part):
     def elements(self):
         """
         :return: The shell elements of the part.
-        :rtype: set(afem.fem.entities.Elm2D)
+        :rtype: set(afem.mesh.entities.Elm2D)
         """
         smesh_mesh = MeshAPI.get_mesh().object
         if not isinstance(smesh_mesh, SMESH_Mesh):
@@ -1312,7 +1312,7 @@ class SurfacePart(Part):
     def nodes(self):
         """
         :return: The nodes of part.
-        :rtype: set(afem.fem.entities.Node)
+        :rtype: set(afem.mesh.entities.Node)
         """
         node_set = set()
         for e in self.elements:
@@ -1469,7 +1469,7 @@ class SurfacePart(Part):
         :param afem.structure.entities.SurfacePart other: The other part.
 
         :return: Shared nodes.
-        :rtype: list[afem.fem.entities.Node]
+        :rtype: list[afem.mesh.entities.Node]
         """
         nodes1 = self.nodes
         nodes2 = other.nodes

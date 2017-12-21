@@ -80,10 +80,10 @@ class Hypothesis(object):
         :param hypothesis: The hypothesis to get. If a hypothesis instance
             is provided it is simply returned. If a string is provided the
             label's of the hypotheses are used to find a match.
-        :type hypothesis: afem.fem.hypotheses.Hypothesis or str
+        :type hypothesis: afem.mesh.hypotheses.Hypothesis or str
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.Hypothesis
+        :rtype: afem.mesh.hypotheses.Hypothesis
 
         :raise KeyError: If hypothesis cannot be found.
         """
@@ -110,7 +110,7 @@ class Algorithm(Hypothesis):
         """
         Check the hypothesis in the given mesh and shape.
 
-        :param afem.fem.meshes.Mesh mesh: The mesh.
+        :param afem.mesh.meshes.Mesh mesh: The mesh.
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if hypothesis is ok, *False* otherwise.
@@ -123,7 +123,7 @@ class Algorithm(Hypothesis):
         """
         Compute the mesh on a shape.
 
-        :param afem.fem.meshes.Mesh mesh: The mesh.
+        :param afem.mesh.meshes.Mesh mesh: The mesh.
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if completed, *False* if not.
@@ -699,10 +699,10 @@ class HypothesisAPI(object):
         :param hypothesis: The hypothesis to get. If a hypothesis instance
             is provided it is simply returned. If a string is provided the
             label's of the hypotheses are used to find a match.
-        :type hypothesis: afem.fem.hypotheses.Hypothesis or str
+        :type hypothesis: afem.mesh.hypotheses.Hypothesis or str
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.Hypothesis
+        :rtype: afem.mesh.hypotheses.Hypothesis
 
         :raise KeyError: If hypothesis cannot be found.
         """
@@ -716,7 +716,7 @@ class HypothesisAPI(object):
         :param str label: The label.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.Regular1D
+        :rtype: afem.mesh.hypotheses.Regular1D
         """
         return Regular1D(label)
 
@@ -729,7 +729,7 @@ class HypothesisAPI(object):
         :param float max_length: The maximum length.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.MaxLength1D
+        :rtype: afem.mesh.hypotheses.MaxLength1D
         """
         return MaxLength1D(label, max_length)
 
@@ -742,7 +742,7 @@ class HypothesisAPI(object):
         :param float local_length: The local length.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.LocalLength1D
+        :rtype: afem.mesh.hypotheses.LocalLength1D
         """
         return LocalLength1D(label, local_length)
 
@@ -755,7 +755,7 @@ class HypothesisAPI(object):
         :param int nseg: The number of segments.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.NumberOfSegments1D
+        :rtype: afem.mesh.hypotheses.NumberOfSegments1D
         """
         return NumberOfSegments1D(label, nseg)
 
@@ -770,7 +770,7 @@ class HypothesisAPI(object):
         :param float deflection: The allowed deflection.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.Adaptive1D
+        :rtype: afem.mesh.hypotheses.Adaptive1D
         """
         return Adaptive1D(label, min_size, max_size, deflection)
 
@@ -783,7 +783,7 @@ class HypothesisAPI(object):
         :param float deflection: The deflection.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.Deflection1D
+        :rtype: afem.mesh.hypotheses.Deflection1D
         """
         return Deflection1D(label, deflection)
 
@@ -811,7 +811,7 @@ class HypothesisAPI(object):
         :param bool fuse_edges: Option to fuse edges with C1 continuity.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.NetgenHypothesis
+        :rtype: afem.mesh.hypotheses.NetgenHypothesis
         """
         return NetgenHypothesis(label, max_size, min_size, allow_quads,
                                 second_order, optimize, fineness, growth_rate,
@@ -832,7 +832,7 @@ class HypothesisAPI(object):
         :param float max_area: The maximum area.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.NetgenSimple2D
+        :rtype: afem.mesh.hypotheses.NetgenSimple2D
         """
         return NetgenSimple2D(label, local_length, allow_quads,
                               length_from_edges, max_area)
@@ -845,7 +845,7 @@ class HypothesisAPI(object):
         :param str label: The label.
 
         :return: The algorithm.
-        :rtype: afem.fem.hypotheses.NetgenAlgo2D
+        :rtype: afem.mesh.hypotheses.NetgenAlgo2D
         """
         return NetgenAlgo2D(label)
 
@@ -857,7 +857,7 @@ class HypothesisAPI(object):
         :param str label: The label.
 
         :return: The algorithm.
-        :rtype: afem.fem.hypotheses.NetgenAlgoOnly2D
+        :rtype: afem.mesh.hypotheses.NetgenAlgoOnly2D
         """
         return NetgenAlgoOnly2D(label)
 
@@ -869,7 +869,7 @@ class HypothesisAPI(object):
         :param str label: The label.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.QuadrangleParams2D
+        :rtype: afem.mesh.hypotheses.QuadrangleParams2D
         """
         return QuadrangleParams2D(label)
 
@@ -881,7 +881,7 @@ class HypothesisAPI(object):
         :param str label: The label.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.Quadrangle2D
+        :rtype: afem.mesh.hypotheses.Quadrangle2D
         """
         return Quadrangle2D(label)
 
@@ -893,7 +893,7 @@ class HypothesisAPI(object):
         :param str label: The label.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.MeshGemsAlgo2D
+        :rtype: afem.mesh.hypotheses.MeshGemsAlgo2D
         """
         return MeshGemsAlgo2D(label)
 
@@ -907,6 +907,6 @@ class HypothesisAPI(object):
         :param bool allow_quads:
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.MeshGemsHypothesis2D
+        :rtype: afem.mesh.hypotheses.MeshGemsHypothesis2D
         """
         return MeshGemsHypothesis2D(label, physical_size, allow_quads)

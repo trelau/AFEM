@@ -11,9 +11,9 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from afem.fem.elements import Element
-from afem.fem.hypotheses import HypothesisAPI, the_gen
-from afem.fem.nodes import Node
+from afem.mesh.elements import Element
+from afem.mesh.hypotheses import HypothesisAPI, the_gen
+from afem.mesh.nodes import Node
 from afem.topology.check import CheckShape
 
 __all__ = ["Mesh", "SubMesh", "MeshAPI"]
@@ -112,7 +112,7 @@ class Mesh(object):
     def nodes(self):
         """
         :return: The mesh nodes.
-        :rtype: list[afem.fem.nodes.Node]
+        :rtype: list[afem.mesh.nodes.Node]
         """
         return self.get_nodes()
 
@@ -120,7 +120,7 @@ class Mesh(object):
     def elements(self):
         """
         :return: The mesh elements.
-        :rtype: list[afem.fem.elements.Element]
+        :rtype: list[afem.mesh.elements.Element]
         """
         elm_iter = self._ds.elementsIterator()
         elms = []
@@ -137,10 +137,10 @@ class Mesh(object):
         :param mesh: The mesh to get. If a mesh instance is given it is
             simply returned. If a string is given the mesh is retrieved by
             its label.
-        :type mesh: afem.fem.meshes.Mesh or str
+        :type mesh: afem.mesh.meshes.Mesh or str
 
         :return: The mesh.
-        :rtype: afem.fem.meshes.Mesh
+        :rtype: afem.mesh.meshes.Mesh
 
         :raise KeyError: If a mesh cannot be found.
         """
@@ -173,7 +173,7 @@ class Mesh(object):
         Add a hypothesis to the shape.
 
         :param hypothesis: The hypothesis. Can be an instance or a label.
-        :type hypothesis: afem.fem.hypotheses.Hypothesis or str
+        :type hypothesis: afem.mesh.hypotheses.Hypothesis or str
         :param shape: The shape the hypothesis applies to. This can be a
             sub-shape of the master shape. If not provided then the master
             shape is used.
@@ -220,7 +220,7 @@ class Mesh(object):
         :param OCCT.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
 
         :return: A sub-mesh.
-        :rtype: afem.fem.meshes.SubMesh
+        :rtype: afem.mesh.meshes.SubMesh
         """
         the_mesh = self.object.GetSubMesh(sub_shape)
         return SubMesh(the_mesh)
@@ -232,7 +232,7 @@ class Mesh(object):
         :param bool order: Order nodes by their ID.
 
         :return: The nodes.
-        :rtype: list[afem.fem.nodes.Node]
+        :rtype: list[afem.mesh.nodes.Node]
         """
         niter = self._ds.nodesIterator(order)
         nodes = []
@@ -289,7 +289,7 @@ class SubMesh(object):
     def nodes(self):
         """
         :return: The sub-mesh nodes.
-        :rtype: list[afem.fem.nodes.Node]
+        :rtype: list[afem.mesh.nodes.Node]
         """
         return self.get_nodes()
 
@@ -301,7 +301,7 @@ class SubMesh(object):
             retrieving nodes.
 
         :return: The sub-mesh nodes.
-        :rtype: list[afem.fem.nodes.Node]
+        :rtype: list[afem.mesh.nodes.Node]
         """
         # Return nodes on sub-shape only.
         if not include_subshapes:
@@ -330,7 +330,7 @@ class MeshAPI(object):
     """
     Mesh API. This is used to manage meshes from one place.
 
-    :var afem.fem.hypotheses.HypothesisAPI hypotheses: Access to
+    :var afem.mesh.hypotheses.HypothesisAPI hypotheses: Access to
         HypothesisAPI interface.
     """
     _active = None
@@ -342,7 +342,7 @@ class MeshAPI(object):
         Get the active mesh.
 
         :return: The active mesh.
-        :rtype: afem.fem.meshes.Mesh
+        :rtype: afem.mesh.meshes.Mesh
         """
         return cls._active
 
@@ -354,10 +354,10 @@ class MeshAPI(object):
         :param mesh: The mesh to get. If a mesh instance is given it is
             simply returned. If a string is given the mesh is retrieved by
             its label. If ``None`` is given then the active mesh is returned.
-        :type mesh: afem.fem.meshes.Mesh or str or None
+        :type mesh: afem.mesh.meshes.Mesh or str or None
 
         :return: The mesh.
-        :rtype: afem.fem.meshes.Mesh
+        :rtype: afem.mesh.meshes.Mesh
         """
         if mesh is None:
             return cls._active
@@ -372,7 +372,7 @@ class MeshAPI(object):
         :param mesh: The mesh to activate. If a mesh instance is given it is
             activated. If a string is given the mesh is retrieved by
             its label.
-        :type mesh: afem.fem.meshes.Mesh or str
+        :type mesh: afem.mesh.meshes.Mesh or str
 
         :return: None.
         """
@@ -389,7 +389,7 @@ class MeshAPI(object):
         :param bool active: Option to make this mesh active.
 
         :return: The new mesh.
-        :rtype: afem.fem.meshes.Mesh
+        :rtype: afem.mesh.meshes.Mesh
         """
         mesh = Mesh(label)
         mesh.shape_to_mesh(shape)
@@ -403,13 +403,13 @@ class MeshAPI(object):
         Add a hypothesis to the shape in a mesh.
 
         :param hypothesis: The hypothesis. Can be an instance or a label.
-        :type hypothesis: afem.fem.hypotheses.Hypothesis or str
+        :type hypothesis: afem.mesh.hypotheses.Hypothesis or str
         :param shape: The shape the hypothesis applies to. This can be a
             sub-shape of the master shape. If not provided then the master
             shape is used.
         :param mesh: The mesh to apply the hypothesis to. If ``None`` is
             provided then the active mesh is used.
-        :type mesh: afem.fem.meshes.Mesh or str or None
+        :type mesh: afem.mesh.meshes.Mesh or str or None
 
         :return: None.
         """
@@ -423,7 +423,7 @@ class MeshAPI(object):
 
         :param mesh: The mesh to compute. If ``None`` is provided then the
             active mesh is used.
-        :type mesh: afem.fem.meshes.Mesh or str or None
+        :type mesh: afem.mesh.meshes.Mesh or str or None
 
         :return: ``True`` if performed, ``False`` if not.
         :rtype: bool
@@ -439,10 +439,10 @@ class MeshAPI(object):
         :param OCCT.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
         :param mesh: The mesh to retrieve the sub-mesh from. If ``None`` is
             provided then the active mesh is used.
-        :type mesh: afem.fem.meshes.Mesh or str or None
+        :type mesh: afem.mesh.meshes.Mesh or str or None
 
         :return: The sub-mesh.
-        :rtype: afem.fem.meshes.SubMesh
+        :rtype: afem.mesh.meshes.SubMesh
         """
         mesh = cls.get_mesh(mesh)
         return mesh.get_submesh(sub_shape)
@@ -455,10 +455,10 @@ class MeshAPI(object):
         :param bool order: Order nodes order by ID.
         :param mesh: The mesh to retrieve the nodes from. If ``None`` is
             provided then the active mesh is used.
-        :type mesh: afem.fem.meshes.Mesh or str or None
+        :type mesh: afem.mesh.meshes.Mesh or str or None
 
         :return: The nodes.
-        :rtype: list[afem.fem.nodes.Node]
+        :rtype: list[afem.mesh.nodes.Node]
         """
         mesh = cls.get_mesh(mesh)
         return mesh.get_nodes(order)

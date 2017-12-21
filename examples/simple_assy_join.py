@@ -1,7 +1,7 @@
 import time
 
 from afem.config import Settings
-from afem.fem import MeshAPI
+from afem.mesh import MeshAPI
 from afem.geometry import *
 from afem.graphics.display import display_shape
 from afem.io import ImportVSP

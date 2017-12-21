@@ -64,7 +64,7 @@ class Assembly(object):
     def elements(self):
         """
         :return: The elements of all parts.
-        :rtype: set(afem.fem.elements.Element)
+        :rtype: set(afem.mesh.elements.Element)
         """
         elm_set = set()
         for part in self.parts:
@@ -75,7 +75,7 @@ class Assembly(object):
     def nodes(self):
         """
         :return: The nodes of all parts.
-        :rtype: set(afem.fem.nodes.Node)
+        :rtype: set(afem.mesh.nodes.Node)
         """
         node_set = set()
         for part in self.parts:

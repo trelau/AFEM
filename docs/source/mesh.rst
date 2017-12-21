@@ -1,18 +1,18 @@
-FEM
-===
-This section describes the finite element modeling package. The entities and
-tools can be imported by::
+Mesh
+====
+This section describes the meshing package. The entities and tools can be
+imported by::
 
-    from afem.fem import *
+    from afem.mesh import *
 
 Entities
 --------
 
 Node
 ~~~~
-.. autoclass:: afem.fem.nodes.Node
+.. autoclass:: afem.mesh.nodes.Node
 
-.. py:currentmodule:: afem.fem.elements
+.. py:currentmodule:: afem.mesh.elements
 
 Element
 ~~~~~~~
@@ -32,7 +32,7 @@ Elm2D
 
 Hypotheses
 ----------
-.. py:currentmodule:: afem.fem.hypotheses
+.. py:currentmodule:: afem.mesh.hypotheses
 
 Hypothesis
 ~~~~~~~~~~
@@ -104,7 +104,7 @@ HypothesisAPI
 
 Meshes
 ------
-.. py:currentmodule:: afem.fem.meshes
+.. py:currentmodule:: afem.mesh.meshes
 
 Mesh
 ~~~~

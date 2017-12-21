@@ -21,7 +21,7 @@ def export_bdf(the_mesh, fn):
     some pre-processors. Intended for development and debugging. Only supports
     tri and quad elements for now.
 
-    :param afem.fem.meshes.Mesh the_mesh: The mesh.
+    :param afem.mesh.meshes.Mesh the_mesh: The mesh.
     :param str fn: The filename.
 
     :return: *True* if done, *False* if not.
