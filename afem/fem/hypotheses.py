@@ -11,12 +11,16 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
+# TODO Use Algorithm class for algorithms that is derived from Hypothesis.
+# TODO Use SubMeshes instead of local hypotheses.
+
 try:
     from OCCT.BLSURFPlugin import BLSURFPlugin_BLSURF, BLSURFPlugin_Hypothesis
 
-    has_blsurf = True
+    has_mg = True
 except ImportError:
-    has_blsurf = False
+    BLSURFPlugin_BLSURF, BLSURFPlugin_Hypothesis = None, None
+    has_mg = False
 
 from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D,
                                NETGENPlugin_NETGEN_2D_ONLY,
@@ -33,7 +37,7 @@ __all__ = ["Hypothesis", "Regular1D", "MaxLength1D", "LocalLength1D",
            "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
            "NetgenHypothesis", "NetgenSimple2D", "NetgenAlgo2D",
            "NetgenAlgoOnly2D", "QuadrangleParams2D", "Quadrangle2D",
-           "BlsurfAlgo", "BlsurfHypothesis", "HypothesisAPI"]
+           "MeshGemsAlgo2D", "MeshGemsHypothesis2D", "HypothesisAPI"]
 
 # Use a single instance of SMESH_Gen
 the_gen = SMESH_Gen()
@@ -369,17 +373,17 @@ class Quadrangle2D(Hypothesis):
         return self._hypothesis
 
 
-class BlsurfAlgo(Hypothesis):
+class MeshGemsAlgo2D(Hypothesis):
     """
-    BLSURF (MGCAD-Surf) algorithm.
+    MeshGems MGCAD-Surf algorithm.
     """
 
     def __init__(self, label):
-        if not has_blsurf:
-            raise NotImplementedError('BLSURFPlugin not implemented.')
+        if not has_mg:
+            raise NotImplementedError('MeshGems not available.')
         self._hypothesis = BLSURFPlugin_BLSURF(Hypothesis._indx, 0, the_gen,
                                                True)
-        super(BlsurfAlgo, self).__init__(label)
+        super(MeshGemsAlgo2D, self).__init__(label)
 
     @property
     def object(self):
@@ -390,18 +394,17 @@ class BlsurfAlgo(Hypothesis):
         return self._hypothesis
 
 
-class BlsurfHypothesis(Hypothesis):
+class MeshGemsHypothesis2D(Hypothesis):
     """
-    BLSURF (MGCAD-Surf) hypothesis.
+    MeshGems MGCAD-Surf hypothesis.
     """
 
     def __init__(self, label, size=None, allow_quads=True):
-        if not has_blsurf:
-            raise NotImplementedError('BLSURFPlugin not implemented.')
+        if not has_mg:
+            raise NotImplementedError('MeshGems not available.')
         self._hypothesis = BLSURFPlugin_Hypothesis(Hypothesis._indx, 0, the_gen,
                                                    True)
-        super(BlsurfHypothesis, self).__init__(label)
-        # TODO Finish BLSURFlugin
+        super(MeshGemsHypothesis2D, self).__init__(label)
 
         # Set a global physical size
         if size is not None:
@@ -418,6 +421,230 @@ class BlsurfHypothesis(Hypothesis):
         :rtype: OCCT.BLSURFPlugin.BLSURFPlugin_Hypothesis
         """
         return self._hypothesis
+
+    def set_physical_size(self, size, is_rel=False):
+        """
+        Set physical size.
+
+        :param float size:
+        :param bool is_rel:
+        :return:
+        """
+        self.object.SetPhySize(size, is_rel)
+
+    def set_min_size(self, size, is_rel=False):
+        """
+        Set minimum size.
+
+        :param float size:
+        :param bool is_rel:
+        :return:
+        """
+        self.object.SetMinSize(size, is_rel)
+
+    def set_max_size(self, size, is_rel=False):
+        """
+        Set maximum size.
+
+        :param float size:
+        :param bool is_rel:
+        :return:
+        """
+        self.object.SetMaxSize(size, is_rel)
+
+    def set_use_gradation(self, val=True):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetUseGradation(val)
+
+    def set_gradation(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetGradation(val)
+
+    def set_quads_allowed(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetQuadAllowed(val)
+
+    def set_angle_mesh(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetAngleMesh(val)
+
+    def set_chordal_error(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetChordalError(val)
+
+    def set_anisotropic(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetAnisotropic(val)
+
+    def set_anisotropic_ratio(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetAnisotropicRatio(val)
+
+    def set_remove_tiny_edges(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetRemoveTinyEdges(val)
+
+    def set_tiny_edge_length(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetTinyEdgeLength(val)
+
+    def set_optimize_tiny_edges(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetOptimiseTinyEdges(val)
+
+    def set_tiny_edge_optimization_length(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetTinyEdgeOptimisationLength(val)
+
+    def set_correct_surface_intersection(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetCorrectSurfaceIntersection(val)
+
+    def set_correct_surface_intersection_max_cost(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetCorrectSurfaceIntersectionMaxCost(val)
+
+    def set_bad_element_removal(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetBadElementRemoval(val)
+
+    def set_bad_element_aspect_ratio(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetBadElementAspectRatio(val)
+
+    def set_optimize_mesh(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetOptimizeMesh(val)
+
+    def set_respect_geometry(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetRespectGeometry(val)
+
+    def set_max_number_of_threads(self, val):
+        """
+
+        :param int val:
+        :return:
+        """
+        self.object.SetMaxNumberOfThreads(val)
+
+    def set_debug(self, val):
+        """
+
+        :param bool val:
+        :return:
+        """
+        self.object.SetDebug(val)
+
+    def set_required_entities(self, val):
+        """
+
+        :param str val: "respect", "ignore", "clear"
+        :return:
+        """
+        self.object.SetRequiredEntities(val)
+
+    def set_sewing_tolerance(self, val):
+        """
+
+        :param float val:
+        :return:
+        """
+        self.object.SetSewingTolerance(val)
+
+    def set_tags(self, val):
+        """
+
+        :param str val: "respect", "ignore", "clear"
+        :return:
+        """
+        self.object.SetTags(val)
+
+    def add_option(self, name, val):
+        """
+
+        :param str name:
+        :param str val:
+        :return:
+        """
+        self.object.AddOption(name, val)
+
+    def add_hyperpatch(self, patch_ids):
+        """
+
+        :param list[set(int)] patch_ids:
+        :return:
+        """
+        patch = [set(patch_ids)]
+        self.object.SetHyperPatches(patch)
 
 
 class HypothesisAPI(object):
@@ -620,25 +847,27 @@ class HypothesisAPI(object):
         return Quadrangle2D(label)
 
     @staticmethod
-    def create_blsurf_aglo(label):
+    def create_meshgems_aglo_2d(label):
         """
-        Create BlSurfAlgo algorithm.
+        Create MeshGemsAlgo2D algorithm.
 
         :param str label: The label.
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.BlSurfAlgo
+        :rtype: afem.fem.hypotheses.MeshGemsAlgo2D
         """
-        return BlsurfAlgo(label)
+        return MeshGemsAlgo2D(label)
 
     @staticmethod
-    def create_blsurf_hypothesis(label, physical_size, allow_quads=True):
+    def create_meshgems_hypothesis_2d(label, physical_size, allow_quads=True):
         """
-        Create BlSurfHypothesis.
+        Create MeshGemsHypothesis2D hypothesis.
 
         :param str label: The label.
+        :param float physical_size:
+        :param bool allow_quads:
 
         :return: The hypothesis.
-        :rtype: afem.fem.hypotheses.BlSurfHypothesis
+        :rtype: afem.fem.hypotheses.MeshGemsHypothesis2D
         """
-        return BlsurfHypothesis(label, physical_size, allow_quads)
+        return MeshGemsHypothesis2D(label, physical_size, allow_quads)
