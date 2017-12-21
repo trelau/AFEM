@@ -11,7 +11,6 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-# TODO Use Algorithm class for algorithms that is derived from Hypothesis.
 # TODO Use SubMeshes instead of local hypotheses.
 
 try:
@@ -25,7 +24,7 @@ except ImportError:
 from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D,
                                NETGENPlugin_NETGEN_2D_ONLY,
                                NETGENPlugin_SimpleHypothesis_2D)
-from OCCT.SMESH import SMESH_Gen
+from OCCT.SMESH import SMESH_Gen, SMESH_Hypothesis
 from OCCT.StdMeshers import (QUAD_STANDARD, StdMeshers_Adaptive1D,
                              StdMeshers_Deflection1D, StdMeshers_LocalLength,
                              StdMeshers_MaxLength,
@@ -33,7 +32,8 @@ from OCCT.StdMeshers import (QUAD_STANDARD, StdMeshers_Adaptive1D,
                              StdMeshers_QuadrangleParams,
                              StdMeshers_Quadrangle_2D, StdMeshers_Regular_1D)
 
-__all__ = ["Hypothesis", "Regular1D", "MaxLength1D", "LocalLength1D",
+__all__ = ["Hypothesis", "Algorithm", "Regular1D", "MaxLength1D",
+           "LocalLength1D",
            "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
            "NetgenHypothesis", "NetgenSimple2D", "NetgenAlgo2D",
            "NetgenAlgoOnly2D", "QuadrangleParams2D", "Quadrangle2D",
@@ -93,7 +93,46 @@ class Hypothesis(object):
         return Hypothesis._all[hypothesis]
 
 
-class Regular1D(Hypothesis):
+class Algorithm(Hypothesis):
+    """
+    Base class for algorithms.
+    """
+
+    @property
+    def object(self):
+        """
+        :return: The underlying hypothesis.
+        :rtype: OCCT.SMESH.SMESH_Algo
+        """
+        return self._hypothesis
+
+    def check_hypothesis(self, mesh, shape):
+        """
+        Check the hypothesis in the given mesh and shape.
+
+        :param afem.fem.meshes.Mesh mesh: The mesh.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if hypothesis is ok, *False* otherwise.
+        :rtype: bool
+        """
+        return self.object.CheckHypothesis(mesh.object, shape,
+                                           SMESH_Hypothesis.HYP_OK)
+
+    def compute(self, mesh, shape):
+        """
+        Compute the mesh on a shape.
+
+        :param afem.fem.meshes.Mesh mesh: The mesh.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if completed, *False* if not.
+        :rtype: bool
+        """
+        return self.object.Compute(mesh.object, shape)
+
+
+class Regular1D(Algorithm):
     """
     Regular 1-D algorithm.
     """
@@ -279,7 +318,7 @@ class NetgenSimple2D(Hypothesis):
         return self._hypothesis
 
 
-class NetgenAlgo2D(Hypothesis):
+class NetgenAlgo2D(Algorithm):
     """
     Netgen 2-D algorithm.
     """
@@ -298,7 +337,7 @@ class NetgenAlgo2D(Hypothesis):
         return self._hypothesis
 
 
-class NetgenAlgoOnly2D(Hypothesis):
+class NetgenAlgoOnly2D(Algorithm):
     """
     Netgen 2-D only algorithm.
     """
@@ -339,7 +378,7 @@ class QuadrangleParams2D(Hypothesis):
         return self._hypothesis
 
 
-class Quadrangle2D(Hypothesis):
+class Quadrangle2D(Algorithm):
     """
     Quadrangle 2-D algorithm
     """
@@ -373,7 +412,7 @@ class Quadrangle2D(Hypothesis):
         return self._hypothesis
 
 
-class MeshGemsAlgo2D(Hypothesis):
+class MeshGemsAlgo2D(Algorithm):
     """
     MeshGems MGCAD-Surf algorithm.
     """

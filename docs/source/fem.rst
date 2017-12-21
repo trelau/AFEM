@@ -38,6 +38,10 @@ Hypothesis
 ~~~~~~~~~~
 .. autoclass:: Hypothesis
 
+Algorithm
+~~~~~~~~~
+.. autoclass:: Algorithm
+
 Regular1D
 ~~~~~~~~~
 .. autoclass:: Regular1D
