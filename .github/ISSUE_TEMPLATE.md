@@ -4,4 +4,5 @@
 
 # Reproducible example code
 
-(The code should be minimal, have no external dependencies, isolate the function(s) that cause breakage. Submit matched and complete snippets that can be easily compiled and run to diagnose the issue.)
+(The code should be minimal, have no external dependencies, isolate the function(s) that cause breakage. Submit matched and complete snippets that can be easily compiled and run to diagnose the issue.
+If a Boolean operation is failing, use the `BopAlgo.debug()` method in the `afem.topology.bop` module.)
