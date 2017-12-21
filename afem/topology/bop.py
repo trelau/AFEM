@@ -114,6 +114,7 @@ class BopAlgo(BopCore):
     :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
     :param bop: The OpenCASCADE class for the Boolean operation.
 
     .. note::
@@ -122,7 +123,8 @@ class BopAlgo(BopCore):
         set the arguments and tools and build the result.
     """
 
-    def __init__(self, shape1, shape2, parallel, fuzzy_val, bop):
+    def __init__(self, shape1, shape2, parallel, fuzzy_val, nondestructive,
+                 bop):
         super(BopAlgo, self).__init__()
 
         self._bop = bop()
@@ -135,7 +137,10 @@ class BopAlgo(BopCore):
         if fuzzy_val is not None:
             self._bop.SetFuzzyValue(fuzzy_val)
 
-        # TODO New options for OCCT 7.2.0 Boolean ops
+        if nondestructive:
+            self._bop.SetNonDestructive(True)
+        else:
+            self._bop.SetNonDestructive(False)
 
         if CheckShape.is_shape(shape1) and CheckShape.is_shape(shape2):
             self.set_args([shape1])
@@ -263,6 +268,7 @@ class FuseShapes(BopAlgo):
     :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
 
     .. note::
 
@@ -290,9 +296,10 @@ class FuseShapes(BopAlgo):
     """
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
-                 fuzzy_val=None):
+                 fuzzy_val=None, nondestructive=True):
         super(FuseShapes, self).__init__(shape1, shape2, parallel,
-                                         fuzzy_val, BRepAlgoAPI_Fuse)
+                                         fuzzy_val, nondestructive,
+                                         BRepAlgoAPI_Fuse)
 
 
 class CutShapes(BopAlgo):
@@ -305,6 +312,7 @@ class CutShapes(BopAlgo):
     :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
 
     .. note::
 
@@ -332,9 +340,10 @@ class CutShapes(BopAlgo):
     """
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
-                 fuzzy_val=None):
+                 fuzzy_val=None, nondestructive=True):
         super(CutShapes, self).__init__(shape1, shape2, parallel,
-                                        fuzzy_val, BRepAlgoAPI_Cut)
+                                        fuzzy_val, nondestructive,
+                                        BRepAlgoAPI_Cut)
 
 
 class CommonShapes(BopAlgo):
@@ -347,6 +356,7 @@ class CommonShapes(BopAlgo):
     :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
 
     .. note::
 
@@ -374,9 +384,10 @@ class CommonShapes(BopAlgo):
     """
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
-                 fuzzy_val=None):
+                 fuzzy_val=None, nondestructive=True):
         super(CommonShapes, self).__init__(shape1, shape2, parallel,
-                                           fuzzy_val, BRepAlgoAPI_Common)
+                                           fuzzy_val, nondestructive,
+                                           BRepAlgoAPI_Common)
 
 
 class IntersectShapes(BopAlgo):
@@ -392,6 +403,7 @@ class IntersectShapes(BopAlgo):
     :param bool approximate: Option to approximate intersection curves.
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
 
     .. note::
 
@@ -420,9 +432,10 @@ class IntersectShapes(BopAlgo):
 
     def __init__(self, shape1=None, shape2=None, compute_pcurve1=False,
                  compute_pcurve2=False, approximate=False, parallel=True,
-                 fuzzy_val=None):
+                 fuzzy_val=None, nondestructive=True):
         super(IntersectShapes, self).__init__(None, None, parallel,
-                                              fuzzy_val, BRepAlgoAPI_Section)
+                                              fuzzy_val, nondestructive,
+                                              BRepAlgoAPI_Section)
 
         self._bop.ComputePCurveOn1(compute_pcurve1)
         self._bop.ComputePCurveOn2(compute_pcurve2)
@@ -488,6 +501,7 @@ class SplitShapes(BopAlgo):
     :type shape2: OCCT.TopoDS.TopoDS_Shape or None
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
 
     .. note::
 
@@ -511,9 +525,10 @@ class SplitShapes(BopAlgo):
     """
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
-                 fuzzy_val=None):
+                 fuzzy_val=None, nondestructive=True):
         super(SplitShapes, self).__init__(shape1, shape2, parallel,
-                                          fuzzy_val, BRepAlgoAPI_Splitter)
+                                          fuzzy_val, nondestructive,
+                                          BRepAlgoAPI_Splitter)
 
 
 class VolumesFromShapes(BopAlgo):
@@ -525,12 +540,14 @@ class VolumesFromShapes(BopAlgo):
         solids.
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
     """
 
     def __init__(self, shapes, intersect=False, parallel=True,
-                 fuzzy_val=None):
+                 fuzzy_val=None, nondestructive=True):
         super(VolumesFromShapes, self).__init__(None, None, parallel,
-                                                fuzzy_val, BOPAlgo_MakerVolume)
+                                                fuzzy_val, nondestructive,
+                                                BOPAlgo_MakerVolume)
 
         self.set_args(shapes)
 
@@ -580,6 +597,7 @@ class CutCylindricalHole(BopAlgo):
     :param afem.geometry.entities.Axis1: The axis for the hole.
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
 
     Usage:
 
@@ -595,9 +613,10 @@ class CutCylindricalHole(BopAlgo):
     >>> assert bop.is_done
     """
 
-    def __init__(self, shape, radius, ax1, parallel=True, fuzzy_val=None):
+    def __init__(self, shape, radius, ax1, parallel=True, fuzzy_val=None,
+                 nondestructive=True):
         super(CutCylindricalHole, self).__init__(None, None, parallel,
-                                                 fuzzy_val,
+                                                 fuzzy_val, nondestructive,
                                                  BRepFeat_MakeCylindricalHole)
 
         self._bop.Init(shape, ax1)
@@ -617,6 +636,7 @@ class LocalSplit(BopCore):
     :param bool approximate: Option to approximate intersection curves.
     :param bool parallel: Option to run in parallel mode.
     :param float fuzzy_val: Fuzzy tolerance value.
+    :param bool nondestructive: Option to not modify the input shapes.
 
     Usage:
 
@@ -632,12 +652,12 @@ class LocalSplit(BopCore):
     """
 
     def __init__(self, shape, tool, basis_shape, approximate=False,
-                 parallel=True, fuzzy_val=None):
+                 parallel=True, fuzzy_val=None, nondestructive=True):
         super(LocalSplit, self).__init__()
 
         # Intersect
         section = IntersectShapes(shape, tool, True, False, approximate,
-                                  parallel, fuzzy_val)
+                                  parallel, fuzzy_val, nondestructive)
         sec_edges = section.edges
 
         # Split
