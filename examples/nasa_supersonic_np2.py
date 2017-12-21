@@ -1,9 +1,9 @@
-import afem.io.nastran
+import afem.exchange.nastran
 from afem.config import Settings
-from afem.mesh import MeshAPI
+from afem.exchange import ImportVSP, StepExport
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.io import ImportVSP, StepExport
+from afem.mesh import MeshAPI
 from afem.structure import *
 from afem.topology import *
 
@@ -363,7 +363,7 @@ def build(wing, fuselage):
 
     # Export the mesh (nodes and elements) to a bulk data file
     the_mesh = MeshAPI.get_active()
-    afem.io.nastran.export_bdf(the_mesh, 'nasa_supersonic_np2.bdf')
+    afem.exchange.nastran.export_bdf(the_mesh, 'nasa_supersonic_np2.bdf')
 
 
 if __name__ == '__main__':

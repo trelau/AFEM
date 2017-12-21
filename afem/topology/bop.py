@@ -174,7 +174,7 @@ class BopAlgo(BopCore):
         info.write('Nondestructive: {}\n'.format(self._bop.NonDestructive()))
 
         # Avoid circular imports
-        from afem.io.brep import write_brep
+        from afem.exchange.brep import write_brep
         from afem.topology.create import CompoundByShapes
 
         # Arguments

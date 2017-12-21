@@ -2,7 +2,7 @@ import unittest
 
 from afem.geometry import *
 # from afem.graphics import Viewer
-from afem.io import ImportVSP
+from afem.exchange import ImportVSP
 from afem.structure.create import *
 from afem.structure.entities import *
 from afem.topology import *

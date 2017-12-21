@@ -1,7 +1,7 @@
 from afem.config import Settings
+from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.io import ImportVSP
 from afem.topology import *
 
 v = Viewer()

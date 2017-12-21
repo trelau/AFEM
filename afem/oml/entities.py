@@ -14,7 +14,7 @@
 from OCCT.TopoDS import TopoDS_Solid
 
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
-from afem.geometry.entities import NurbsCurve, Surface
+from afem.geometry.entities import Surface
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem

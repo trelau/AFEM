@@ -1,6 +1,6 @@
+from afem.exchange import brep
 from afem.geometry import NurbsCurveByPoints, NurbsSurfaceByInterp
 from afem.graphics import Viewer
-from afem.io import brep
 from afem.oml import Body
 
 fn1 = r'..\models\uCRM\fuselage.brep'

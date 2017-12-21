@@ -3,10 +3,10 @@ from __future__ import print_function
 import time
 
 from afem.config import Settings
-from afem.mesh import MeshAPI
+from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.io import ImportVSP
+from afem.mesh import MeshAPI
 from afem.structure import *
 from afem.topology import *
 

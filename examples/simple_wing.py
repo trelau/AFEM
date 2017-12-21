@@ -1,7 +1,7 @@
 from afem.config import Settings
-from afem.mesh import MeshAPI
+from afem.exchange import ImportVSP
 from afem.graphics import Viewer
-from afem.io import ImportVSP
+from afem.mesh import MeshAPI
 from afem.structure import *
 
 Settings.log_to_console()

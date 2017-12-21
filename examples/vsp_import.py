@@ -1,5 +1,5 @@
+from afem.exchange import ImportVSP
 from afem.graphics import Viewer
-from afem.io import ImportVSP
 
 # v = Viewer()
 fn = r'..\models\777-200LR.stp'

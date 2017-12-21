@@ -1,9 +1,9 @@
 from __future__ import print_function
 
 from afem.config import Settings
+from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.io import ImportVSP
 from afem.misc.check import pairwise
 from afem.structure import *
 from afem.topology import *

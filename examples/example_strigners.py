@@ -1,6 +1,6 @@
+from afem.exchange import ImportVSP
 from afem.geometry import CreateGeom
 from afem.graphics import Viewer
-from afem.io import ImportVSP
 from afem.structure import CreatePart, PartTools
 from afem.topology import ShapeTools
 

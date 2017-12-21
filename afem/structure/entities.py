@@ -16,8 +16,6 @@ from OCCT.TopoDS import TopoDS_Shape
 from numpy import mean
 
 from afem.config import logger
-from afem.mesh.elements import Elm1D, Elm2D
-from afem.mesh.meshes import MeshAPI
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
                                   PointFromParameter, PointsAlongCurveByNumber,
@@ -26,6 +24,8 @@ from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
+from afem.mesh.elements import Elm1D, Elm2D
+from afem.mesh.meshes import MeshAPI
 from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)

@@ -3,9 +3,9 @@ from __future__ import print_function
 import time
 
 from afem.config import Settings
+from afem.exchange import ImportVSP
 from afem.geometry import CreateGeom, ProjectGeom
 from afem.graphics import Viewer
-from afem.io import ImportVSP
 from afem.structure import AssemblyAPI, CreatePart, PartTools
 from afem.topology import ShapeTools
 

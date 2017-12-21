@@ -1,10 +1,10 @@
 import time
 
 from afem.config import Settings
-from afem.mesh import MeshAPI
+from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics.display import display_shape
-from afem.io import ImportVSP
+from afem.mesh import MeshAPI
 from afem.structure import *
 from afem.topology import *
 
