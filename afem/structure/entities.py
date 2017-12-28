@@ -1188,27 +1188,7 @@ class CurvePart(Part):
         :rtype: set(afem.mesh.entities.Elm1D)
         """
         # TODO Elements of part
-        # smesh_mesh = MeshAPI.get_mesh().object
-        # if not isinstance(smesh_mesh, SMESH_Mesh):
-        #     return set()
-        #
-        # edges = ExploreShape.get_edges(self)
-        # compound = CompoundByShapes(edges).compound
-        # submesh = smesh_mesh.GetSubMesh(compound)
-        # if submesh.IsEmpty():
-        #     return set()
-        #
-        # submesh_ds = submesh.GetSubMeshDS()
-        # if not submesh_ds:
-        #     return set()
-        #
-        # elm_iter = submesh_ds.GetElements()
-        # elm_set = set()
-        # while elm_iter.more():
-        #     elm = Elm1D(elm_iter.next())
-        #     elm_set.add(elm)
-        #
-        # return elm_set
+        raise NotImplementedError("Returning elements not yet available.")
 
     @property
     def nodes(self):
@@ -1216,11 +1196,8 @@ class CurvePart(Part):
         :return: The nodes of part.
         :rtype: set(afem.mesh.entities.Node)
         """
-        node_set = set()
-        for e in self.elements:
-            for n in e.nodes:
-                node_set.add(n)
-        return node_set
+        # TODO Nodes of part
+        raise NotImplementedError("Returning nodes not yet available.")
 
 
 class Beam(CurvePart):
@@ -1285,27 +1262,7 @@ class SurfacePart(Part):
         :rtype: set(afem.mesh.entities.Elm2D)
         """
         # TODO Elements of part
-        # smesh_mesh = MeshAPI.get_mesh().object
-        # if not isinstance(smesh_mesh, SMESH_Mesh):
-        #     return set()
-        #
-        # faces = ExploreShape.get_faces(self)
-        # compound = CompoundByShapes(faces).compound
-        # submesh = smesh_mesh.GetSubMesh(compound)
-        # if submesh.IsEmpty():
-        #     return set()
-        #
-        # submesh_ds = submesh.GetSubMeshDS()
-        # if not submesh_ds:
-        #     return set()
-        #
-        # elm_iter = submesh_ds.GetElements()
-        # elm_set = set()
-        # while elm_iter.more():
-        #     elm = Elm2D(elm_iter.next())
-        #     elm_set.add(elm)
-        #
-        # return elm_set
+        raise NotImplementedError("Returning elements not yet available.")
 
     @property
     def nodes(self):
@@ -1313,11 +1270,8 @@ class SurfacePart(Part):
         :return: The nodes of part.
         :rtype: set(afem.mesh.entities.Node)
         """
-        node_set = set()
-        for e in self.elements:
-            for n in e.nodes:
-                node_set.add(n)
-        return node_set
+        # TODO Nodes of part
+        raise NotImplementedError("Returning nodes not yet available.")
 
     def make_shell(self):
         """
