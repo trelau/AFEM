@@ -11,7 +11,7 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from OCCT.SMESH import SMESH_Gen, SMESH_subMesh
+from OCCT.SMESH import SMESH_Gen, SMESH_subMesh, SMESH_Hypothesis
 
 from afem.smesh.entities import Node, Element
 from afem.topology.check import CheckShape
@@ -90,11 +90,19 @@ class MeshGen(object):
         Compute a mesh on a shape.
 
         :param afem.smesh.meshes.Mesh mesh: A mesh.
-        :param OCCT.TopoDS.TopoDS_Shape shape: A shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape to compute mesh on. If
+            not provided then the shape associated to the mesh is used.
 
         :return: *True* if computed, *False* if not.
         :rtype: bool
+
+        :raise ValueError: If no shape is available to apply the hypothesis to.
         """
+        if shape is None:
+            if mesh.has_shape:
+                shape = mesh.shape
+            else:
+                raise ValueError('No shape could be found.')
         return self._gen.Compute(mesh.object, shape)
 
 
@@ -240,7 +248,8 @@ class Mesh(object):
             sub-shape of the master shape. If not provided then the master
             shape is used.
 
-        :return: None.
+        :return: Status of adding hypothesis.
+        :rtype: OCCT.SMESH.SMESH_Hypothesis.Hypothesis_Status
 
         :raise ValueError: If no shape is available to apply the hypothesis to.
         """
@@ -250,7 +259,7 @@ class Mesh(object):
             else:
                 raise ValueError('No shape could be found.')
 
-        self._mesh.AddHypothesis(shape, hypothesis.id)
+        return self._mesh.AddHypothesis(shape, hypothesis.id)
 
     def add_hypotheses(self, hypotheses, shape=None):
         """
@@ -262,12 +271,17 @@ class Mesh(object):
             sub-shape of the master shape. If not provided then the master
             shape is used.
 
-        :return: None.
+        :return: Dictionary where the key is the hypothesis and the value is the
+            hypothesis status.
+        :rtype: dict
 
         :raise ValueError: If no shape is available to apply the hypothesis to.
         """
+        status_dict = {}
         for hyp in hypotheses:
-            self.add_hypothesis(hyp, shape)
+            status = self.add_hypothesis(hyp, shape)
+            status_dict[hyp] = status
+        return status_dict
 
     def clear(self):
         """
