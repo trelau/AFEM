@@ -256,7 +256,6 @@ class QuadrangleAlgo2D(Algorithm):
         """
         Check if this algorithm can mesh the shape.
 
-
         :param shape: The shape.
         :param bool check_all: If *True*, this check returns *True* if all
             shapes are applicable. If *False* this check returns *True* if at

@@ -85,7 +85,7 @@ class MeshGen(object):
         """
         return self._gen.CheckAlgoState(mesh.object, shape)
 
-    def compute(self, mesh, shape):
+    def compute(self, mesh, shape=None):
         """
         Compute a mesh on a shape.
 
