@@ -73,7 +73,7 @@ class Algorithm(Hypothesis):
         """
         Check the hypothesis in the given mesh and shape.
 
-        :param afem.mesh.meshes.Mesh mesh: The mesh.
+        :param afem.smesh.meshes.Mesh mesh: The mesh.
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if hypothesis is ok, *False* otherwise.
@@ -86,7 +86,7 @@ class Algorithm(Hypothesis):
         """
         Compute the mesh on a shape.
 
-        :param afem.mesh.meshes.Mesh mesh: The mesh.
+        :param afem.smesh.meshes.Mesh mesh: The mesh.
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: *True* if completed, *False* if not.

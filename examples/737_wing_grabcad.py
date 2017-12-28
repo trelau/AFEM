@@ -2,7 +2,7 @@ from afem.config import Settings
 from afem.exchange import StepImport
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.mesh import MeshAPI
+from afem.smesh import MeshAPI
 from afem.oml import *
 from afem.structure import *
 from afem.topology import *

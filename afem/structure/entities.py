@@ -24,7 +24,7 @@ from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
-from afem.mesh.elements import Elm1D, Elm2D
+from afem.smesh.entities import Element
 from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)
@@ -1189,27 +1189,28 @@ class CurvePart(Part):
         :return: The 1-d elements of the part.
         :rtype: set(afem.mesh.entities.Elm1D)
         """
-        smesh_mesh = MeshAPI.get_mesh().object
-        if not isinstance(smesh_mesh, SMESH_Mesh):
-            return set()
-
-        edges = ExploreShape.get_edges(self)
-        compound = CompoundByShapes(edges).compound
-        submesh = smesh_mesh.GetSubMesh(compound)
-        if submesh.IsEmpty():
-            return set()
-
-        submesh_ds = submesh.GetSubMeshDS()
-        if not submesh_ds:
-            return set()
-
-        elm_iter = submesh_ds.GetElements()
-        elm_set = set()
-        while elm_iter.more():
-            elm = Elm1D(elm_iter.next())
-            elm_set.add(elm)
-
-        return elm_set
+        # TODO Elements of part
+        # smesh_mesh = MeshAPI.get_mesh().object
+        # if not isinstance(smesh_mesh, SMESH_Mesh):
+        #     return set()
+        #
+        # edges = ExploreShape.get_edges(self)
+        # compound = CompoundByShapes(edges).compound
+        # submesh = smesh_mesh.GetSubMesh(compound)
+        # if submesh.IsEmpty():
+        #     return set()
+        #
+        # submesh_ds = submesh.GetSubMeshDS()
+        # if not submesh_ds:
+        #     return set()
+        #
+        # elm_iter = submesh_ds.GetElements()
+        # elm_set = set()
+        # while elm_iter.more():
+        #     elm = Elm1D(elm_iter.next())
+        #     elm_set.add(elm)
+        #
+        # return elm_set
 
     @property
     def nodes(self):
@@ -1285,27 +1286,28 @@ class SurfacePart(Part):
         :return: The shell elements of the part.
         :rtype: set(afem.mesh.entities.Elm2D)
         """
-        smesh_mesh = MeshAPI.get_mesh().object
-        if not isinstance(smesh_mesh, SMESH_Mesh):
-            return set()
-
-        faces = ExploreShape.get_faces(self)
-        compound = CompoundByShapes(faces).compound
-        submesh = smesh_mesh.GetSubMesh(compound)
-        if submesh.IsEmpty():
-            return set()
-
-        submesh_ds = submesh.GetSubMeshDS()
-        if not submesh_ds:
-            return set()
-
-        elm_iter = submesh_ds.GetElements()
-        elm_set = set()
-        while elm_iter.more():
-            elm = Elm2D(elm_iter.next())
-            elm_set.add(elm)
-
-        return elm_set
+        # TODO Elements of part
+        # smesh_mesh = MeshAPI.get_mesh().object
+        # if not isinstance(smesh_mesh, SMESH_Mesh):
+        #     return set()
+        #
+        # faces = ExploreShape.get_faces(self)
+        # compound = CompoundByShapes(faces).compound
+        # submesh = smesh_mesh.GetSubMesh(compound)
+        # if submesh.IsEmpty():
+        #     return set()
+        #
+        # submesh_ds = submesh.GetSubMeshDS()
+        # if not submesh_ds:
+        #     return set()
+        #
+        # elm_iter = submesh_ds.GetElements()
+        # elm_set = set()
+        # while elm_iter.more():
+        #     elm = Elm2D(elm_iter.next())
+        #     elm_set.add(elm)
+        #
+        # return elm_set
 
     @property
     def nodes(self):

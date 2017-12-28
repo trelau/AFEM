@@ -11,5 +11,6 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from afem.mesh.hypotheses import *
-from afem.mesh.meshes import *
+from afem.smesh.hypotheses import *
+from afem.smesh.meshes import *
+from afem.smesh.utils import *

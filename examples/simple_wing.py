@@ -1,7 +1,8 @@
 from afem.config import Settings
 from afem.exchange import ImportVSP
 from afem.graphics import Viewer
-from afem.mesh import MeshAPI
+from afem.smesh import MeshGen, NetgenSimple2D, NetgenAlgo2D, MaxLength1D, \
+    Regular1D
 from afem.structure import *
 
 Settings.log_to_console()
@@ -22,7 +23,7 @@ fspar = SparByParameters('front spar', 0.15, 0., 0.15, 1., wing).spar
 rspar = SparByParameters('rear spar', 0.70, 0., 0.70, 1., wing).spar
 RibByPoints('root rib', fspar.p1, rspar.p1, wing)
 RibByPoints('tip rib', fspar.p2, rspar.p2, wing)
-RibsAlongCurveByDistance('rib', rspar.cref, 30, fspar, rspar, wing, d1=30,
+RibsAlongCurveByDistance('rib', rspar.cref, 60, fspar, rspar, wing, d1=30,
                          d2=-30)
 internal_parts = wingbox.get_parts()
 skin = SkinByBody('skin', wing).skin
@@ -34,33 +35,35 @@ FuseSurfaceParts([skin], internal_parts)
 # Mesh
 the_shape = wingbox.prepare_shape_to_mesh()
 print('Creating mesh')
-the_mesh = MeshAPI.create_mesh('the mesh', the_shape)
+the_gen = MeshGen()
+the_mesh = MeshGen.create_mesh(the_gen)
+the_mesh.shape_to_mesh(the_shape)
+
+# 1-d
+hyp1d = MaxLength1D(the_gen, 4.)
+alg1d = Regular1D(the_gen)
+the_mesh.add_hypothesis(hyp1d, the_shape)
+the_mesh.add_hypothesis(alg1d, the_shape)
 
 # Unstructured quad-dominant
-MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
-MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshAPI.add_hypothesis('netgen')
-MeshAPI.add_hypothesis('netgen algo')
-
-MeshAPI.hypotheses.create_max_length_1d('max length', 4.)
-MeshAPI.hypotheses.create_regular_1d('algo 1d')
-MeshAPI.add_hypothesis('max length')
-MeshAPI.add_hypothesis('algo 1d')
+hyp2d = NetgenSimple2D(the_gen, 4.)
+alg2d = NetgenAlgo2D(the_gen)
+the_mesh.add_hypothesis(hyp2d, the_shape)
+the_mesh.add_hypothesis(alg2d, the_shape)
 
 # Apply mapped quadrangle to internal structure
-mapped_hyp = MeshAPI.hypotheses.create_quadrangle_parameters('quad hyp')
-mapped_algo = MeshAPI.hypotheses.create_quadrangle_aglo('quad algo')
-for part_ in internal_parts + [skin]:
-    if mapped_algo.is_applicable(part_, True):
-        MeshAPI.add_hypothesis(mapped_hyp, part_)
-        MeshAPI.add_hypothesis(mapped_algo, part_)
-    else:
-        print('Not applicable: {}'.format(part_.label))
+# mapped_hyp = QuadrangleParams2D(the_gen)
+# mapped_alg = Quadrangle2D(the_gen)
+# for part_ in internal_parts + [skin]:
+#     if mapped_alg.is_applicable(part_, True):
+#         the_mesh.add_hypothesis(mapped_hyp, part_)
+#         the_mesh.add_hypothesis(mapped_alg, part_)
+#     else:
+#         print('Not applicable: {}'.format(part_.label))
 
-MeshAPI.compute_mesh()
+the_gen.compute(the_mesh, the_shape)
 
 # View
-skin.set_transparency(0.5)
 v = Viewer()
 v.display_assy(wingbox)
 v.start()
