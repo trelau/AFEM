@@ -58,16 +58,20 @@ class MeshGen(object):
         """
         return self._gen.GetANewId()
 
-    def create_mesh(self, is_embedded=False):
+    def create_mesh(self, is_embedded=False, shape=None):
         """
         Create a mesh.
 
         :param bool is_embedded: Option for embedding mesh.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape to mesh.
 
         :return: The mesh.
         :rtype: afem.smesh.meshes.Mesh
         """
-        return Mesh(self, is_embedded)
+        the_mesh = Mesh(self, is_embedded)
+        if shape is not None:
+            the_mesh.shape_to_mesh(shape)
+        return the_mesh
 
     def check_algo_state(self, mesh, shape):
         """
