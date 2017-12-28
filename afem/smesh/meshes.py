@@ -252,6 +252,23 @@ class Mesh(object):
 
         self._mesh.AddHypothesis(shape, hypothesis.id)
 
+    def add_hypotheses(self, hypotheses, shape=None):
+        """
+        Add a hypotheses to the shape.
+
+        :param hypotheses: The hypotheses to add.
+        :type hypotheses: collections.Sequence(afem.smesh.hypotheses.Hypothesis)
+        :param shape: The shape the hypothesis applies to. This can be a
+            sub-shape of the master shape. If not provided then the master
+            shape is used.
+
+        :return: None.
+
+        :raise ValueError: If no shape is available to apply the hypothesis to.
+        """
+        for hyp in hypotheses:
+            self.add_hypothesis(hyp, shape)
+
     def clear(self):
         """
         Clear all nodes and elements.
