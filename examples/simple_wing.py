@@ -52,8 +52,8 @@ the_mesh.add_hypothesis(hyp2d, the_shape)
 the_mesh.add_hypothesis(alg2d, the_shape)
 
 # Apply mapped quadrangle to internal structure
-# mapped_hyp = QuadrangleParams2D(the_gen)
-# mapped_alg = Quadrangle2D(the_gen)
+# mapped_hyp = QuadrangleHypo2D(the_gen)
+# mapped_alg = QuadrangleAlgo2D(the_gen)
 # for part_ in internal_parts + [skin]:
 #     if mapped_alg.is_applicable(part_, True):
 #         the_mesh.add_hypothesis(mapped_hyp, part_)

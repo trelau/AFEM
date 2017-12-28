@@ -11,7 +11,6 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from OCCT.SMESH import SMESH_Mesh
 from OCCT.TopoDS import TopoDS_Shape
 from numpy import mean
 
@@ -24,7 +23,6 @@ from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.viewer import ViewableItem
-from afem.smesh.entities import Element
 from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)

@@ -19,7 +19,8 @@ except ImportError:
     BLSURFPlugin_BLSURF, BLSURFPlugin_Hypothesis = None, None
     has_mg = False
 
-from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis, NETGENPlugin_NETGEN_2D,
+from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis_2D,
+                               NETGENPlugin_NETGEN_2D,
                                NETGENPlugin_NETGEN_2D_ONLY,
                                NETGENPlugin_SimpleHypothesis_2D)
 from OCCT.SMESH import SMESH_Hypothesis
@@ -31,11 +32,10 @@ from OCCT.StdMeshers import (QUAD_STANDARD, StdMeshers_Adaptive1D,
                              StdMeshers_Quadrangle_2D, StdMeshers_Regular_1D)
 
 __all__ = ["Hypothesis", "Algorithm", "Regular1D", "MaxLength1D",
-           "LocalLength1D",
-           "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
-           "NetgenHypothesis", "NetgenSimple2D", "NetgenAlgo2D",
-           "NetgenAlgoOnly2D", "QuadrangleParams2D", "Quadrangle2D",
-           "MeshGemsAlgo2D", "MeshGemsHypothesis2D"]
+           "LocalLength1D", "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
+           "NetgenAlgo2D", "NetgenAlgoOnly2D", "NetgenHypo2D",
+           "NetgenSimple2D", "QuadrangleAlgo2D", "QuadrangleHypo2D",
+           "MeshGemsAlgo2D", "MeshGemsHypo2D"]
 
 
 class Hypothesis(object):
@@ -97,12 +97,25 @@ class Algorithm(Hypothesis):
 
 class Regular1D(Algorithm):
     """
-    Regular 1-D algorithm.
+    Regular 1-D algorithm. Use this with a hypothesis to mesh edges.
+
+    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
     """
 
     def __init__(self, gen):
         hyp = StdMeshers_Regular_1D(gen.new_id(), -1, gen.object)
         super(Regular1D, self).__init__(hyp)
+
+
+class CompositeSide1D(Algorithm):
+    """
+    Composite side 1-D discretization. This allows a 1-D hypothesis to be
+    applied to a whole side of a geometrical face even if it is composed of
+    several edges provided that they form C1 curve in all faces of the main
+    shape.
+    """
+    # TODO Implement CompositeSide1D
+    pass
 
 
 class MaxLength1D(Hypothesis):
@@ -167,49 +180,6 @@ class Deflection1D(Hypothesis):
         self.object.SetDeflection(deflection)
 
 
-class NetgenHypothesis(Hypothesis):
-    """
-    Netgen hypothesis.
-    """
-
-    def __init__(self, gen, max_size=1000., min_size=0.,
-                 allow_quads=False, second_order=False, optimize=True,
-                 fineness=2, growth_rate=0.3, nseg_per_edge=1,
-                 nseg_per_radius=2, surface_curvature=False, fuse_edges=False):
-        hyp = NETGENPlugin_Hypothesis(gen.new_id(), -1, gen.object)
-        super(NetgenHypothesis, self).__init__(hyp)
-
-        self.object.SetMaxSize(max_size)
-        self.object.SetMinSize(min_size)
-        self.object.SetQuadAllowed(allow_quads)
-        self.object.SetSecondOrder(second_order)
-        self.object.SetOptimize(optimize)
-        self.object.SetFineness(fineness)
-        self.object.SetGrowthRate(growth_rate)
-        self.object.SetNbSegPerEdge(nseg_per_edge)
-        self.object.SetNbSegPerRadius(nseg_per_radius)
-        self.object.SetSurfaceCurvature(surface_curvature)
-        self.object.SetFuseEdges(fuse_edges)
-
-
-class NetgenSimple2D(Hypothesis):
-    """
-    Netgen 2-D simple hypothesis.
-    """
-
-    def __init__(self, gen, local_length, allow_quads=True,
-                 length_from_edges=False, max_area=0.):
-        hyp = NETGENPlugin_SimpleHypothesis_2D(gen.new_id(), -1, gen.object)
-        super(NetgenSimple2D, self).__init__(hyp)
-
-        self.object.SetLocalLength(local_length)
-        self.object.SetAllowQuadrangles(allow_quads)
-        if length_from_edges:
-            self.object.LengthFromEdges()
-        if max_area > 0.:
-            self.object.SetMaxElementArea(max_area)
-
-
 class NetgenAlgo2D(Algorithm):
     """
     Netgen 2-D algorithm.
@@ -230,26 +200,57 @@ class NetgenAlgoOnly2D(Algorithm):
         super(NetgenAlgoOnly2D, self).__init__(hyp)
 
 
-class QuadrangleParams2D(Hypothesis):
+class NetgenHypo2D(Hypothesis):
     """
-    Quadrangle 2-D parameters.
+    NETGEN 2-D hypothesis.
     """
 
-    def __init__(self, gen):
-        hyp = StdMeshers_QuadrangleParams(gen.new_id(), -1, gen.object)
-        super(QuadrangleParams2D, self).__init__(hyp)
+    def __init__(self, gen, max_size=1000., min_size=0.,
+                 allow_quads=False, second_order=False, optimize=True,
+                 fineness=2, growth_rate=0.3, nseg_per_edge=1,
+                 nseg_per_radius=2, surface_curvature=False, fuse_edges=False):
+        hyp = NETGENPlugin_Hypothesis_2D(gen.new_id(), -1, gen.object)
+        super(NetgenHypo2D, self).__init__(hyp)
 
-        self.object.SetQuadType(QUAD_STANDARD)
+        self.object.SetMaxSize(max_size)
+        self.object.SetMinSize(min_size)
+        self.object.SetSecondOrder(second_order)
+        self.object.SetOptimize(optimize)
+        self.object.SetFineness(fineness)
+        self.object.SetGrowthRate(growth_rate)
+        self.object.SetNbSegPerEdge(nseg_per_edge)
+        self.object.SetNbSegPerRadius(nseg_per_radius)
+        self.object.SetQuadAllowed(allow_quads)
+        self.object.SetSurfaceCurvature(surface_curvature)
+        self.object.SetFuseEdges(fuse_edges)
 
 
-class Quadrangle2D(Algorithm):
+class NetgenSimple2D(Hypothesis):
+    """
+    NETGEN 2-D simple hypothesis.
+    """
+
+    def __init__(self, gen, local_length, allow_quads=True,
+                 length_from_edges=False, max_area=0.):
+        hyp = NETGENPlugin_SimpleHypothesis_2D(gen.new_id(), -1, gen.object)
+        super(NetgenSimple2D, self).__init__(hyp)
+
+        self.object.SetLocalLength(local_length)
+        self.object.SetAllowQuadrangles(allow_quads)
+        if length_from_edges:
+            self.object.LengthFromEdges()
+        if max_area > 0.:
+            self.object.SetMaxElementArea(max_area)
+
+
+class QuadrangleAlgo2D(Algorithm):
     """
     Quadrangle 2-D algorithm
     """
 
     def __init__(self, gen):
         hyp = StdMeshers_Quadrangle_2D(gen.new_id(), -1, gen.object)
-        super(Quadrangle2D, self).__init__(hyp)
+        super(QuadrangleAlgo2D, self).__init__(hyp)
 
     def is_applicable(self, shape, check_all=True):
         """
@@ -267,6 +268,18 @@ class Quadrangle2D(Algorithm):
         return self.object.IsApplicable_(shape, check_all)
 
 
+class QuadrangleHypo2D(Hypothesis):
+    """
+    Quadrangle 2-D parameters.
+    """
+
+    def __init__(self, gen):
+        hyp = StdMeshers_QuadrangleParams(gen.new_id(), -1, gen.object)
+        super(QuadrangleHypo2D, self).__init__(hyp)
+
+        self.object.SetQuadType(QUAD_STANDARD)
+
+
 class MeshGemsAlgo2D(Algorithm):
     """
     MeshGems MGCAD-Surf algorithm.
@@ -279,7 +292,7 @@ class MeshGemsAlgo2D(Algorithm):
         super(MeshGemsAlgo2D, self).__init__(hyp)
 
 
-class MeshGemsHypothesis2D(Hypothesis):
+class MeshGemsHypo2D(Hypothesis):
     """
     MeshGems MGCAD-Surf hypothesis.
     """
@@ -288,7 +301,7 @@ class MeshGemsHypothesis2D(Hypothesis):
         if not has_mg:
             raise NotImplementedError('MeshGems not available.')
         hyp = BLSURFPlugin_Hypothesis(gen.new_id(), -1, gen.object, True)
-        super(MeshGemsHypothesis2D, self).__init__(hyp)
+        super(MeshGemsHypo2D, self).__init__(hyp)
 
         # Set a global physical size
         if size is not None:
