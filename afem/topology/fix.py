@@ -96,6 +96,7 @@ class FixShape(object):
         :return: *True* if at least one tolerance of a sub-shape was modified.
         :rtype: bool
         """
+        # TODO Check limit tolerance is actually working
         return _fix_tol.LimitTolerance(shape, tol, 0., styp)
 
     @staticmethod

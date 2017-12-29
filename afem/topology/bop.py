@@ -32,6 +32,8 @@ __all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "CutCylindricalHole", "LocalSplit"]
 
 
+# FIXME Rebuilding of shapes when nondestructive=True
+
 class BopCore(object):
     """
     Core class for Boolean operations and enabling attributes and methods for
@@ -356,7 +358,7 @@ class FuseShapes(BopAlgo):
     """
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
-                 fuzzy_val=None, nondestructive=True):
+                 fuzzy_val=None, nondestructive=False):
         super(FuseShapes, self).__init__(shape1, shape2, parallel,
                                          fuzzy_val, nondestructive,
                                          BRepAlgoAPI_Fuse)
@@ -400,7 +402,7 @@ class CutShapes(BopAlgo):
     """
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
-                 fuzzy_val=None, nondestructive=True):
+                 fuzzy_val=None, nondestructive=False):
         super(CutShapes, self).__init__(shape1, shape2, parallel,
                                         fuzzy_val, nondestructive,
                                         BRepAlgoAPI_Cut)
@@ -444,7 +446,7 @@ class CommonShapes(BopAlgo):
     """
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
-                 fuzzy_val=None, nondestructive=True):
+                 fuzzy_val=None, nondestructive=False):
         super(CommonShapes, self).__init__(shape1, shape2, parallel,
                                            fuzzy_val, nondestructive,
                                            BRepAlgoAPI_Common)
@@ -492,7 +494,7 @@ class IntersectShapes(BopAlgo):
 
     def __init__(self, shape1=None, shape2=None, compute_pcurve1=False,
                  compute_pcurve2=False, approximate=False, parallel=True,
-                 fuzzy_val=None, nondestructive=True):
+                 fuzzy_val=None, nondestructive=False):
         super(IntersectShapes, self).__init__(None, None, parallel,
                                               fuzzy_val, nondestructive,
                                               BRepAlgoAPI_Section)
@@ -585,7 +587,7 @@ class SplitShapes(BopAlgo):
     """
 
     def __init__(self, shape1=None, shape2=None, parallel=True,
-                 fuzzy_val=None, nondestructive=True):
+                 fuzzy_val=None, nondestructive=False):
         super(SplitShapes, self).__init__(shape1, shape2, parallel,
                                           fuzzy_val, nondestructive,
                                           BRepAlgoAPI_Splitter)
@@ -604,7 +606,7 @@ class VolumesFromShapes(BopAlgo):
     """
 
     def __init__(self, shapes, intersect=False, parallel=True,
-                 fuzzy_val=None, nondestructive=True):
+                 fuzzy_val=None, nondestructive=False):
         super(VolumesFromShapes, self).__init__(None, None, parallel,
                                                 fuzzy_val, nondestructive,
                                                 BOPAlgo_MakerVolume)
@@ -674,7 +676,7 @@ class CutCylindricalHole(BopAlgo):
     """
 
     def __init__(self, shape, radius, ax1, parallel=True, fuzzy_val=None,
-                 nondestructive=True):
+                 nondestructive=False):
         super(CutCylindricalHole, self).__init__(None, None, parallel,
                                                  fuzzy_val, nondestructive,
                                                  BRepFeat_MakeCylindricalHole)
@@ -712,7 +714,7 @@ class LocalSplit(BopCore):
     """
 
     def __init__(self, shape, tool, basis_shape, approximate=False,
-                 parallel=True, fuzzy_val=None, nondestructive=True):
+                 parallel=True, fuzzy_val=None, nondestructive=False):
         super(LocalSplit, self).__init__()
 
         # Intersect
