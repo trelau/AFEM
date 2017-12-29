@@ -29,9 +29,11 @@ from OCCT.StdMeshers import (QUAD_STANDARD, StdMeshers_Adaptive1D,
                              StdMeshers_MaxLength,
                              StdMeshers_NumberOfSegments,
                              StdMeshers_QuadrangleParams,
-                             StdMeshers_Quadrangle_2D, StdMeshers_Regular_1D)
+                             StdMeshers_Quadrangle_2D, StdMeshers_Regular_1D,
+                             StdMeshers_CompositeSegment_1D)
 
-__all__ = ["Hypothesis", "Algorithm", "Regular1D", "MaxLength1D",
+__all__ = ["Hypothesis", "Algorithm", "Regular1D", "CompositeSide1D",
+           "MaxLength1D",
            "LocalLength1D", "NumberOfSegments1D", "Adaptive1D", "Deflection1D",
            "NetgenAlgo2D", "NetgenAlgoOnly2D", "NetgenHypo2D",
            "NetgenSimple2D", "QuadrangleAlgo2D", "QuadrangleHypo2D",
@@ -114,8 +116,10 @@ class CompositeSide1D(Algorithm):
     several edges provided that they form C1 curve in all faces of the main
     shape.
     """
-    # TODO Implement CompositeSide1D
-    pass
+
+    def __init__(self, gen):
+        hyp = StdMeshers_CompositeSegment_1D(gen.new_id(), -1, gen.object)
+        super(CompositeSide1D, self).__init__(hyp)
 
 
 class MaxLength1D(Hypothesis):
