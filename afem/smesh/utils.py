@@ -25,8 +25,6 @@ class MeshEditor(object):
     :param afem.smesh.meshes.Mesh mesh: A mesh.
     """
 
-    # TODO MeshEditor
-
     def __init__(self, mesh):
         self._editor = SMESH_MeshEditor(mesh.object)
 

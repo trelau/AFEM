@@ -2,7 +2,7 @@ from afem.config import Settings
 from afem.exchange import brep
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import MeshAPI
+from afem.smesh import *
 from afem.oml import Body
 from afem.structure import *
 from afem.topology import *
@@ -162,28 +162,25 @@ parts = AssemblyAPI.get_parts()
 
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
-the_mesh = MeshAPI.create_mesh('the mesh', shape_to_mesh)
+the_gen = MeshGen()
+the_mesh = the_gen.create_mesh(shape_to_mesh)
 
 # Global mesh defaults
-ngh = MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
-nga = MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-h2 = MeshAPI.hypotheses.create_max_length_1d('max length', 4.)
-a2 = MeshAPI.hypotheses.create_regular_1d('algo 1d')
-MeshAPI.add_hypothesis(ngh)
-MeshAPI.add_hypothesis(nga)
-MeshAPI.add_hypothesis(h2)
-MeshAPI.add_hypothesis(a2)
+ngh = NetgenSimple2D(the_gen, 4.)
+nga = NetgenAlgo2D(the_gen)
+hyp1d = MaxLength1D(the_gen, 4.)
+alg1d = Regular1D(the_gen)
+status = the_mesh.add_hypotheses([ngh, nga, hyp1d, alg1d])
 
 # Local mesh
-MeshAPI.hypotheses.create_quadrangle_parameters('h1')
-quad_algo = MeshAPI.hypotheses.create_quadrangle_aglo('a1')
+quad_hyp = QuadrangleHypo2D(the_gen)
+quad_alg = QuadrangleAlgo2D(the_gen)
 for part in internal_parts:
-    if quad_algo.is_applicable(part, True):
-        MeshAPI.add_hypothesis('h1', part)
-        MeshAPI.add_hypothesis('a1', part)
+    if quad_alg.is_applicable(part, True):
+        the_mesh.add_hypotheses([quad_alg, quad_hyp], part)
 
 print('Computing mesh...')
-MeshAPI.compute_mesh()
+the_gen.compute(the_mesh, shape_to_mesh)
 
 # View
 v = Viewer()

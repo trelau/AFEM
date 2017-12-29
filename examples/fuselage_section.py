@@ -1,6 +1,6 @@
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import MeshAPI
+from afem.smesh import *
 from afem.oml import *
 from afem.structure import *
 from afem.topology import *
@@ -94,29 +94,28 @@ join = SplitParts(all_parts)
 
 # Mesh
 the_shape = AssemblyAPI.prepare_shape_to_mesh()
-the_mesh = MeshAPI.create_mesh('the mesh', the_shape)
+the_gen = MeshGen()
+the_mesh = the_gen.create_mesh(the_shape)
 
 # Unstructured quad-dominant
-MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
-MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshAPI.add_hypothesis('netgen')
-MeshAPI.add_hypothesis('netgen algo')
+ngh = NetgenSimple2D(the_gen, 4.)
+nga = NetgenAlgo2D(the_gen)
+the_mesh.add_hypotheses([ngh, nga])
 
 # Max edge length
-MeshAPI.hypotheses.create_max_length_1d('max length', 4.)
-MeshAPI.hypotheses.create_regular_1d('algo 1d')
-MeshAPI.add_hypothesis('max length')
-MeshAPI.add_hypothesis('algo 1d')
+hy1d = MaxLength1D(the_gen, 4.)
+alg1d = Regular1D(the_gen)
+the_mesh.add_hypotheses([hy1d, alg1d])
 
 # Mapped quads applied to applicable faces
-mapped_hyp = MeshAPI.hypotheses.create_quadrangle_parameters('quad hyp')
-mapped_algo = MeshAPI.hypotheses.create_quadrangle_aglo('quad algo')
+mapped_hyp = QuadrangleHypo2D(the_gen)
+mapped_algo = QuadrangleAlgo2D(the_gen)
+
 for face in ExploreShape.get_faces(the_shape):
     if mapped_algo.is_applicable(face, True):
-        MeshAPI.add_hypothesis(mapped_hyp, face)
-        MeshAPI.add_hypothesis(mapped_algo, face)
+        the_mesh.add_hypotheses([mapped_hyp, mapped_algo], face)
 
-MeshAPI.compute_mesh()
+the_gen.compute(the_mesh)
 
 # View
 v = Viewer()

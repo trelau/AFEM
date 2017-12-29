@@ -137,6 +137,7 @@ the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(the_shape)
 alg2d = NetgenAlgo2D(the_gen)
 hyp2d = NetgenSimple2D(the_gen, 4.)
+the_mesh.add_hypotheses([hyp2d, alg2d])
 the_gen.compute(the_mesh, the_shape)
 
 # View

@@ -6,7 +6,7 @@ from afem.config import Settings
 from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import MeshAPI
+from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -225,7 +225,6 @@ def build_wingbox(wing, params):
     skin.set_transparency(0.5)
 
     # Join the wing skin and internal structure
-    all_parts = AssemblyAPI.get_parts(order=True)
     skin.fuse(*internal_parts)
 
     # Discard faces touching reference surface.
@@ -236,6 +235,7 @@ def build_wingbox(wing, params):
     skin.fix()
 
     # Check free edges.
+    all_parts = AssemblyAPI.get_parts(order=True)
     cmp = CompoundByShapes(all_parts).compound
     tool = ExploreFreeEdges(cmp)
 
@@ -278,42 +278,37 @@ def build_wingbox(wing, params):
     # MESH --------------------------------------------------------------------
     # Initialize
     shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
-    the_mesh = MeshAPI.create_mesh('wing-box mesh', shape_to_mesh)
+    the_gen = MeshGen()
+    the_mesh = the_gen.create_mesh(shape_to_mesh)
 
     # Use a single global hypothesis based on maximum length.
-    MeshAPI.hypotheses.create_max_length_1d('max length', 4.)
-    MeshAPI.hypotheses.create_regular_1d('algo 1d')
-    MeshAPI.add_hypothesis('max length')
-    MeshAPI.add_hypothesis('algo 1d')
+    hyp1d = MaxLength1D(the_gen, 4.)
+    alg1d = Regular1D(the_gen)
+    the_mesh.add_hypotheses([hyp1d, alg1d], shape_to_mesh)
 
     # Netgen unstructured quad-dominated
-    MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
-    MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-    MeshAPI.add_hypothesis('netgen hypo', skin)
-    MeshAPI.add_hypothesis('netgen algo', skin)
+    netgen_hyp = NetgenSimple2D(the_gen, 4.)
+    netgen_alg = NetgenAlgo2D(the_gen)
+    the_mesh.add_hypotheses([netgen_hyp, netgen_alg], shape_to_mesh)
 
     # Apply mapped quadrangle to internal structure
-    mapped_hyp = MeshAPI.hypotheses.create_quadrangle_parameters('quad hyp')
-    mapped_algo = MeshAPI.hypotheses.create_quadrangle_aglo('quad algo')
+    mapped_hyp = QuadrangleHypo2D(the_gen)
+    mapped_algo = QuadrangleAlgo2D(the_gen)
     for part_ in internal_parts:
         for face in part_.faces:
             if mapped_algo.is_applicable(part_):
-                MeshAPI.add_hypothesis(mapped_hyp, face)
-                MeshAPI.add_hypothesis(mapped_algo, face)
-            else:
-                MeshAPI.add_hypothesis('netgen hypo', face)
-                MeshAPI.add_hypothesis('netgen algo', face)
+                the_mesh.add_hypotheses([mapped_algo, mapped_hyp], face)
 
     # Compute the mesh
     mesh_start = time.time()
     print('Computing mesh...')
-    status = MeshAPI.compute_mesh()
+    status = the_gen.compute(the_mesh, shape_to_mesh)
     if not status:
         print('Failed to compute mesh')
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    v.display_mesh(the_mesh.object, 2)
+    # v.display_mesh(the_mesh.object, 2)
 
     # Uncomment this to export STEP file.
     # from afem.io import StepExport
@@ -325,7 +320,6 @@ def build_wingbox(wing, params):
 
 
 if __name__ == '__main__':
-    v = Viewer(1280, 1024)
     start = time.time()
 
     # Import model
@@ -339,6 +333,7 @@ if __name__ == '__main__':
               'aux rib list': ['2', '5', '8']}
     assy = build_wingbox(wing_in, inputs)
 
+    v = Viewer(1280, 1024)
     v.add(assy)
     v.fit()
     v.start()

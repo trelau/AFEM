@@ -3,8 +3,8 @@ import time
 from afem.config import Settings
 from afem.exchange import ImportVSP
 from afem.geometry import *
-from afem.graphics.display import display_shape
-from afem.smesh import MeshAPI
+from afem.graphics import Viewer
+from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -101,21 +101,25 @@ parts = AssemblyAPI.get_master().get_parts()
 # MESH
 master_assy = AssemblyAPI.get_master()
 shape_to_mesh = master_assy.prepare_shape_to_mesh()
-the_mesh = MeshAPI.create_mesh('wing-box mesh', shape_to_mesh)
+the_gen = MeshGen()
+the_mesh = the_gen.create_mesh(shape_to_mesh)
 
 # Use a single global hypothesis based on local length.
-MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
-MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshAPI.add_hypothesis('netgen hypo')
-MeshAPI.add_hypothesis('netgen algo')
+hyp = NetgenSimple2D(the_gen, 4.)
+alg = NetgenAlgo2D(the_gen)
+the_mesh.add_hypotheses([hyp, alg], shape_to_mesh)
 
 # Compute the mesh
 mesh_start = time.time()
 print('Computing mesh...')
-status = MeshAPI.compute_mesh()
+status = the_gen.compute(the_mesh, shape_to_mesh)
 if not status:
     print('Failed to compute mesh')
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-display_shape(None, the_mesh.object, *tool.free_edges)
+
+v = Viewer()
+v.add(*tool.free_edges)
+v.display_mesh(the_mesh.object, 2)
+v.start()

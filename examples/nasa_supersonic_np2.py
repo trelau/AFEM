@@ -3,7 +3,7 @@ from afem.config import Settings
 from afem.exchange import ImportVSP, StepExport
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import MeshAPI
+from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -337,22 +337,22 @@ def build(wing, fuselage):
 
     # Retrieve the global shape to mesh
     the_shape = AssemblyAPI.prepare_shape_to_mesh()
-    MeshAPI.create_mesh('the mesh', the_shape)
+    the_gen = MeshGen()
+    the_mesh = the_gen.create_mesh(the_shape)
 
     # Unstructured quad-dominant algorithm and hypotheses
-    MeshAPI.hypotheses.create_netgen_simple_2d('netgen', 4.)
-    MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-    MeshAPI.add_hypothesis('netgen')
-    MeshAPI.add_hypothesis('netgen algo')
+    netgen_hyp = NetgenSimple2D(the_gen, 4.)
+    netgen_alg = NetgenAlgo2D(the_gen)
+    the_mesh.add_hypotheses([netgen_alg, netgen_hyp], the_shape)
 
     # Compute the mesh
-    MeshAPI.compute_mesh()
+    the_gen.compute(the_mesh, the_shape)
 
     # View the mesh. Adjust these transparencies if you want to see the
     # internal mesh better.
     wskin.set_transparency(0.)
     fskin.set_transparency(0.)
-    v.display_mesh(MeshAPI.get_active().object, 2)
+    v.display_mesh(the_mesh.object, 2)
     v.start()
     v.remove_all()
 
@@ -362,7 +362,6 @@ def build(wing, fuselage):
     step.write('nasa_supersonic_np2.step')
 
     # Export the mesh (nodes and elements) to a bulk data file
-    the_mesh = MeshAPI.get_active()
     afem.exchange.nastran.export_bdf(the_mesh, 'nasa_supersonic_np2.bdf')
 
 

@@ -6,7 +6,7 @@ from afem.config import Settings
 from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import MeshAPI
+from afem.smesh import *
 from afem.misc.check import pairwise
 from afem.structure import *
 from afem.topology import *
@@ -227,18 +227,18 @@ print('complete', time.time() - start)
 
 # Mesh
 shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
-the_mesh = MeshAPI.create_mesh('wing-body mesh', shape_to_mesh)
+the_gen = MeshGen()
+the_mesh = the_gen.create_mesh(shape_to_mesh)
 
 # Use a single global hypothesis based on local length.
-MeshAPI.hypotheses.create_netgen_simple_2d('netgen hypo', 4.)
-MeshAPI.hypotheses.create_netgen_algo_2d('netgen algo')
-MeshAPI.add_hypothesis('netgen hypo')
-MeshAPI.add_hypothesis('netgen algo')
+hyp = NetgenSimple2D(the_gen, 4.)
+alg = NetgenAlgo2D(the_gen)
+the_mesh.add_hypotheses([hyp, alg], shape_to_mesh)
 
 # Compute the mesh
 mesh_start = time.time()
 print('Computing mesh...')
-status = MeshAPI.compute_mesh()
+status = the_gen.compute(the_mesh, shape_to_mesh)
 if not status:
     print('Failed to compute mesh')
 else:
