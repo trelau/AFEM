@@ -30,7 +30,7 @@ This documentation is for the proprietary Airframe Finite Element Modeler
    topology
    oml
    structure
-   mesh
+   smesh
    exchange
    graphics
    license

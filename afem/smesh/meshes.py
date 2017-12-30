@@ -247,6 +247,7 @@ class Mesh(object):
         :param shape: The shape the hypothesis applies to. This can be a
             sub-shape of the master shape. If not provided then the master
             shape is used.
+        :type shape: OCCT.TopoDS.TopoDS_Shape
 
         :return: Status of adding hypothesis.
         :rtype: OCCT.SMESH.SMESH_Hypothesis.Hypothesis_Status
@@ -270,6 +271,7 @@ class Mesh(object):
         :param shape: The shape the hypothesis applies to. This can be a
             sub-shape of the master shape. If not provided then the master
             shape is used.
+        :type shape: OCCT.TopoDS.TopoDS_Shape
 
         :return: Dictionary where the key is the hypothesis and the value is the
             hypothesis status.
@@ -507,8 +509,8 @@ class MeshDS(object):
 
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
-        :return:
-        :rtype:
+        :return: Sub-mesh data structure of elements.
+        :rtype: afem.smesh.meshes.SubMeshDS
         """
         sub_meshds = self._ds.MeshElements(shape)
         return SubMeshDS.new(sub_meshds)

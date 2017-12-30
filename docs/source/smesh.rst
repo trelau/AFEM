@@ -1,38 +1,28 @@
-Mesh
-====
+SMESH
+=====
 This section describes the meshing package. The entities and tools can be
 imported by::
 
-    from afem.mesh import *
+    from afem.smesh import *
+
+This package leverages the standalone SMESH package extracted from the Salome
+Platform.
 
 Entities
 --------
+.. py:currentmodule:: afem.smesh.entities
 
 Node
 ~~~~
-.. autoclass:: afem.mesh.nodes.Node
-
-.. py:currentmodule:: afem.mesh.elements
+.. autoclass:: Node
 
 Element
 ~~~~~~~
 .. autoclass:: Element
 
-Elm0D
-~~~~~
-.. autoclass:: Elm0D
-
-Elm1D
-~~~~~
-.. autoclass:: Elm1D
-
-Elm2D
-~~~~~
-.. autoclass:: Elm2D
-
 Hypotheses
 ----------
-.. py:currentmodule:: afem.mesh.hypotheses
+.. py:currentmodule:: afem.smesh.hypotheses
 
 Hypothesis
 ~~~~~~~~~~
@@ -45,6 +35,10 @@ Algorithm
 Regular1D
 ~~~~~~~~~
 .. autoclass:: Regular1D
+
+CompositeSide1D
+~~~~~~~~~~~~~~~
+.. autoclass:: CompositeSide1D
 
 MaxLength1D
 ~~~~~~~~~~~
@@ -66,13 +60,13 @@ Deflection1D
 ~~~~~~~~~~~~
 .. autoclass:: Deflection1D
 
-NetgenHypothesis
+QuadrangleAlgo2D
 ~~~~~~~~~~~~~~~~
-.. autoclass:: NetgenHypothesis
+.. autoclass:: QuadrangleAlgo2D
 
-NetgenSimple2D
-~~~~~~~~~~~~~~
-.. autoclass:: NetgenSimple2D
+QuadrangleHypo2D
+~~~~~~~~~~~~~~~~
+.. autoclass:: QuadrangleHypo2D
 
 NetgenAlgo2D
 ~~~~~~~~~~~~
@@ -82,38 +76,54 @@ NetgenAlgoOnly2D
 ~~~~~~~~~~~~~~~~
 .. autoclass:: NetgenAlgoOnly2D
 
-QuadrangleParams2D
-~~~~~~~~~~~~~~~~~~
-.. autoclass:: QuadrangleParams2D
-
-Quadrangle2D
+NetgenHypo2D
 ~~~~~~~~~~~~
-.. autoclass:: Quadrangle2D
+.. autoclass:: NetgenHypo2D
+
+NetgenSimple2D
+~~~~~~~~~~~~~~
+.. autoclass:: NetgenSimple2D
 
 MeshGemsAlgo2D
 ~~~~~~~~~~~~~~
 .. autoclass:: MeshGemsAlgo2D
 
-MeshGemsHypothesis2D
-~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: MeshGemsHypothesis2D
-
-HypothesisAPI
-~~~~~~~~~~~~~
-.. autoclass:: HypothesisAPI
+MeshGemsHypo2D
+~~~~~~~~~~~~~~
+.. autoclass:: MeshGemsHypo2D
 
 Meshes
 ------
-.. py:currentmodule:: afem.mesh.meshes
+.. py:currentmodule:: afem.smesh.meshes
+
+MeshGen
+~~~~~~~
+.. autoclass:: MeshGen
 
 Mesh
 ~~~~
 .. autoclass:: Mesh
 
+MeshDS
+~~~~~~
+.. autoclass:: MeshDS
+
 SubMesh
 ~~~~~~~
 .. autoclass:: SubMesh
 
-MeshAPI
-~~~~~~~
-.. autoclass:: MeshAPI
+SubMeshDS
+~~~~~~~~~
+.. autoclass:: SubMeshDS
+
+Utilities
+---------
+.. py:currentmodule:: afem.smesh.utils
+
+MeshEditor
+~~~~~~~~~~
+.. autoclass:: MeshEditor
+
+MeshHelper
+~~~~~~~~~~
+.. autoclass:: MeshHelper
