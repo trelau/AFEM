@@ -65,33 +65,47 @@ class Part(TopoDS_Shape, ViewableItem):
     """
     _indx = 1
     _all = {}
+    _mesh = None
 
     def __init__(self, label, shape, cref=None, sref=None, assy=None):
-        # Initialize
         super(Part, self).__init__()
         ViewableItem.__init__(self)
+
         self._cref, self._sref = None, None
         self._metadata = {}
         self._subparts = {}
 
-        # Set ID
         self._id = Part._indx
         Part._all[self._id] = self
         Part._indx += 1
 
-        # Set attributes
         self._label = label
+
         self.set_shape(shape)
+
         if cref is not None:
             self.set_cref(cref)
+
         if sref is not None:
             self.set_sref(sref)
 
         # Add to assembly
         AssemblyAPI.add_parts(assy, self)
 
+        # Log
         msg = ' '.join(['Creating part:', label])
         logger.info(msg)
+
+    @classmethod
+    def set_mesh(cls, mesh):
+        """
+        Set the active mesh for all parts.
+
+        :param afem.smesh.meshes.Mesh mesh: The mesh.
+
+        :return: None.
+        """
+        cls._mesh = mesh
 
     @property
     def label(self):
@@ -274,6 +288,45 @@ class Part(TopoDS_Shape, ViewableItem):
         :rtype: list[OCCT.TopoDS.TopoDS_Face]
         """
         return ExploreShape.get_faces(self)
+
+    @property
+    def mesh(self):
+        """
+        :return: The active mesh.
+        :rtype: afem.smesh.meshes.Mesh
+        """
+        return self._mesh
+
+    @property
+    def submesh(self):
+        """
+        :return: Sub-mesh for the part shape using the active mesh.
+        :rtype: afem.smesh.meshes.SubMesh
+        """
+        # FIXME Why need basic type? Why doesn't the regular shape work?
+        if isinstance(self, CurvePart):
+            subshape = CompoundByShapes(self.edges).compound
+        else:
+            subshape = CompoundByShapes(self.faces).compound
+        return self.mesh.get_submesh(subshape)
+
+    @property
+    def elements(self):
+        """
+        :return: The elements of the part.
+        :rtype: list[afem.mesh.entities.Element]
+        """
+        ds = self.submesh.ds
+        return [e for e in ds.elm_iter]
+
+    @property
+    def nodes(self):
+        """
+        :return: The nodes of part.
+        :rtype: list[afem.mesh.entities.Node]
+        """
+        ds = self.submesh.ds
+        return [n for n in ds.node_iter]
 
     def set_cref(self, cref):
         """
@@ -1181,24 +1234,6 @@ class CurvePart(Part):
         """
         return LinearProps(self).length
 
-    @property
-    def elements(self):
-        """
-        :return: The 1-d elements of the part.
-        :rtype: set(afem.mesh.entities.Elm1D)
-        """
-        # TODO Elements of part
-        raise NotImplementedError("Returning elements not yet available.")
-
-    @property
-    def nodes(self):
-        """
-        :return: The nodes of part.
-        :rtype: set(afem.mesh.entities.Node)
-        """
-        # TODO Nodes of part
-        raise NotImplementedError("Returning nodes not yet available.")
-
 
 class Beam(CurvePart):
     """
@@ -1254,24 +1289,6 @@ class SurfacePart(Part):
         :rtype: list[afem.structure.entities.Stiffener1D]
         """
         return [part for part in self.subparts]
-
-    @property
-    def elements(self):
-        """
-        :return: The shell elements of the part.
-        :rtype: set(afem.mesh.entities.Elm2D)
-        """
-        # TODO Elements of part
-        raise NotImplementedError("Returning elements not yet available.")
-
-    @property
-    def nodes(self):
-        """
-        :return: The nodes of part.
-        :rtype: set(afem.mesh.entities.Node)
-        """
-        # TODO Nodes of part
-        raise NotImplementedError("Returning nodes not yet available.")
 
     def make_shell(self):
         """

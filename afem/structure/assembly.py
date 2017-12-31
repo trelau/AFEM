@@ -61,28 +61,6 @@ class Assembly(object):
         return list(self._parts)
 
     @property
-    def elements(self):
-        """
-        :return: The elements of all parts.
-        :rtype: set(afem.mesh.elements.Element)
-        """
-        elm_set = set()
-        for part in self.parts:
-            elm_set.update(part.elements)
-        return elm_set
-
-    @property
-    def nodes(self):
-        """
-        :return: The nodes of all parts.
-        :rtype: set(afem.mesh.nodes.Node)
-        """
-        node_set = set()
-        for part in self.parts:
-            node_set.update(part.nodes)
-        return node_set
-
-    @property
     def metadata(self):
         """
         :return: The metadata dictionary.
