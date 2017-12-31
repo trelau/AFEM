@@ -22,6 +22,7 @@ from OCCT.TopoDS import TopoDS
 
 from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
+from afem.occ.utils import to_lst_from_toptools_listofshape
 
 __all__ = ["DivideClosedShape", "DivideC0Shape", "UnifyShape",
            "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool",
@@ -85,6 +86,7 @@ class UnifyShape(object):
         tool = ShapeUpgrade_UnifySameDomain(shape, edges, faces, bsplines)
         tool.Build()
         self._shape = tool.Shape()
+        self._history = tool.History()
 
     @property
     def shape(self):
@@ -94,16 +96,38 @@ class UnifyShape(object):
         """
         return self._shape
 
+    def modified(self, shape):
+        """
+        Return a list of shapes modified from the given shape.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: List of modified shapes.
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        """
+        return to_lst_from_toptools_listofshape(self._history.Modified(shape))
+
     def generated(self, shape):
         """
-        Get a shape generated from the old one.
+        Return a list of shapes generated from the given shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The old shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
-        :return: The new shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :return: List of generated shapes.
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
         """
-        # TODO Finish UnifyShape.generated
+        return to_lst_from_toptools_listofshape(self._history.Generated(shape))
+
+    def is_deleted(self, shape):
+        """
+        Check to see if shape is deleted.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if deleted, *False* if not.
+        :rtype: bool
+        """
+        return self._history.IsRemoved(shape)
 
 
 class SewShape(object):
