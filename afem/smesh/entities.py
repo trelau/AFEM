@@ -13,7 +13,7 @@
 
 from numpy import array
 
-__all__ = ["Node", "Element"]
+__all__ = ["Node", "Element", "FaceSide"]
 
 
 class Node(object):
@@ -284,3 +284,115 @@ class Element(object):
         :rtype: afem.smesh.entities.Node
         """
         return Node(self._elm.GetNodeWrap(indx))
+
+
+class FaceSide(object):
+    """
+    Entity the represents the side of a quasi-quadrilateral face. It can be
+    composed of several edges and gives access to geometry and 1-D mesh.
+
+    :param OCCT.StdMeshers.StdMeshers_FaceSide the_side: The StdMeshers_FaceSide
+        instance.
+    """
+
+    def __init__(self, the_side):
+        self._fside = the_side
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCCT.StdMeshers.StdMeshers_FaceSide
+        """
+        return self._fside
+
+    @property
+    def num_edges(self):
+        """
+        :return: The number of edges.
+        :rtype: int
+        """
+        return self._fside.NbEdges()
+
+    @property
+    def num_nodes(self):
+        """
+        :return: The number of nodes.
+        :rtype: int
+        """
+        return self._fside.NbPoints()
+
+    @property
+    def num_segments(self):
+        """
+        :return: The number of mesh segments.
+        :rtype: int
+        """
+        return self._fside.NbSegments()
+
+    @property
+    def missed_vertices(self):
+        """
+        :return: *True* if there are vertices without nodes.
+        :rtype: bool
+        """
+        return self._fside.MissVertexNode()
+
+    @property
+    def ordered_nodes(self):
+        """
+        :return: List of ordered nodes along the side.
+        :rtype: list[afem.smesh.entities.Node]
+        """
+        return [Node(n) for n in self._fside.GetOrderedNodes()]
+
+    @property
+    def is_closed(self):
+        """
+        :return: *True* if chaing of edges is closed.
+        :rtype: bool
+        """
+        return self._fside.IsClosed()
+
+    @property
+    def length(self):
+        """
+        :return: Length of side.
+        :rtype: float
+        """
+        return self._fside.Length()
+
+    @property
+    def edges(self):
+        """
+        :return: List of side edges.
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        """
+        return self._fside.Edges()
+
+    @property
+    def first_vertex(self):
+        """
+        :return: First vertex of side.
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        """
+        return self._fside.FirstVertex()
+
+    @property
+    def last_vertex(self):
+        """
+        :return: Last vertex of side.
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        """
+        return self._fside.LastVertex()
+
+    def vertex_node(self, indx):
+        """
+        Get the node from a vertex.
+
+        :param int indx: The vertex index (starts with 0).
+
+        :return: The vertex node.
+        :rtype: afem.smesh.entities.Node
+        """
+        return Node(self._fside.VertexNode(indx))

@@ -34,7 +34,7 @@ from OCCT.StdMeshers import (StdMeshers_Adaptive1D,
                              StdMeshers_QuadType)
 
 from afem.geometry.check import CheckGeom
-from afem.smesh.entities import Node
+from afem.smesh.entities import FaceSide, Node
 
 __all__ = ["Hypothesis", "Algorithm", "Regular1D", "CompositeSide1D",
            "MaxLength1D", "LocalLength1D", "NumberOfSegments1D", "Adaptive1D",
@@ -267,11 +267,11 @@ class CompositeSide1D(Algorithm):
         :param bool ignore_meshed: Unclear what option does.
 
         :return: The face side.
-        :rtype: OCCT.StdMeshers.StdMeshers_FaceSide
+        :rtype: afem.smesh.entities.FaceSide
         """
-        # TODO Wrap StdMeshers_FaceSide
-        return StdMeshers_CompositeSegment_1D.GetFaceSide_(mesh.object, e, f,
-                                                           ignore_meshed)
+        fside = StdMeshers_CompositeSegment_1D.GetFaceSide_(mesh.object, e, f,
+                                                            ignore_meshed)
+        return FaceSide(fside)
 
 
 class MaxLength1D(Hypothesis):
