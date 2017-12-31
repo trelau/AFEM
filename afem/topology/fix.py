@@ -11,6 +11,7 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
+from OCCT.BRepCheck import BRepCheck_Analyzer
 from OCCT.ShapeBuild import ShapeBuild_ReShape
 from OCCT.ShapeFix import ShapeFix_Shape, ShapeFix_ShapeTolerance
 from OCCT.TopAbs import TopAbs_SHAPE
@@ -93,11 +94,14 @@ class FixShape(object):
         :param OCCT.TopAbs.TopAbs_ShapeEnum styp: The level of shape to set
             (i.e., only vertices, only edges, only faces, or all shapes).
 
-        :return: *True* if at least one tolerance of a sub-shape was modified.
+        :return: *True* if the shape is valid after limiting tolerance, *False*
+            if not.
         :rtype: bool
         """
-        # TODO Check limit tolerance is actually working
-        return _fix_tol.LimitTolerance(shape, tol, 0., styp)
+        # Limit tolerance then fix in case of invalid tolerances
+        _fix_tol.LimitTolerance(shape, tol, tol, styp)
+        ShapeFix_Shape(shape).Perform()
+        return BRepCheck_Analyzer(shape, False).IsValid()
 
     @staticmethod
     def set_tolerance(shape, tol, styp=TopAbs_SHAPE):
