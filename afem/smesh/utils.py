@@ -72,8 +72,6 @@ class MeshEditor(object):
 
         self._editor.Smooth(elms, fixed_nodes, method, iters, target_ar, in_2d)
 
-    # TODO Transform elements
-
     def find_coincident_nodes(self, nodes=(), tol=1.0e-7):
         """
         Find coincident nodes.
@@ -121,11 +119,50 @@ class MeshEditor(object):
 
         self._editor.MergeNodes(smesh_list, avoid_making_holes)
 
-    # TODO Find equal elements
+    def find_equal_elements(self, elements=()):
+        """
+        Find equal elements.
 
-    # TODO Merge elements
+        :param collections.Sequence(afem.smesh.entities.Element) elements: The
+            elements to search. If not provided then the whole mesh will be
+            searched.
 
-    # TODO Merge equal elements
+        :return: Equal elements as a list of list of integers. The length of the
+            returned list will be the number of equal elements. Each row
+            is a list of element ID's that are equal.
+        :rtype: list[list[int]]
+        """
+        elements = set([e.object for e in elements])
+        smesh_list = self._editor.TListOfListOfElementsID()
+        self._editor.FindEqualElements(elements, smesh_list)
+
+        equal_ids = []
+        for row in smesh_list:
+            elements = [i for i in row]
+            equal_ids.append(elements)
+
+        return equal_ids
+
+    def merge_elements(self, elements=None):
+        """
+        Merge elements.
+
+        :param elements: The elements to merge. Each row is a list of element
+            ID's where the first ID is kept and the others are replaced with the
+            first. If *None* is provided then the entire mesh is first searched.
+        :type elements: list[list[int]]
+
+        :return: None.
+        """
+        if elements is None:
+            elements = self.find_equal_elements()
+
+        smesh_list = self._editor.TListOfListOfElementsID()
+        for row in elements:
+            smesh_list.append([i for i in row])
+
+        self._editor.MergeElements(smesh_list)
+
     def merge_equal_elements(self):
         """
         Merge elements built on same nodes.
@@ -134,11 +171,6 @@ class MeshEditor(object):
         """
         self._editor.MergeEqualElements()
 
-    # TODO Check free border
-
-    # TODO Find free border
-
-    # TODO Find shape
     def find_shape(self, elm):
         """
         Find the shape index that the element or node is on.
@@ -151,7 +183,16 @@ class MeshEditor(object):
         """
         return self._editor.FindShape(elm.object)
 
-    # TODO Is medium node
+    def is_medium(self, node):
+        """
+        Check if node is a medium.
+
+        :param afem.smesh.entities.Node node: The node.
+
+        :return: *True* if medium, *False* if not.
+        :rtype: bool
+        """
+        return self._editor.IsMedium_(node.object)
 
     def double_elements(self, elms):
         """
@@ -169,13 +210,61 @@ class MeshEditor(object):
         """
         Double nodes.
 
-        :param collections.Sequence(int) nids: Sequence of node id's.
+        :param collections.Sequence(int) nids: Sequence of node ID's.
 
         :return: *True* if doubled, *False* if not.
         :rtype: bool
         """
         nids = list(nids)
         return self._editor.DoubleNodes(nids)
+
+    def check_free_border(self, n1, n2, n3=None):
+        """
+        Check to see if the nodes are on a free border.
+
+        :param afem.smesh.entities.Node n1: The first node.
+        :param afem.smesh.entities.Node n2: The second node.
+        :param afem.smesh.entities.Node n3: The third node.
+
+        :return: *True* if on a free border, *False* if not.
+        :rtype: bool
+        """
+        if n3 is None:
+            return self._editor.CheckFreeBorderNodes_(n1.object, n2.object)
+        else:
+            return self._editor.CheckFreeBorderNodes_(n1.object, n2.object,
+                                                      n3.object)
+
+    def transform(self, trsf, elements=(), copy=False, make_groups=False,
+                  target_mesh=None):
+        """
+        Transform the elements.
+
+        :param OCCT.gp.gp_Trsf trsf: The transformation.
+        :param collection.Sequence(afem.smesh.entities.Element) elements: The
+            elements to transform. If none are provided then the whole mesh is
+            used.
+        :param bool copy: Option to copy elements.
+        :param bool make_groups: Option to make groups.
+        :param afem.smesh.meshes.Mesh target_mesh: The target mesh to place
+            elements.
+
+        :return: List of element ID's.
+        :rtype: list[int]
+        """
+        elements = set([e.object for e in elements])
+        if target_mesh is None:
+            target_mesh = self._editor.GetMesh()
+        else:
+            target_mesh = target_mesh.object
+        # FIXME Why returning None and not actual type?
+        if copy:
+            return self._editor.Transform(elements, trsf, copy, make_groups,
+                                          target_mesh)
+        else:
+            return self._editor.Transform(elements, trsf, copy, make_groups)
+
+    # TODO Find free border
 
 
 class MeshHelper(object):
