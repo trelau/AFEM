@@ -23,6 +23,12 @@ alg2d = NetgenAlgo2D(the_gen)
 the_mesh.add_hypotheses([hyp2d, alg2d], face)
 the_gen.compute(the_mesh, face)
 
+# Get the composite side
+for e in ExploreShape.get_edges(wire):
+    fside = alg1d.get_face_side(the_mesh, e, face)
+    if fside.num_nodes:
+        break
+
 v = Viewer()
 v.view_top()
 for vert in ExploreShape.get_vertices(face):

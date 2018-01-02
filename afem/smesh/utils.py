@@ -11,9 +11,11 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from OCCT.SMESH import SMESH_MeshEditor
+from OCCT.SMDS import SMDS_ListOfNodes, SMDS_ListOfElements
+from OCCT.SMESH import SMESH_MeshEditor, SMESH_MesherHelper
+from OCCT.TopAbs import TopAbs_EDGE
 
-from afem.smesh.entities import Node
+from afem.smesh.entities import Element, Node
 
 __all__ = ["MeshEditor", "MeshHelper"]
 
@@ -115,7 +117,7 @@ class MeshEditor(object):
 
         smesh_list = self._editor.TListOfListOfNodes()
         for row in nodes:
-            smesh_list.append([n.object for n in row])
+            smesh_list.push_back([n.object for n in row])
 
         self._editor.MergeNodes(smesh_list, avoid_making_holes)
 
@@ -159,7 +161,7 @@ class MeshEditor(object):
 
         smesh_list = self._editor.TListOfListOfElementsID()
         for row in elements:
-            smesh_list.append([i for i in row])
+            smesh_list.push_back([i for i in row])
 
         self._editor.MergeElements(smesh_list)
 
@@ -218,23 +220,6 @@ class MeshEditor(object):
         nids = list(nids)
         return self._editor.DoubleNodes(nids)
 
-    def check_free_border(self, n1, n2, n3=None):
-        """
-        Check to see if the nodes are on a free border.
-
-        :param afem.smesh.entities.Node n1: The first node.
-        :param afem.smesh.entities.Node n2: The second node.
-        :param afem.smesh.entities.Node n3: The third node.
-
-        :return: *True* if on a free border, *False* if not.
-        :rtype: bool
-        """
-        if n3 is None:
-            return self._editor.CheckFreeBorderNodes_(n1.object, n2.object)
-        else:
-            return self._editor.CheckFreeBorderNodes_(n1.object, n2.object,
-                                                      n3.object)
-
     def transform(self, trsf, elements=(), copy=False, make_groups=False,
                   target_mesh=None):
         """
@@ -264,9 +249,267 @@ class MeshEditor(object):
         else:
             return self._editor.Transform(elements, trsf, copy, make_groups)
 
-    # TODO Find free border
+    def check_free_border(self, n1, n2, n3=None):
+        """
+        Check to see if the nodes are on a free border.
+
+        :param afem.smesh.entities.Node n1: The first node.
+        :param afem.smesh.entities.Node n2: The second node.
+        :param afem.smesh.entities.Node n3: The third node.
+
+        :return: *True* if on a free border, *False* if not.
+        :rtype: bool
+        """
+        if n3 is None:
+            return self._editor.CheckFreeBorderNodes_(n1.object, n2.object)
+        else:
+            return self._editor.CheckFreeBorderNodes_(n1.object, n2.object,
+                                                      n3.object)
+
+    def find_free_border(self, n1, n2, n3):
+        """
+        Return nodes and faces of a free border if found.
+
+        :param afem.smesh.entities.Node n1: The first node.
+        :param afem.smesh.entities.Node n2: The second node.
+        :param afem.smesh.entities.Node n3: The third node.
+
+        :return: List of nodes and elements of free borders.
+        :rtype: tuple(list[afem.smesh.entities.Node],
+            list[afem.smesh.entities.Element])
+        """
+        node_list = SMDS_ListOfNodes()
+        elm_list = SMDS_ListOfElements()
+        return self._editor.FindFreeBorder_(n1.object, n2.object, n3.object,
+                                            node_list, elm_list)
 
 
 class MeshHelper(object):
-    # TODO MeshHelper
-    pass
+    """
+    Mesh helper.
+
+    :param afem.smesh.meshes.Mesh mesh: A mesh.
+    """
+
+    def __init__(self, mesh):
+        self._helper = SMESH_MesherHelper(mesh.object)
+
+    @property
+    def object(self):
+        """
+        :return: The underlying object.
+        :rtype: OCCT.SMESH.SMESH_MesherHelper
+        """
+        return self._helper
+
+    @staticmethod
+    def is_structured(submesh):
+        """
+        Check if a 2-D mesh on a face is structured.
+
+        :param afem.smesh.meshes.SubMesh submesh: The submesh.
+
+        :return: *True* if structured, *False* if not.
+        :rtype: bool
+        """
+        return SMESH_MesherHelper.IsStructured_(submesh.object)
+
+    @staticmethod
+    def is_distorted2d(submesh, check_uv=False):
+        """
+        Check if a 2-D mesh on a face is distorted.
+
+        :param afem.smesh.meshes.SubMesh submesh: The submesh.
+        :param bool check_uv: Option to check using *uv* parameters.
+
+        :return: *True* if distored, *False* if not.
+        :rtype: bool
+        """
+        return SMESH_MesherHelper.IsDistorted2D_(submesh.object, check_uv)
+
+    @staticmethod
+    def subshape_by_node(node, mesh_ds):
+        """
+        Get the support shape of a node.
+
+        :param afem.smesh.entities.Node node: The node.
+        :param afem.smesh.meshes.MeshDS mesh_ds: The mesh data structure.
+
+        :return: The support shape.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return SMESH_MesherHelper.GetSubShapeByNode_(node.object,
+                                                     mesh_ds.object)
+
+    @staticmethod
+    def common_ancestor(shape1, shape2, mesh, ancestor_type=TopAbs_EDGE):
+        """
+        Get a common ancestor between the two shapes.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape1: The first shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape2: The second shape.
+        :param afem.smesh.meshes.Mesh mesh: The mesh.
+        :param OCCT.TopAbs.TopAbs_ShapeEnum ancestor_type: The shape type.
+
+        :return: The common ancestor.
+        :rtype: OCCT.TopoDS.TopoDS_Edge
+        """
+        return SMESH_MesherHelper.GetCommonAncestor_(shape1, shape2,
+                                                     mesh.object, ancestor_type)
+
+    @staticmethod
+    def is_subshape_by_shape(shape, main_shape):
+        """
+        Check to see if the shape is a sub-shape in a shape.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape main_shape: The main shape.
+
+        :return: *True* if a sub-shape, *False* if not.
+        :rtype: bool
+        """
+        return SMESH_MesherHelper.IsSubShape_(shape, main_shape)
+
+    @staticmethod
+    def is_subshape_by_mesh(shape, mesh):
+        """
+        Check to see if the shape is a sub-shape in a mesh.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.smesh.meshes.Mesh mesh: The mesh.
+
+        :return: *True* if a sub-shape, *False* if not.
+        :rtype: bool
+        """
+        return SMESH_MesherHelper.IsSubShape_(shape, mesh.object)
+
+    @staticmethod
+    def get_angle(e1, e2, f, v):
+        """
+        Determine the angle between the two edges on a face.
+
+        :param OCCT.TopoDS.TopoDS_Edge e1: The first edge.
+        :param OCCT.TopoDS.TopoDS_Edge e2: The second edge.
+        :param OCCT.TopoDS.TopoDS_Face f: The face the edges belong to.
+        :param OCCT.TopoDS.TopoDS_Vertex v: The vertex connecting the two edges.
+
+        :return: The angle between the egdges.
+        :rtype: float
+        """
+        return SMESH_MesherHelper.GetAngle_(e1, e2, f, v)
+
+    @staticmethod
+    def is_closed_edge(edge):
+        """
+        Check if edge is closed.
+
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+
+        :return: *True* if closed, *False* if not.
+        :rtype: bool
+        """
+        return SMESH_MesherHelper.IsClosedEdge_(edge)
+
+    @staticmethod
+    def shape_by_hypothesis(hyp, shape, mesh):
+        """
+        Get a shape the hypothesis is applied to.
+
+        :param afem.smesh.hypotheses.Hypothesis hyp: The hypothesis.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.smesh.meshes.Mesh mesh: The mesh.
+
+        :return: The shape that the hypothesis is applied to.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return SMESH_MesherHelper.GetShapeOfHypothesis_(hyp.object, shape,
+                                                        mesh.object)
+
+    def is_reversed_submesh(self, face):
+        """
+        Check to see if the elements have opposite orientation on the face.
+
+        :param OCCT.TopoDS.TopoDS_Face face: The face.
+
+        :return: *True* if reversed, *False* if not.
+        :rtype: bool
+        """
+        return self._helper.IsReversedSubMesh(face)
+
+    def set_subshape(self, shape):
+        """
+        Set the shape to make elements on.
+
+        :param shape: The shape or the shape ID.
+        :type shape: OCCT.TopoDS.TopoDS_Shape or int
+
+        :return: None.
+        """
+        self._helper.SetSubShape(shape)
+
+    def shape_to_index(self, shape):
+        """
+        Get the shape index.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: The shape index.
+        :rtype: int
+        """
+        return self._helper.ShapeToIndex(shape)
+
+    def add_node(self, x, y, z, id_=0, u=0., v=0.):
+        """
+        Create a node.
+
+        :param float x: The x-location.
+        :param float y: The y-location.
+        :param float z: The z-location.
+        :param int id_: The node ID. If zero then the ID will be assigned.
+        :param float u: The node u-parameter.
+        :param float v: The node v-parameter.
+
+        :return: The created node.
+        :rtype: afem.smesh.entities.Node
+        """
+        smesh_node = self._helper.AddNode(x, y, z, id_, u, v)
+        return Node(smesh_node)
+
+    def add_edge(self, n1, n2, id_=0, force3d=True):
+        """
+        Add an edge.
+
+        :param afem.smesh.entities.Node n1: The first node.
+        :param afem.smesh.entities.Node n2: The second node.
+        :param int id_: The edge ID. If zero then the ID will be assigned.
+        :param force3d: Unknown option.
+
+        :return: The created edge.
+        :rtype: afem.smesh.entities.Element
+        """
+        smesh_elm = self._helper.AddEdge(n1.object, n2.object, id_, force3d)
+        return Element(smesh_elm)
+
+    def add_face(self, n1, n2, n3, n4=None, id_=0, force3d=False):
+        """
+        Add a face.
+
+        :param afem.smesh.entities.Node n1: The first node.
+        :param afem.smesh.entities.Node n2: The second node.
+        :param afem.smesh.entities.Node n3: The third node.
+        :param afem.smesh.entities.Node n4: The fourth node. If provided then
+            the face will be a quadrangle, if not provided then the face is
+            a triangle.
+        :param int id_: The face ID. If zero then the ID will be assigned.
+        :param force3d: Unknown option.
+
+        :return: The created face.
+        :rtype: afem.smesh.entities.Element
+        """
+        if n4 is None:
+            smesh_elm = self._helper.AddFace(n1.object, n2.object, n3.object,
+                                             id_, force3d)
+        else:
+            smesh_elm = self._helper.AddFace(n1.object, n2.object, n3.object,
+                                             n4.object, id_, force3d)
+        return Element(smesh_elm)
