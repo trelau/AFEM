@@ -78,18 +78,18 @@ def build(wing, fuselage):
     # Front center spar at a relative distance along the center rib
     p1 = rib1.point_from_parameter(0.15, is_rel=True)
     sref = PlaneByAxes(p1, 'yz').plane
-    fc_spar = SparBetweenShapes('center fspar', xz_plane, rib1, wing,
+    fc_spar = SparBetweenShapes('center fspar', xz_plane, rib1.shape, wing,
                                 sref, wa).spar
 
     # Front inboard spar
     p2 = rib2.point_from_parameter(0.15, is_rel=True)
-    sref = PlaneByIntersectingShapes(fc_spar, rib1, p2).plane
+    sref = PlaneByIntersectingShapes(fc_spar.shape, rib1.shape, p2).plane
     inbd_fspar = SparByPoints('inbd fspar', fc_spar.p2, p2, wing, sref,
                               wa).spar
 
     # Front outboard spar
     p3 = rib3.point_from_parameter(0.15, is_rel=True)
-    sref = PlaneByIntersectingShapes(inbd_fspar, rib2, p3).plane
+    sref = PlaneByIntersectingShapes(inbd_fspar.shape, rib2.shape, p3).plane
     outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.p2, p3, wing,
                                sref, wa).spar
 
@@ -99,14 +99,14 @@ def build(wing, fuselage):
     # Rear center spar at a relative distance along the center rib
     p1 = rib1.point_from_parameter(0.92, is_rel=True)
     sref = PlaneByAxes(p1, 'yz').plane
-    rc_spar = SparBetweenShapes('center rspar', xz_plane, rib1, wing,
+    rc_spar = SparBetweenShapes('center rspar', xz_plane, rib1.shape, wing,
                                 sref, wa).spar
 
     # The rear spar is a single spar between the rear center spar and Rib 3.
     # The orientation is defined by the rear center spar at a relative location
     # along Rib 3.
     p3 = rib3.point_from_parameter(0.80, is_rel=True)
-    sref = PlaneByIntersectingShapes(rc_spar, rib1, p3).plane
+    sref = PlaneByIntersectingShapes(rc_spar.shape, rib1.shape, p3).plane
     rspar = SparByPoints('rspar', rc_spar.p2, p3, wing, sref, wa).spar
 
     # Rear spar bulkhead
@@ -140,14 +140,15 @@ def build(wing, fuselage):
         BulkheadBySurface('bh', sref, fuselage, fa)
 
         # Center spar
-        spar1 = SparBetweenShapes('spar', xz_plane, rib1, wing, sref, wa).spar
+        spar1 = SparBetweenShapes('spar', xz_plane, rib1.shape, wing, sref,
+                                  wa).spar
 
         # Inboard spar
-        sref = PlaneByIntersectingShapes(spar1, rib1, p2).plane
+        sref = PlaneByIntersectingShapes(spar1.shape, rib1.shape, p2).plane
         spar2 = SparByPoints('spar', p1, p2, wing, sref, wa).spar
 
         # Outboard spar
-        sref = PlaneByIntersectingShapes(spar2, rib2, p3).plane
+        sref = PlaneByIntersectingShapes(spar2.shape, rib2.shape, p3).plane
         SparByPoints('spar', p2, p3, wing, sref, wa)
 
     # Inboard ribs by number between Rib 1 and Rib 2. First define the planes

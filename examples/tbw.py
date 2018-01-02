@@ -77,45 +77,48 @@ tip_rib = RibByParameters('tip rib', 0.15, 0.99, 0.70, 0.99, wing).rib
 # Inboard front spar
 u = strut_rib.local_to_global_u(0.15)
 p2 = strut_rib.point_on_cref(u)
-pln = PlaneByIntersectingShapes(root_rib, fc_spar, p2).plane
+pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape, p2).plane
 inbd_fspar = SparByPoints('inbd fspar', root_rib.p1, p2, wing, pln).spar
 
 # Inboard rear spar
 u = strut_rib.local_to_global_u(0.70)
 p2 = strut_rib.point_on_cref(u)
-pln = PlaneByIntersectingShapes(root_rib, rc_spar, p2).plane
+pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, p2).plane
 inbd_rspar = SparByPoints('inbd rspar', root_rib.p2, p2, wing, pln).spar
 
 # Outboard front spar
-pln = PlaneByIntersectingShapes(strut_rib, inbd_fspar, tip_rib.p1).plane
+pln = PlaneByIntersectingShapes(strut_rib.shape, inbd_fspar.shape,
+                                tip_rib.p1).plane
 outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.p2, tip_rib.p1, wing,
                            pln).spar
 
 # Outboard rear spar
-pln = PlaneByIntersectingShapes(strut_rib, inbd_rspar, tip_rib.p2).plane
+pln = PlaneByIntersectingShapes(strut_rib.shape, inbd_rspar.shape,
+                                tip_rib.p2).plane
 outbd_rspar = SparByPoints('outbd rspar', inbd_rspar.p2, tip_rib.p2, wing,
                            pln).spar
 
 # Jury rib where strut intersects
 p0 = jury.eval(0.5, 1.)
 pln = PlaneByAxes(p0, 'xz').plane
-jury_rib = RibBetweenShapes('jury rib', inbd_fspar, inbd_rspar, wing, pln).rib
+jury_rib = RibBetweenShapes('jury rib', inbd_fspar.shape, inbd_rspar.shape,
+                            wing, pln).rib
 
 # Inboard ribs
 u2 = inbd_rspar.invert_cref(jury_rib.p2)
 inbd_ribs = RibsAlongCurveByDistance('inbd rib', inbd_rspar.cref, 30.,
-                                     inbd_fspar, inbd_rspar, wing, u2=u2,
-                                     d1=18, d2=-30).ribs
+                                     inbd_fspar.shape, inbd_rspar.shape, wing,
+                                     u2=u2, d1=18, d2=-30).ribs
 
 # Middle ribs
 mid_ribs = RibsAlongCurveByDistance('mid rib', inbd_rspar.cref, 30.,
-                                    inbd_fspar, inbd_rspar, wing, u1=u2,
-                                    d1=18, d2=-30).ribs
+                                    inbd_fspar.shape, inbd_rspar.shape, wing,
+                                    u1=u2, d1=18, d2=-30).ribs
 
 # Outboard ribs
 outbd_ribs = RibsAlongCurveByDistance('outbd rib', outbd_rspar.cref, 30.,
-                                      outbd_fspar, outbd_rspar, wing,
-                                      d1=18, d2=-30).ribs
+                                      outbd_fspar.shape, outbd_rspar.shape,
+                                      wing, d1=18, d2=-30).ribs
 
 # Join and discard internal structure.
 internal_parts = AssemblyAPI.get_parts()
@@ -144,8 +147,8 @@ fspar = SparByParameters('htail fspar', 0.15, 0.01, 0.15, 0.99, htail).spar
 rspar = SparByParameters('htail rspar', 0.70, 0.01, 0.70, 0.99, htail).spar
 root = RibByPoints('htail root rib', fspar.p1, rspar.p1, htail).rib
 tip = RibByPoints('htail tip rib', fspar.p2, rspar.p2, htail).rib
-ribs = RibsAlongCurveByDistance('htail rib', rspar.cref, 12, fspar, rspar,
-                                htail, d1=12, d2=-12).ribs
+ribs = RibsAlongCurveByDistance('htail rib', rspar.cref, 12, fspar.shape,
+                                rspar.shape, htail, d1=12, d2=-12).ribs
 
 internal_parts = AssemblyAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)
@@ -169,8 +172,8 @@ rspar = SparByParameters('vtail rspar', u, 0.05, u, v, vtail).spar
 fspar = SparByParameters('vtail fspar', 0.12, 0.05, 0.12, v, vtail).spar
 RibByPoints('vtail root rib', fspar.p1, rspar.p1, vtail)
 RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
-RibsAlongCurveByDistance('vtail rib', rspar.cref, 18., fspar, rspar, vtail,
-                         d1=18, d2=-72)
+RibsAlongCurveByDistance('vtail rib', rspar.cref, 18., fspar.shape, rspar.shape,
+                         vtail, d1=18, d2=-72)
 
 internal_parts = AssemblyAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)

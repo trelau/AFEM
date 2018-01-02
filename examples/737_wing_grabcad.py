@@ -75,19 +75,19 @@ tip_rib.set_p2(rspar.p2)
 p1 = inbd_fspar.p2
 p2 = inbd_fspar.p2
 rspar.points_to_cref([p2])
-pln = PlaneByIntersectingShapes(inbd_fspar, outbd_fspar, p2).plane
+pln = PlaneByIntersectingShapes(inbd_fspar.shape, outbd_fspar.shape, p2).plane
 kink_rib = RibByPoints('kink rib', p1, p2, wing, pln).rib
 
 # Inboard ribs
 u2 = rspar.invert_cref(kink_rib.p2)
 inbd_ribs = RibsAlongCurveByDistance('inbd rib', rspar.cref, 24.,
-                                     inbd_fspar, rspar, wing, d1=12., d2=-24.,
-                                     u2=u2).ribs
+                                     inbd_fspar.shape, rspar.shape, wing,
+                                     d1=12., d2=-24., u2=u2).ribs
 
 # Outboard ribs
 outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 24.,
-                                      outbd_fspar, rspar, wing, d1=24,
-                                      d2=-24., u1=u2).ribs
+                                      outbd_fspar.shape, rspar.shape, wing,
+                                      d1=24, d2=-24., u1=u2).ribs
 
 # Front center spar
 xz_pln = PlaneByAxes(axes='xz').plane
@@ -96,14 +96,14 @@ p2 = inbd_fspar.p1
 p1 = inbd_fspar.p1
 ProjectPointToSurface(p1, xz_pln, update=True)
 
-pln = PlaneByIntersectingShapes(inbd_fspar, root_rib, p1).plane
+pln = PlaneByIntersectingShapes(inbd_fspar.shape, root_rib.shape, p1).plane
 fcspar = SparByPoints('front center spar', p1, p2, wing, pln).spar
 
 # Rear center spar
 p2 = rspar.p1
 p1 = rspar.p1
 ProjectPointToSurface(p1, xz_pln, update=True)
-pln = PlaneByIntersectingShapes(rspar, root_rib, p1).plane
+pln = PlaneByIntersectingShapes(rspar.shape, root_rib.shape, p1).plane
 rcspar = SparByPoints('rear center spar', p1, p2, wing, pln).spar
 
 # Center ribs
@@ -113,7 +113,7 @@ center_ribs = []
 for p in tool.interior_points:
     pln = PlaneByAxes(p, 'xz').plane
     name = ' '.join(['center rib', str(i)])
-    rib = RibBetweenShapes(name, fcspar, rcspar, wing, pln).rib
+    rib = RibBetweenShapes(name, fcspar.shape, rcspar.shape, wing, pln).rib
     center_ribs.append(rib)
     i += 1
 

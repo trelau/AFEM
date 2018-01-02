@@ -46,8 +46,8 @@ frames = FramesBetweenPlanesByDistance('frame', pln1, pln2, frame_spacing,
 
 # Floor beams and posts
 rev_cylinder = cylinder.Reversed()
-above_floor = ShapeByDrag(main_floor, (0., 2. * diameter, 0.)).shape
-below_cargo_floor = ShapeByDrag(cargo_floor, (0., -60., 0.)).shape
+above_floor = ShapeByDrag(main_floor.shape, (0., 2. * diameter, 0.)).shape
+below_cargo_floor = ShapeByDrag(cargo_floor.shape, (0., -60., 0.)).shape
 
 pln1 = PlaneByAxes((-.667 * radius, 0., 0.), 'yz').plane
 face1 = FaceByPlane(pln1, -diameter, diameter, 0., length).face
@@ -58,7 +58,7 @@ face2 = FaceByPlane(pln2, -diameter, diameter, 0., length).face
 i = 1
 for frame in frames:
     # Beam
-    shape = IntersectShapes(main_floor, frame.sref).shape
+    shape = IntersectShapes(main_floor.shape, frame.sref).shape
     shape = ShapeByDrag(shape, (0., -floor_beam_height, 0.)).shape
     name = ' '.join(['floor beam', str(i)])
     beam = SurfacePart(name, shape)

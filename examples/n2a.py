@@ -53,7 +53,7 @@ pln = PlaneByAxes(p0, 'xz').plane
 cb_sob = RibBySurface('centerbody sob', pln, wing).rib
 
 # Trim cref of rear bulkhead
-rear_cabin_bh.trim_u2(cb_sob)
+rear_cabin_bh.trim_u2(cb_sob.shape)
 
 # Cabin bay wall
 p0 = Point(p0.x, cabin_width / 4., 0)
@@ -66,7 +66,7 @@ p2 = cb_wall.point_from_parameter(0.05, is_rel=True)
 cb_fspar1 = SparByPoints('cb spar 1', p1, p2, wing).spar
 
 p2 = cb_sob.point_from_parameter(0.05, is_rel=True)
-pln = PlaneByIntersectingShapes(cb_wall, cb_fspar1, p2).plane
+pln = PlaneByIntersectingShapes(cb_wall.shape, cb_fspar1.shape, p2).plane
 cb_fspar2 = SparByPoints('cb fspar 2', cb_fspar1.p2, p2, wing, pln).spar
 
 # Outboard wing structure
@@ -84,15 +84,15 @@ ob_fspar = SparByPoints('ob fspar', root_rib.p1, tip_rib.p1, wing).spar
 ob_rspar = SparByPoints('ob rspar', root_rib.p2, tip_rib.p2, wing).spar
 
 # Outbd ribs
-RibsAlongCurveByDistance('ob rib', ob_rspar.cref, 30, ob_fspar,
-                         ob_rspar, wing, d1=30, d2=-30)
+RibsAlongCurveByDistance('ob rib', ob_rspar.cref, 30, ob_fspar.shape,
+                         ob_rspar.shape, wing, d1=30, d2=-30)
 
 # Trap wing (need to redo and align spars given intersection of parts)
 fspar = SparByPoints('trap fspar', cb_fspar2.p2, ob_fspar.p1, wing).spar
 rspar = SparByPoints('trap rspar', rear_cabin_bh.p2, ob_rspar.p1, wing).spar
 
 RibsBetweenPlanesByDistance('trap rib', cb_sob.plane, root_rib.plane, 30,
-                            fspar, rspar, wing, 30, -30)
+                            fspar.shape, rspar.shape, wing, 30, -30)
 
 # Rear centerbody
 p0 = root_chord.eval(0.85)
@@ -103,19 +103,19 @@ SparBySurface('rc spar', pln, wing)
 p1 = cb_fspar1.p2
 pln = PlaneByAxes(p1, 'yz').plane
 spar1 = SparBySurface('cb spar 1', pln, wing).spar
-spar1.trim_u2(cb_wall)
+spar1.trim_u2(cb_wall.shape)
 
 p1 = cb_fspar2.p2
 ProjectPointToCurve(p1, root_chord, update=True)
 pln = PlaneByAxes(p1, 'yz').plane
 spar2 = SparBySurface('cb spar 2', pln, wing).spar
-spar2.trim_u2(cb_sob)
+spar2.trim_u2(cb_sob.shape)
 
 p0 = rear_cabin_bh.plane.eval()
 p0.x -= 144
 pln = PlaneByAxes(p0, 'yz').plane
 spar3 = SparBySurface('cb spar 3', pln, wing).spar
-spar3.trim_u2(cb_sob)
+spar3.trim_u2(cb_sob.shape)
 
 # Cut with an imaginary floor for now
 pln = PlaneByAxes((0, 0, 0), axes='xy').plane
@@ -140,7 +140,7 @@ fspar = SparByParameters('vtail fspar', 0.15, 0.01, 0.15, 0.99, vtail).spar
 rspar = SparByParameters('vtail rspar', 0.70, 0.01, 0.70, 0.99, vtail).spar
 RibByPoints('vtail root rib', fspar.p1, rspar.p1, vtail)
 RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
-RibsAlongCurveByDistance('vtail rib', rspar.cref, 18, fspar, rspar,
+RibsAlongCurveByDistance('vtail rib', rspar.cref, 18, fspar.shape, rspar.shape,
                          vtail, d1=18, d2=-30)
 
 internal_parts = AssemblyAPI.get_parts()

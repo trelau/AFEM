@@ -113,7 +113,7 @@ def build_wingbox(wing, params):
         rib = ribs[indx]
         # Use intersection of the rib and rear spar to define plane for aux
         # spar.
-        sref = PlaneByIntersectingShapes(rspar, rib, p1).plane
+        sref = PlaneByIntersectingShapes(rspar.shape, rib.shape, p1).plane
         aspar = SparByPoints('aux spar', p1, p2, wing, sref).spar
 
     # Build ribs from root rib to front spar.
@@ -159,7 +159,7 @@ def build_wingbox(wing, params):
     p2 = rspar.p1
     p1 = p2.copy()
     fspar.point_to_cref(p1, rspar_norm)
-    sref = PlaneByIntersectingShapes(root, rspar, p1).plane
+    sref = PlaneByIntersectingShapes(root.shape, rspar.shape, p1).plane
     RibByPoints('corner rib', p1, p2, wing, sref)
 
     # Construction geom for center structure.
@@ -209,7 +209,7 @@ def build_wingbox(wing, params):
             p1 = rib.p2
             p2 = p1.copy()
             aspar.point_to_cref(p2)
-            sref = PlaneByIntersectingShapes(rspar, rib, p2).plane
+            sref = PlaneByIntersectingShapes(rspar.shape, rib.shape, p2).plane
             aux_rib_name = ' '.join(['aux rib', str(aux_rib_id)])
             RibByPoints(aux_rib_name, p1, p2, wing, sref)
             aux_rib_id += 1
@@ -236,20 +236,20 @@ def build_wingbox(wing, params):
 
     # Check free edges.
     all_parts = AssemblyAPI.get_parts(order=True)
-    cmp = CompoundByShapes(all_parts).compound
-    tool = ExploreFreeEdges(cmp)
+    all_shapes = [part.shape for part in all_parts]
 
     # VOLUMES -----------------------------------------------------------------
     # Demonstrate creating volumes from shapes (i.e., parts). Do not use the
     # intersect option since shapes should be topologically connected already.
 
     # Volumes using all parts. This generates multiple solids.
-    shape1 = VolumesFromShapes(all_parts).shape
+    shape1 = VolumesFromShapes(all_shapes).shape
 
     # Volume using front spar, rear spar, root rib, tip rib, and upper and
     # lower skins. This should produce a single solid since no internal ribs
     #  are provided.
-    shape2 = VolumesFromShapes([rspar, fspar, root, tip, skin]).shape
+    shape2 = VolumesFromShapes([rspar.shape, fspar.shape, root.shape,
+                                tip.shape, skin.shape]).shape
     # Calculate volume.
     print('Volume is ', VolumeProps(shape2).volume)
 
@@ -296,7 +296,7 @@ def build_wingbox(wing, params):
     mapped_algo = QuadrangleAlgo2D(the_gen)
     for part_ in internal_parts:
         for face in part_.faces:
-            if mapped_algo.is_applicable(part_):
+            if mapped_algo.is_applicable(face):
                 the_mesh.add_hypotheses([mapped_algo, mapped_hyp], face)
 
     # Compute the mesh
@@ -308,7 +308,9 @@ def build_wingbox(wing, params):
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    # v.display_mesh(the_mesh.object, 2)
+    vv = Viewer()
+    vv.display_mesh(the_mesh.object, 2)
+    vv.start()
 
     # Uncomment this to export STEP file.
     # from afem.io import StepExport

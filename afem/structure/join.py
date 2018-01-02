@@ -29,9 +29,9 @@ class FuseSurfaceParts(object):
     Fuse together multiple surface parts and rebuild their shapes.
 
     :param parts: The surface parts.
-    :type parts: collections.Sequence[afem.structure.entities.SurfacePart]
+    :type parts: collections.Sequence(afem.structure.entities.SurfacePart)
     :param parts: The other surface parts.
-    :type tools: collections.Sequence[afem.structure.entities.SurfacePart]
+    :type tools: collections.Sequence(afem.structure.entities.SurfacePart)
     :param float fuzzy_val: Fuzzy tolerance value.
     """
 
@@ -39,14 +39,16 @@ class FuseSurfaceParts(object):
         bop = FuseShapes(fuzzy_val=fuzzy_val)
 
         parts = list(parts)
-        tools = list(tools)
-        bop.set_args(parts)
+        other_parts = list(tools)
+        args = [part.shape for part in parts]
+        bop.set_args(args)
+        tools = [part.shape for part in tools]
         bop.set_tools(tools)
         bop.build()
 
-        rebuild = RebuildShapesByTool(parts + tools, bop)
-        for part in parts + tools:
-            new_shape = rebuild.new_shape(part)
+        rebuild = RebuildShapesByTool(args + tools, bop)
+        for part in parts + other_parts:
+            new_shape = rebuild.new_shape(part.shape)
             part.set_shape(new_shape)
 
         self._is_done = bop.is_done
@@ -75,7 +77,8 @@ class FuseSurfacePartsByCref(object):
     possible intersection of their reference curve. The part shapes are
     rebuilt in place.
 
-    :param list[afem.structure.entities.SurfacePart] parts: The surface parts.
+    :param parts: The surface parts.
+    :type parts: collections.Sequence(afem.structure.entities.SurfacePart)
     :param float tol: The tolerance to use for checking possible
         intersections of the reference curves. Default is the maximum
         tolerance of the part shape.
@@ -103,8 +106,8 @@ class FuseSurfacePartsByCref(object):
                 if not main.has_cref or not other.has_cref:
                     continue
                 if tol is None:
-                    tol1 = ExploreShape.global_tolerance(main, 1)
-                    tol2 = ExploreShape.global_tolerance(other, 1)
+                    tol1 = ExploreShape.global_tolerance(main.shape, 1)
+                    tol2 = ExploreShape.global_tolerance(other.shape, 1)
                     tol = max(tol1, tol2)
                 e1 = EdgeByCurve(main.cref).edge
                 e2 = EdgeByCurve(other.cref).edge
@@ -136,7 +139,7 @@ class CutParts(object):
     Cut each part with a shape and rebuild the part shape.
 
     :param parts: The parts to cut.
-    :type parts: collections.Sequence[afem.structure.entities.Part]
+    :type parts: collections.Sequence(afem.structure.entities.Part)
     :param shape: The shape to cut with.
     :type shape: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
     """
@@ -174,26 +177,27 @@ class SewSurfaceParts(object):
 
     def __init__(self, parts, tol=None, max_tol=None):
         parts = list(parts)
+        shapes = [part.shape for part in parts]
 
         if tol is None:
-            tol = mean([ExploreShape.global_tolerance(part, 0) for part in parts],
-                       dtype=float)
+            tol = mean([ExploreShape.global_tolerance(shape, 0) for shape in
+                        shapes], dtype=float)
 
         if max_tol is None:
-            max_tol = max([ExploreShape.global_tolerance(part, 1) for part
-                           in parts])
+            max_tol = max([ExploreShape.global_tolerance(shape, 1) for shape
+                           in shapes])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
                        non_manifold=True)
 
         for part in parts:
-            sew.add(part)
+            sew.add(part.shape)
         sew.perform()
 
         for part in parts:
-            if not sew.is_modified(part):
+            if not sew.is_modified(part.shape):
                 continue
-            mod_shape = sew.modified(part)
+            mod_shape = sew.modified(part.shape)
             part.set_shape(mod_shape)
 
 
@@ -201,27 +205,29 @@ class SplitParts(object):
     """
     Split part shapes and rebuild in place.
 
-    :param list[afem.structure.entities.Part] parts: The parts that will be
-        split and rebuilt.
+    :param parts: The parts that will be split and rebuilt.
+    :type parts: collections.Sequence(afem.structure.entities.Part)
     :param tools: The parts or shapes used to split the parts but are not
         modified.
-    :type tools: list[OCCT.TopoDS.TopoDS_Shape or afem.structure.entities.Part]
+    :type tools: collection.Sequence(afem.structure.entities.Part)
     :param float fuzzy_val: Fuzzy tolerance value.
     """
 
     def __init__(self, parts, tools=None, fuzzy_val=None):
         bop = SplitShapes(fuzzy_val=fuzzy_val)
 
-        bop.set_args(parts)
+        args = [part.shape for part in parts]
+        bop.set_args(args)
 
         if tools is not None:
+            tools = [part.shape for part in tools]
             bop.set_tools(tools)
 
         bop.build()
 
-        rebuild = RebuildShapesByTool(parts, bop)
+        rebuild = RebuildShapesByTool(args, bop)
         for part in parts:
-            new_shape = rebuild.new_shape(part)
+            new_shape = rebuild.new_shape(part.shape)
             part.set_shape(new_shape)
 
         self._is_done = bop.is_done
@@ -267,7 +273,8 @@ class FuseAssemblies(object):
 
         assys = list(assys)
         parts1 = assys[0].get_parts(include_subassy)
-        shape1 = CompoundByShapes(parts1).compound
+        shapes1 = [part.shape for part in parts1]
+        shape1 = CompoundByShapes(shapes1).compound
         bop.set_args([shape1])
 
         tools = []
@@ -275,16 +282,18 @@ class FuseAssemblies(object):
         for assy in assys[1:]:
             parts = assy.get_parts(include_subassy)
             other_parts += parts
-            shape = CompoundByShapes(parts).compound
+            shapes = [part.shape for part in parts]
+            shape = CompoundByShapes(shapes).compound
             tools.append(shape)
         bop.set_tools(tools)
 
         bop.build()
 
         all_parts = parts1 + other_parts
-        rebuild = RebuildShapesByTool(all_parts, bop)
+        all_shapes = [part.shape for part in all_parts]
+        rebuild = RebuildShapesByTool(all_shapes, bop)
         for part in all_parts:
-            new_shape = rebuild.new_shape(part)
+            new_shape = rebuild.new_shape(part.shape)
             part.set_shape(new_shape)
 
         self._bop = bop

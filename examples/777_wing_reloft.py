@@ -6,7 +6,7 @@ from afem.topology import *
 
 v = Viewer()
 
-Settings.log_to_console(True)
+Settings.log_to_console()
 
 # Do not split or divide closed surfaces
 fn = r'../models/777-200LR_nosplit.stp'

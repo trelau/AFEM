@@ -45,7 +45,22 @@ __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
            "Stiffener1D", "Stiffener2D", "Stringer"]
 
 
-class Part(TopoDS_Shape, ViewableItem):
+def _get_shape(entity):
+    """
+    Get the shape.
+
+    :param entity: The entity.
+
+    :return: The shape.
+    :rtype: OCCT.TopoDS.TopoDS_Shape
+    """
+    if isinstance(entity, Part):
+        return entity.shape
+    else:
+        return CheckShape.to_shape(entity)
+
+
+class Part(ViewableItem):
     """
     Base class for all parts.
 
@@ -64,24 +79,20 @@ class Part(TopoDS_Shape, ViewableItem):
             converted to a shape.
     """
     _indx = 1
-    _all = {}
     _mesh = None
 
     def __init__(self, label, shape, cref=None, sref=None, assy=None):
         super(Part, self).__init__()
-        ViewableItem.__init__(self)
 
         self._cref, self._sref = None, None
         self._metadata = {}
         self._subparts = {}
 
         self._id = Part._indx
-        Part._all[self._id] = self
         Part._indx += 1
 
         self._label = label
-
-        self.set_shape(shape)
+        self._shape = shape
 
         if cref is not None:
             self.set_cref(cref)
@@ -129,7 +140,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The part shape.
         :rtype: OCCT.TopoDS.TopoDS_Shape
         """
-        return self
+        return self._shape
 
     @property
     def is_null(self):
@@ -137,7 +148,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: *True* if part shape is null, *False* if not.
         :rtype: bool
         """
-        return self.IsNull()
+        return self._shape.IsNull()
 
     @property
     def tol(self):
@@ -145,7 +156,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The average tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.global_tolerance(self, 0)
+        return ExploreShape.global_tolerance(self._shape, 0)
 
     @property
     def max_tol(self):
@@ -153,7 +164,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The maximum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.global_tolerance(self, 1)
+        return ExploreShape.global_tolerance(self._shape, 1)
 
     @property
     def min_tol(self):
@@ -161,7 +172,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The minimum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.global_tolerance(self, 2)
+        return ExploreShape.global_tolerance(self._shape, 2)
 
     @property
     def metadata(self):
@@ -217,7 +228,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: *True* if the reference surface is a plane, *False* if not.
         :rtype: bool
         """
-        return isinstance(self.sref, Plane)
+        return isinstance(self._sref, Plane)
 
     @property
     def plane(self):
@@ -229,7 +240,7 @@ class Part(TopoDS_Shape, ViewableItem):
         """
         if not self.is_planar:
             raise TypeError('Reference surface is not a plane.')
-        return self.sref
+        return self._sref
 
     @property
     def p1(self):
@@ -242,7 +253,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_cref:
             msg = 'Part has no reference curve.'
             raise ValueError(msg)
-        return self.cref.p1
+        return self._cref.p1
 
     @property
     def p2(self):
@@ -255,7 +266,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_cref:
             msg = 'Part has no reference curve.'
             raise ValueError(msg)
-        return self.cref.p2
+        return self._cref.p2
 
     @property
     def nedges(self):
@@ -271,7 +282,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: All the edges of the part shape.
         :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
-        return ExploreShape.get_edges(self)
+        return ExploreShape.get_edges(self._shape)
 
     @property
     def nfaces(self):
@@ -287,7 +298,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: All the faces of the part shape.
         :rtype: list[OCCT.TopoDS.TopoDS_Face]
         """
-        return ExploreShape.get_faces(self)
+        return ExploreShape.get_faces(self._shape)
 
     @property
     def mesh(self):
@@ -360,12 +371,12 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :raise ValueError: If the *u1* is greater than or equal to *u2*.
         """
-        if u1 >= self.cref.u2:
+        if u1 >= self._cref.u2:
             msg = ('First parameter greater than or equal to second '
                    'parameter of curve.')
             raise ValueError(msg)
 
-        self.cref.set_trim(u1, self.cref.u2)
+        self._cref.set_trim(u1, self._cref.u2)
 
     def set_u2(self, u2):
         """
@@ -377,12 +388,12 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :raise ValueError: If the *u2* is less than or equal to *u1*.
         """
-        if u2 <= self.cref.u1:
+        if u2 <= self._cref.u1:
             msg = ('Second parameter less than or equal to first '
                    'parameter of curve.')
             raise ValueError(msg)
 
-        self.cref.set_trim(self.cref.u1, u2)
+        self._cref.set_trim(self._cref.u1, u2)
 
     def set_p1(self, p1):
         """
@@ -487,7 +498,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :return: None
         """
-        self.Nullify()
+        self._shape.Nullify()
 
     def add_metadata(self, key, value):
         """
@@ -506,13 +517,11 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :param key: The key.
 
-        :return: The key or *None* if not present.
-        :rtype: object or None
+        :return: The metadata.
+
+        :raise KeyError: If key not present in the dictionary.
         """
-        try:
-            return self._metadata[key]
-        except KeyError:
-            return None
+        return self._metadata[key]
 
     def add_subpart(self, key, subpart):
         """
@@ -537,12 +546,11 @@ class Part(TopoDS_Shape, ViewableItem):
         :param str key: The key.
 
         :return: The sub-part. Returns *None* if the key is not present.
-        :rtype: afem.structure.entities.Part or None
+        :rtype: afem.structure.entities.Part
+
+        :raise KeyError: If key not present in the dictionary.
         """
-        try:
-            return self._subparts[key]
-        except KeyError:
-            return None
+        return self._subparts[key]
 
     def set_shape(self, shape):
         """
@@ -552,17 +560,15 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :return: None.
 
-        :raise RuntimeError: If *shape* is not a valid shape or cannot be
+        :raise TypeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
         """
         shape = CheckShape.to_shape(shape)
         if not shape:
             msg = 'Invalid shape.'
-            raise RuntimeError(msg)
+            raise TypeError(msg)
 
-        self.TShape(shape.TShape())
-        self.Location(shape.Location())
-        self.Orientation(shape.Orientation())
+        self._shape = shape
 
     def local_to_global_u(self, u):
         """
@@ -579,7 +585,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_cref:
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
-        return self.cref.local_to_global_param(u)
+        return self._cref.local_to_global_param(u)
 
     def point_on_cref(self, u):
         """
@@ -595,7 +601,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_cref:
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
-        return self.cref.eval(u)
+        return self._cref.eval(u)
 
     def point_on_sref(self, u, v):
         """
@@ -612,7 +618,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if not self.has_sref:
             msg = 'Part does not have a reference surface.'
             raise AttributeError(msg)
-        return self.sref.eval(u, v)
+        return self._sref.eval(u, v)
 
     def point_from_parameter(self, ds, u0=None, is_rel=False):
         """
@@ -636,12 +642,12 @@ class Part(TopoDS_Shape, ViewableItem):
             raise AttributeError(msg)
 
         if u0 is None:
-            u0 = self.cref.u1
+            u0 = self._cref.u1
 
         if is_rel:
-            ds *= self.cref.length
+            ds *= self._cref.length
 
-        return PointFromParameter(self.cref, u0, ds).point
+        return PointFromParameter(self._cref, u0, ds).point
 
     def points_by_number(self, n, d1=None, d2=None, shape1=None,
                          shape2=None, tol=1.0e-7):
@@ -670,7 +676,7 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        edge = CheckShape.to_edge(self.cref)
+        edge = CheckShape.to_edge(self._cref)
         builder = PointsAlongShapeByNumber(edge, n, d1, d2, shape1, shape2,
                                            tol)
         return builder.points
@@ -704,7 +710,7 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        edge = CheckShape.to_edge(self.cref)
+        edge = CheckShape.to_edge(self._cref)
         builder = PointsAlongShapeByDistance(edge, maxd, d1, d2, shape1,
                                              shape2, nmin, tol)
         return builder.points
@@ -726,7 +732,7 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        proj = ProjectPointToCurve(pnt, self.cref, direction, update=True)
+        proj = ProjectPointToCurve(pnt, self._cref, direction, update=True)
         if not proj.success:
             return False
         return True
@@ -771,7 +777,7 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference surface.'
             raise AttributeError(msg)
 
-        proj = ProjectPointToSurface(pnt, self.sref, direction)
+        proj = ProjectPointToSurface(pnt, self._sref, direction)
         if not proj.success:
             return False
 
@@ -830,12 +836,12 @@ class Part(TopoDS_Shape, ViewableItem):
             raise AttributeError(msg)
 
         if u0 is None:
-            u0 = self.cref.u1
+            u0 = self._cref.u1
 
         if is_rel:
             ds *= self.cref.length
 
-        return PlaneFromParameter(self.cref, u0, ds, ref_pln, tol).plane
+        return PlaneFromParameter(self._cref, u0, ds, ref_pln, tol).plane
 
     def invert_cref(self, pnt):
         """
@@ -853,7 +859,7 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        proj = ProjectPointToCurve(pnt, self.cref)
+        proj = ProjectPointToCurve(pnt, self._cref)
         if proj.success:
             return proj.nearest_param
         return None
@@ -874,7 +880,7 @@ class Part(TopoDS_Shape, ViewableItem):
             msg = 'Part does not have a reference surface.'
             raise AttributeError(msg)
 
-        proj = ProjectPointToSurface(pnt, self.sref)
+        proj = ProjectPointToSurface(pnt, self._sref)
         if proj.success:
             return proj.nearest_param
         return None, None
@@ -889,7 +895,8 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: The minimum distance.
         :rtype: float
         """
-        return DistanceShapeToShape(self, other).dmin
+        other = _get_shape(other)
+        return DistanceShapeToShape(self._shape, other).dmin
 
     def check(self, raise_error=True):
         """
@@ -903,7 +910,7 @@ class Part(TopoDS_Shape, ViewableItem):
 
         :raise RuntimeError: If the check fails and *raise_error* is ``True``.
         """
-        check = CheckShape.is_valid(self)
+        check = CheckShape.is_valid(self._shape)
 
         if not raise_error:
             return check
@@ -934,7 +941,8 @@ class Part(TopoDS_Shape, ViewableItem):
             if not isinstance(context, TopoDS_Shape):
                 context = AssemblyAPI.as_compound(context, include_subassy)
 
-        new_shape = FixShape(self, precision, min_tol, max_tol, context).shape
+        new_shape = FixShape(self._shape, precision, min_tol, max_tol,
+                             context).shape
         self.set_shape(new_shape)
 
     def cut(self, cutter):
@@ -949,9 +957,8 @@ class Part(TopoDS_Shape, ViewableItem):
         :return: *True* if shape was cut, *False* if not.
         :rtype: bool
         """
-        cutter = CheckShape.to_shape(cutter)
-
-        cut = CutShapes(self, cutter)
+        cutter = _get_shape(cutter)
+        cut = CutShapes(self._shape, cutter)
         if not cut.is_done:
             return False
 
@@ -977,11 +984,13 @@ class Part(TopoDS_Shape, ViewableItem):
         :raise TypeError: If this part is or the splitter not a curve or
             surface part.
         """
+        splitter = _get_shape(splitter)
+
         split = SplitShapes()
         if rebuild_both:
-            split.set_args([self, splitter])
+            split.set_args([self._shape, splitter])
         else:
-            split.set_args([self])
+            split.set_args([self._shape])
             split.set_tools([splitter])
         split.build()
         if not split.is_done:
@@ -990,7 +999,6 @@ class Part(TopoDS_Shape, ViewableItem):
         parts = [self]
         if rebuild_both:
             parts += [splitter]
-        # Rebuild with multiple parts.
         for part in parts:
             part.rebuild(split)
         return True
@@ -1007,7 +1015,7 @@ class Part(TopoDS_Shape, ViewableItem):
         :raise TypeError: If this part is not a curve or surface part.
         """
         if isinstance(self, (CurvePart, SurfacePart)):
-            rebuild = RebuildShapeByTool(self, tool)
+            rebuild = RebuildShapeByTool(self._shape, tool)
         else:
             msg = 'Invalid part type in rebuild operation.'
             raise TypeError(msg)
@@ -1032,9 +1040,9 @@ class Part(TopoDS_Shape, ViewableItem):
         :raise TypeError: If this part is not a curve or surface part.
         """
         if isinstance(self, CurvePart):
-            shapes = ExploreShape.get_edges(self)
+            shapes = self.edges
         elif isinstance(self, SurfacePart):
-            shapes = ExploreShape.get_faces(self)
+            shapes = self.faces
         else:
             msg = 'Invalid part type in discard operation.'
             raise TypeError(msg)
@@ -1042,7 +1050,7 @@ class Part(TopoDS_Shape, ViewableItem):
         if tol is None:
             tol = self.tol
 
-        rebuild = RebuildShapeWithShapes(self)
+        rebuild = RebuildShapeWithShapes(self._shape)
         classifer = ClassifyPointInSolid(solid, tol=tol)
 
         modified = False
@@ -1084,14 +1092,14 @@ class Part(TopoDS_Shape, ViewableItem):
         entity = CheckShape.to_shape(entity)
 
         if isinstance(self, CurvePart):
-            shapes = ExploreShape.get_edges(self)
+            shapes = self.edges
         elif isinstance(self, SurfacePart):
-            shapes = ExploreShape.get_faces(self)
+            shapes = self.faces
         else:
             msg = 'Invalid part type in discard operation.'
             raise TypeError(msg)
 
-        rebuild = RebuildShapeWithShapes(self)
+        rebuild = RebuildShapeWithShapes(self._shape)
 
         modified = False
         for part_shape in shapes:
@@ -1127,14 +1135,14 @@ class Part(TopoDS_Shape, ViewableItem):
         entity = CheckShape.to_shape(entity)
 
         if isinstance(self, CurvePart):
-            shapes = ExploreShape.get_edges(self)
+            shapes = self.edges
         elif isinstance(self, SurfacePart):
-            shapes = ExploreShape.get_faces(self)
+            shapes = self.faces
         else:
             msg = 'Invalid part type in discard operation.'
             raise TypeError(msg)
 
-        rebuild = RebuildShapeWithShapes(self)
+        rebuild = RebuildShapeWithShapes(self._shape)
 
         modified = False
         for part_shape in shapes:
@@ -1172,15 +1180,15 @@ class Part(TopoDS_Shape, ViewableItem):
 
         # Create vectors at each end of the reference curve pointing "out" of
         # the part
-        u1, u2 = self.cref.u1, self.cref.u2
-        v1 = self.cref.deriv(u1, 1)
-        v2 = self.cref.deriv(u2, 1)
+        u1, u2 = self._cref.u1, self._cref.u2
+        v1 = self._cref.deriv(u1, 1)
+        v2 = self._cref.deriv(u2, 1)
         # Reverse v1 so it's "out" of the part
         v1.reverse()
 
         # Create planes at each end
-        p1 = self.cref.eval(u1)
-        p2 = self.cref.eval(u2)
+        p1 = self._cref.eval(u1)
+        p2 = self._cref.eval(u2)
         pln1 = PlaneByNormal(p1, v1).plane
         pln2 = PlaneByNormal(p2, v2).plane
 
@@ -1232,7 +1240,7 @@ class CurvePart(Part):
         :return: The length of all the edges of the part.
         :rtype: float
         """
-        return LinearProps(self).length
+        return LinearProps(self._shape).length
 
 
 class Beam(CurvePart):
@@ -1272,7 +1280,7 @@ class SurfacePart(Part):
         """
         if self.has_cref:
             return self.cref.length
-        return LinearProps(self).length
+        return LinearProps(self._shape).length
 
     @property
     def area(self):
@@ -1280,7 +1288,7 @@ class SurfacePart(Part):
         :return: The area of all faces of the part.
         :rtype: float
         """
-        return SurfaceProps(self).area
+        return SurfaceProps(self._shape).area
 
     @property
     def stiffeners(self):
@@ -1313,18 +1321,19 @@ class SurfacePart(Part):
         """
         # Putting the other parts in a compound avoids fusing them to each
         # other
-        other_parts = list(other_parts)
-        other_compound = CompoundByShapes(other_parts).compound
+        other_shapes = [part.shape for part in other_parts]
+        other_compound = CompoundByShapes(other_shapes).compound
 
-        fuse = FuseShapes(self, other_compound)
+        fuse = FuseShapes(self._shape, other_compound)
         if not fuse.is_done:
             return False
 
-        # Rebuild the parts
-        parts = [self] + other_parts
-        rebuild = RebuildShapesByTool(parts, fuse)
+        # Rebuild the part shapes
+        parts = [self] + list(other_parts)
+        shapes = [part.shape for part in parts]
+        rebuild = RebuildShapesByTool(shapes, fuse)
         for part in parts:
-            new_shape = rebuild.new_shape(part)
+            new_shape = rebuild.new_shape(part.shape)
             part.set_shape(new_shape)
 
         return True
@@ -1340,23 +1349,23 @@ class SurfacePart(Part):
         :rtype: bool
         """
         parts = [self] + list(other_parts)
+        shapes = [self._shape] + [part.shape for part in other_parts]
 
-        tol = mean([ExploreShape.global_tolerance(part, 0) for part in parts],
-                   dtype=float)
+        tol = float(mean([ExploreShape.global_tolerance(shape, 0) for shape in
+                          shapes], dtype=float))
         max_tol = max(
-            [ExploreShape.global_tolerance(part, 1) for part in parts])
+            [ExploreShape.global_tolerance(shape, 1) for shape in shapes])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
                        non_manifold=True)
         for part in parts:
-            sew.add(part)
+            sew.add(part.shape)
         sew.perform()
 
         for part in parts:
-            if not sew.is_modified(part):
+            if not sew.is_modified(part.shape):
                 continue
-            mod_shape = sew.modified(part)
-            print('modified ', part.label)
+            mod_shape = sew.modified(part.shape)
             part.set_shape(mod_shape)
         return True
 
@@ -1373,7 +1382,7 @@ class SurfacePart(Part):
         :rtype: bool
         """
         # Fuse the parts
-        fuse = FuseShapes(self, other)
+        fuse = FuseShapes(self._shape, other)
         if not fuse.is_done:
             return False
 
@@ -1397,7 +1406,7 @@ class SurfacePart(Part):
         :return: *True* if unified, *False* if not.
         :rtype: bool
         """
-        unify = UnifyShape(self, edges, faces, bsplines)
+        unify = UnifyShape(self._shape, edges, faces, bsplines)
         new_shape = unify.shape
         self.set_shape(new_shape)
 
@@ -1413,7 +1422,7 @@ class SurfacePart(Part):
         :return: *True* if split, *False* if not.
         :rtype: bool
         """
-        bop = LocalSplit(subshape, tool, self)
+        bop = LocalSplit(subshape, tool, self._shape)
         if not bop.is_done:
             return False
 
@@ -1430,7 +1439,8 @@ class SurfacePart(Part):
         :return: Shared edges.
         :rtype: list[OCCT.TopoDS.TopoDS_Edge]
         """
-        return ExploreShape.get_shared_edges(self, other)
+        other = _get_shape(other)
+        return ExploreShape.get_shared_edges(self._shape, other)
 
     def shared_nodes(self, other):
         """
@@ -1441,8 +1451,8 @@ class SurfacePart(Part):
         :return: Shared nodes.
         :rtype: list[afem.mesh.entities.Node]
         """
-        nodes1 = self.nodes
-        nodes2 = other.nodes
+        nodes1 = set(self.nodes)
+        nodes2 = set(other.nodes)
         return list(nodes1 & nodes2)
 
     def cut_hole(self, d, ds, u0=None, is_rel=False):
@@ -1474,7 +1484,7 @@ class SurfacePart(Part):
 
         # Intersect the shape with a plane to use for the hole height location
         pln = self.plane_from_parameter(ds, u0, is_rel)
-        bop = IntersectShapes(self, pln)
+        bop = IntersectShapes(self._shape, pln)
         wires = WiresByShape(bop.shape).wires
         los = LengthOfShapes(wires)
         max_length = los.max_length
@@ -1488,7 +1498,7 @@ class SurfacePart(Part):
 
         # Cut the hole
         r = d / 2.
-        bop = CutCylindricalHole(self, r, ax1)
+        bop = CutCylindricalHole(self._shape, r, ax1)
         self.set_shape(bop.shape)
 
         return bop.is_done

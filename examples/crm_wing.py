@@ -92,22 +92,24 @@ tip_rib = RibByParameters('tip rib', 0.15, v2, 0.75, v2, rhs_wing).rib
 
 # Front center spar
 pln = PlaneByAxes(root_rib.p1, 'yz').plane
-fc_spar = SparBetweenShapes('fc spar', xz_face, root_rib, rhs_wing, pln).spar
+fc_spar = SparBetweenShapes('fc spar', xz_face, root_rib.shape, rhs_wing,
+                            pln).spar
 
 # Rear center spar
 pln = PlaneByAxes(root_rib.p2, 'yz').plane
-rc_spar = SparBetweenShapes('rc spar', xz_face, root_rib, rhs_wing, pln).spar
+rc_spar = SparBetweenShapes('rc spar', xz_face, root_rib.shape, rhs_wing,
+                            pln).spar
 
 # Front spar is between the second and last wing stations. Use intersection
 # of center spar and root rib for orientation.
-pln = PlaneByIntersectingShapes(root_rib, fc_spar, tip_rib.p1).plane
+pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape, tip_rib.p1).plane
 fspar = SparByPoints('fspar', root_rib.p1, tip_rib.p1, rhs_wing, pln).spar
 
 # Rear spar 1 is between second and third wing stations. Use intersection
 # of center spar and root rib for orientation.
 v2 = vknots[2]
 p2 = rhs_wing.eval(0.75, v2)
-pln = PlaneByIntersectingShapes(root_rib, rc_spar, p2).plane
+pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, p2).plane
 rspar1 = SparByPoints('rspar 1', root_rib.p2, p2, rhs_wing, pln).spar
 
 # Rear spar 2 is between the third and last wing stations
@@ -120,21 +122,24 @@ FuseSurfacePartsByCref(parts)
 DiscardByCref(parts)
 
 # Distribute ribs along the front spar at 25"
-aft_shape = CompoundByShapes([root_rib, rspar1, rspar2]).compound
+aft_shape = CompoundByShapes([root_rib.shape, rspar1.shape,
+                              rspar2.shape]).compound
 
 # Start/stopping point for inboard ribs to avoid rib at kink
 uref = fspar.invert_cref(rspar1.p1)
-builder1 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar, aft_shape,
-                                    rhs_wing, d1=25., d2=-12.5, u2=uref)
+builder1 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar.shape,
+                                    aft_shape, rhs_wing, d1=25., d2=-12.5,
+                                    u2=uref)
 
 uref_kink = fspar.invert_cref(rspar1.p2)
-builder2 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar, aft_shape,
-                                    rhs_wing, d1=12.5, d2=-12.5, u1=uref,
-                                    u2=uref_kink,
+builder2 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar.shape,
+                                    aft_shape, rhs_wing, d1=12.5, d2=-12.5,
+                                    u1=uref, u2=uref_kink,
                                     first_index=builder1.next_index)
 
-builder3 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar, aft_shape,
-                                    rhs_wing, d1=12.5, d2=-12., u1=uref_kink,
+builder3 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar.shape,
+                                    aft_shape, rhs_wing, d1=12.5, d2=-12.,
+                                    u1=uref_kink,
                                     first_index=builder2.next_index)
 
 ribs = builder1.ribs + builder2.ribs + builder3.ribs
@@ -145,7 +150,7 @@ DiscardByCref(ribs)
 
 # Center wing ribs
 ribs = RibsBetweenPlanesByNumber('center rib', xz_pln, root_rib.plane, 4,
-                                 fc_spar, rc_spar, rhs_wing).ribs
+                                 fc_spar.shape, rc_spar.shape, rhs_wing).ribs
 FuseSurfaceParts(ribs, [fc_spar, rc_spar])
 DiscardByCref(ribs)
 
@@ -176,8 +181,8 @@ status = the_mesh.add_hypotheses([ngh, nga, hyp1d, alg1d])
 quad_hyp = QuadrangleHypo2D(the_gen)
 quad_alg = QuadrangleAlgo2D(the_gen)
 for part in internal_parts:
-    if quad_alg.is_applicable(part, True):
-        the_mesh.add_hypotheses([quad_alg, quad_hyp], part)
+    if quad_alg.is_applicable(part.shape, True):
+        the_mesh.add_hypotheses([quad_alg, quad_hyp], part.shape)
 
 print('Computing mesh...')
 the_gen.compute(the_mesh, shape_to_mesh)

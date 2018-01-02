@@ -42,7 +42,7 @@ class FixAssembly(object):
         fix = FixShape(compound, precision, min_tol, max_tol)
 
         for part in parts:
-            new_shape = fix.apply(part)
+            new_shape = fix.apply(part.shape)
             part.set_shape(new_shape)
 
     @staticmethod

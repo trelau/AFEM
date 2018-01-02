@@ -141,9 +141,9 @@ for frame in frames:
 # Center spars between root chord and root rib
 root_chord = wing.sref.v_iso(wing.sref.v1)
 
-fc_spar = SparBetweenShapes('fc spar', root_chord, root_rib, wing,
+fc_spar = SparBetweenShapes('fc spar', root_chord, root_rib.shape, wing,
                             fwd_bh.sref).spar
-rc_spar = SparBetweenShapes('rc spar', root_chord, root_rib, wing,
+rc_spar = SparBetweenShapes('rc spar', root_chord, root_rib.shape, wing,
                             rear_bh.sref).spar
 
 # Tip rib
@@ -152,13 +152,13 @@ tip_rib = RibByParameters('tip rib', 0.15, v, 0.65, v, wing).rib
 
 # Front and rear spar. Use intersection of root rib and center spars to
 # define planes so the edges all align at the root rib.
-pln = PlaneByIntersectingShapes(root_rib, fc_spar, tip_rib.p1).plane
+pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape, tip_rib.p1).plane
 
 p1 = root_rib.p1
 p2 = tip_rib.p1
 fspar = SparByPoints('fspar', p1, p2, wing, pln).spar
 
-pln = PlaneByIntersectingShapes(root_rib, rc_spar, tip_rib.p2).plane
+pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, tip_rib.p2).plane
 p1 = root_rib.p2
 p2 = tip_rib.p2
 rspar = SparByPoints('rspar', p1, p2, wing, pln).spar
@@ -180,26 +180,27 @@ kink_rib = RibBetweenShapes('kink rib', face1, face2, wing, pln).rib
 root_pln = PlaneByAxes(root_rib.p2, 'xz').plane
 plns = [root_pln, kink_rib.sref]
 inbd_ribs = RibsBetweenPlanesByDistance('inbd rib', root_pln, kink_rib.plane,
-                                        30., fspar, rspar, wing, 30.,
-                                        -30.).ribs
+                                        30., fspar.shape, rspar.shape, wing,
+                                        30., -30.).ribs
 
 # Outboard ribs
 u1 = rspar.invert_cref(kink_rib.p2)
-outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 30., fspar,
-                                      rspar, wing, u1=u1, d1=30., d2=-30.).ribs
+outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 30., fspar.shape,
+                                      rspar.shape, wing, u1=u1, d1=30.,
+                                      d2=-30.).ribs
 
 # Rib along kink rib to front spar.
 u1 = fspar.invert_cref(kink_rib.p1)
 u2 = fspar.invert_cref(outbd_ribs[0].p1)
-kink_ribs = RibsAlongCurveByDistance('kink rib', fspar.cref, 30., fspar,
-                                     kink_rib, wing, u1=u1, u2=u2, d1=30.,
+kink_ribs = RibsAlongCurveByDistance('kink rib', fspar.cref, 30., fspar.shape,
+                                     kink_rib.shape, wing, u1=u1, u2=u2, d1=30.,
                                      d2=-30., nmin=1).ribs
 
 # Center ribs.
 xz_pln = PlaneByAxes(axes='xz').plane
-center_ribs = RibsAlongCurveByNumber('center rib', fc_spar.cref, 3, fc_spar,
-                                     rc_spar, wing, ref_pln=xz_pln, d1=30.,
-                                     d2=-30.).ribs
+center_ribs = RibsAlongCurveByNumber('center rib', fc_spar.cref, 3,
+                                     fc_spar.shape, rc_spar.shape, wing,
+                                     ref_pln=xz_pln, d1=30., d2=-30.).ribs
 
 # Fuse wing internal structure and discard faces
 internal_parts = AssemblyAPI.get_parts()
@@ -230,10 +231,23 @@ shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(shape_to_mesh)
 
-# Use a single global hypothesis based on local length.
-hyp = NetgenSimple2D(the_gen, 4.)
-alg = NetgenAlgo2D(the_gen)
-the_mesh.add_hypotheses([hyp, alg], shape_to_mesh)
+# Use a single global hypothesis based on maximum length.
+hyp1d = MaxLength1D(the_gen, 4.)
+alg1d = Regular1D(the_gen)
+the_mesh.add_hypotheses([hyp1d, alg1d], shape_to_mesh)
+
+# Netgen unstructured quad-dominated
+netgen_hyp = NetgenSimple2D(the_gen, 4.)
+netgen_alg = NetgenAlgo2D(the_gen)
+the_mesh.add_hypotheses([netgen_hyp, netgen_alg], shape_to_mesh)
+
+# Apply mapped quadrangle to internal structure
+mapped_hyp = QuadrangleHypo2D(the_gen)
+mapped_algo = QuadrangleAlgo2D(the_gen)
+for part_ in internal_parts:
+    for face in part_.faces:
+        if mapped_algo.is_applicable(face):
+            the_mesh.add_hypotheses([mapped_algo, mapped_hyp], face)
 
 # Compute the mesh
 mesh_start = time.time()

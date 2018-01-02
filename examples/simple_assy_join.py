@@ -33,8 +33,8 @@ fspar = SparByPoints('fspar', root.p1, tip.p1, wing).spar
 rspar = SparByPoints('rspar', root.p2, tip.p2, wing).spar
 
 rib_assy.activate()
-RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar, rspar, wing, d1=30.,
-                       d2=-50)
+RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, wing,
+                       d1=30., d2=-50)
 
 # Use FuseAssemblies
 FuseAssemblies([rib_assy, spar_assy])
@@ -74,8 +74,8 @@ fspar = SparByPoints('fspar', root.p1, tip.p1, htail).spar
 rspar = SparByPoints('rspar', root.p2, tip.p2, htail).spar
 
 pln = PlaneByAxes().plane
-RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar, rspar, htail, d1=12,
-                       d2=-12, ref_pln=pln)
+RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, htail,
+                       d1=12, d2=-12, ref_pln=pln)
 
 parts = htail_assy.get_parts()
 FuseSurfacePartsByCref(parts)

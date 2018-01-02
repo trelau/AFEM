@@ -357,7 +357,7 @@ class Viewer(QWidget):
         :return: The AIS_Shape created for the part.
         :rtype: OCCT.AIS.AIS_Shape
         """
-        return self.display_shape(part, part.color, part.transparency)
+        return self.display_shape(part.shape, part.color, part.transparency)
 
     def display_parts(self, parts):
         """

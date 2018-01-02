@@ -169,8 +169,7 @@ class Assembly(object):
         :return: The parts as a compound.
         :rtype: OCCT.TopoDS.TopoDS_Compound
         """
-        parts = self.get_parts(include_subassy)
-        return CompoundByShapes(parts).compound
+        return self.as_compound(include_subassy)
 
     def as_compound(self, include_subassy=True):
         """
@@ -182,7 +181,9 @@ class Assembly(object):
         :return: The parts as a compound.
         :rtype: OCCT.TopoDS.TopoDS_Compound
         """
-        return self.prepare_shape_to_mesh(include_subassy)
+        parts = self.get_parts(include_subassy)
+        shapes = [part.shape for part in parts]
+        return CompoundByShapes(shapes).compound
 
 
 class AssemblyAPI(object):

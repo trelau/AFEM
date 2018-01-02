@@ -21,7 +21,7 @@ def export_bdf(the_mesh, fn):
     some pre-processors. Intended for development and debugging. Only supports
     tri and quad elements for now.
 
-    :param afem.mesh.meshes.Mesh the_mesh: The mesh.
+    :param afem.smesh.meshes.Mesh the_mesh: The mesh.
     :param str fn: The filename.
 
     :return: *True* if done, *False* if not.
@@ -44,7 +44,7 @@ def export_bdf(the_mesh, fn):
     fout.write('\n')
 
     # Write grids.
-    for node in the_mesh.nodes:
+    for node in the_mesh.ds.node_iter:
         fout.write("%-8s" % "GRID")
         # ID
         _write_field(node.nid, fout)
@@ -61,7 +61,7 @@ def export_bdf(the_mesh, fn):
         fout.write('\n')
 
     # Write elements.
-    for elm in the_mesh.elements:
+    for elm in the_mesh.ds.faces_iter:
         if elm.is_tri:
             fout.write("%-8s" % "CTRIA3")
         elif elm.is_quad:
