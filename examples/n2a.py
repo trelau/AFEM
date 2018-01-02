@@ -29,7 +29,7 @@ for body in [wing, other_wing, vtail, other_vtail]:
     body.set_color(0.5, 0.5, 0.5)
 
 # Construction geometry
-root_chord = wing.isocurve(v=0.)
+root_chord = wing.sref.v_iso(0.)
 
 AssemblyAPI.create_assy('wing assy')
 

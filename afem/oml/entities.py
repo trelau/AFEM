@@ -11,8 +11,6 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from OCCT.TopoDS import TopoDS_Solid
-
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import Surface
 from afem.geometry.project import (ProjectPointToCurve,
@@ -29,42 +27,42 @@ from afem.topology.modify import DivideC0Shape, DivideClosedShape
 __all__ = ["Body"]
 
 
-class Body(TopoDS_Solid, ViewableItem):
+class Body(ViewableItem):
     """
     Base class for OML bodies.
 
-    :param solid: The solid. It will be downcasted to a solid if a generic
-        shape is provided.
-    :type solid: OCCT.TopoDS.TopoDS_Shape or OCCT.TopoDS.TopoDS_Solid
-    :param str name: The name.
+    :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
+    :param str label: The label.
 
     :raise TypeError: If *shape* is not a solid.
     """
 
-    def __init__(self, solid, name=None):
+    def __init__(self, solid, label=None):
         super(Body, self).__init__()
-        ViewableItem.__init__(self)
-        self.set_solid(solid)
+        if not CheckShape.is_solid(solid):
+            msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
+            raise TypeError(msg)
+        self._solid = solid
         self._metadata = {}
-        self._name = name
+        self._label = label
         self._sref = None
         self._sref_shape = None
 
     @property
-    def name(self):
+    def label(self):
         """
-        :return: The name.
+        :return: The label.
         :rtype: str
         """
-        return self._name
+        return self._label
 
     @property
     def solid(self):
         """
-        :return: The shape.
+        :return: The solid.
         :rtype: OCCT.TopoDS.TopoDS_Solid
         """
-        return self
+        return self._solid
 
     @property
     def outer_shell(self):
@@ -72,7 +70,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :return: The outer shell.
         :rtype: OCCT.TopoDS.TopoDS_Shell
         """
-        return ExploreShape.outer_shell(self)
+        return ExploreShape.outer_shell(self._solid)
 
     @property
     def metadata(self):
@@ -104,7 +102,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :return: Lower u-parameter of reference surface.
         :rtype: float
         """
-        return self.sref.u1
+        return self._sref.u1
 
     @property
     def u2(self):
@@ -112,7 +110,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :return: Upper u-parameter of reference surface.
         :rtype: float
         """
-        return self.sref.u2
+        return self._sref.u2
 
     @property
     def v1(self):
@@ -120,7 +118,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :return: Lower v-parameter of reference surface.
         :rtype: float
         """
-        return self.sref.v1
+        return self._sref.v1
 
     @property
     def v2(self):
@@ -128,17 +126,17 @@ class Body(TopoDS_Solid, ViewableItem):
         :return: Upper v-parameter of reference surface.
         :rtype: float
         """
-        return self.sref.v2
+        return self._sref.v2
 
-    def set_name(self, name):
+    def set_label(self, label):
         """
         Set name of body.
 
-        :param str name: The name.
+        :param str label: The name.
 
         :return: None.
         """
-        self._name = name
+        self._label = label
 
     def add_metadata(self, key, value):
         """
@@ -159,30 +157,25 @@ class Body(TopoDS_Solid, ViewableItem):
 
         :return: The key or *None* if not present.
         :rtype: object or None
+
+        :raise KeyError: If the key is not in the dictionary.
         """
-        try:
-            return self._metadata[key]
-        except KeyError:
-            return None
+        return self._metadata[key]
 
     def set_solid(self, solid):
         """
-        Set the shape for the OML body.
+        Set the solid for the body.
 
         :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
 
         :return: None.
 
-        :raise TypeError: If *shape* is not a solid.
+        :raise TypeError: If *solid* is not a solid.
         """
         if not CheckShape.is_solid(solid):
             msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
-            raise RuntimeError(msg)
-        solid = CheckShape.to_solid(solid)
-        self.TShape(solid.TShape())
-        self.Location(solid.Location())
-        self.Orientation(solid.Orientation())
-        return True
+            raise TypeError(msg)
+        self._solid = solid
 
     def set_sref(self, srf, divide_closed=True, divide_c0=True):
         """
@@ -221,7 +214,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :return: Point on reference surface.
         :rtype: afem.geometry.entities.Point
         """
-        return self.sref.eval(u, v)
+        return self._sref.eval(u, v)
 
     def norm(self, u, v):
         """
@@ -233,7 +226,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :return: Reference surface normal.
         :rtype: afem.geometry.entities.Vector
         """
-        return self.sref.norm(u, v)
+        return self._sref.norm(u, v)
 
     def invert(self, p):
         """
@@ -247,7 +240,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :raise RuntimeError: If no points are found in the projection
             algorithm.
         """
-        proj = ProjectPointToSurface(p, self.sref)
+        proj = ProjectPointToSurface(p, self._sref)
         if not proj.success:
             msg = 'Failed to invert point.'
             raise RuntimeError(msg)
@@ -340,27 +333,6 @@ class Body(TopoDS_Solid, ViewableItem):
 
         return TrimmedCurveByParameters(crv, u1c, u2c).curve
 
-    def isocurve(self, u=None, v=None):
-        """
-        Extract iso-curve in the reference surface.
-
-        :param float u: Constant u-parameter. Will override *v* if both are
-            provided.
-        :param float v: Constant v-parameter.
-
-        :return: The iso-curve.
-        :rtype: afem.geometry.entities.Curve
-
-        :raise TypeError: If both *u* and *v* are None.
-        """
-        if u is not None:
-            return self.sref.u_iso(u)
-        elif v is not None:
-            return self.sref.v_iso(v)
-        else:
-            msg = 'Invalid parameter input.'
-            raise TypeError(msg)
-
     def bbox(self, tol=None):
         """
         Return a bounding box of the body.
@@ -372,7 +344,7 @@ class Body(TopoDS_Solid, ViewableItem):
         :rtype: afem.topology.entities.BBox
         """
         bbox = BBox()
-        bbox.add_shape(self)
+        bbox.add_shape(self._solid)
         if tol is not None:
             bbox.enlarge(tol)
         return bbox

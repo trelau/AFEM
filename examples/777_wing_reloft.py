@@ -16,7 +16,7 @@ wing = ImportVSP.get_body('Wing')
 wing.set_transparency(0.5)
 
 # Reference curve along sref
-cref = wing.isocurve(u=0.25)
+cref = wing.sref.u_iso(0.25)
 
 # Points where cuts will be along cref. Offset by 1 at root and tip because
 # the xz-plane may not perfectly intersect the wing sections since they may be

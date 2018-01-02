@@ -27,7 +27,7 @@ RibsAlongCurveByDistance('rib', rspar.cref, 60, fspar.shape, rspar.shape,
                          wing, d1=30, d2=-30)
 internal_parts = wingbox.get_parts()
 skin = SkinByBody('skin', wing).skin
-cref = wing.isocurve(u=0.5)
+cref = wing.sref.u_iso(0.5)
 skin.discard_by_dmin(cref, 1.0)
 
 FuseSurfaceParts([skin], internal_parts)

@@ -187,7 +187,7 @@ class ImportVSP(object):
             if metadata['m_Type'] == 5 and metadata['m_SurfType'] != 99:
                 wing = _process_wing(compound, divide_closed)
                 if wing is not None:
-                    wing.set_name(comp_name)
+                    wing.set_label(comp_name)
                     bodies[comp_name] = wing
                     sref_id = metadata['Sref ID']
                     wing_bodies[sref_id] = wing
@@ -196,7 +196,7 @@ class ImportVSP(object):
             elif metadata['m_Type'] in [4, 9]:
                 fuse = _process_fuse(compound, divide_closed)
                 if fuse is not None:
-                    fuse.set_name(comp_name)
+                    fuse.set_label(comp_name)
                     bodies[comp_name] = fuse
 
             # Unknown
