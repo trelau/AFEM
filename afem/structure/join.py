@@ -149,18 +149,33 @@ class CutParts(object):
 
         shape2 = CheckShape.to_shape(shape)
 
-        # FIXME Loop through each since Boolean seems to not be robust
+        # Loop through each since since that seems to be more robust
+        self._status = {}
         for part in parts:
-            part.cut(shape2)
+            status = part.cut(shape2)
+            self._status[part] = status
 
-        # shape1 = CompoundByShapes(parts).compound
+        # shapes = [part.shape for part in parts]
+        # shape1 = CompoundByShapes(shapes).compound
         #
         # bop = CutShapes(shape1, shape2)
+        # self._shape = bop.shape
         #
-        # rebuild = RebuildShapesByTool(parts, bop)
+        # rebuild = RebuildShapesByTool(shapes, bop)
         # for part in parts:
-        #     new_shape = rebuild.new_shape(part)
+        #     new_shape = rebuild.new_shape(part.shape)
         #     part.set_shape(new_shape)
+
+    def was_cut(self, part):
+        """
+        Check the status of the cut operation.
+
+        :param afem.structure.entities.Part part: The part to check.
+
+        :return: *True* if part was cut, *False* if not.
+        :rtype:
+        """
+        return self._status[part]
 
 
 class SewSurfaceParts(object):
