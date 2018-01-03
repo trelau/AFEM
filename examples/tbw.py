@@ -41,8 +41,8 @@ AssemblyAPI.create_assy('wing assy')
 
 # Center wing structure will be based on the intersection between the wings
 # and fuselage.
-joined_wings = FuseShapes(wing, other_wing).shape
-shape = IntersectShapes(fuselage, joined_wings).shape
+joined_wings = FuseShapes(wing.solid, other_wing.solid).shape
+shape = IntersectShapes(fuselage.solid, joined_wings).shape
 
 # Use the y-dimensions of the bounding box of the intersection curve.
 bbox = BBox()
