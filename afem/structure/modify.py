@@ -50,7 +50,7 @@ class DiscardByCref(object):
         except KeyError:
             return False
 
-# TODO Rebuild part tool. Handle sub-parts.
+# Rebuild part tool. Handle sub-parts.
 # Perform for sub-parts.
 # for subpart in part.subparts:
 #     reshape_parts(tool, [subpart])

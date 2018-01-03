@@ -314,7 +314,7 @@ class Part(ViewableItem):
         :return: Sub-mesh for the part shape using the active mesh.
         :rtype: afem.smesh.meshes.SubMesh
         """
-        # FIXME Why need basic type? Why doesn't the regular shape work?
+        # Put core shape types into a compound
         if isinstance(self, CurvePart):
             subshape = CompoundByShapes(self.edges).compound
         else:

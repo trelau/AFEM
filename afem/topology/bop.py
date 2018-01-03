@@ -32,8 +32,6 @@ __all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "CutCylindricalHole", "LocalSplit"]
 
 
-# FIXME Rebuilding of shapes when nondestructive=True
-
 class BopCore(object):
     """
     Core class for Boolean operations and enabling attributes and methods for

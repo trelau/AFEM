@@ -22,7 +22,8 @@ except ImportError:
 from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis_2D,
                                NETGENPlugin_NETGEN_2D,
                                NETGENPlugin_NETGEN_2D_ONLY,
-                               NETGENPlugin_SimpleHypothesis_2D)
+                               NETGENPlugin_SimpleHypothesis_2D,
+                               NETGENPlugin_Hypothesis)
 from OCCT.SMESH import SMESH_Algo, SMESH_Hypothesis
 from OCCT.StdMeshers import (StdMeshers_Adaptive1D,
                              StdMeshers_Deflection1D, StdMeshers_LocalLength,
@@ -479,8 +480,8 @@ class NetgenHypo2D(Hypothesis):
     :param bool allow_quads: Enable quad-dominated mesh.
     :param bool second_order: Enable second-order mesh.
     :param bool optimize: Enable mesh optimization.
-    :param int fineness: Mesh fineness (0=very coarse, 1=coarse, 2=moderate,
-        3=fine, 4=very fine, 5=user defined).
+    :param fineness: Mesh fineness.
+    :type fineness: OCCT.NETGENPlugin.NETGENPlugin_Hypothesis.Fineness
     :param float growth_rate: Growth rate between 0 to 1.
     :param int nseg_per_edge: Number of segments per edge.
     :param int nseg_per_radius: Number of segments per radius.
@@ -490,8 +491,9 @@ class NetgenHypo2D(Hypothesis):
 
     def __init__(self, gen, max_size=1000., min_size=0.,
                  allow_quads=False, second_order=False, optimize=True,
-                 fineness=2, growth_rate=0.3, nseg_per_edge=1,
-                 nseg_per_radius=2, surface_curvature=False, fuse_edges=False):
+                 fineness=NETGENPlugin_Hypothesis.Moderate, growth_rate=0.3,
+                 nseg_per_edge=1, nseg_per_radius=2, surface_curvature=False,
+                 fuse_edges=False):
         hyp = NETGENPlugin_Hypothesis_2D(gen.new_id(), -1, gen.object)
         super(NetgenHypo2D, self).__init__(hyp)
 

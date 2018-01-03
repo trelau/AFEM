@@ -11,7 +11,11 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from numpy import array
+from __future__ import division
+
+from numpy import array, cross, linalg
+
+from afem.geometry.entities import Point
 
 __all__ = ["Node", "Element", "FaceSide"]
 
@@ -164,12 +168,23 @@ class Element(object):
     @property
     def node_iter(self):
         """
-        :return: Yield nodes of the element.
+        :return: Yield nodes of the element. The corner nodes will be first
+            followed by medium nodes if quadratic.
         :rtype: collections.Iterable(afem.smesh.entities.Node)
         """
         iter_ = self._elm.nodeIterator()
         while iter_.more():
             yield Node(iter_.next())
+
+    @property
+    def point_iter(self):
+        """
+        :return: Yield nodes of the element as points. The corner points will be
+            first followed by medium points if quadratic.
+        :rtype: collections.Iterable(afem.geometry.entities.Point)
+        """
+        for n in self.node_iter:
+            yield Point(n.x, n.y, n.z)
 
     @property
     def edge_iter(self):
@@ -229,6 +244,100 @@ class Element(object):
         :rtype: bool
         """
         return self.num_nodes == 4
+
+    @property
+    def length(self):
+        """
+        :return: Element length.
+        :rtype: float
+        """
+        num_pnts = self.num_nodes
+        if num_pnts not in [2, 3]:
+            return 0.
+        pnts = list(self.point_iter)
+        d1 = pnts[0].distance(pnts[1])
+        if num_pnts == 2:
+            return d1
+        return d1 + pnts[1].distance(pnts[2])
+
+    @property
+    def area(self):
+        """
+        :return: Element area.
+        :rtype: float
+        """
+        area = 0.
+        num_nodes = self.num_nodes
+        if self.is_quadratic:
+            num_nodes //= 2
+        if num_nodes > 2:
+            pnts = list(self.point_iter)
+            v1 = pnts[1] - pnts[0]
+            v2 = pnts[2] - pnts[0]
+            vtot = cross(v1, v2)
+            for i in range(3, num_nodes):
+                v1 = pnts[i - 1] - pnts[0]
+                v2 = pnts[i] - pnts[0]
+                vtot += cross(v1, v2)
+            area = 0.5 * linalg.norm(vtot)
+
+        return area
+
+    @property
+    def min_angle(self):
+        """
+        :return: The minimum element angle in degrees.
+        :rtype: float
+        """
+        raise NotImplementedError()
+
+    @property
+    def max_angle(self):
+        """
+        :return: The maximum element angle in degrees.
+        :rtype: float
+        """
+        raise NotImplementedError()
+
+    @property
+    def aspect_ratio(self):
+        """
+        :return: The element aspect ratio.
+        :rtype: float
+        """
+        raise NotImplementedError()
+
+    @property
+    def warp_angle(self):
+        """
+        :return: The element warping in degrees.
+        :rtype: float
+        """
+        raise NotImplementedError()
+
+    @property
+    def taper_ratio(self):
+        """
+        :return: The element taper ratio.
+        :rtype: float
+        """
+        raise NotImplementedError()
+
+    @property
+    def skew_angle(self):
+        """
+        :return: The element skew angle.
+        :rtype: float
+        """
+        raise NotImplementedError()
+
+    @property
+    def jacobian(self):
+        """
+        :return: The element Jacobian.
+        :rtype: float
+        """
+        raise NotImplementedError()
 
     def is_medium_node(self, node):
         """
