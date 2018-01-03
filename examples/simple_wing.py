@@ -1,9 +1,9 @@
 from afem.config import Settings
 from afem.exchange import ImportVSP
 from afem.graphics import Viewer
-from afem.smesh import MeshGen, NetgenSimple2D, NetgenAlgo2D, MaxLength1D, \
-    Regular1D
+from afem.smesh import *
 from afem.structure import *
+from afem.topology import *
 
 Settings.log_to_console()
 
@@ -40,10 +40,12 @@ the_mesh = MeshGen.create_mesh(the_gen)
 the_mesh.shape_to_mesh(the_shape)
 
 # 1-d
-hyp1d = MaxLength1D(the_gen, 4.)
+hyp1d = LocalLength1D(the_gen, 4.)
 alg1d = Regular1D(the_gen)
-the_mesh.add_hypothesis(hyp1d, the_shape)
-the_mesh.add_hypothesis(alg1d, the_shape)
+edges = ExploreShape.get_edges(the_shape)
+cmp = CompoundByShapes(edges).compound
+the_mesh.add_hypothesis(hyp1d, cmp)
+the_mesh.add_hypothesis(alg1d, cmp)
 
 # Unstructured quad-dominant
 hyp2d = NetgenSimple2D(the_gen, 4.)
@@ -55,15 +57,15 @@ the_mesh.add_hypothesis(alg2d, the_shape)
 # mapped_hyp = QuadrangleHypo2D(the_gen)
 # mapped_alg = QuadrangleAlgo2D(the_gen)
 # for part_ in internal_parts + [skin]:
-#     if mapped_alg.is_applicable(part_, True):
-#         the_mesh.add_hypothesis(mapped_hyp, part_)
-#         the_mesh.add_hypothesis(mapped_alg, part_)
-#     else:
-#         print('Not applicable: {}'.format(part_.label))
+#     for face in part_.faces:
+#         if mapped_alg.is_applicable(face, True):
+#             the_mesh.add_hypothesis(mapped_hyp, face)
+#             the_mesh.add_hypothesis(mapped_alg, face)
 
 the_gen.compute(the_mesh, the_shape)
 
 # View
+skin.set_transparency(0.5)
 v = Viewer()
 v.display_assy(wingbox)
 v.start()

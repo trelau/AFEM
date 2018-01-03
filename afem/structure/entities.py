@@ -285,6 +285,14 @@ class Part(ViewableItem):
         return ExploreShape.get_edges(self._shape)
 
     @property
+    def edge_compound(self):
+        """
+        :return: A compound containing the part edges.
+        :rtype: OCCT.TopoDS.TopoDS_Compound
+        """
+        return CompoundByShapes(self.edges).compound
+
+    @property
     def nfaces(self):
         """
         :return: The number of faces in the part shape.
@@ -299,6 +307,14 @@ class Part(ViewableItem):
         :rtype: list[OCCT.TopoDS.TopoDS_Face]
         """
         return ExploreShape.get_faces(self._shape)
+
+    @property
+    def face_compound(self):
+        """
+        :return: A compound containing the part faces.
+        :rtype: OCCT.TopoDS.TopoDS_Compound
+        """
+        return CompoundByShapes(self.faces).compound
 
     @property
     def mesh(self):
@@ -316,10 +332,10 @@ class Part(ViewableItem):
         """
         # Put core shape types into a compound
         if isinstance(self, CurvePart):
-            subshape = CompoundByShapes(self.edges).compound
+            subshape = self.edge_compound
         else:
-            subshape = CompoundByShapes(self.faces).compound
-        return self.mesh.get_submesh(subshape)
+            subshape = self.face_compound
+        return self._mesh.get_submesh(subshape)
 
     @property
     def elements(self):
