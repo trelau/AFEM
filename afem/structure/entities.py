@@ -1445,18 +1445,23 @@ class SurfacePart(Part):
         self.rebuild(bop)
         return True
 
-    def shared_edges(self, other):
+    def shared_edges(self, other, as_compound=False):
         """
         Get edges shared between the two parts.
 
         :param other: The other part or shape.
         :type other: afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
+        :param bool as_compound: Option to return the shared edges in a
+            compound.
 
         :return: Shared edges.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge] or OCCT.TopoDS.TopoDS_Compound
         """
         other = _get_shape(other)
-        return ExploreShape.get_shared_edges(self._shape, other)
+        edges = ExploreShape.get_shared_edges(self._shape, other)
+        if not as_compound:
+            return edges
+        return CompoundByShapes(edges).compound
 
     def shared_nodes(self, other):
         """

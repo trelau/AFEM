@@ -23,7 +23,7 @@ fspar = SparByParameters('front spar', 0.15, 0., 0.15, 1., wing).spar
 rspar = SparByParameters('rear spar', 0.70, 0., 0.70, 1., wing).spar
 RibByPoints('root rib', fspar.p1, rspar.p1, wing)
 RibByPoints('tip rib', fspar.p2, rspar.p2, wing)
-RibsAlongCurveByDistance('rib', rspar.cref, 60, fspar.shape, rspar.shape,
+RibsAlongCurveByDistance('rib', rspar.cref, 30, fspar.shape, rspar.shape,
                          wing, d1=30, d2=-30)
 internal_parts = wingbox.get_parts()
 skin = SkinByBody('skin', wing).skin
@@ -65,7 +65,7 @@ the_mesh.add_hypothesis(alg2d, the_shape)
 the_gen.compute(the_mesh, the_shape)
 
 # View
-skin.set_transparency(0.5)
+# skin.set_transparency(0.5)
 v = Viewer()
 v.display_assy(wingbox)
 v.start()
