@@ -32,10 +32,11 @@ from OCCT.V3d import V3d_Viewer, V3d_TypeOfOrientation
 from OCCT.WNT import WNT_Window
 from OCCT.gce import gce_MakeMirror
 from PySide import QtCore
-from PySide.QtGui import QWidget, QApplication, QPalette, QIcon
+from PySide.QtGui import QApplication, QPalette, QIcon, QMainWindow
+from PySide.QtOpenGL import QGLWidget
 from numpy.random import rand
 
-__all__ = ["Viewer", "ViewableItem"]
+__all__ = ["occQt", "ViewableItem"]
 
 # Icon location
 _icon = os.path.dirname(__file__) + '/resources/main.png'
@@ -119,33 +120,39 @@ class ViewableItem(object):
         return builder.Shape()
 
 
-class Viewer(QWidget):
+_app = QApplication([])
+
+
+class occView(QGLWidget):
     """
-    Simple class for viewing items.
-
-    :param int width: Window width.
-    :param int height: Window height.
-
-    :var OCCT.V3d.V3d_Viewer my_viewer: The viewer.
-    :var OCCT.V3d.V3d_View my_view: The view.
-    :var OCCT.AIS.AIS_InteractiveContext: The context.
-    :var OCCT.Prs3d.Prs3d_Drawer: The default drawer.
+    Widget for AFEM viewer.
     """
 
-    _app = QApplication.instance()
-    if _app is None:
-        _app = QApplication([])
-
-    def __init__(self, width=800, height=600):
-        super(Viewer, self).__init__()
+    def __init__(self, width=800, height=600, parent=None):
+        super(occView, self).__init__(parent)
 
         # Qt settings
         self.setBackgroundRole(QPalette.NoRole)
         self.setMouseTracking(True)
-        self.resize(width, height)
-        self.setWindowTitle('AFEM')
-        icon = QIcon(_icon)
-        self.setWindowIcon(icon)
+        # self.resize(width, height)
+
+        # Create viewer and view
+        self.my_viewer = None
+        self.my_view = None
+
+        # AIS interactive context
+        self.my_context = None
+
+        # Some default settings
+        self._white = Quantity_Color(Quantity_NOC_WHITE)
+        self._black = Quantity_Color(Quantity_NOC_BLACK)
+        self.my_drawer = None
+        self.graphic3d_cview = None
+
+        # Values for mouse movement
+        self._x0, self._y0 = 0., 0.
+
+    def init(self):
 
         # Display connection
         display_connection = Aspect_DisplayConnection()
@@ -191,23 +198,14 @@ class Viewer(QWidget):
             ord('T'): self.view_top
         }
 
-        # Values for mouse movement
-        self._x0, self._y0 = 0., 0.
-
-    def start(self, fit=True):
-        """
-        Start the application.
-
-        :param bool fit: Option to fit the contents before starting.
-
-        :return: None.
-        """
-        if fit:
-            self.fit()
-        self._app.exec_()
+    def paintEvent(self, *args, **kwargs):
+        if self.my_context is None:
+            self.init()
+        self.my_view.Redraw()
 
     def resizeEvent(self, *args, **kwargs):
-        self.my_view.MustBeResized()
+        if self.my_view is None:
+            self.my_view.MustBeResized()
 
     def keyPressEvent(self, e):
         try:
@@ -523,3 +521,55 @@ class Viewer(QWidget):
         :return: None.
         """
         raise NotImplemented('Need gl2ps library.')
+
+
+class occQt(QMainWindow):
+    """
+    Simple class for viewing items.
+
+    :param int width: Window width.
+    :param int height: Window height.
+    :param PySide.QtGui.QWidget parent: The parent for the viewer if any.
+
+    :var OCCT.V3d.V3d_Viewer my_viewer: The viewer.
+    :var OCCT.V3d.V3d_View my_view: The view.
+    :var OCCT.AIS.AIS_InteractiveContext: The context.
+    :var OCCT.Prs3d.Prs3d_Drawer: The default drawer.
+    """
+
+    def __init__(self, view, parent=None):
+        super(occQt, self).__init__(parent)
+
+        self.setCentralWidget(view)
+        self.setWindowTitle('AFEM')
+        icon = QIcon(_icon)
+        self.setWindowIcon(icon)
+
+    # def start(self, fit=True):
+    #     """
+    #     Start the application.
+    #
+    #     :param bool fit: Option to fit the contents before starting.
+    #
+    #     :return: None.
+    #     """
+    #     if fit:
+    #         self.fit()
+    #     self.show()
+    #
+    #     _app = QApplication.instance()
+    #     if _app is None:
+    #         _app = QApplication([])
+    #
+    #     return _app.exec_()
+
+
+def start_viewer(view):
+    # _app = QApplication.instance()
+    # if _app is None:
+    # _app = QApplication([])
+
+    v = occView(view)
+    v.show()
+
+    return _app.exec_()
