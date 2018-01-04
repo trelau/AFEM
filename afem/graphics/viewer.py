@@ -268,7 +268,7 @@ class Viewer(QWidget):
         :return: The AIS_Shape created for the body.
         :rtype: OCCT.AIS.AIS_Shape
         """
-        return self.display_shape(body, body.color, body.transparency)
+        return self.display_shape(body.solid, body.color, body.transparency)
 
     def display_shape(self, shape, rgb=None, transparency=None,
                       material=Graphic3d_NOM_DEFAULT):
