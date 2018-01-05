@@ -108,10 +108,12 @@ class FuseSurfacePartsByCref(object):
                 if tol is None:
                     tol1 = ExploreShape.global_tolerance(main.shape, 1)
                     tol2 = ExploreShape.global_tolerance(other.shape, 1)
-                    tol = max(tol1, tol2)
+                    _tol = max(tol1, tol2)
+                else:
+                    _tol = tol
                 e1 = EdgeByCurve(main.cref).edge
                 e2 = EdgeByCurve(other.cref).edge
-                bop = IntersectShapes(e1, e2, fuzzy_val=tol)
+                bop = IntersectShapes(e1, e2, fuzzy_val=_tol)
                 if not bop.vertices:
                     continue
                 # Store potential join
