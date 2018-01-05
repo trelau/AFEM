@@ -503,10 +503,10 @@ class SparBetweenShapes(SparByPoints):
     :param str label: Part label.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
@@ -522,8 +522,8 @@ class SparBetweenShapes(SparByPoints):
         else:
             shape = basis_shape
 
-        shape1 = CheckShape.to_shape(shape1)
-        shape2 = CheckShape.to_shape(shape2)
+        shape1 = shape_of_entity(shape1)
+        shape2 = shape_of_entity(shape2)
 
         wing_basis_edges = IntersectShapes(shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
@@ -548,10 +548,10 @@ class SparsBetweenPlanesByNumber(object):
     :param int n: The number of parts.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -632,10 +632,10 @@ class SparsBetweenPlanesByDistance(object):
         be adjusted to not to exceed this value.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -713,10 +713,10 @@ class SparsAlongCurveByNumber(object):
     :param int n: The number of parts.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -804,10 +804,10 @@ class SparsAlongCurveByDistance(object):
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1121,10 +1121,10 @@ class RibBetweenShapes(RibByPoints):
     :param str label: Part label.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
@@ -1140,8 +1140,8 @@ class RibBetweenShapes(RibByPoints):
         else:
             shape = basis_shape
 
-        shape1 = CheckShape.to_shape(shape1)
-        shape2 = CheckShape.to_shape(shape2)
+        shape1 = shape_of_entity(shape1)
+        shape2 = shape_of_entity(shape2)
 
         wing_basis_edges = IntersectShapes(shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
@@ -1192,10 +1192,10 @@ class RibsBetweenPlanesByNumber(object):
     :param int n: The number of parts.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1276,10 +1276,10 @@ class RibsBetweenPlanesByDistance(object):
         be adjusted to not to exceed this value.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1357,10 +1357,10 @@ class RibsAlongCurveByNumber(object):
     :param int n: The number of parts.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1448,10 +1448,10 @@ class RibsAlongCurveByDistance(object):
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1541,10 +1541,10 @@ class RibsAlongCurveAndSurfaceByDistance(object):
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
     :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
     :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface
+        afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float u1: The parameter of the first plane (default=crv.u1).
     :param float u2: The parameter of the last plane (default=crv.u2).

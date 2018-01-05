@@ -42,14 +42,19 @@ from afem.topology.props import LengthOfShapes, LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
            "Rib", "FuselagePart", "Bulkhead", "Floor", "Frame", "Skin",
-           "Stiffener1D", "Stiffener2D", "Stringer"]
+           "Stiffener1D", "Stiffener2D", "Stringer", "shape_of_entity"]
 
 
-def _get_shape(entity):
+def shape_of_entity(entity):
     """
-    Get the shape.
+    Get the shape of the entity. This method is useful if method inputs can
+    either be a part or a shape. If the entity is already a shape it will be
+    returned. If the entity is part the shape of the part will be returned. If
+    the entity is a curve or surface then it will be converted to a shape.
 
     :param entity: The entity.
+    :type entity: afem.geometry.entities.Geometry or
+        afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
 
     :return: The shape.
     :rtype: OCCT.TopoDS.TopoDS_Shape
@@ -911,7 +916,7 @@ class Part(ViewableItem):
         :return: The minimum distance.
         :rtype: float
         """
-        other = _get_shape(other)
+        other = shape_of_entity(other)
         return DistanceShapeToShape(self._shape, other).dmin
 
     def check(self, raise_error=True):
@@ -973,7 +978,7 @@ class Part(ViewableItem):
         :return: *True* if shape was cut, *False* if not.
         :rtype: bool
         """
-        cutter = _get_shape(cutter)
+        cutter = shape_of_entity(cutter)
         cut = CutShapes(self._shape, cutter)
         if not cut.is_done:
             return False
@@ -1000,7 +1005,7 @@ class Part(ViewableItem):
         :raise TypeError: If this part is or the splitter not a curve or
             surface part.
         """
-        splitter = _get_shape(splitter)
+        splitter = shape_of_entity(splitter)
 
         split = SplitShapes()
         if rebuild_both:
@@ -1457,7 +1462,7 @@ class SurfacePart(Part):
         :return: Shared edges.
         :rtype: list[OCCT.TopoDS.TopoDS_Edge] or OCCT.TopoDS.TopoDS_Compound
         """
-        other = _get_shape(other)
+        other = shape_of_entity(other)
         edges = ExploreShape.get_shared_edges(self._shape, other)
         if not as_compound:
             return edges
