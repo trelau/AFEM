@@ -290,8 +290,11 @@ class Viewer(QWidget):
             r, g, b = rgb
             color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
             ais_shape.SetColor(color)
-        if isinstance(rgb, Quantity_Color):
+        elif isinstance(rgb, Quantity_Color):
             ais_shape.SetColor(rgb)
+        else:
+            r, g, b = rand(1, 3)[0]
+            ais_shape.SetColor(Quantity_Color(r, g, b, Quantity_TOC_RGB))
 
         if transparency is not None:
             ais_shape.SetTransparency(transparency)
