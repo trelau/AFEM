@@ -38,8 +38,12 @@ from numpy.random import rand
 
 __all__ = ["occQt", "ViewableItem"]
 
+# Start a QApplication
+_app = QApplication([])
+
 # Icon location
 _icon = os.path.dirname(__file__) + '/resources/main.png'
+_qicon = QIcon(_icon)
 
 
 class ViewableItem(object):
@@ -59,7 +63,6 @@ class ViewableItem(object):
         self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
         self.transparency = 0.
         self.mirror = None
-        return
 
     def set_color(self, r, g, b):
         """
@@ -120,21 +123,17 @@ class ViewableItem(object):
         return builder.Shape()
 
 
-_app = QApplication([])
-
-
 class occView(QGLWidget):
     """
     Widget for AFEM viewer.
     """
 
-    def __init__(self, width=800, height=600, parent=None):
+    def __init__(self, parent=None):
         super(occView, self).__init__(parent)
 
         # Qt settings
         self.setBackgroundRole(QPalette.NoRole)
         self.setMouseTracking(True)
-        # self.resize(width, height)
 
         # Create viewer and view
         self.my_viewer = None
@@ -204,7 +203,7 @@ class occView(QGLWidget):
         self.my_view.Redraw()
 
     def resizeEvent(self, *args, **kwargs):
-        if self.my_view is None:
+        if self.my_view is not None:
             self.my_view.MustBeResized()
 
     def keyPressEvent(self, e):
@@ -529,47 +528,24 @@ class occQt(QMainWindow):
 
     :param int width: Window width.
     :param int height: Window height.
-    :param PySide.QtGui.QWidget parent: The parent for the viewer if any.
-
-    :var OCCT.V3d.V3d_Viewer my_viewer: The viewer.
-    :var OCCT.V3d.V3d_View my_view: The view.
-    :var OCCT.AIS.AIS_InteractiveContext: The context.
-    :var OCCT.Prs3d.Prs3d_Drawer: The default drawer.
+    :param PySide.QtGui.QWidget parent: The parent for the viewer.
     """
 
-    def __init__(self, view, parent=None):
+    def __init__(self, width=800, height=600, parent=None):
         super(occQt, self).__init__(parent)
 
-        self.setCentralWidget(view)
+        self.my_OccView = occView(self)
+        self.setCentralWidget(self.my_OccView)
+
         self.setWindowTitle('AFEM')
-        icon = QIcon(_icon)
-        self.setWindowIcon(icon)
-
-    # def start(self, fit=True):
-    #     """
-    #     Start the application.
-    #
-    #     :param bool fit: Option to fit the contents before starting.
-    #
-    #     :return: None.
-    #     """
-    #     if fit:
-    #         self.fit()
-    #     self.show()
-    #
-    #     _app = QApplication.instance()
-    #     if _app is None:
-    #         _app = QApplication([])
-    #
-    #     return _app.exec_()
+        self.setWindowIcon(_qicon)
+        self.resize(width, height)
 
 
-def start_viewer(view):
-    # _app = QApplication.instance()
-    # if _app is None:
-    # _app = QApplication([])
-
-    v = occView(view)
-    v.show()
+def start_viewer(w):
+    _app = QApplication.instance()
+    if _app is None:
+        _app = QApplication([])
+    w.show()
 
     return _app.exec_()
