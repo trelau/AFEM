@@ -15,7 +15,7 @@ from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import Surface
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
-from afem.graphics.viewer import ViewableItem
+from afem.graphics.display import ViewableItem
 from afem.topology import ExploreShape
 from afem.topology.bop import IntersectShapes
 from afem.topology.check import CheckShape
@@ -39,7 +39,8 @@ class Body(ViewableItem):
 
     def __init__(self, solid, label=None):
         super(Body, self).__init__()
-        if not CheckShape.is_solid(solid):
+        solid = CheckShape.to_solid(solid)
+        if solid is None:
             msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
             raise TypeError(msg)
         self._solid = solid
