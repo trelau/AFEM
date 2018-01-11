@@ -155,5 +155,5 @@ skin.fix()
 # View
 skin.set_transparency(0.5)
 v = Viewer()
-v.display_assy(AssemblyAPI.get_master())
+v.add(AssemblyAPI.get_master())
 v.start()

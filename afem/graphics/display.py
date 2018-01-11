@@ -26,7 +26,7 @@ from OCCT.OpenGl import OpenGl_GraphicDriver
 from OCCT.Quantity import (Quantity_TOC_RGB, Quantity_NOC_WHITE,
                            Quantity_Color,
                            Quantity_NOC_BLACK)
-from OCCT.SMESH import SMESH_MeshVSLink
+from OCCT.SMESH import SMESH_MeshVSLink, SMESH_Mesh
 from OCCT.TopoDS import TopoDS_Shape
 from OCCT.V3d import V3d_Viewer, V3d_TypeOfOrientation
 from OCCT.WNT import WNT_Window
@@ -36,14 +36,10 @@ from PySide.QtGui import QApplication, QPalette, QIcon, QMainWindow
 from PySide.QtOpenGL import QGLWidget
 from numpy.random import rand
 
-__all__ = ["occQt", "ViewableItem"]
-
-# Start a QApplication
-_app = QApplication([])
+__all__ = ["ViewableItem", "View", "Viewer"]
 
 # Icon location
 _icon = os.path.dirname(__file__) + '/resources/main.png'
-_qicon = QIcon(_icon)
 
 
 class ViewableItem(object):
@@ -123,13 +119,15 @@ class ViewableItem(object):
         return builder.Shape()
 
 
-class occView(QGLWidget):
+class View(QGLWidget):
     """
-    Widget for AFEM viewer.
+    View for displaying shapes.
+
+    :param PySide.QtGui.QWidget parent: The parent widget.
     """
 
     def __init__(self, parent=None):
-        super(occView, self).__init__(parent)
+        super(View, self).__init__(parent)
 
         # Qt settings
         self.setBackgroundRole(QPalette.NoRole)
@@ -151,66 +149,60 @@ class occView(QGLWidget):
         # Values for mouse movement
         self._x0, self._y0 = 0., 0.
 
-    def init(self):
-
         # Display connection
-        display_connection = Aspect_DisplayConnection()
+        self.display_connect = Aspect_DisplayConnection()
 
         # Graphics driver
-        graphics_driver = OpenGl_GraphicDriver(display_connection)
+        self._graphics_driver = OpenGl_GraphicDriver(self.display_connect)
 
         # Window handle
-        window_handle = self.winId()
+        self.window_handle = self.winId()
 
         # Windows window
-        wind = WNT_Window(window_handle)
+        self.wind = WNT_Window(self.window_handle)
 
         # Create viewer and view
-        self.my_viewer = V3d_Viewer(graphics_driver)
+        self.my_viewer = V3d_Viewer(self._graphics_driver)
         self.my_view = self.my_viewer.CreateView()
-        self.my_view.SetWindow(wind)
+        self.my_view.SetWindow(self.wind)
 
         # Map window
-        wind.Map()
+        if not self.wind.IsMapped():
+            self.wind.Map()
 
         # AIS interactive context
         self.my_context = AIS_InteractiveContext(self.my_viewer)
 
         # Some default settings
-        self.my_context.SetAutomaticHilight(True)
         self._white = Quantity_Color(Quantity_NOC_WHITE)
         self._black = Quantity_Color(Quantity_NOC_BLACK)
+
+        self.my_context.SetAutomaticHilight(True)
+
         self.my_viewer.SetDefaultLights()
         self.my_viewer.SetLightOn()
+
         self.my_view.SetBackgroundColor(Quantity_TOC_RGB, 0.5, 0.5, 0.5)
+        self.my_view.MustBeResized()
+
         self.my_context.SetDisplayMode(AIS_Shaded, True)
+
         self.my_drawer = self.my_context.DefaultDrawer()
         self.my_drawer.SetFaceBoundaryDraw(True)
+
         self.my_view.TriedronDisplay(Aspect_TOTP_LEFT_LOWER, self._black, 0.08)
         self.my_view.SetProj(V3d_TypeOfOrientation.V3d_XposYposZpos)
+
         self.graphic3d_cview = self.my_view.View()
 
-        # Keyboard map
-        self._keys = {
-            ord('F'): self.my_view.FitAll,
-            ord('I'): self.view_iso,
-            ord('T'): self.view_top
-        }
+        # Mesh display mode
+        self._mesh_mode = 1
 
     def paintEvent(self, *args, **kwargs):
-        if self.my_context is None:
-            self.init()
         self.my_view.Redraw()
 
     def resizeEvent(self, *args, **kwargs):
-        if self.my_view is not None:
-            self.my_view.MustBeResized()
-
-    def keyPressEvent(self, e):
-        try:
-            self._keys[e.key()]()
-        except KeyError:
-            pass
+        self.my_view.MustBeResized()
 
     def wheelEvent(self, e):
         if e.delta() > 0:
@@ -220,12 +212,6 @@ class occView(QGLWidget):
         self.my_view.SetZoom(zoom)
 
     def mousePressEvent(self, e):
-        pos = e.pos()
-        x, y = pos.x(), pos.y()
-        self._x0, self._y0 = x, y
-        self.my_view.StartRotation(x, y)
-
-    def mouseDoubleClickEvent(self, e):
         pos = e.pos()
         x, y = pos.x(), pos.y()
         self._x0, self._y0 = x, y
@@ -244,6 +230,16 @@ class occView(QGLWidget):
             dx, dy = x - self._x0, y - self._y0
             self._x0, self._y0 = x, y
             self.my_view.Pan(dx, -dy)
+
+    def fit(self):
+        """
+        Fit the contents.
+
+        :return: None.
+        """
+        self.my_view.FitAll()
+        self.my_view.ZFitAll()
+        self.my_view.Redraw()
 
     def display(self, ais_shape, update=True):
         """
@@ -326,7 +322,7 @@ class occView(QGLWidget):
 
         return self.display_shape(shape, geom.color, geom.transparency)
 
-    def display_mesh(self, mesh, mode=1):
+    def display_mesh(self, mesh, mode=None):
         """
         Display a mesh.
 
@@ -336,6 +332,9 @@ class occView(QGLWidget):
         :return: The MeshVS_Mesh created for the mesh.
         :rtype: OCCT.MeshVS.MeshVS_Mesh
         """
+        if mode is None:
+            mode = self._mesh_mode
+
         vs_link = SMESH_MeshVSLink(mesh)
         mesh_vs = MeshVS_Mesh()
         mesh_vs.SetDataSource(vs_link)
@@ -384,39 +383,6 @@ class occView(QGLWidget):
         for part in assy.get_parts(include_subassy):
             self.display_part(part)
 
-    def add(self, *items):
-        """
-        Add items to be displayed.
-
-        :param items: The items.
-
-        :return: None.
-        """
-        from afem.geometry.entities import Geometry
-        from afem.oml.entities import Body
-        from afem.structure.assembly import Assembly
-        from afem.structure.entities import Part
-
-        for item in items:
-            if isinstance(item, Part):
-                self.display_part(item)
-            elif isinstance(item, Assembly):
-                self.display_assy(item)
-            elif isinstance(item, Geometry):
-                self.display_geom(item)
-            elif isinstance(item, Body):
-                self.display_body(item)
-            elif isinstance(item, TopoDS_Shape):
-                self.display_shape(item)
-
-    def fit(self):
-        """
-        Fit the contents.
-
-        :return: None.
-        """
-        self.my_view.FitAll()
-
     def set_bg_color(self, r, g, b):
         """
         Set the background color.
@@ -436,6 +402,22 @@ class occView(QGLWidget):
         :return: None.
         """
         self.my_view.SetBackgroundColor(Quantity_TOC_RGB, 1., 1., 1.)
+
+    def set_mesh_wireframe(self):
+        """
+        Set the default mesh view to wireframe.
+
+        :return: None.
+        """
+        self._mesh_mode = 1
+
+    def set_mesh_shaded(self):
+        """
+        Set the default mesh view to shaded.
+
+        :return: None.
+        """
+        self._mesh_mode = 2
 
     def view_iso(self):
         """
@@ -522,30 +504,100 @@ class occView(QGLWidget):
         raise NotImplemented('Need gl2ps library.')
 
 
-class occQt(QMainWindow):
+class Viewer(QMainWindow):
     """
     Simple class for viewing items.
 
     :param int width: Window width.
     :param int height: Window height.
-    :param PySide.QtGui.QWidget parent: The parent for the viewer.
+    :param PySide.QtGui.QWidget parent: The parent widget.
     """
 
     def __init__(self, width=800, height=600, parent=None):
-        super(occQt, self).__init__(parent)
+        # Start app
+        self._app = QApplication.instance()
+        if self._app is None:
+            self._app = QApplication([])
+        super(Viewer, self).__init__(parent)
 
-        self.my_OccView = occView(self)
-        self.setCentralWidget(self.my_OccView)
+        # Create the OCCT view
+        self._the_view = View(self)
+        self.setCentralWidget(self._the_view)
 
+        # Window settings
         self.setWindowTitle('AFEM')
+        _qicon = QIcon(_icon)
         self.setWindowIcon(_qicon)
         self.resize(width, height)
 
+    @property
+    def view(self):
+        return self._the_view
 
-def start_viewer(w):
-    _app = QApplication.instance()
-    if _app is None:
-        _app = QApplication([])
-    w.show()
+    def keyPressEvent(self, e):
+        if e.key() == ord('F'):
+            self.view.fit()
+        elif e.key() == ord('I'):
+            self.view.view_iso()
+        elif e.key() == ord('T'):
+            self.view.view_top()
+        else:
+            print('Key is not mapped to anything.')
 
-    return _app.exec_()
+    def add(self, *items):
+        """
+        Add items to be displayed.
+
+        :param items: The items.
+        :type items: OCCT.TopoDS.TopoDS_Shape or
+            afem.geometry.entities.Geometry or
+            afem.oml.entities.Body or
+            afem.structure.entities.Part or
+            afem.structure.assembly.Assembly or
+            OCCT.SMESH.SMESH_Mesh or
+            afem.smesh.meshes.Mesh
+
+        :return: None.
+        """
+        from afem.geometry.entities import Geometry
+        from afem.oml.entities import Body
+        from afem.structure.assembly import Assembly
+        from afem.structure.entities import Part
+        from afem.smesh.meshes import Mesh
+
+        for item in items:
+            if isinstance(item, Part):
+                self.view.display_part(item)
+            elif isinstance(item, Assembly):
+                self.view.display_assy(item)
+            elif isinstance(item, Geometry):
+                self.view.display_geom(item)
+            elif isinstance(item, Body):
+                self.view.display_body(item)
+            elif isinstance(item, TopoDS_Shape):
+                self.view.display_shape(item)
+            elif isinstance(item, Mesh):
+                self.view.display_mesh(item.object)
+            elif isinstance(item, SMESH_Mesh):
+                self.view.display_mesh(item)
+
+    def clear(self):
+        """
+        Clear contents of the view.
+
+        :return: None.
+        """
+        self.view.remove_all()
+
+    def start(self, fit=True):
+        """
+        Start the viewer.
+
+        :param bool fit: Option to fit contents.
+
+        :return: None.
+        """
+        if fit:
+            self.view.fit()
+        self.show()
+        self._app.exec_()

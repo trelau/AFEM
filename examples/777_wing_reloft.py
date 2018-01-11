@@ -40,7 +40,7 @@ for u in parms:
     p = cref.eval(u)
     xz_pln = PlaneByAxes(p, 'xz').plane
     xz_face = FaceBySurface(xz_pln).face
-    bop = CommonShapes(wing, xz_face)
+    bop = CommonShapes(wing.solid, xz_face)
 
     # Build wire(s) from the shapes
     builder = WiresByShape(bop.shape)
@@ -51,9 +51,8 @@ for u in parms:
     wires.append(wire)
 
 v.add(*wires)
-v.set_display_shapes()
-v.show()
-v.clear_all()
+v.start()
+v.view.remove_all()
 
 # Loft the sections into a continuous surface. This may result in unexpected
 # behavior since you are potentially skinning a complex shape with a single
@@ -72,9 +71,8 @@ srf = ExploreShape.surface_of_face(face)
 srf = NurbsSurface.downcast(srf)
 
 v.add(srf)
-v.set_display_shapes()
-v.show()
-v.clear_all()
+v.start()
+v.view.remove_all()
 
 srf.set_color(0.5, 0.5, 0.5)
 srf.set_transparency(0.5)
@@ -85,9 +83,8 @@ c = NurbsCurve.downcast(c)
 
 v.add(srf)
 v.add(c)
-v.set_display_shapes()
-v.show()
-v.clear_all()
+v.start()
+v.view.remove_all()
 
 # Grab a column of control points and move them to see what happens
 i1, i2 = srf.locate_v(0.5, with_knot_repetition=True)
@@ -103,9 +100,8 @@ for i in range(1, srf.n + 1):
     v.add(new_p)
     srf.set_cp(i, i1, new_p)
 v.add(srf)
-v.set_display_shapes()
-v.show()
-v.clear_all()
+v.start()
+v.view.remove_all()
 
 # Open issues:
 # - Figure out right index for bounding control points
@@ -115,9 +111,8 @@ v.clear_all()
 vsp_surf = wing.get_metadata('vsp surface')
 
 v.add(vsp_surf)
-v.set_display_shapes()
-v.show()
-v.clear_all()
+v.start()
+v.view.remove_all()
 
 # Grab some control points and modify
 cp = vsp_surf.cp
@@ -130,5 +125,4 @@ for i in range(1, vsp_surf.m + 1):
     v.add(new_p)
     vsp_surf.set_cp(indx, i, new_p)
 v.add(vsp_surf)
-v.set_display_shapes()
-v.show()
+v.start()

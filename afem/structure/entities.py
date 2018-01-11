@@ -22,7 +22,7 @@ from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
 from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
-from afem.graphics.viewer import ViewableItem
+from afem.graphics.display import ViewableItem
 from afem.structure.assembly import AssemblyAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)

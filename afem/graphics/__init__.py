@@ -11,4 +11,4 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from afem.graphics.viewer import occQt
+from afem.graphics.display import Viewer

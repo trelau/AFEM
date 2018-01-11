@@ -32,7 +32,7 @@ from afem.geometry.utils import (global_to_local_param,
                                  homogenize_array2d,
                                  local_to_global_param,
                                  reparameterize_knots)
-from afem.graphics.viewer import ViewableItem
+from afem.graphics.display import ViewableItem
 from afem.misc.check import is_array_like
 from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolgp_array2_pnt,

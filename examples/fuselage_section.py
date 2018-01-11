@@ -119,6 +119,6 @@ the_gen.compute(the_mesh)
 
 # View
 v = Viewer()
-v.display_assy(AssemblyAPI.get_master())
-v.display_mesh(the_mesh.object)
+v.add(AssemblyAPI.get_master())
+v.add(the_mesh)
 v.start()

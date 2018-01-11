@@ -28,8 +28,8 @@ hyp2d.set_enforced_nodes([face], [(5, 5, 0)])
 the_gen.compute(the_mesh, face)
 
 v = Viewer()
-v.view_top()
+v.view.view_top()
 for vert in ExploreShape.get_vertices(face):
     v.add(vert)
-v.display_mesh(the_mesh.object, 2)
+v.view.display_mesh(the_mesh.object, 2)
 v.start()

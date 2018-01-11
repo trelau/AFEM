@@ -309,7 +309,7 @@ def build_wingbox(wing, params):
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
     vv = Viewer()
-    vv.display_mesh(the_mesh.object, 2)
+    vv.view.display_mesh(the_mesh.object, 2)
     vv.start()
 
     # Uncomment this to export STEP file.
@@ -337,7 +337,6 @@ if __name__ == '__main__':
 
     v = Viewer(1280, 1024)
     v.add(assy)
-    v.fit()
     v.start()
 
     print('Complete in ', time.time() - start, ' seconds.')

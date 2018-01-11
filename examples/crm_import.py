@@ -60,5 +60,5 @@ lhs_wing.set_sref(sref)
 
 v = Viewer()
 for shape in [fuselage, lhs_wing, rhs_wing]:
-    v.display_shape(shape)
+    v.add(shape)
 v.start()
