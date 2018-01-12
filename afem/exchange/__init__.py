@@ -11,6 +11,6 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from afem.exchange.step import StepExport, StepImport
+from afem.exchange.step import StepWrite, StepRead
 from afem.exchange.stl import StlExport
 from afem.exchange.vsp import ImportVSP

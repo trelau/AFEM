@@ -11,34 +11,42 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from OCCT.IFSelect import (IFSelect_ItemsByEntity, IFSelect_RetError,
+from OCCT.IFSelect import (IFSelect_RetError,
                            IFSelect_RetDone)
 from OCCT.Interface import Interface_Static
-from OCCT.STEPControl import (STEPControl_AsIs, STEPControl_Reader,
-                              STEPControl_Writer)
+from OCCT.STEPControl import (STEPControl_AsIs, STEPControl_Writer,
+                              STEPControl_Reader)
 
 from afem.config import Settings, units_dict
 from afem.topology.check import CheckShape
 
-__all__ = ["StepExport", "StepImport"]
+__all__ = ["StepWrite", "StepRead"]
 
 
-class StepExport(STEPControl_Writer):
+class StepWrite(object):
     """
-    Export shapes to a STEP file
+    Write shape to a STEP file.
     
     :param str schema: Define schema for STEP file ('AP203', or 'AP214').
     :param str units: Units to convert STEP file to.
     """
 
     def __init__(self, schema='AP203', units=None):
-        super(StepExport, self).__init__()
+        self._writer = STEPControl_Writer()
         Interface_Static.SetCVal_('write.step.schema', schema)
         try:
             units = units_dict[units]
         except KeyError:
             units = Settings.units
         Interface_Static.SetCVal_('write.step.unit', units)
+
+    @property
+    def object(self):
+        """
+        :return: The STEP writer object.
+        :rtype: OCCT.STEPControl.STEPControl_Writer
+        """
+        return self._writer
 
     def transfer(self, *shapes):
         """
@@ -54,7 +62,7 @@ class StepExport(STEPControl_Writer):
             shape = CheckShape.to_shape(shape)
             if not shape:
                 continue
-            status = self.Transfer(shape, STEPControl_AsIs)
+            status = self._writer.Transfer(shape, STEPControl_AsIs)
             if int(status) < int(IFSelect_RetError):
                 added_shape = True
         return added_shape
@@ -68,50 +76,44 @@ class StepExport(STEPControl_Writer):
         :return: *True* if written, *False* if not.
         :rtype: bool
         """
-        status = self.Write(fn)
+        status = self._writer.Write(fn)
         if int(status) < int(IFSelect_RetError):
             return True
         return False
 
 
-class StepImport(STEPControl_Reader):
+class StepRead(object):
     """
-    Import a STEP file.
+    Read a STEP file.
+
+    :param str fn: The file to read.
     """
 
-    def __init__(self):
-        super(StepImport, self).__init__()
-        self._shape = None
+    def __init__(self, fn):
+        self._reader = STEPControl_Reader()
+
+        # Read file
+        status = self._reader.ReadFile(fn)
+        if status != IFSelect_RetDone:
+            raise RuntimeError("Error reading STEP file.")
+
+        # Transfer
+        nroots = self._reader.TransferRoots()
+        if nroots > 0:
+            self._shape = self._reader.OneShape()
+
+    @property
+    def object(self):
+        """
+        :return: The STEP reader object.
+        :rtype: OCCT.STEPControl.STEPControl_Reader
+        """
+        return self._reader
 
     @property
     def shape(self):
         """
-        :return: The shape.
+        :return: The main shape.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shape
-
-    def read(self, fn):
-        """
-        Read a STEP file.
-        
-        :param str fn: The full path to the file.
-         
-        :return: *True* if file was imported, *False* if not.
-        :rtype: bool
-        """
-        # Read file.
-        status = self.ReadFile(fn)
-        if int(status) > int(IFSelect_RetDone):
-            return False
-
-        # Convert to desired units.
-        Interface_Static.SetCVal_("xstep.cascade.unit", Settings.units)
-
-        # Check
-        self.PrintCheckLoad(False, IFSelect_ItemsByEntity)
-        self.PrintCheckTransfer(False, IFSelect_ItemsByEntity)
-
-        # Transfer
-        self.TransferRoot(1)
-        self._shape = self.Shape(1)
-        return True

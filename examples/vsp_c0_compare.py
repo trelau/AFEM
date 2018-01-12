@@ -1,7 +1,7 @@
 from numpy import linspace
 
 from afem.config import Settings
-from afem.exchange import StepImport, ImportVSP
+from afem.exchange import StepRead, ImportVSP
 from afem.graphics import Viewer
 from afem.misc.check import pairwise
 from afem.topology import *
@@ -14,8 +14,7 @@ Settings.set_units('in')
 # OpenVSP 3.5.0 ----------------------------------------------------------------
 
 fn = r'../models/777-200LR_nosplit.stp'
-step = StepImport()
-step.read(fn)
+step = StepRead(fn)
 
 ImportVSP.step_file(fn, False)
 wing = ImportVSP.get_body('Wing')
@@ -37,8 +36,7 @@ v.clear()
 # OpenVSP 3.15.0 ---------------------------------------------------------------
 
 fn = r'../models/777-200LR_nosplit_vsp315.stp'
-step = StepImport()
-step.read(fn)
+step = StepRead(fn)
 
 ImportVSP.step_file(fn, False)
 wing = ImportVSP.get_body('Wing')

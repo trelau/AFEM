@@ -1,6 +1,6 @@
 import afem.exchange.nastran
 from afem.config import Settings
-from afem.exchange import ImportVSP, StepExport
+from afem.exchange import ImportVSP, StepWrite
 from afem.geometry import *
 from afem.graphics import Viewer
 from afem.smesh import *
@@ -358,7 +358,7 @@ def build(wing, fuselage):
     v.clear()
 
     # Export the shape to a STEP file
-    step = StepExport('AP203', 'in')
+    step = StepWrite('AP203', 'in')
     step.transfer(the_shape)
     step.write('nasa_supersonic_np2.step')
 

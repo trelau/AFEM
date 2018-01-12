@@ -1,5 +1,5 @@
 from afem.config import Settings
-from afem.exchange import StepImport
+from afem.exchange import StepRead
 from afem.geometry import *
 from afem.graphics import Viewer
 from afem.smesh import *
@@ -10,8 +10,7 @@ from afem.topology import *
 Settings.log_to_console()
 
 # Import wing solid from STEP file
-step_read = StepImport()
-step_read.read(r'../models/boeing_737_wing_grabcad.step')
+step_read = StepRead(r'../models/boeing_737_wing_grabcad.step')
 shape = step_read.shape
 solids = ExploreShape.get_solids(shape)
 # There should only be one solid that is the wing
