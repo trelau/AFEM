@@ -38,40 +38,46 @@ within an Anaconda Command Prompt.
 
 Installing Dependencies
 -----------------------
-AFEM relies on a number of LGPL licensed open-source tools, including:
+The **pyOCCT** package developed by Laughlin Research should now be installed.
+The source code, pre-built binaries for Windows Python 3.5, and installation
+instructions can be found
+[here](https://github.gatech.edu/LaughlinResearch/pyOCCT).
 
-    * `OpenCASCADE Community Edition <https://github.com/tpaviot/oce/releases/tag/OCE-0.18.1>`_
-    * `pythonocc-core <https://github.com/trelau/pythonocc-core/releases/tag/0.18.2>`_
-    * `Netgen <https://github.com/trelau/netgen/releases/tag/6.3>`_
-    * `SMESH <https://github.com/trelau/smesh/releases/tag/7.7.2>`_
-
-These dependencies can be installed using the Anaconda Cloud. From an Anaconda
-Command Prompt with the desired environment activated::
-
-    conda install -c trelau -c oce -c dlr-sc -c conda-forge pythonocc-core=0.18.2
-
-This should automatically resolve any other dependencies.
-
-AFEM also makes use of the NumPy and SciPy packages. Install these packages
-to the designated environment by::
+Other dependencies such as NumPy and SciPy can be installed as needed using
+the conda package manager::
 
     conda install numpy scipy
 
-At this point all dependencies should be installed.
-
 Installing AFEM
 ---------------
-AFEM is currently distributed in source form and can be installed using the
-standard command::
+Be sure to activate the designed AFEM environment before installation.
+
+AFEM is a pure Python package and can be installed using the command:
+
+    python setup.py develop
+
+within the AFEM root folder. The ``develop`` option links to the source code
+at runtime so changes in the source are reflected in any programs using AFEM.
+The regular installation command
 
     python setup.py install
 
-This command should be performed within an Anaconda Command Prompt with the
-designated environment activated.
+can be used to actually install the AFEM package into the Python root directory.
 
-After installation examples are available and unit tests can be performed::
+Installation files can be cleaned by:
 
-    cd docs
-    python run_tests.py
+    conda clean -a
 
-Failed tests can be reported to support@laughlinresearch.com
+Building Documentation
+----------------------
+The documentation can be built from sources using sphinx. Install sphinx and
+sphinx_rtd_theme in the desired conda environment by::
+
+    conda install sphinx sphinx_rtd_theme
+
+Then navigate to the docs/ folder and run:
+
+    make html
+
+This should build html documentation in a docs/build/html folder. Open the
+afem.html file with a web browser.

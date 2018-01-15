@@ -289,6 +289,10 @@ LocalSplit
 ~~~~~~~~~~
 .. autoclass:: LocalSplit
 
+SplitShapeByEdges
+~~~~~~~~~~~~~~~~~
+.. autoclass:: SplitShapeByEdges
+
 Offset
 ------
 .. py:currentmodule:: afem.topology.offset
