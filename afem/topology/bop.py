@@ -19,6 +19,7 @@ from OCCT.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                               BRepAlgoAPI_Fuse, BRepAlgoAPI_Section,
                               BRepAlgoAPI_Splitter)
 from OCCT.BRepFeat import BRepFeat_MakeCylindricalHole, BRepFeat_SplitShape
+from OCCT.TopTools import TopTools_SequenceOfShape
 from OCCT.TopoDS import TopoDS_Face, TopoDS
 
 from afem.geometry.check import CheckGeom
@@ -29,7 +30,7 @@ from afem.topology.explore import ExploreShape
 
 __all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes", "VolumesFromShapes",
-           "CutCylindricalHole", "LocalSplit"]
+           "CutCylindricalHole", "LocalSplit", "SplitShapeByEdges"]
 
 
 class BopCore(object):
@@ -727,6 +728,97 @@ class LocalSplit(BopCore):
             if status:
                 self._bop.Add(e, f)
         self.build()
+
+
+class SplitShapeByEdges(BopCore):
+    """
+    Split a shape using edges.
+
+    :param OCCT.TopoDS.TopoDS_Shape shape: The basis shape.
+    :param edges: The edges to split the shape with. If provided, then the
+        results will be built during initialization. If none are provided then
+        the user is expected to add edges and build manually.
+    :type edges: collections.Sequence(OCCT.TopoDS.TopoDS_Edge) or None
+    :param bool check_interior: Option to check internal intersections.
+
+    """
+
+    def __init__(self, shape, edges=None, check_interior=True):
+        super(SplitShapeByEdges, self).__init__()
+
+        self._bop = BRepFeat_SplitShape(shape)
+
+        if not check_interior:
+            self._bop.SetCheckInterior(False)
+
+        if edges is not None:
+            edge_seq = TopTools_SequenceOfShape()
+            for e in edges:
+                edge_seq.Append(e)
+            self._bop.Add(edge_seq)
+            self.build()
+
+    def add_edges(self, shapes):
+        """
+        Add splittings edges or wires for the initial shape.
+
+        :param collections.Sequence(OCCT.TopoDS.TopoDS_Shape) shapes: The
+            splitting edges or wires.
+
+        :return: *True* if added, *False* if not.
+        :rtype: bool
+        """
+        seq = TopTools_SequenceOfShape()
+        for s in shapes:
+            seq.Append(s)
+        return self._bop.Add(seq)
+
+    def add_wire_on_face(self, w, f):
+        """
+        Add the wire on the face.
+
+        :param OCCT.TopoDS.TopoDS_Wire w: The wire.
+        :param OCCT.TopoDS.TopoDS_Face f: The face.
+
+        :return: None.
+        """
+        self._bop.Add(w, f)
+
+    def add_edge_on_face(self, e, f):
+        """
+        Add the edge on the face.
+
+        :param OCCT.TopoDS.TopoDS_Edge e: The edge.
+        :param OCCT.TopoDS.TopoDS_Face f: The face.
+
+        :return: None
+        """
+        self._bop.Add(e, f)
+
+    def add_edges_on_face(self, e, f):
+        """
+
+        :param collections.Sequence(OCCT.TopoDS.TopoDS_Edge) e: The edges.
+        :param OCCT.TopoDS.TopoDS_Face f: The face.
+
+        :return: None
+        """
+        # Avoid circular imports
+        from afem.topology.create import CompoundByShapes
+
+        cmp = CompoundByShapes(e).compound
+        self._bop.Add(cmp, f)
+
+    def add_edge_on_edge(self, e1, e2):
+        """
+        Add the edge on an existing edge.
+
+        :param OCCT.TopoDS.TopoDS_Edge e1: The edge.
+        :param OCCT.TopoDS.TopoDS_Edge e2: The existing edge.
+
+        :return: None.
+        """
+        self._bop.Add(e1, e2)
 
 
 if __name__ == "__main__":

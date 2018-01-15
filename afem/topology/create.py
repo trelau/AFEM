@@ -1136,7 +1136,8 @@ class CompoundByShapes(object):
     """
     Create a compound from a list of shapes.
 
-    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: List of shapes.
+    :param shapes: List of shapes.
+    :type: collections.Sequence(OCCT.TopoDS.TopoDS_Shape)
     """
 
     def __init__(self, shapes):
