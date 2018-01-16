@@ -92,7 +92,7 @@ start = time.time()
 bop = FuseAssemblies([wing_assy, fuse_assy, htail_assy])
 print(time.time() - start)
 
-shape = bop.fused_shape
+shape = bop.shape
 tool = ExploreFreeEdges(shape)
 print(tool.free_edges)
 

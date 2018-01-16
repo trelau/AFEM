@@ -63,7 +63,7 @@ class FuseSurfaceParts(object):
         return self._is_done
 
     @property
-    def fused_shape(self):
+    def shape(self):
         """
         :return: The fused shape.
         :rtype: OCCT.TopoDS.TopoDS_Shape
@@ -259,7 +259,7 @@ class SplitParts(object):
         return self._is_done
 
     @property
-    def split_shape(self):
+    def shape(self):
         """
         :return: The split shape.
         :rtype: OCCT.TopoDS.TopoDS_Shape
@@ -324,7 +324,7 @@ class FuseAssemblies(object):
         return self._bop.is_done
 
     @property
-    def fused_shape(self):
+    def shape(self):
         """
         :return: The fused shape.
         :rtype: OCCT.TopoDS.TopoDS_Shape
