@@ -89,6 +89,8 @@ class LinearProps(ShapeProps):
     Calculate linear properties of a shape.
 
     :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param bool skip_shared: If *True*, edges shared by two or more faces are
+        taken into calculation only once.
 
     Usage:
 
@@ -101,9 +103,9 @@ class LinearProps(ShapeProps):
     Point(0.500, 0.000, 0.000)
     """
 
-    def __init__(self, shape):
+    def __init__(self, shape, skip_shared=False):
         super(LinearProps, self).__init__()
-        BRepGProp.LinearProperties_(shape, self._props)
+        BRepGProp.LinearProperties_(shape, self._props, skip_shared)
 
     @property
     def length(self):
@@ -119,6 +121,9 @@ class SurfaceProps(ShapeProps):
     Calculate surface properties of a shape.
 
     :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param float tol: Maximum relative error of computed area for each face.
+    :param bool skip_shared: If *True*, faces shared by two or more shells are
+        taken into calculation only once.
 
     Usage:
 
@@ -132,9 +137,9 @@ class SurfaceProps(ShapeProps):
     Point(0.500, 0.500, 0.000)
     """
 
-    def __init__(self, shape):
+    def __init__(self, shape, tol=1.0e-7, skip_shared=False):
         super(SurfaceProps, self).__init__()
-        BRepGProp.SurfaceProperties_(shape, self._props)
+        BRepGProp.SurfaceProperties_(shape, self._props, tol, skip_shared)
 
     @property
     def area(self):
@@ -150,6 +155,11 @@ class VolumeProps(ShapeProps):
     Calculate volume properties of a shape.
 
     :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param float tol: Maximum relative error of computed volume for each solid.
+    :param bool only_closed: If *True*, then faces must belong to closed shells.
+    :param bool skip_shared: If *True*, volumes formed by equal faces (i.e., the
+        same TShape, location, and orientation) are taken into calculation only
+        once.
 
     Usage:
 
@@ -164,9 +174,10 @@ class VolumeProps(ShapeProps):
     Point(0.500, 0.500, 0.500)
     """
 
-    def __init__(self, shape):
+    def __init__(self, shape, tol=1.0e-7, only_closed=False, skip_shared=False):
         super(VolumeProps, self).__init__()
-        BRepGProp.VolumeProperties_(shape, self._props)
+        BRepGProp.VolumeProperties_(shape, self._props, tol, only_closed,
+                                    skip_shared)
 
     @property
     def volume(self):
