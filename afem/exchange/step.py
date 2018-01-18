@@ -97,6 +97,9 @@ class StepRead(object):
         if status != IFSelect_RetDone:
             raise RuntimeError("Error reading STEP file.")
 
+        # Convert to desired units
+        Interface_Static.SetCVal_("xstep.cascade.unit", Settings.units)
+
         # Transfer
         nroots = self._reader.TransferRoots()
         if nroots > 0:
