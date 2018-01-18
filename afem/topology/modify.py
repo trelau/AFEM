@@ -12,6 +12,7 @@
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from OCCT.BRepBuilderAPI import BRepBuilderAPI_Sewing
+from OCCT.GeomAbs import GeomAbs_C1
 from OCCT.ShapeBuild import ShapeBuild_ReShape
 from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                                ShapeUpgrade_ShapeDivideContinuity,
@@ -20,13 +21,13 @@ from OCCT.TopTools import (TopTools_DataMapOfShapeShape,
                            TopTools_IndexedMapOfShape)
 from OCCT.TopoDS import TopoDS
 
+from afem.occ.utils import to_lst_from_toptools_listofshape
 from afem.topology.create import CompoundByShapes
 from afem.topology.explore import ExploreShape
-from afem.occ.utils import to_lst_from_toptools_listofshape
 
-__all__ = ["DivideClosedShape", "DivideC0Shape", "UnifyShape",
-           "SewShape", "RebuildShapeWithShapes", "RebuildShapeByTool",
-           "RebuildShapesByTool"]
+__all__ = ["DivideClosedShape", "DivideContinuityShape", "DivideC0Shape",
+           "UnifyShape", "SewShape", "RebuildShapeWithShapes",
+           "RebuildShapeByTool", "RebuildShapesByTool"]
 
 
 class DivideClosedShape(object):
@@ -50,15 +51,21 @@ class DivideClosedShape(object):
         return self._shape
 
 
-class DivideC0Shape(object):
+class DivideContinuityShape(object):
     """
-    Divide a shape at all C0 boundaries to form a C1 shape.
+    Divide a shape for a given continuity and tolerance.
 
     :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param float tol: The tolerance.
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity:
     """
 
-    def __init__(self, shape):
+    def __init__(self, shape, tol=0.001, continuity=GeomAbs_C1):
         tool = ShapeUpgrade_ShapeDivideContinuity(shape)
+        tool.SetTolerance(tol)
+        tool.SetBoundaryCriterion(continuity)
+        tool.SetPCurveCriterion(continuity)
+        tool.SetSurfaceCriterion(continuity)
         tool.Perform()
         self._shape = tool.Result()
 
@@ -69,6 +76,18 @@ class DivideC0Shape(object):
         :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shape
+
+
+class DivideC0Shape(DivideContinuityShape):
+    """
+    Divide a shape at all C0 boundaries to form a C1 shape.
+
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param float tol: The tolerance.
+    """
+
+    def __init__(self, shape, tol=0.001):
+        super(DivideC0Shape, self).__init__(shape, tol, GeomAbs_C1)
 
 
 class UnifyShape(object):

@@ -221,6 +221,10 @@ DivideClosedShape
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: DivideClosedShape
 
+DivideContinuityShape
+~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: DivideContinuityShape
+
 DivideC0Shape
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: DivideC0Shape

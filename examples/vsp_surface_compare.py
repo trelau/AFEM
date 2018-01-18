@@ -52,8 +52,8 @@ v.start()
 # Split the shapes to make C1 continuous ---------------------------------------
 print('\n---Splitting OpenVSP 3.5.0 shape to make C1 continuous---')
 v.clear()
-c0_shape1 = DivideC0Shape(shape1).shape
-c0_shape2 = DivideC0Shape(shape2).shape
+c0_shape1 = DivideC0Shape(shape1, 0.).shape
+c0_shape2 = DivideC0Shape(shape2, 0.).shape
 v.add(c0_shape1)
 v.start()
 v.clear()
