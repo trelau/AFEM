@@ -1777,7 +1777,7 @@ class Surface(Geometry):
         :return: The surface area.
         :rtype: float
         """
-        return self.surface_area(self.u1, self.v1, self.u2, self.v1)
+        return self.surface_area(self.u1, self.v1, self.u2, self.v2)
 
     def copy(self):
         """
