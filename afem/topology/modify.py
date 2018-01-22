@@ -12,8 +12,10 @@
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
 from OCCT.BRepBuilderAPI import BRepBuilderAPI_Sewing
-from OCCT.GeomAbs import GeomAbs_C1
+from OCCT.BRepTools import BRepTools_Modifier
+from OCCT.GeomAbs import GeomAbs_C1, GeomAbs_C2
 from OCCT.ShapeBuild import ShapeBuild_ReShape
+from OCCT.ShapeCustom import ShapeCustom_BSplineRestriction
 from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                                ShapeUpgrade_ShapeDivideContinuity,
                                ShapeUpgrade_UnifySameDomain)
@@ -27,7 +29,8 @@ from afem.topology.explore import ExploreShape
 
 __all__ = ["DivideClosedShape", "DivideContinuityShape", "DivideC0Shape",
            "UnifyShape", "SewShape", "RebuildShapeWithShapes",
-           "RebuildShapeByTool", "RebuildShapesByTool"]
+           "RebuildShapeByTool", "RebuildShapesByTool",
+           "ShapeBSplineRestriction"]
 
 
 class DivideClosedShape(object):
@@ -553,6 +556,66 @@ class RebuildShapesByTool(object):
             results.
         """
         return self._new_shapes.Find(old_shape)
+
+
+class ShapeBSplineRestriction(object):
+    """
+    Re-approximate shape surfaces with B-splines.
+
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param bool is_mutable: Flag for mutable input.
+    :param bool approx_srf: Flag to approximate surface.
+    :param bool approx_crv3d: Flag to approximate 3-d curves.
+    :param bool approx_crv2d: Flag to approximate 2-d curves.
+    :param float tol3d: Tolerance for 3-d approximations.
+    :param float tol2d: Tolerance for 2-d approximations.
+    :param int dmax: Maximum allowed degree for approximation.
+    :param int nmax: Maximum allowed number of segments for approximation.
+    :param bool degree: If *True*, the approximation is made with degree limited
+        by *dmax* but at the expense of *nmax*. If *False*, the approximation is
+        made with number of spans limited by *nmax* but at the expense of
+        *dmax*.
+    :param bool rational: If *True*, the approximation for rational B-Spline and
+        Bezier are converted to polynomial.
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity3d: Desired continuity for 3-d
+        curve and surface approximation.
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity2d: Desired continuity for 2-d
+        curve and surface approximation.
+    """
+
+    def __init__(self, shape, is_mutable=False, approx_srf=True,
+                 approx_crv3d=True, approx_crv2d=True, tol3d=0.01,
+                 tol2d=1.0e-6, dmax=9, nmax=10000, degree=True, rational=False,
+                 continuity3d=GeomAbs_C1, continuity2d=GeomAbs_C2):
+        self._the_mod = ShapeCustom_BSplineRestriction(approx_srf, approx_crv3d,
+                                                       approx_crv2d, tol3d,
+                                                       tol2d, continuity3d,
+                                                       continuity2d,
+                                                       dmax, nmax, degree,
+                                                       rational)
+
+        self._modifier = BRepTools_Modifier(is_mutable)
+        self._modifier.Init(shape)
+        self._modifier.Perform(self._the_mod)
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if modification was successful.
+        :rtype: bool
+        """
+        return self._modifier.IsDone()
+
+    def modified_shape(self, shape):
+        """
+        Return the modified shape corresponding to the given shape.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: A shape.
+
+        :return: The modified shape.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return self._modifier.ModifiedShape(shape)
 
 
 if __name__ == "__main__":

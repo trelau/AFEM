@@ -249,6 +249,10 @@ RebuildShapesByTool
 ~~~~~~~~~~~~~~~~~~~
 .. autoclass:: RebuildShapesByTool
 
+ShapeBSplineRestriction
+~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: ShapeBSplineRestriction
+
 Boolean
 -------
 .. py:currentmodule:: afem.topology.bop
