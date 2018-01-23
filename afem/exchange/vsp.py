@@ -42,6 +42,7 @@ from afem.oml.entities import Body
 from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes, FaceBySurface
 from afem.topology.explore import ExploreShape
+from afem.topology.fix import FixShape
 from afem.topology.props import LinearProps
 
 __all__ = ["ImportVSP"]
@@ -386,43 +387,18 @@ def _build_solid(compound, divide_closed):
             logger.info('Failed to check for planar face...')
             non_planar_faces.append(f)
 
-    # # Check the faces.
-    # for i, f in enumerate(non_planar_faces):
-    #     check = BRepCheck_Analyzer(f, True)
-    #     if not check.IsValid():
-    #         print('Non-planar face is not valid...')
-    #         fix = ShapeFix_Face(f)
-    #         fix.Perform()
-    #         fnew = fix.Result()
-    #         check = BRepCheck_Analyzer(fnew, True)
-    #         if not check.IsValid():
-    #             print('...face could not be fixed.')
-    #         else:
-    #             non_planar_faces[i] = fnew
-    #
-    # for i, f in enumerate(planar_faces):
-    #     check = BRepCheck_Analyzer(f, True)
-    #     if not check.IsValid():
-    #         print('Planar face is not valid...')
-    #         fix = ShapeFix_Face(f)
-    #         fix.Perform()
-    #         fnew = fix.Result()
-    #         check = BRepCheck_Analyzer(fnew, True)
-    #         if not check.IsValid():
-    #             print('...face could not be fixed.')
-    #         else:
-    #             planar_faces[i] = fnew
+    # Make a compound of the faces
+    shape = CompoundByShapes(non_planar_faces + planar_faces).compound
 
-    # Make a shell and a solid.
-    shell = TopoDS_Shell()
-    builder = BRep_Builder()
-    builder.MakeShell(shell)
-    for f in non_planar_faces + planar_faces:
-        builder.Add(shell, f)
+    # Split closed faces
+    if divide_closed:
+        divide = ShapeUpgrade_ShapeDivideClosed(shape)
+        divide.Perform()
+        shape = divide.Result()
 
-    # Sew shape.
+    # Sew shape
     sew = BRepBuilderAPI_Sewing(1.0e-7)
-    sew.Load(shell)
+    sew.Load(shape)
     sew.Perform()
     sewn_shape = sew.SewedShape()
 
@@ -433,7 +409,7 @@ def _build_solid(compound, divide_closed):
         builder.MakeShell(sewn_shape)
         builder.Add(sewn_shape, face)
 
-    # Attempt to unify planar domains.
+    # Attempt to unify planar domains
     unify_shp = ShapeUpgrade_UnifySameDomain(sewn_shape, False, False, False)
     try:
         unify_shp.UnifyFaces()
@@ -442,20 +418,14 @@ def _build_solid(compound, divide_closed):
         logger.info('...failed to unify faces on solid.')
         shape = sewn_shape
 
-    # Make solid.
+    # Make solid
     shell = ExploreShape.get_shells(shape)[0]
     solid = ShapeFix_Solid().SolidFromShell(shell)
 
-    # Split closed faces of the solid to make OCC more robust.
-    if divide_closed:
-        divide = ShapeUpgrade_ShapeDivideClosed(solid)
-        divide.Perform()
-        solid = divide.Result()
+    # Limit tolerance
+    FixShape.limit_tolerance(solid)
 
-    # Make sure it's a solid.
-    solid = CheckShape.to_solid(solid)
-
-    # Check the solid and attempt to fix.
+    # Check the solid and attempt to fix
     check_shp = BRepCheck_Analyzer(solid, True)
     if not check_shp.IsValid():
         logger.info('Fixing the solid...')
