@@ -606,6 +606,38 @@ class ShapeBSplineRestriction(object):
         """
         return self._modifier.IsDone()
 
+    @property
+    def error_curve2d(self):
+        """
+        :return: Error for 2-d curve approximation.
+        :rtype: float
+        """
+        return self._the_mod.Curve2dError()
+
+    @property
+    def error_curve3d(self):
+        """
+        :return: Error for 3-d curve approximation.
+        :rtype: float
+        """
+        return self._the_mod.Curve3dError()
+
+    @property
+    def error_surface(self):
+        """
+        :return: Error for surface approximation.
+        :rtype: float
+        """
+        return self._the_mod.SurfaceError()
+
+    @property
+    def nspan(self):
+        """
+        :return: Number of spans for approximation.
+        :rtype: int
+        """
+        return self._the_mod.NbOfSpan()
+
     def modified_shape(self, shape):
         """
         Return the modified shape corresponding to the given shape.
