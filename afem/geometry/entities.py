@@ -2251,9 +2251,9 @@ class NurbsSurface(Surface):
             with repetition of multiple knot value if ``True``.
 
         :return: Bounding knot locations (i1, i2).
-        :rtype: tuple(float)
+        :rtype: tuple(int)
         """
-        return self.object.LocateU(u, tol2d, with_knot_repetition)
+        return self.object.LocateU(u, tol2d, 0, 0, with_knot_repetition)
 
     def locate_v(self, v, tol2d=1.0e-9, with_knot_repetition=False):
         """
@@ -2266,9 +2266,9 @@ class NurbsSurface(Surface):
             with repetition of multiple knot value if ``True``.
 
         :return: Bounding knot locations (i1, i2).
-        :rtype: tuple(float)
+        :rtype: tuple(int)
         """
-        return self.object.LocateV(v, tol2d, with_knot_repetition)
+        return self.object.LocateV(v, tol2d, 0, 0, with_knot_repetition)
 
     def insert_uknot(self, u, m=1, tol2d=1.0e-9):
         """
