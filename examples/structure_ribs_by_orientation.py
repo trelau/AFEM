@@ -8,7 +8,7 @@ from afem.geometry import *
 from afem.graphics import Viewer
 from afem.structure import *
 
-Settings.log_to_console(True)
+Settings.log_to_console()
 
 
 def build_wingbox(wing, params):
@@ -57,8 +57,10 @@ def build_wingbox(wing, params):
     tip = RibByPoints('tip rib', p1, p2, wing).rib
 
     # Locally rotate a plane for a rib
-    pln = PlaneByCurveAndSurface(rspar.cref, wing.sref, 1000.).plane
+    u = rspar.cref.local_to_global_param(0.5)
+    pln = PlaneByCurveAndSurface(rspar.cref, wing.sref, u).plane
     pln.rotate_x(45.)
+
     RibBySurface('rotated rib', pln, wing)
 
     # # Ribs along spar using global orientation
@@ -97,5 +99,4 @@ if __name__ == '__main__':
 
     v = Viewer()
     v.add(*assy.parts)
-    v.set_display_shapes()
-    v.show()
+    v.start()

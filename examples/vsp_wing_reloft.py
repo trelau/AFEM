@@ -70,8 +70,6 @@ srf = ExploreShape.surface_of_face(face)
 # Should be a NURBS surface
 srf = NurbsSurface.downcast(srf)
 
-v.add(srf)
-v.start()
 v.view.remove_all()
 
 srf.set_color(0.5, 0.5, 0.5)
@@ -81,7 +79,6 @@ srf.set_transparency(0.5)
 c = srf.v_iso(0.5)
 c = NurbsCurve.downcast(c)
 
-v.add(srf)
 v.add(c)
 v.start()
 v.view.remove_all()
@@ -99,7 +96,7 @@ for i in range(1, srf.n + 1):
     new_p.translate((0., 0., 48.))
     v.add(new_p)
     srf.set_cp(i, i1, new_p)
-v.add(srf)
+
 v.start()
 v.view.remove_all()
 
