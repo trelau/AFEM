@@ -203,7 +203,7 @@ class TestStructure(unittest.TestCase):
         self.assertEqual(builder.next_index, 4)
 
     def test_skin_by_solid(self):
-        skin = SkinBySolid('skin', self.wing).skin
+        skin = SkinBySolid('skin', self.wing.solid).skin
         self.assertIsInstance(skin, Skin)
 
     def test_skin_by_body(self):

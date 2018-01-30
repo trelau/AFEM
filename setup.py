@@ -9,7 +9,7 @@ setup(
         package_dir={'afem': 'afem'},
         author='Laughlin Research, LLC',
         author_email='info@laughlinresearch.com',
-        description='Aiframe Finite Element Modeling',
+        description='Airframe Finite Element Modeling',
         license='Proprietary',
-        install_requires=['numpy', 'scipy']
+        install_requires=['numpy', 'scipy', 'PySide']
 )
