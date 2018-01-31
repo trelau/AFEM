@@ -326,7 +326,9 @@ class CheckShape(object):
 
         # Shapes
         if isinstance(entity, TopoDS_Shape):
-            if entity.ShapeType() == TopAbs_VERTEX:
+            if entity.IsNull():
+                raise TypeError('Cannot convert null shape.')
+            elif entity.ShapeType() == TopAbs_VERTEX:
                 return TopoDS.Vertex_(entity)
             elif entity.ShapeType() == TopAbs_EDGE:
                 return TopoDS.Edge_(entity)
