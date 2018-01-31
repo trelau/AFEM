@@ -293,7 +293,7 @@ class ExploreShape(object):
         :return: Underlying curve of edge.
         :rtype: afem.geometry.entities.Curve
         """
-        h_crv = BRep_Tool.Curve_(edge)
+        h_crv = BRep_Tool.Curve_(edge, 0., 0.)
         return Curve(h_crv[0])
 
     @staticmethod
