@@ -199,6 +199,23 @@ class AssemblyAPI(object):
     _active = _master
 
     @classmethod
+    def reset(cls):
+        """
+        Reset master assembly and data structure and reset Part index back to 1.
+        This should delete all assemblies unless they are referenced somewhere
+        else.
+
+        :return: None.
+        """
+        cls._master = Assembly('_master', None)
+        cls._all = {'_master': cls._master}
+        cls._active = cls._master
+
+        from afem.structure.entities import Part
+
+        Part.reset()
+
+    @classmethod
     def get_master(cls):
         """
         Get the master assembly.

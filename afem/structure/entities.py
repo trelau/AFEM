@@ -113,6 +113,16 @@ class Part(ViewableItem):
         logger.info(msg)
 
     @classmethod
+    def reset(cls):
+        """
+        Reset the part index counter back to 1 and the mesh to None.
+
+        :return: None.
+        """
+        cls._indx = 1
+        cls._mesh = None
+
+    @classmethod
     def set_mesh(cls, mesh):
         """
         Set the active mesh for all parts.
