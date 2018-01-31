@@ -19,6 +19,7 @@ from OCCT.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
                               BRepAlgoAPI_Fuse, BRepAlgoAPI_Section,
                               BRepAlgoAPI_Splitter)
 from OCCT.BRepFeat import BRepFeat_MakeCylindricalHole, BRepFeat_SplitShape
+from OCCT.Message import Message_Gravity
 from OCCT.TopTools import TopTools_SequenceOfShape
 from OCCT.TopoDS import TopoDS_Face, TopoDS
 
@@ -34,6 +35,11 @@ __all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
 
 # Turn on parallel Boolean execution by default
 BOPAlgo_Options.SetParallelMode_(True)
+
+# Message gravities
+_gravities = [Message_Gravity.Message_Trace, Message_Gravity.Message_Info,
+              Message_Gravity.Message_Warning, Message_Gravity.Message_Alarm,
+              Message_Gravity.Message_Fail]
 
 
 class BopCore(object):
@@ -170,10 +176,10 @@ class BopAlgo(BopCore):
         timestamp = str(now.timestamp())
 
         # Operation name for prefix
-        op = str(self._bop.__class__.__name__)
+        op = str(self.__class__.__name__)
 
         # Info file
-        fn = ''.join([path, '/', timestamp, '.info.', op, '.txt'])
+        fn = ''.join([path, '/', op, '.info.', timestamp, '.txt'])
         info = open(fn, 'w')
         info.write('Date (M-D-Y): {}-{}-{}\n'.format(now.month, now.day,
                                                      now.year))
@@ -181,7 +187,16 @@ class BopAlgo(BopCore):
         info.write('Parallel: {}\n'.format(self._bop.RunParallel()))
         info.write('Fuzzy value: {}\n'.format(self._bop.FuzzyValue()))
         info.write('Nondestructive: {}\n'.format(self._bop.NonDestructive()))
-        # TODO Add error/warning report
+
+        # Errors and warnings report
+        msg_report = self._bop.GetReport()
+        for gravity in _gravities:
+            msg_list = msg_report.GetAlerts(gravity)
+            if msg_list.Size() == 0:
+                continue
+            info.write('Messages:\n')
+            for msg in msg_list:
+                info.write('\t{}\n'.format(msg.GetMessageKey()))
 
         # Avoid circular imports
         from afem.exchange.brep import write_brep
@@ -191,14 +206,14 @@ class BopAlgo(BopCore):
         args = self.arguments
         if args:
             shape1 = CompoundByShapes(args).compound
-            fn = ''.join([path, '/', timestamp, '.shape1.', op, '.brep'])
+            fn = ''.join([path, '/', op, '.shape1.', timestamp, '.brep'])
             write_brep(shape1, fn)
 
         # Tools
         tools = self.tools
         if tools:
             shape2 = CompoundByShapes(tools).compound
-            fn = ''.join([path, '/', timestamp, '.shape2.', op, '.brep'])
+            fn = ''.join([path, '/', op, '.shape2.', timestamp, '.brep'])
             write_brep(shape2, fn)
 
     @property
