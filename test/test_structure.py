@@ -2,8 +2,9 @@ import unittest
 
 from OCCT.TopoDS import TopoDS_Compound, TopoDS_Edge, TopoDS_Face, TopoDS_Shape
 
-from afem.exchange import ImportVSP
+from afem.exchange import brep
 from afem.geometry import *
+from afem.oml import *
 from afem.structure import *
 from afem.topology import *
 
@@ -12,9 +13,14 @@ class TestEntities(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        ImportVSP.step_file('./test_io/777-200LR.stp')
-        cls.wing = ImportVSP.get_body('Wing')
-        cls.fuselage = ImportVSP.get_body('Fuselage')
+        shape = brep.read_brep('./test_io/rhs_wing.brep')
+        cls.wing = Body(shape, 'wing')
+        shape = brep.read_brep('./test_io/rhs_wing_sref.brep')
+        face = CheckShape.to_face(shape)
+        sref = ExploreShape.surface_of_face(face)
+        cls.wing.set_sref(sref)
+        shape = brep.read_brep('./test_io/fuselage.brep')
+        cls.fuselage = Body(shape, 'fuselage')
 
         cls.fspar = SparByParameters('fspar', 0.15, 0.15, 0.15, 0.5,
                                      cls.wing).spar
@@ -97,9 +103,14 @@ class TestCreate(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        ImportVSP.step_file('./test_io/777-200LR.stp')
-        cls.wing = ImportVSP.get_body('Wing')
-        cls.fuselage = ImportVSP.get_body('Fuselage')
+        shape = brep.read_brep('./test_io/rhs_wing.brep')
+        cls.wing = Body(shape, 'wing')
+        shape = brep.read_brep('./test_io/rhs_wing_sref.brep')
+        face = CheckShape.to_face(shape)
+        sref = ExploreShape.surface_of_face(face)
+        cls.wing.set_sref(sref)
+        shape = brep.read_brep('./test_io/fuselage.brep')
+        cls.fuselage = Body(shape, 'fuselage')
 
     def tearDown(self):
         AssemblyAPI.reset()
