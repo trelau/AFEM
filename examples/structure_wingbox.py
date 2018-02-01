@@ -340,14 +340,3 @@ if __name__ == '__main__':
     v.start()
 
     print('Complete in ', time.time() - start, ' seconds.')
-
-    from afem.exchange import StlExport, brep
-
-    skin = assy.get_part('wing skin')
-
-    stl = StlExport()
-
-    shape = ExploreShape.get_shells(skin.shape)[0]
-
-    stl.write(shape, r'C:\Users\Trevor\Tools\Engineering\NETGEN\shape.stl')
-    brep.write_brep(shape, r'C:\Users\Trevor\Tools\Engineering\NETGEN\shape.brep')
