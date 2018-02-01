@@ -10,6 +10,5 @@ setup(
         author='Laughlin Research, LLC',
         author_email='info@laughlinresearch.com',
         description='Airframe Finite Element Modeling',
-        license='Proprietary',
-        install_requires=['numpy', 'scipy', 'PySide']
+        license='Proprietary'
 )

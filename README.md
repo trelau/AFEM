@@ -32,6 +32,11 @@ Other dependencies such as NumPy and SciPy can be installed as needed using
 the conda package manager:
 
     conda install numpy scipy
+    
+A minimal graphical user interface requires the PySide package which can be
+installed by:
+
+    conda install -c conda-forge pyside=1.2.4
 
 # Installing AFEM
 Be sure to activate the designed AFEM environment before installation.
