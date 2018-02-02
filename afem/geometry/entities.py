@@ -2298,6 +2298,38 @@ class NurbsSurface(Surface):
         """
         self.object.InsertVKnot(v, m, tol2d)
 
+    def set_uknots(self, uknots):
+        """
+        Set the knots of the surface in the u-direction.
+
+        :param collections.Sequence(float) uknots: Knot values.
+
+        :return: None.
+
+        :raise ValueError: If the number of the given knots does not equal the
+            number of the existing knots.
+        """
+        uk = to_tcolstd_array1_real(uknots)
+        if uk.Size() != self.object.NbUKnots():
+            raise ValueError('Incorrect number of knot values.')
+        self.object.SetUKnots(uk)
+
+    def set_vknots(self, vknots):
+        """
+        Set the knots of the surface in the u-direction.
+
+        :param collections.Sequence(float) vknots: Knot values.
+
+        :return: None.
+
+        :raise ValueError: If the number of the given knots does not equal the
+            number of the existing knots.
+        """
+        vk = to_tcolstd_array1_real(vknots)
+        if vk.Size() != self.object.NbVKnots():
+            raise ValueError('Incorrect number of knot values.')
+        self.object.SetVKnots(vk)
+
     def set_cp(self, i, j, cp, weight=None):
         """
         Modify the surface by setting the specified control point and weight.

@@ -36,8 +36,10 @@ from OCCT.TopExp import TopExp_Explorer
 from OCCT.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
 from afem.config import Settings, logger
-from afem.geometry.create import NurbsSurfaceByInterp, NurbsCurveByPoints
-from afem.geometry.entities import NurbsSurface
+from afem.geometry.create import (PointFromParameter, NurbsSurfaceByInterp,
+                                  NurbsCurveByPoints)
+from afem.geometry.entities import NurbsCurve, NurbsSurface
+from afem.geometry.utils import chord_parameters
 from afem.oml.entities import Body
 from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes, FaceBySurface
@@ -514,6 +516,17 @@ def _process_unsplit_wing(compound, divide_closed):
     v1, v2 = vknots[1], vknots[-2]
     s1 = master_surf.copy()
     s1.segment(u1, u2, v1, v2)
+
+    # Reparamterize knots in spanwise direction to be chord length instead of
+    # uniform. Use isocurve at quarter-chord to determine knot values. This only
+    # works as long as surfaces are linear.
+    c0 = NurbsCurve.downcast(s1.u_iso(s1.u1))
+    c0.segment(vsplit, c0.u2)
+    qc_u = PointFromParameter(c0, vsplit, 0.25 * c0.length).parameter
+    c = NurbsCurve.downcast(s1.v_iso(qc_u))
+    pnts = [c.eval(u) for u in c.knots]
+    new_uknots = chord_parameters(pnts, 0., 1.)
+    s1.set_uknots(new_uknots)
 
     # Segment off end caps and the trailing edge and split at LE.
     u1, u2 = uknots[0], uknots[1]
