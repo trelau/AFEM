@@ -328,6 +328,17 @@ class Mesh(object):
         sub_mesh = self._mesh.GetSubMeshContaining(sub_shape)
         return SubMesh.new(sub_mesh)
 
+    def export_stl(self, fn, is_ascii=True):
+        """
+        Export the mesh to an STL file.
+
+        :param str fn: The output file.
+        :param bool is_ascii: ASCII text output or binary.
+
+        :return: None.
+        """
+        self._mesh.ExportSTL(fn, is_ascii)
+
 
 class MeshDS(object):
     """
