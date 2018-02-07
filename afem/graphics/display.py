@@ -532,6 +532,10 @@ class Viewer(QMainWindow):
 
     @property
     def view(self):
+        """
+        :return: The underlying View instance.
+        :rtype: afem.graphics.display.View
+        """
         return self._the_view
 
     def keyPressEvent(self, e):
@@ -543,6 +547,22 @@ class Viewer(QMainWindow):
             self.view.view_top()
         else:
             print('Key is not mapped to anything.')
+
+    def display(self, shape, rgb=None, transparency=None,
+                material=Graphic3d_NOM_DEFAULT):
+        """
+        Display a shape.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param rgb: The RGB color (r, g, b).
+        :type rgb: collections.Sequence[float] or OCCT.Quantity.Quantity_Color
+        :param float transparency: The transparency (0 to 1).
+        :param OCCT.Graphic3d.Graphic3d_NameOfMaterial material: The material.
+
+        :return: The AIS_Shape created for the part.
+        :rtype: OCCT.AIS.AIS_Shape
+        """
+        return self.view.display_shape(shape, rgb, transparency, material)
 
     def add(self, *items):
         """
