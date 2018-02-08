@@ -373,7 +373,7 @@ if __name__ == '__main__':
 
     # Import OpenVSP model
     fname = r'..\models\NASA_N+2.stp'
-    ImportVSP.step_file(fname)
+    vsp_import = ImportVSP(fname)
 
     # A few notes about importing an OpenVSP STEP model:
     #   1) If the model comes from the modified version that includes metadata
@@ -390,16 +390,13 @@ if __name__ == '__main__':
 
     # View the model
     v = Viewer()
-    bodies = ImportVSP.get_bodies()
-    for name in bodies:
-        b = bodies[name]
-        v.add(b)
+    v.add(*vsp_import.bodies)
     v.start()
     v.clear()
 
     # Retrieve relative components by name and set transparency for viewing
-    wing_ = ImportVSP.get_body('wing')
-    fuse_ = ImportVSP.get_body('fuse')
+    wing_ = vsp_import.get_body('wing')
+    fuse_ = vsp_import.get_body('fuse')
     wing_.set_transparency(0.5)
     fuse_.set_transparency(0.5)
 

@@ -326,8 +326,8 @@ if __name__ == '__main__':
 
     # Import model
     fname = r'..\models\777-200LR.stp'
-    ImportVSP.step_file(fname)
-    wing_in = ImportVSP.get_body('Wing')
+    vsp_import = ImportVSP(fname)
+    wing_in = vsp_import.get_body('Wing')
 
     # Build wing box
     inputs = {'build aux': True,

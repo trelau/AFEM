@@ -12,21 +12,21 @@ Settings.log_to_console()
 
 # Import model
 fname = r'..\models\TBW_SUGAR.stp'
-ImportVSP.step_file(fname)
+vsp_import = ImportVSP(fname)
 
 # Get bodies.
-fuselage = ImportVSP.get_body('Fuselage')
-wing = ImportVSP.get_body('Wing')
-other_wing = ImportVSP.get_body('Wing.2')
-gear = ImportVSP.get_body('Gear Pod')
-other_gear = ImportVSP.get_body('Gear Pod.1')
-htail = ImportVSP.get_body('Htail')
-other_htail = ImportVSP.get_body('Htail.3')
-vtail = ImportVSP.get_body('Vtail')
-jury = ImportVSP.get_body('Jury')
-other_jury = ImportVSP.get_body('Jury.4')
-strut = ImportVSP.get_body('Strut')
-other_strut = ImportVSP.get_body('Strut.5')
+fuselage = vsp_import.get_body('Fuselage')
+wing = vsp_import.get_body('Wing')
+other_wing = vsp_import.get_body('Wing.2')
+gear = vsp_import.get_body('Gear Pod')
+other_gear = vsp_import.get_body('Gear Pod.1')
+htail = vsp_import.get_body('Htail')
+other_htail = vsp_import.get_body('Htail.3')
+vtail = vsp_import.get_body('Vtail')
+jury = vsp_import.get_body('Jury')
+other_jury = vsp_import.get_body('Jury.4')
+strut = vsp_import.get_body('Strut')
+other_strut = vsp_import.get_body('Strut.5')
 
 vr = Viewer()
 

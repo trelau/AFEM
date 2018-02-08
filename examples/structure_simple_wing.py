@@ -14,8 +14,8 @@ Settings.set_units('in')
 
 # Import model
 fn = r'../models/simple_wing.stp'
-ImportVSP.step_file(fn)
-wing = ImportVSP.get_body('WingGeom')
+vsp_import = ImportVSP(fn)
+wing = vsp_import.get_body('WingGeom')
 
 # Build structure
 wingbox = AssemblyAPI.create_assy('wing box')

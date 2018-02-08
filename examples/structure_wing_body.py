@@ -18,16 +18,16 @@ Settings.set_units('in')
 
 # Import model
 fn = r'../models/777-200LR.stp'
-ImportVSP.step_file(fn)
+vsp_import = ImportVSP(fn)
 
 # Get components.
-wing = ImportVSP.get_body('Wing')
-gear = ImportVSP.get_body('Gear Pod')
-fuselage = ImportVSP.get_body('Fuselage')
-vtail = ImportVSP.get_body('Vtail')
-htail = ImportVSP.get_body('Htail')
-other_wing = ImportVSP.get_body('Wing.2')
-other_htail = ImportVSP.get_body('Htail.1')
+wing = vsp_import.get_body('Wing')
+gear = vsp_import.get_body('Gear Pod')
+fuselage = vsp_import.get_body('Fuselage')
+vtail = vsp_import.get_body('Vtail')
+htail = vsp_import.get_body('Htail')
+other_wing = vsp_import.get_body('Wing.2')
+other_htail = vsp_import.get_body('Htail.1')
 
 # FUSELAGE --------------------------------------------------------------------
 fuse_assy = AssemblyAPI.create_assy('fuselage assy')

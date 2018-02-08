@@ -16,8 +16,8 @@ Settings.set_units('in')
 fn = r'../models/777-200LR_nosplit.stp'
 step = StepRead(fn)
 
-ImportVSP.step_file(fn, False)
-wing = ImportVSP.get_body('Wing')
+vsp_import = ImportVSP(fn, False)
+wing = vsp_import.get_body('Wing')
 vsp_srf_35 = wing.get_metadata('vsp surface')
 
 v = Viewer()
@@ -38,8 +38,8 @@ v.clear()
 fn = r'../models/777-200LR_nosplit_vsp315.stp'
 step = StepRead(fn)
 
-ImportVSP.step_file(fn, False)
-wing = ImportVSP.get_body('Wing')
+vsp_import = ImportVSP(fn, False)
+wing = vsp_import.get_body('Wing')
 vsp_srf_315 = wing.get_metadata('vsp surface')
 
 v.view.display_shape(step.shape, (0.5, 0.5, 0.5))

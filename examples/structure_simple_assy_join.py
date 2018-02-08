@@ -11,10 +11,10 @@ from afem.topology import *
 Settings.log_to_console()
 
 fname = r'..\models\777-200LR.stp'
-ImportVSP.step_file(fname)
-wing = ImportVSP.get_body('Wing')
-fuselage = ImportVSP.get_body('Fuselage')
-htail = ImportVSP.get_body('Htail')
+vsp_import = ImportVSP(fname)
+wing = vsp_import.get_body('Wing')
+fuselage = vsp_import.get_body('Fuselage')
+htail = vsp_import.get_body('Htail')
 
 wing.set_transparency(0.5)
 fuselage.set_transparency(0.5)

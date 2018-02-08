@@ -14,14 +14,8 @@ fn = r'..\models\777-200LR.stp'
 # fn = r'..\models\777-200LR_vsp315.stp'
 # fn = r'..\models\777-200LR_nosplit_vsp315.stp'
 
-ImportVSP.step_file(fn)
-
-bodies = ImportVSP.get_bodies()
-shapes = []
-for name in bodies:
-    b = bodies[name]
-    shapes.append(b)
+vsp_import = ImportVSP(fn)
 
 v = Viewer()
-v.add(*shapes)
+v.add(*vsp_import.bodies)
 v.start()

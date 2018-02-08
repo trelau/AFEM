@@ -10,8 +10,8 @@ Settings.log_to_console()
 
 # Do not split or divide closed surfaces
 fn = r'../models/777-200LR_nosplit.stp'
-ImportVSP.step_file(fn, divide_closed=False)
-wing = ImportVSP.get_body('Wing')
+vsp_import = ImportVSP(fn, divide_closed=False)
+wing = vsp_import.get_body('Wing')
 
 wing.set_transparency(0.5)
 

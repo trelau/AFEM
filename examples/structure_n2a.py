@@ -19,11 +19,12 @@ cabin_width = 50. * 12.
 bay_width = 8. * 12.
 
 # Import model
-ImportVSP.step_file(fname)
-wing = ImportVSP.get_body('Wing_Body')
-other_wing = ImportVSP.get_body('Wing_Body.1')
-vtail = ImportVSP.get_body('Vertical_Tails')
-other_vtail = ImportVSP.get_body('Vertical_Tails.2')
+vsp_import = ImportVSP()
+vsp_import.import_step(fname)
+wing = vsp_import.get_body('Wing_Body')
+other_wing = vsp_import.get_body('Wing_Body.1')
+vtail = vsp_import.get_body('Vertical_Tails')
+other_vtail = vsp_import.get_body('Vertical_Tails.2')
 for body in [wing, other_wing, vtail, other_vtail]:
     body.set_transparency(0.5)
     body.set_color(0.5, 0.5, 0.5)

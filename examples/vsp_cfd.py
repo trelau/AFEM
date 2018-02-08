@@ -16,16 +16,14 @@ Settings.log_to_console()
 fn = r'..\models\777-200LR.stp'
 
 # Import the OpenVSP STEP file
-ImportVSP.step_file(fn)
+vsp_import = ImportVSP(fn)
 
 # View the bodies
-bodies = ImportVSP.get_bodies()
 v = Viewer()
 solids = []
-for name in bodies:
-    b = bodies[name]
-    v.add(b)
-    solids.append(b.solid)
+for body in vsp_import.bodies:
+    v.add(body)
+    solids.append(body.solid)
 v.start()
 v.clear()
 

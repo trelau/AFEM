@@ -10,8 +10,8 @@ v = Viewer()
 # # Default import
 # fname = r'..\models\777-200LR.stp'
 # fname = r'..\models\777-200LR_nosplit.stp'
-# ImportVSP.step_file(fname)
-# wing = ImportVSP.get_body('Wing')
+# vsp_import = ImportVSP(fname)
+# wing = vsp_import.get_body('Wing')
 # v.add(wing)
 # v.start()
 # v.clear()
@@ -27,8 +27,8 @@ v = Viewer()
 # especially for non-split wings and newer versions of OpenVSP.
 # fname = r'..\models\777-200LR.stp'
 # fname = r'..\models\777-200LR_nosplit.stp'
-# ImportVSP.step_file(fname, bspline_restrict=True, tol=0.01)
-# wing = ImportVSP.get_body('Wing')
+# vsp_import = ImportVSP(fname, bspline_restrict=True, tol=0.01)
+# wing = vsp_import.get_body('Wing')
 # v.add(wing)
 # v.start()
 # v.clear()
@@ -44,10 +44,10 @@ v = Viewer()
 # high a tolerance causes self-intersecting results if the TE is thin. Just
 # doesn't seem to be a general/robust solution.
 fname = r'..\models\777-200LR_nosplit.stp'
-ImportVSP.step_file(fname, reloft=True, tol=0.01)
+vsp_import = ImportVSP(fname, reloft=True, tol=0.01)
 # tol=0.005 causes issues...
 # ImportVSP.step_file(fname, reloft=True, tol=0.005)
-wing = ImportVSP.get_body('Wing')
+wing = vsp_import.get_body('Wing')
 v.add(wing)
 v.start()
 v.clear()
