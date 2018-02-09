@@ -21,7 +21,7 @@ vsp_import = ImportVSP(fn)
 # View the bodies
 v = Viewer()
 solids = []
-for body in vsp_import.bodies:
+for body in vsp_import.all_bodies:
     v.add(body)
     solids.append(body.solid)
 v.start()

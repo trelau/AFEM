@@ -390,7 +390,7 @@ if __name__ == '__main__':
 
     # View the model
     v = Viewer()
-    v.add(*vsp_import.bodies)
+    v.add(*vsp_import.all_bodies)
     v.start()
     v.clear()
 

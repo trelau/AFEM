@@ -96,8 +96,17 @@ class ImportVSP(object):
     @property
     def bodies(self):
         """
+        :return: The dictionary of Body instances where the key is the component
+            name and the value is the Body.
+        :rtype: dict
+        """
+        return self._bodies
+
+    @property
+    def all_bodies(self):
+        """
         :return: List of Body instances.
-        :rtype: list[afem.oml.entities.Body]
+        :rtype: list(afem.oml.entities.Body)
         """
         return list(self._bodies.values())
 
@@ -124,12 +133,13 @@ class ImportVSP(object):
 
     def get_bodies(self):
         """
-        Return all Body instances in a list.
+        Get a copy of the underlying dictionary storing the Body instances.
 
-        :return: List of Body instances.
-        :rtype: list[afem.oml.entities.Body]
+        :return: Dictionary where the key is the component name and the value is
+            the Body.
+        :rtype: dict
         """
-        return list(self._bodies.values())
+        return self._bodies.copy()
 
     def import_step(self, fn):
         """

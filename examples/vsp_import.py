@@ -17,5 +17,5 @@ fn = r'..\models\777-200LR.stp'
 vsp_import = ImportVSP(fn)
 
 v = Viewer()
-v.add(*vsp_import.bodies)
+v.add(*vsp_import.all_bodies)
 v.start()
