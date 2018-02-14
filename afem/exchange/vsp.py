@@ -86,6 +86,7 @@ class ImportVSP(object):
         self._restrict = bspline_restrict
         self._reloft = reloft
         self._tol = tol
+        self._invalid = []
 
         if fn is not None:
             if fn.endswith('.step') or fn.endswith('.stp'):
@@ -109,6 +110,22 @@ class ImportVSP(object):
         :rtype: list(afem.oml.entities.Body)
         """
         return list(self._bodies.values())
+
+    @property
+    def has_invalid(self):
+        """
+        :return: Check if any invalid shapes were found during import.
+        :rtype: bool
+        """
+        return len(self._invalid) > 0
+
+    @property
+    def invalid_shapes(self):
+        """
+        :return: List of invalid shapes found during import.
+        :rtype: list(OCCT.TopoDS.TopoDS_Shape)
+        """
+        return self._invalid
 
     def clear(self):
         """
@@ -239,8 +256,10 @@ class ImportVSP(object):
 
             # Wing
             if metadata['m_Type'] == 5 and metadata['m_SurfType'] != 99:
-                wing = _process_wing(compound, self._divide, self._restrict,
-                                     self._tol, self._reloft)
+                wing, invalid = _process_wing(compound, self._divide,
+                                              self._restrict, self._tol,
+                                              self._reloft)
+                self._invalid += invalid
                 if wing is not None:
                     wing.set_label(comp_name)
                     bodies[comp_name] = wing
@@ -249,14 +268,16 @@ class ImportVSP(object):
 
             # Fuselage
             elif metadata['m_Type'] in [4, 9]:
-                fuse = _process_fuse(compound, self._divide)
+                fuse, invalid = _process_fuse(compound, self._divide)
+                self._invalid += invalid
                 if fuse is not None:
                     fuse.set_label(comp_name)
                     bodies[comp_name] = fuse
 
             # Unknown
             else:
-                solid = _build_solid(compound, self._divide)
+                solid, invalid = _build_solid(compound, self._divide)
+                self._invalid += invalid
                 if solid:
                     body = Body(solid)
                     bodies[comp_name] = body
@@ -402,6 +423,7 @@ def _build_solid(compound, divide_closed):
     # any with zero area.
     top_exp = TopExp_Explorer(compound, TopAbs_FACE)
     faces = []
+    invalid = []
     while top_exp.More():
         shape = top_exp.Current()
         face = CheckShape.to_face(shape)
@@ -497,13 +519,14 @@ def _build_solid(compound, divide_closed):
         if not check_shp.IsValid():
             logger.info('\t...solid could not be fixed.')
             logger.info('\tShape diagnostics:')
-            _topods_iterator_check(solid, check_shp)
+            failed = _topods_iterator_check(solid, check_shp)
+            invalid += failed
     else:
         tol = ExploreShape.global_tolerance(solid)
         logger.info(
             '\tSuccessfully generated solid with tolerance={}'.format(tol))
 
-    return solid
+    return solid, invalid
 
 
 def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
@@ -516,10 +539,11 @@ def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
     faces = ExploreShape.get_faces(compound)
     vsp_surf = None
     if len(faces) == 1:
-        solid = _process_unsplit_wing(compound, divide_closed, reloft, tol)
+        solid, invalid = _process_unsplit_wing(compound, divide_closed, reloft,
+                                               tol)
         vsp_surf = ExploreShape.surface_of_face(faces[0])
     else:
-        solid = _build_solid(compound, divide_closed)
+        solid, invalid = _build_solid(compound, divide_closed)
 
     if not solid:
         return None
@@ -540,16 +564,16 @@ def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
         lwr_srf.segment(vsp_surf.u1, vsp_surf.u2, vsp_surf.v1, v_le)
         wing.add_metadata('lower surface', lwr_srf)
 
-    return wing
+    return wing, invalid
 
 
 def _process_fuse(compound, divide_closed):
     # For VSP fuselages, the longitudinal direction is u, and the
     # circumferential direction is v.
     # Build the solid.
-    solid = _build_solid(compound, divide_closed)
+    solid, invalid = _build_solid(compound, divide_closed)
     if not solid:
-        return None
+        return None, invalid
 
     fuselage = Body(solid)
 
@@ -559,7 +583,7 @@ def _process_fuse(compound, divide_closed):
         vsp_surf = NurbsSurface(vsp_surf.object)
         fuselage.add_metadata('vsp surface', vsp_surf)
 
-    return fuselage
+    return fuselage, invalid
 
 
 def _process_unsplit_wing(compound, divide_closed, reloft, tol):
@@ -567,7 +591,7 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
 
     faces = ExploreShape.get_faces(compound)
     if len(faces) != 1:
-        return None
+        return None, None
     face = faces[0]
 
     # Get the surface.
@@ -748,6 +772,7 @@ def _topods_iterator_check(shape, check):
     """
     Iterate on the shape and dump errors.
     """
+    invalid = []
     it = TopoDS_Iterator(shape)
     while it.More():
         sub_shape = it.Value()
@@ -757,5 +782,8 @@ def _topods_iterator_check(shape, check):
             if status != BRepCheck_NoError:
                 str_log = '\t\t{0}-->{1}'.format(status, sub_shape.ShapeType())
                 logger.info(str_log)
+                invalid.append(sub_shape)
         it.Next()
-        _topods_iterator_check(sub_shape, check)
+        invalid += _topods_iterator_check(sub_shape, check)
+
+    return invalid
