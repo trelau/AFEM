@@ -225,8 +225,9 @@ class ImportVSP(object):
                 comp_name = '.'.join(['Body', str(indx)])
                 msg = ' '.join(['---Processing OpenVSP component:', comp_name])
                 logger.info(msg)
-                solid = _build_solid(compound, self._divide)
-                if solid:
+                solid, invalid = _build_solid(compound, self._divide)
+                self._invalid += invalid
+                if solid is not None:
                     body = Body(solid)
                     bodies[comp_name] = body
                 iterator.Next()
@@ -328,9 +329,11 @@ class ImportVSP(object):
 
         nsrfs = len(srfs)
         if nsrfs == 1:
-            return _process_unsplit_wing(compound, divide_closed, reloft, tol)
+            solid, _ = _process_unsplit_wing(compound, divide_closed, reloft, tol)
+            return solid
         elif nsrfs > 1:
-            return _build_solid(compound, divide_closed)
+            solid, _ = _build_solid(compound, divide_closed)
+            return solid
         else:
             raise ValueError('No surfaces provided.')
 
