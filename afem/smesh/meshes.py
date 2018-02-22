@@ -328,6 +328,16 @@ class Mesh(object):
         sub_mesh = self._mesh.GetSubMeshContaining(sub_shape)
         return SubMesh.new(sub_mesh)
 
+    def export_dat(self, fn):
+        """
+        Export the mesh to a DAT file.
+
+        :param str fn: The output file.
+
+        :return: None
+        """
+        self._mesh.ExportDAT(fn)
+
     def export_stl(self, fn, is_ascii=True):
         """
         Export the mesh to an STL file.
@@ -338,6 +348,16 @@ class Mesh(object):
         :return: None.
         """
         self._mesh.ExportSTL(fn, is_ascii)
+
+    def export_unv(self, fn):
+        """
+        Export the mesh to a UNV file.
+
+        :param str fn: The output file.
+
+        :return: None
+        """
+        self._mesh.ExportUNV(fn)
 
 
 class MeshDS(object):
