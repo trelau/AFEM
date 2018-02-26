@@ -23,13 +23,14 @@ from afem.topology.create import FaceBySurface, WiresByConnectedEdges
 from afem.topology.distance import DistancePointToShapes
 from afem.topology.entities import BBox
 from afem.topology.modify import DivideC0Shape, DivideClosedShape
+from afem.topology.transform import mirror_shape
 
 __all__ = ["Body"]
 
 
 class Body(ViewableItem):
     """
-    Base class for OML bodies.
+    Generic class for working with OML solid bodies.
 
     :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
     :param str label: The label.
@@ -349,3 +350,21 @@ class Body(ViewableItem):
         if tol is not None:
             bbox.enlarge(tol)
         return bbox
+
+    def mirrored(self, pln, label=None):
+        """
+        Mirror this Body using the plane.
+
+        :param afem.geometry.entities.Plane pln: The plane.
+        :param str label: The label of the new Body.
+
+        :return: Mirrored Body.
+        :rtype: afem.oml.entities.Body
+        """
+        solid = CheckShape.to_solid(mirror_shape(self.solid, pln))
+        body = Body(solid, label)
+        if self.sref is not None:
+            sref = self.sref.copy()
+            sref.mirror(pln)
+            body.set_sref(sref)
+        return body

@@ -49,7 +49,7 @@ class ViewableItem(object):
     :var OCCT.Quantity.Quantity_Color color: The OCC color quantity. The
         color is set randomly during initialization.
     :var float transparency: The transparency level.
-    :var afem.geometry.entities.Plane mirror: The plane to mirror the object
+    :var afem.geometry.entities.Plane plane: The plane to mirror the object
         about. If provided then object will be mirrored about the plane for
         visualization purposes only.
     """
@@ -58,7 +58,7 @@ class ViewableItem(object):
         r, g, b = rand(1, 3)[0]
         self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
         self.transparency = 0.
-        self.mirror = None
+        self.mirror_plane = None
 
     def set_color(self, r, g, b):
         """
@@ -100,7 +100,7 @@ class ViewableItem(object):
 
         :return: None.
         """
-        self.mirror = pln
+        self.mirror_plane = pln
 
     def get_mirrored(self):
         """
@@ -109,10 +109,10 @@ class ViewableItem(object):
         :return: The mirrored shape.
         :rtype: OCCT.TopoDS.TopoDS_Shape
         """
-        if not self.mirror:
+        if not self.mirror_plane:
             return None
 
-        trsf = gce_MakeMirror(self.mirror.object.Pln()).Value()
+        trsf = gce_MakeMirror(self.mirror_plane.object.Pln()).Value()
         builder = BRepBuilderAPI_Transform(self, trsf, True)
         if not builder.IsDone():
             return None

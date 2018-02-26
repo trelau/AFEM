@@ -24,7 +24,8 @@ from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
 from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array2OfPnt)
-from OCCT.gp import gp_Ax1, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec, gp_XYZ
+from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec,
+                     gp_XYZ)
 from numpy import add, array, float64, ndarray, subtract
 
 from afem.geometry.utils import (global_to_local_param,
@@ -469,6 +470,21 @@ class Geometry(ViewableItem):
             raise TypeError(msg)
 
         self._object.Translate(v)
+        return True
+
+    def mirror(self, pln):
+        """
+        Mirror the geometry using a plane.
+
+        :param afem.geometry.entities.Plane pln: The plane.
+
+        :return: *True* if mirrored.
+        :rtype: bool
+        """
+        gp_pln = pln.object.Pln()
+        gp_ax2 = gp_Ax2()
+        gp_ax2.SetAxis(gp_pln.Axis())
+        self._object.Mirror(gp_ax2)
         return True
 
 
