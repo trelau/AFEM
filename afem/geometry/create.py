@@ -14,14 +14,14 @@
 from math import ceil, radians
 from warnings import warn
 
-from OCCT.Approx import Approx_ChordLength
+from OCCT.Approx import Approx_ChordLength, Approx_IsoParametric
 from OCCT.BSplCLib import BSplCLib
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCCT.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
                        Geom_Line, Geom_Plane, Geom_TrimmedCurve)
 from OCCT.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                           GeomAPI_PointsToBSpline)
-from OCCT.GeomAbs import (GeomAbs_C2)
+from OCCT.GeomAbs import GeomAbs_C0, GeomAbs_C2
 from OCCT.GeomAdaptor import GeomAdaptor_Curve
 from OCCT.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
                            GeomFill_SectionGenerator)
@@ -42,8 +42,7 @@ from afem.geometry.utils import (basis_funs, centripetal_parameters,
                                  chord_parameters, dehomogenize_array2d,
                                  find_span, homogenize_array1d,
                                  uniform_parameters)
-from afem.occ.utils import (occ_continuity, occ_parm_type,
-                            to_np_from_tcolgp_array1_pnt,
+from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolstd_array1_real,
                             to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
                             to_tcolgp_harray1_pnt,
@@ -895,10 +894,9 @@ class NurbsCurveByApprox(object):
     :param list[point_like] qp: List of points to approximate.
     :param int dmin: Minimum degree.
     :param int dmax: Maximum degree.
-    :param str continuity: Desired continuity of curve ('C0', 'G1', 'C1',
-        'G2', 'C2', 'C3').
-    :param str parm_type: Parametrization type ('uniform', 'chord',
-        'centripetal').
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity: Desired continuity of curve.
+    :param OCCT.Approx.Approx_ParametrizationType parm_type: Parametrization
+        type.
     :param float tol: The tolerance used for approximation. The distance
         from the points to the resulting curve should be lower than *tol*.
 
@@ -925,24 +923,14 @@ class NurbsCurveByApprox(object):
     Point(5.000, 5.000, 0.000)
     """
 
-    def __init__(self, qp, dmin=3, dmax=8, continuity='C2',
-                 parm_type='chord', tol=1.0e-3):
+    def __init__(self, qp, dmin=3, dmax=8, continuity=GeomAbs_C2,
+                 parm_type=Approx_ChordLength, tol=1.0e-3):
         dmin = int(dmin)
         dmax = int(dmax)
         tcol_pnts = to_tcolgp_array1_pnt(qp)
 
-        try:
-            cont = occ_continuity[continuity.upper()]
-        except (KeyError, AttributeError):
-            cont = GeomAbs_C2
-
-        try:
-            parm_type = occ_parm_type[parm_type.lower()]
-        except (KeyError, AttributeError):
-            parm_type = Approx_ChordLength
-
         fit = GeomAPI_PointsToBSpline(tcol_pnts, parm_type, dmin,
-                                      dmax, cont, tol)
+                                      dmax, continuity, tol)
         if not fit.IsDone():
             msg = "GeomAPI_PointsToBSpline failed."
             raise RuntimeError(msg)
@@ -982,7 +970,7 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
     """
 
     def __init__(self, qp):
-        super(NurbsCurveByPoints, self).__init__(qp, 1, 1, 'C0')
+        super(NurbsCurveByPoints, self).__init__(qp, 1, 1, GeomAbs_C0)
 
 
 # TRIMMED CURVE ---------------------------------------------------------------
@@ -2126,8 +2114,8 @@ class NurbsSurfaceByInterp(object):
     :param list[curve_like] crvs: List of curves to interpolate.
     :param int q: Degree. The parameter will be adjusted if the number of
         curves provided does not support the desired degree.
-    :param str parm_type: Parametrization type ('uniform', 'chord',
-        'centripetal').
+    :param OCCT.Approx.Approx_ParametrizationType parm_type: Parametrization
+        type.
     :param float tol2d: 2-D tolerance.
 
     Usage:
@@ -2143,7 +2131,7 @@ class NurbsSurfaceByInterp(object):
     Point(5.000, 5.000, 5.000)
     """
 
-    def __init__(self, crvs, q=3, parm_type='chord', tol2d=1.0e-9):
+    def __init__(self, crvs, q=3, parm_type=Approx_ChordLength, tol2d=1.0e-9):
         q = int(q)
 
         ncrvs = len(crvs)
@@ -2182,9 +2170,9 @@ class NurbsSurfaceByInterp(object):
         m = ncrvs - 1
         v_matrix = zeros((n + 1, m + 1), dtype=float)
         for i in range(0, n + 1):
-            if parm_type.lower() in ['u', 'uniform']:
+            if parm_type == Approx_IsoParametric:
                 vknots = uniform_parameters(pnts_matrix[i, :], 0., 1.)
-            elif parm_type.lower() in ['ch', 'chord']:
+            elif parm_type == Approx_ChordLength:
                 vknots = chord_parameters(pnts_matrix[i, :], 0., 1.)
             else:
                 vknots = centripetal_parameters(pnts_matrix[i, :], 0., 1.)
@@ -2262,10 +2250,9 @@ class NurbsSurfaceByApprox(object):
     :param float tol3d: 3-D tolerance.
     :param float tol2d: 2-D tolerance.
     :param int niter: Number of iterations.
-    :param str continuity: Desired continuity of curve ('C0', 'G1', 'C1',
-        'G2', 'C2', 'C3').
-    :param str parm_type: Parametrization type ('uniform', 'chord',
-        'centripetal').
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity: Desired continuity of curve.
+    :param OCCT.Approx.Approx_ParametrizationType parm_type: Parametrization
+        type.
 
     :raise RuntimeError: If OCC method fails to approximate the curves with a
         surface.
@@ -2292,7 +2279,7 @@ class NurbsSurfaceByApprox(object):
     """
 
     def __init__(self, crvs, dmin=3, dmax=8, tol3d=1.0e-3, tol2d=1.0e-6,
-                 niter=5, continuity='C2', parm_type='chord'):
+                 niter=5, continuity=GeomAbs_C2, parm_type=Approx_ChordLength):
         dmin = int(dmin)
         dmax = int(dmax)
 
@@ -2300,18 +2287,10 @@ class NurbsSurfaceByApprox(object):
         app_tool = GeomFill_AppSurf(dmin, dmax, tol3d, tol2d, niter)
 
         # Set parametrization type
-        try:
-            parm_type = occ_parm_type[parm_type.lower()]
-        except (KeyError, AttributeError):
-            parm_type = Approx_ChordLength
         app_tool.SetParType(parm_type)
 
         # Set continuity
-        try:
-            cont = occ_continuity[continuity.upper()]
-        except (KeyError, AttributeError):
-            cont = GeomAbs_C2
-        app_tool.SetContinuity(cont)
+        app_tool.SetContinuity(continuity)
 
         # Use section generator to make all curves compatible
         sec_gen = GeomFill_SectionGenerator()

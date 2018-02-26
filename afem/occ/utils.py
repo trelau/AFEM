@@ -11,14 +11,6 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from OCCT.Approx import (Approx_Centripetal, Approx_ChordLength,
-                         Approx_IsoParametric)
-from OCCT.BRepBuilderAPI import (BRepBuilderAPI_RightCorner,
-                                 BRepBuilderAPI_RoundCorner,
-                                 BRepBuilderAPI_Transformed)
-from OCCT.GeomAbs import (GeomAbs_Arc, GeomAbs_C0, GeomAbs_C1, GeomAbs_C2,
-                          GeomAbs_C3, GeomAbs_G1, GeomAbs_G2,
-                          GeomAbs_Intersection)
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
 from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
@@ -43,33 +35,6 @@ __all__ = ["to_gp_pnt", "to_gp_pnt2d", "to_np_from_tcolgp_array1_pnt",
            "to_tcolstd_array1_integer", "to_tcolstd_array1_real",
            "to_tcolstd_array2_real", "to_toptools_listofshape",
            "to_lst_from_toptools_listofshape"]
-
-occ_continuity = {'C0': GeomAbs_C0,
-                  'G1': GeomAbs_G1,
-                  'C1': GeomAbs_C1,
-                  'G2': GeomAbs_G2,
-                  'C2': GeomAbs_C2,
-                  'C3': GeomAbs_C3}
-
-occ_parm_type = {'u': Approx_IsoParametric,
-                 'uniform': Approx_IsoParametric,
-                 'centripetal': Approx_Centripetal,
-                 'c': Approx_ChordLength,
-                 'chord': Approx_ChordLength,
-                 'chord length': Approx_ChordLength}
-
-occ_join_type = {'a': GeomAbs_Arc,
-                 'arc': GeomAbs_Arc,
-                 'i': GeomAbs_Intersection,
-                 'intersect': GeomAbs_Intersection,
-                 'intersection': GeomAbs_Intersection}
-
-occ_transition_mode = {'t': BRepBuilderAPI_Transformed,
-                       'transform': BRepBuilderAPI_Transformed,
-                       'transformed': BRepBuilderAPI_Transformed,
-                       'right': BRepBuilderAPI_RightCorner,
-                       'round': BRepBuilderAPI_RoundCorner
-                       }
 
 
 def to_gp_pnt(p):

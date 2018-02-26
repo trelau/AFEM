@@ -13,6 +13,7 @@
 
 from math import sqrt
 
+from OCCT.BRepBuilderAPI import BRepBuilderAPI_Transformed
 from OCCT.BRepOffset import BRepOffset_Skin
 from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
                                 BRepOffsetAPI_MakePipe,
@@ -22,8 +23,6 @@ from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
 from OCCT.GeomAbs import GeomAbs_C2, GeomAbs_Arc
 from OCCT.TopAbs import TopAbs_EDGE, TopAbs_VERTEX, TopAbs_WIRE
 
-from afem.occ.utils import (occ_continuity, occ_join_type, occ_parm_type,
-                            occ_transition_mode)
 from afem.topology.check import CheckShape
 from afem.topology.explore import ExploreShape
 
@@ -42,8 +41,7 @@ class ProjectShape(object):
     :param float tol3d: The 3-D tolerance.
     :param float tol2d: The 2-D tolerance. If not provided then
         *sqrt(tol3d)* is used.
-    :param str continuity: Desired continuity ('C0', 'G1', 'C1', 'G2', 'C2',
-        'C3').
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity: Desired continuity.
     :param int max_degree: Max degree.
     :param int max_seg: Max segments.
     :param float max_dist: Max distance between target shape and shapes to
@@ -68,18 +66,16 @@ class ProjectShape(object):
     >>> proj.nedges
     1
     """
+
     def __init__(self, shape, to_project, tol3d=1.0e-4, tol2d=None,
-                 continuity='C2', max_degree=14, max_seg=16, max_dist=None,
+                 continuity=GeomAbs_C2, max_degree=14, max_seg=16, max_dist=None,
                  limit=True):
         tool = BRepOffsetAPI_NormalProjection(shape)
 
         if tol2d is None:
             tol2d = sqrt(tol3d)
-        try:
-            cont = occ_continuity[continuity.upper()]
-        except (KeyError, AttributeError):
-            cont = GeomAbs_C2
-        tool.SetParams(tol3d, tol2d, cont, max_degree, max_seg)
+
+        tool.SetParams(tol3d, tol2d, continuity, max_degree, max_seg)
 
         if max_dist is not None:
             tool.SetMaxDistance(max_dist)
@@ -221,10 +217,10 @@ class LoftShape(object):
         sections to avoid twisted results and update to have the same number
         of edges.
     :param bool use_smoothing: Option to use approximation algorithm.
-    :param str par_type: Parametrization type ('chord', 'uniform',
-        'centripetal').
-    :param str continuity: The desired continuity ('C0', 'G1', 'C1', 'G2',
-        'C2', 'C3').
+    :param OCCT.Approx.Approx_ParametrizationType par_type: Parametrization
+        type.
+
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity: The desired continuity.
     :param int max_degree: The maximum degree for the approximation
         algorithm.
 
@@ -260,11 +256,9 @@ class LoftShape(object):
             self._tool.SetSmoothing(use_smoothing)
 
         if par_type is not None:
-            par_type = occ_parm_type[par_type.lower()]
             self._tool.SetParType(par_type)
 
         if continuity is not None:
-            continuity = occ_continuity[continuity.upper()]
             self._tool.SetContinuity(continuity)
 
         if max_degree is not None:
@@ -407,19 +401,22 @@ class SweepShapeWithNormal(object):
         resulting surface.
     :param bool force_c1: If *True*, the tool will attempt to approximate a
         C1 surface if a swept surface proved to be C0.
-    :param str transition_mode: The transition mode to manage
-        discontinuities on the swept shape ('transformed', 'right', 'round').
+    :param OCCT.BRepBuilderAPI.BRepBuilderAPI_TransitionMode transition_mode:
+        The transition mode to manage discontinuities on the swept shape.
 
     For more information see BRepOffsetAPI_MakePipeShell_.
 
     .. _BRepOffsetAPI_MakePipeShell: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___make_pipe_shell.html
     """
 
-    def __init__(self, spine, spine_support, tol3d=1.0e-4, tol_bound=1.0e-4,
-                 tol_angular=1.0e-2, max_degree=None, max_segments=None,
-                 force_c1=None, transition_mode='transformed', ):
+    def __init__(self, spine, spine_support=None, tol3d=1.0e-4,
+                 tol_bound=1.0e-4, tol_angular=1.0e-2, max_degree=None,
+                 max_segments=None, force_c1=None,
+                 transition_mode=BRepBuilderAPI_Transformed):
         self._tool = BRepOffsetAPI_MakePipeShell(spine)
-        self._tool.SetMode(spine_support)
+
+        if CheckShape.is_shape(spine_support):
+            self._tool.SetMode(spine_support)
 
         self._tool.SetTolerance(tol3d, tol_bound, tol_angular)
 
@@ -433,7 +430,6 @@ class SweepShapeWithNormal(object):
             self._tool.SetForceApproxC1(force_c1)
 
         if transition_mode is not None:
-            transition_mode = occ_transition_mode[transition_mode.lower()]
             self._tool.SetTransitionMode(transition_mode)
 
     def add_profile(self, profile, with_contact=False, with_correction=False):
