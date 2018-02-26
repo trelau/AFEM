@@ -19,7 +19,7 @@ from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
                                 BRepOffsetAPI_MakePipeShell,
                                 BRepOffsetAPI_NormalProjection,
                                 BRepOffsetAPI_ThruSections)
-from OCCT.GeomAbs import GeomAbs_C2
+from OCCT.GeomAbs import GeomAbs_C2, GeomAbs_Arc
 from OCCT.TopAbs import TopAbs_EDGE, TopAbs_VERTEX, TopAbs_WIRE
 
 from afem.occ.utils import (occ_continuity, occ_join_type, occ_parm_type,
@@ -153,8 +153,12 @@ class OffsetShape(object):
         shape if positive and inside if negative.
     :param float tol: Tolerance for coincidence for generated shapes. If not
         provided the average tolerance of the shape is used.
-    :param str join_mode: Option for how to fill holes that may appear when
-        offsetting two adjacent faces ('arc' or 'intersect').
+    :param OCCT.GeomAbs.GeomAbs_JoinType join_mode: Option for how to fill holes
+        that may appear when offsetting two adjacent faces.
+    :param bool remove_internal_edges: Option to remove internal edges from the
+        result.
+    :param bool perform_simple: Option to use simple algorithm without
+        intersection computation.
 
     For more information see BRepOffsetAPI_MakeOffsetShape_.
 
@@ -170,17 +174,25 @@ class OffsetShape(object):
     >>> shape = tool.shape
     """
 
-    def __init__(self, shape, offset, tol=None, join_mode='arc'):
+    def __init__(self, shape, offset, tol=None, join_mode=GeomAbs_Arc,
+                 remove_internal_edges=False, perform_simple=False):
         if tol is None:
             tol = ExploreShape.global_tolerance(shape)
 
-        join_mode = occ_join_type[join_mode.lower()]
+        self._tool = BRepOffsetAPI_MakeOffsetShape()
+        if perform_simple:
+            self._tool.PerformBySimple(shape, offset)
+        else:
+            self._tool.PerformByJoin(shape, offset, tol, BRepOffset_Skin, False,
+                                     False, join_mode, remove_internal_edges)
 
-        self._tool = BRepOffsetAPI_MakeOffsetShape(shape, offset, tol,
-                                                   BRepOffset_Skin, False,
-                                                   False, join_mode)
-        self._tool.Build()
-        self._shape = self._tool.Shape()
+    @property
+    def is_done(self):
+        """
+        :return: *True* if done, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.IsDone()
 
     @property
     def shape(self):
@@ -188,7 +200,7 @@ class OffsetShape(object):
         :return: The offset shape.
         :rtype: OCCT.TopoDS.TopoDS_Shape
         """
-        return self._shape
+        return self._tool.Shape()
 
 
 class LoftShape(object):
