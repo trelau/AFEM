@@ -13,9 +13,11 @@
 
 from warnings import warn
 
-from OCCT.BRepExtrema import BRepExtrema_DistShapeShape
+from OCCT.BRepExtrema import (BRepExtrema_DistShapeShape, BRepExtrema_IsVertex,
+                              BRepExtrema_IsOnEdge, BRepExtrema_IsInFace)
 
 from afem.geometry.check import CheckGeom
+from afem.geometry.entities import Point
 from afem.topology.check import CheckShape
 
 __all__ = ["DistanceShapeToShape", "DistanceShapeToShapes",
@@ -43,11 +45,16 @@ class DistanceShapeToShape(object):
     10.0
     """
 
-    def __init__(self, shape1, shape2):
-        self._tool = BRepExtrema_DistShapeShape(shape1, shape2)
-        if not self._tool.IsDone():
-            msg = 'OCC BRepExtrema_DistShapeShape failed.'
-            raise RuntimeError(msg)
+    def __init__(self, shape1, shape2, deflection=1.0e-7):
+        self._tool = BRepExtrema_DistShapeShape(shape1, shape2, deflection)
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if algorithm is done, *False* if not.
+        :rtype: bool
+        """
+        return self._tool.IsDone()
 
     @property
     def nsol(self):
@@ -64,6 +71,197 @@ class DistanceShapeToShape(object):
         :rtype: float
         """
         return self._tool.Value()
+
+    @property
+    def inner_solution(self):
+        """
+        :return: *True* if one of the shapes is a solid and the other is
+            completely or partially inside the solid.
+        :rtype: bool
+        """
+        return self._tool.InnerSolution()
+
+    def point_on_shape1(self, n=1):
+        """
+        The point for the *n-th* solution on the first shape.
+
+        :param int n: The index.
+
+        :return: The point.
+        :rtype: afem.geometry.entities.Point
+        """
+        gp_pnt = self._tool.PointOnShape1(n)
+        return Point(gp_pnt.X(), gp_pnt.Z(), gp_pnt.Z())
+
+    def point_on_shape2(self, n=1):
+        """
+        The point for the *n-th* solution on the second shape.
+
+        :param int n: The index.
+
+        :return: The point.
+        :rtype: afem.geometry.entities.Point
+        """
+        gp_pnt = self._tool.PointOnShape2(n)
+        return Point(gp_pnt.X(), gp_pnt.Z(), gp_pnt.Z())
+
+    def support_type_shape1(self, n=1):
+        """
+        The type of support for the *n-th* solution on the first shape.
+
+        :param int n: The index.
+
+        :return: The support type.
+        :rtype: OCCT.BRepExtrema.BRepExtrema_SupportType
+        """
+        return self._tool.SupportOnShape1(n)
+
+    def is_vertex_shape1(self, n=1):
+        """
+        Check if support type is a vertex for the first shape.
+
+        :param int n: The index.
+
+        :return: *True* if a vertex, *False* otherwise.
+        :rtype: bool
+        """
+        return self.support_type_shape1(n) == BRepExtrema_IsVertex
+
+    def is_on_edge_shape1(self, n=1):
+        """
+        Check if support type is on an edge for the first shape.
+
+        :param int n: The index.
+
+        :return: *True* if on an edge, *False* otherwise.
+        :rtype: bool
+        """
+        return self.support_type_shape1(n) == BRepExtrema_IsOnEdge
+
+    def is_in_face_shape1(self, n=1):
+        """
+        Check if support type is in a face for the first shape.
+
+        :param int n: The index.
+
+        :return: *True* if in a face, *False* otherwise.
+        :rtype: bool
+        """
+        return self.support_type_shape1(n) == BRepExtrema_IsInFace
+
+    def support_type_shape2(self, n=1):
+        """
+        The type of support for the *n-th* solution on the second shape.
+
+        :param int n: The index.
+
+        :return: The support type.
+        :rtype: OCCT.BRepExtrema.BRepExtrema_SupportType
+        """
+        return self._tool.SupportOnShape2(n)
+
+    def is_vertex_shape2(self, n=1):
+        """
+        Check if support type is a vertex for the second shape.
+
+        :param int n: The index.
+
+        :return: *True* if a vertex, *False* otherwise.
+        :rtype: bool
+        """
+        return self.support_type_shape2(n) == BRepExtrema_IsVertex
+
+    def is_on_edge_shape2(self, n=1):
+        """
+        Check if support type is on an edge for the second shape.
+
+        :param int n: The index.
+
+        :return: *True* if on an edge, *False* otherwise.
+        :rtype: bool
+        """
+        return self.support_type_shape2(n) == BRepExtrema_IsOnEdge
+
+    def is_in_face_shape2(self, n=1):
+        """
+        Check if support type is in a face for the second shape.
+
+        :param int n: The index.
+
+        :return: *True* if in a face, *False* otherwise.
+        :rtype: bool
+        """
+        return self.support_type_shape2(n) == BRepExtrema_IsInFace
+
+    def support_on_shape1(self, n=1):
+        """
+        Get the shape where the *n-th* solution is on the first shape.
+
+        :param int n: The index.
+
+        :return: The support shape.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return self._tool.SupportOnShape1(n)
+
+    def support_on_shape2(self, n=1):
+        """
+        Get the shape where the *n-th* solution is on the second shape.
+
+        :param int n: The index.
+
+        :return: The support shape.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return self._tool.SupportOnShape2(n)
+
+    def par_on_edge_shape1(self, n=1):
+        """
+        Get the parameter of the *n-th* solution if it is on an edge of the
+        first shape.
+
+        :param int n: The index.
+
+        :return: The parameter.
+        :rtype: float
+        """
+        return self._tool.ParOnEdgeS1(n, 0.)
+
+    def par_on_edge_shape2(self, n=1):
+        """
+        Get the parameter of the *n-th* solution if it is on an edge of the
+        second shape.
+
+        :param int n: The index.
+
+        :return: The parameter.
+        :rtype: float
+        """
+        return self._tool.ParOnEdgeS2(n, 0.)
+
+    def par_on_face_shape1(self, n=1):
+        """
+        Get the parameters of the *n-th* solution if it is in a face of the
+        first shape.
+
+        :param int n: The index.
+
+        :return: The parameters.
+        :rtype: tuple(float, float)
+        """
+        return self._tool.ParOnFaceS1(n, 0., 0.)
+
+    def par_on_face_shape2(self, n=1):
+        """
+        Get the parameters of the *n-th* solution if it is in a face of the
+        second shape.
+
+        :param int n: The index.
+
+        :return: The parameters.
+        :rtype: tuple(float, float)
+        """
+        return self._tool.ParOnFaceS2(n, 0., 0.)
 
 
 class DistanceShapeToShapes(object):
