@@ -13,11 +13,13 @@
 
 from warnings import warn
 
+from OCCT.BRepAdaptor import BRepAdaptor_Surface
 from OCCT.BRepExtrema import (BRepExtrema_DistShapeShape, BRepExtrema_IsVertex,
                               BRepExtrema_IsOnEdge, BRepExtrema_IsInFace)
+from OCCT.Extrema import Extrema_ExtFlag_MIN
 
 from afem.geometry.check import CheckGeom
-from afem.geometry.entities import Point
+from afem.geometry.entities import Point, Vector, Direction
 from afem.topology.check import CheckShape
 
 __all__ = ["DistanceShapeToShape", "DistanceShapeToShapes",
@@ -26,12 +28,13 @@ __all__ = ["DistanceShapeToShape", "DistanceShapeToShapes",
 
 class DistanceShapeToShape(object):
     """
-    Calculate minimum distance between two shapes.
+    Calculate minimum distance between two shapes. If geometry is provided
+    it will be converted to a shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape1: The first shape.
-    :param OCCT.TopoDS.TopoDS_Shape shape2: The second shape.
-
-    :raise RuntimeError: If OCC method fails.
+    :param shape1: The first shape or geometry.
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Geometry
+    :param shape2: The second or geometry.
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Geometry
 
     Usage:
 
@@ -46,7 +49,10 @@ class DistanceShapeToShape(object):
     """
 
     def __init__(self, shape1, shape2, deflection=1.0e-7):
-        self._tool = BRepExtrema_DistShapeShape(shape1, shape2, deflection)
+        shape1 = CheckShape.to_shape(shape1)
+        shape2 = CheckShape.to_shape(shape2)
+        self._tool = BRepExtrema_DistShapeShape(shape1, shape2, deflection,
+                                                Extrema_ExtFlag_MIN)
 
     @property
     def is_done(self):
@@ -91,7 +97,7 @@ class DistanceShapeToShape(object):
         :rtype: afem.geometry.entities.Point
         """
         gp_pnt = self._tool.PointOnShape1(n)
-        return Point(gp_pnt.X(), gp_pnt.Z(), gp_pnt.Z())
+        return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
 
     def point_on_shape2(self, n=1):
         """
@@ -103,7 +109,7 @@ class DistanceShapeToShape(object):
         :rtype: afem.geometry.entities.Point
         """
         gp_pnt = self._tool.PointOnShape2(n)
-        return Point(gp_pnt.X(), gp_pnt.Z(), gp_pnt.Z())
+        return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
 
     def support_type_shape1(self, n=1):
         """
@@ -114,7 +120,7 @@ class DistanceShapeToShape(object):
         :return: The support type.
         :rtype: OCCT.BRepExtrema.BRepExtrema_SupportType
         """
-        return self._tool.SupportOnShape1(n)
+        return self._tool.SupportTypeShape1(n)
 
     def is_vertex_shape1(self, n=1):
         """
@@ -158,7 +164,7 @@ class DistanceShapeToShape(object):
         :return: The support type.
         :rtype: OCCT.BRepExtrema.BRepExtrema_SupportType
         """
-        return self._tool.SupportOnShape2(n)
+        return self._tool.SupportTypeShape2(n)
 
     def is_vertex_shape2(self, n=1):
         """
@@ -262,6 +268,58 @@ class DistanceShapeToShape(object):
         :rtype: tuple(float, float)
         """
         return self._tool.ParOnFaceS2(n, 0., 0.)
+
+    def normal_on_shape1(self, n=1):
+        """
+        Get a unit normal on the first shape where the *n-th* solution is
+        located if it is in a face.
+
+        :param int n: The index.
+
+        :return: The unit normal.
+        :rtype: afem.geometry.entities.Direction
+
+        :raise ValueError: If the solution is not in a face.
+        """
+        if not self.is_in_face_shape1(n):
+            raise ValueError('The solution is not in a face.')
+
+        shape = self.support_on_shape1(n)
+        face = CheckShape.to_face(shape)
+        u, v = self.par_on_face_shape1(n)
+
+        adp_srf = BRepAdaptor_Surface(face)
+        p = Point()
+        du, dv = Vector(), Vector()
+        adp_srf.D1(u, v, p, du, dv)
+
+        return Direction(du.Crossed(dv))
+
+    def normal_on_shape2(self, n=1):
+        """
+        Get a unit normal on the second shape where the *n-th* solution is
+        located if it is in a face.
+
+        :param int n: The index.
+
+        :return: The unit normal.
+        :rtype: afem.geometry.entities.Direction
+
+        :raise ValueError: If the solution is not in a face.
+        """
+        if not self.is_in_face_shape2(n):
+            raise ValueError('The solution is not in a face.')
+
+        shape = self.support_on_shape2(n)
+        face = CheckShape.to_face(shape)
+        u, v = self.par_on_face_shape2(n)
+
+        adp_srf = BRepAdaptor_Surface(face)
+        p = Point()
+        du, dv = Vector(), Vector()
+        adp_srf.D1(u, v, p, du, dv)
+
+        return Direction(du.Crossed(dv))
 
 
 class DistanceShapeToShapes(object):
