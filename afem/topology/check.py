@@ -16,7 +16,7 @@ from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeEdge,
                                  BRepBuilderAPI_MakeFace,
                                  BRepBuilderAPI_MakeVertex,
                                  BRepBuilderAPI_MakeWire)
-from OCCT.BRepCheck import BRepCheck_Analyzer
+from OCCT.BRepCheck import BRepCheck_Analyzer, BRepCheck_NoError
 from OCCT.BRepClass3d import BRepClass3d_SolidClassifier
 from OCCT.ShapeAnalysis import ShapeAnalysis_Edge
 from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
@@ -26,7 +26,7 @@ from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
                          TopAbs_WIRE)
 from OCCT.TopoDS import (TopoDS_CompSolid, TopoDS_Compound, TopoDS_Edge,
                          TopoDS_Face, TopoDS_Shape, TopoDS_Shell, TopoDS_Solid,
-                         TopoDS_Vertex, TopoDS_Wire, TopoDS)
+                         TopoDS_Vertex, TopoDS_Wire, TopoDS, TopoDS_Iterator)
 from OCCT.gp import gp_Pnt
 
 from afem.geometry.check import CheckGeom
@@ -34,77 +34,69 @@ from afem.geometry.check import CheckGeom
 __all__ = ["CheckShape", "ClassifyPointInSolid"]
 
 
+def _invalid_subshapes(shape, check, dump=False):
+    """
+    Find invalid sub-shapes.
+    """
+    invalid = []
+    it = TopoDS_Iterator(shape)
+    while it.More():
+        sub_shape = it.Value()
+        result = check.Result(sub_shape)
+        list_of_status = result.Status()
+        for status in list_of_status:
+            if status != BRepCheck_NoError:
+                if dump:
+                    msg = '\t{0}-->{1}\n'.format(status, sub_shape.ShapeType())
+                    print(msg)
+                invalid.append(sub_shape)
+        it.Next()
+        invalid += _invalid_subshapes(sub_shape, check, dump)
+
+    return invalid
+
+
 class CheckShape(object):
     """
-    Check shape.
+    Check shape and its sub-shapes for errors.
+
+    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param bool geom: Option to check geometry in additional to topology.
+    :param bool dump: Option to print invalid statuses.
     """
 
-    @staticmethod
-    def is_shape(shape):
+    def __init__(self, shape, geom=True, dump=False):
+        self._check = BRepCheck_Analyzer(shape, geom)
+        self._invalid = []
+        if not self._check.IsValid():
+            self._invalid = _invalid_subshapes(shape, self._check, dump)
+
+    @property
+    def is_valid(self):
         """
-        Check if entity is a shape.
-
-        :param shape: The shape.
-
-        :return: *True* if a shape, *False* if not.
+        :return: *True* if the shape and all of its sub-shapes are valid,
+            *False* if not.
         :rtype: bool
         """
-        return isinstance(shape, TopoDS_Shape)
+        return self._check.IsValid()
 
-    @staticmethod
-    def is_shell(shape):
+    @property
+    def invalid_shapes(self):
         """
-        Check if the shape is a shell.
-
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: *True* if a shell, *False* if not.
-        :rtype: bool
+        :return: List of invalid shapes.
+        :rtype: list(OCCT.TopoDS.TopoDS_Shape)
         """
-        try:
-            return shape.ShapeType() == TopAbs_SHELL
-        except AttributeError:
-            return False
+        return self._invalid
 
-    @staticmethod
-    def is_solid(shape):
+    def is_subshape_valid(self, shape):
         """
-        Check if the shape is a solid.
+        Check if a sub-shape of the original shape is valid.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
-
-        :return: *True* if a solid, *False* if not.
-        :rtype: bool
-        """
-        try:
-            return shape.ShapeType() == TopAbs_SOLID
-        except AttributeError:
-            return False
-
-    @classmethod
-    def is_valid(cls, shape):
-        """
-        Check the shape for errors.
-
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param OCCT.TopoDS.TopoDS_Shape shape: The sub-shape.
 
         :return: *True* if valid, *False* if not.
-        :rtype: bool
         """
-        return BRepCheck_Analyzer(shape, True).IsValid()
-
-    @staticmethod
-    def is_seam(edge, face):
-        """
-        Check to see if the edge is a seam edge on the face.
-
-        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
-        :param OCCT.TopoDS.TopoDS_Face face: The face.
-
-        :return: *True* if a seam, *False* if not.
-        :rtype: bool
-        """
-        return ShapeAnalysis_Edge().IsSeam(edge, face)
+        return self._check.IsValid(shape)
 
     @classmethod
     def to_vertex(cls, entity):
@@ -356,6 +348,61 @@ class CheckShape(object):
             return cls.to_face(entity)
 
         raise TypeError('Failed to convert entity to a shape.')
+
+    @staticmethod
+    def is_shape(shape):
+        """
+        Check if entity is a shape.
+
+        :param shape: The shape.
+
+        :return: *True* if a shape, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(shape, TopoDS_Shape)
+
+    @staticmethod
+    def is_shell(shape):
+        """
+        Check if the shape is a shell.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if a shell, *False* if not.
+        :rtype: bool
+        """
+        try:
+            return shape.ShapeType() == TopAbs_SHELL
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def is_solid(shape):
+        """
+        Check if the shape is a solid.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if a solid, *False* if not.
+        :rtype: bool
+        """
+        try:
+            return shape.ShapeType() == TopAbs_SOLID
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def is_seam(edge, face):
+        """
+        Check to see if the edge is a seam edge on the face.
+
+        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+        :param OCCT.TopoDS.TopoDS_Face face: The face.
+
+        :return: *True* if a seam, *False* if not.
+        :rtype: bool
+        """
+        return ShapeAnalysis_Edge().IsSeam(edge, face)
 
     @staticmethod
     def same_parameter(edge):

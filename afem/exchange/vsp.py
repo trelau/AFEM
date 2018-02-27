@@ -738,7 +738,7 @@ def _bspline_restrict(solid, tol):
     # Limit/fix tolerance
     FixShape.limit_tolerance(new_solid)
     tol = ExploreShape.global_tolerance(new_solid)
-    if not CheckShape.is_valid(new_solid):
+    if not CheckShape(new_solid).is_valid:
         logger.info('Shape invalid. Using original solid.')
         return solid
 

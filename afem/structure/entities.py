@@ -941,7 +941,7 @@ class Part(ViewableItem):
 
         :raise RuntimeError: If the check fails and *raise_error* is ``True``.
         """
-        check = CheckShape.is_valid(self._shape)
+        check = CheckShape(self._shape).is_valid
 
         if not raise_error:
             return check
