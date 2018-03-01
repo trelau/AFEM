@@ -301,6 +301,10 @@ SplitShapeByEdges
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: SplitShapeByEdges
 
+TrimOpenWire
+~~~~~~~~~~~~
+.. autoclass:: TrimOpenWire
+
 Offset
 ------
 .. py:currentmodule:: afem.topology.offset

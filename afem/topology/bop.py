@@ -911,6 +911,7 @@ class TrimOpenWire(object):
         if len(last_edges) > 0:
             self._last_wire = WireByEdges(*last_edges).wire
         self._new_verts = new_verts
+        self._verts = all_verts
 
     @property
     def split_wire(self):
@@ -951,6 +952,15 @@ class TrimOpenWire(object):
         :rtype: list(OCCT.TopoDS.TopoDS_Vertex)
         """
         return self._new_verts
+
+    @property
+    def all_vertices(self):
+        """
+        :return: All ordered vertices after splitting the original wire but
+            before trimming.
+        :rtype: list(OCCT.TopoDS.TopoDS_Vertex)
+        """
+        return self._verts
 
 
 if __name__ == "__main__":

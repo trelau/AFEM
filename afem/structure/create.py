@@ -10,6 +10,10 @@
 # WITHOUT ANY WARRANTIES OR REPRESENTATIONS EXPRESS, IMPLIED OR 
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+from math import radians, tan
+from warnings import warn
+
+from OCCT.BRepAdaptor import BRepAdaptor_CompCurve
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import *
@@ -18,7 +22,10 @@ from afem.structure.entities import *
 from afem.topology.bop import *
 from afem.topology.check import CheckShape
 from afem.topology.create import *
+from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreFreeEdges, ExploreShape
+from afem.topology.modify import SewShape
+from afem.topology.offset import SweepShapeWithNormal
 from afem.topology.props import *
 
 __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
@@ -37,7 +44,7 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "BulkheadBySurface", "FloorBySurface",
            "FrameByPlane", "FramesByPlanes", "FramesBetweenPlanesByNumber",
            "FramesBetweenPlanesByDistance", "SkinBySolid",
-           "SkinByBody"]
+           "SkinByBody", "StringerByShape"]
 
 
 # CURVE PART ------------------------------------------------------------------
@@ -2020,267 +2027,107 @@ class SkinByBody(SkinBySolid):
 
 # STRINGER --------------------------------------------------------------------
 
-class StringerBySpine(object):
-    pass
+class StringerByShape(object):
+    """
+    Create a Stringer using a basis shape.
+    """
 
+    def __init__(self, label, basis_shape, support_shape, height, angle=30.,
+                 shape1=None, shape2=None, assy=None):
 
-class StringerBySection(object):
-    pass
+        # Convert to shapes
+        support_shape = CheckShape.to_shape(support_shape)
+        shape1 = CheckShape.to_shape(shape1)
+        shape2 = CheckShape.to_shape(shape2)
 
+        # Intersect to find spine
+        spine = IntersectShapes(support_shape, basis_shape, True).shape
 
-class StringersBySections(object):
-    pass
+        # Build the wire
+        tool = WiresByShape(spine)
+        if tool.nwires == 0:
+            msg = 'Failed to find a wire for the stringer.'
+            raise RuntimeError(msg)
+        elif tool.nwires > 1:
+            msg = 'Found more than one wire for the stringer. Using longest.'
+            warn(msg, RuntimeWarning)
+            spine = LengthOfShapes(tool.wires).longest_shape
+        else:
+            spine = tool.wires[0]
+
+        # Trim spine between shapes
+        if (shape1 and shape2) is not None:
+            spine = TrimOpenWire(spine, shape1, shape2).trimmed_wire
+        elif shape1 is not None and shape2 is None:
+            spine = TrimOpenWire(spine, shape1).last_wire
+        elif shape1 is None and shape2 is not None:
+            spine = TrimOpenWire(spine, shape2).first_wire
+
+        # Determine length along spine given height and angle
+        dx = height / tan(radians(angle))
+
+        # Make the profiles
+        adp_crv = BRepAdaptor_CompCurve(spine, True)
+
+        p0 = CheckGeom.to_point(adp_crv.Value(dx))
+        dss = DistanceShapeToShape(support_shape, p0)
+        vn = CheckGeom.to_vector(dss.normal_on_shape1(1))
+        vn.scale(height)
+        p1 = p0.copy()
+        p1.translate(vn)
+        profile1 = EdgeByPoints(p0, p1).edge
+
+        p0 = CheckGeom.to_point(adp_crv.Value(adp_crv.LastParameter() - dx))
+        dss = DistanceShapeToShape(support_shape, p0)
+        vn = CheckGeom.to_vector(dss.normal_on_shape1(1))
+        vn.scale(height)
+        p1 = p0.copy()
+        p1.translate(vn)
+        profile2 = EdgeByPoints(p0, p1).edge
+
+        # Trim spine at the first and last profiles
+        trim = TrimOpenWire(spine, profile1, profile2)
+        first_wire = trim.first_wire
+        middle_wire = trim.trimmed_wire
+        last_wire = trim.last_wire
+
+        # Make first segment
+        pipe = SweepShapeWithNormal(first_wire, support_shape)
+        pipe.add_profile(trim.all_vertices[0], True)
+        pipe.add_profile(profile1, True)
+        pipe.build()
+        first_shape = pipe.shape
+
+        # Make middle segment
+        pipe = SweepShapeWithNormal(middle_wire, support_shape)
+        pipe.add_profile(profile1, True)
+        pipe.add_profile(profile2, True)
+        pipe.build()
+        middle_shape = pipe.shape
+
+        # Make last segment
+        pipe = SweepShapeWithNormal(last_wire, support_shape)
+        pipe.add_profile(profile2, True)
+        pipe.add_profile(trim.all_vertices[-1], True)
+        pipe.build()
+        last_shape = pipe.shape
+
+        # Sew segments
+        cmp = CompoundByShapes([first_shape, middle_shape, last_shape]).compound
+        shape = SewShape(cmp).sewed_shape
+
+        self._stringer = Stringer(label, shape, assy=assy)
+
+    @property
+    def stringer(self):
+        """
+        :return: The stringer.
+        :rtype: afem.structure.entities.Stringer
+        """
+        return self._stringer
 
 
 if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
-
-
-# OLD METHODS FOR REFERENCE ---------------------------------------------------
-
-# def create_stiffener1d(surface_part, stiffener, label):
-#     """
-#     Create a 1-D stiffener on a surface part.
-#     """
-#     if not isinstance(surface_part, SurfacePart):
-#         return None
-#
-#     cref = None
-#     if CheckGeom.is_curve_like(stiffener):
-#         cref = stiffener
-#
-#     # If stiffener is already a Stiffener1D part, split the two parts.
-#     # Otherwise, find the intersection and create the stiffener.
-#     if not isinstance(stiffener, Stiffener1D):
-#         shape = ShapeTools.to_shape(stiffener)
-#         if not shape:
-#             return None
-#         edges = ShapeTools.bsection(surface_part, shape, 'edge')
-#         if not edges:
-#             return None
-#         wires = ShapeTools.connect_edges(edges)
-#         if not wires:
-#             return None
-#         if len(wires) == 1:
-#             curve_shape = wires[0]
-#             w = curve_shape
-#         else:
-#             curve_shape = ShapeTools.make_compound(wires)
-#             w = ShapeTools.longest_wire(wires)
-#
-#         # Build reference curve from longest wire.
-#         if not cref:
-#             cref = ShapeTools.curve_of_wire(w)
-#
-#         # Build stiffener
-#         stiffener = Stiffener1D(label, curve_shape, cref)
-#
-#     # Split the parts.
-#     surface_part.split(stiffener)
-#
-#     # Add to surface part.
-#     surface_part.add_subpart(stiffener.label, stiffener)
-#
-#     return stiffener
-#
-#
-# def create_stiffener2d_by_wire(etype, label, surface_part, wire, h,
-#                                runout_angle, sref=None, assy=None):
-#     """
-#     Create a 2-D stiffener on a surface part by a wire.
-#     """
-#     cref = None
-#     if CheckGeom.is_curve_like(wire):
-#         cref = wire
-#
-#     # Create spine.
-#     spine0 = ShapeTools.to_wire(wire)
-#
-#     # Build reference curve from spine.
-#     if not cref:
-#         cref = ShapeTools.curve_of_wire(spine0)
-#
-#     # Calculate dx along spine to get proper run-out angle
-#     dx = h / tan(radians(runout_angle))
-#
-#     # Find points at dx from each end.
-#     adp_crv = BRepAdaptor_CompCurve(spine0)
-#     abs_pnt = GCPnts_AbscissaPoint(adp_crv, dx, adp_crv.FirstParameter())
-#     u = abs_pnt.Parameter()
-#     p1 = adp_crv.Value(u)
-#     abs_pnt = GCPnts_AbscissaPoint(adp_crv, -dx, adp_crv.LastParameter())
-#     u = abs_pnt.Parameter()
-#     p2 = adp_crv.Value(u)
-#
-#     # Create profiles normal to surface part.
-#     profile1 = ShapeTools.shape_normal_profile(p1, surface_part, h)
-#     profile2 = ShapeTools.shape_normal_profile(p2, surface_part, h)
-#     if not profile1 or not profile2:
-#         return None
-#
-#     # Create new spine between the profiles.
-#     splitter = ShapeTools.make_compound([p1, p2])
-#     spine1 = ShapeTools.split_wire(spine0, splitter)
-#     if not spine1:
-#         return None
-#     # Create new spine omitting first and last edges.
-#     ordered_edges = spine1.ordered_edges
-#     if len(ordered_edges) < 3:
-#         return None
-#     try:
-#         spine1 = ShapeTools.connect_edges(ordered_edges[1:-1])[0]
-#     except IndexError:
-#         return None
-#
-#     # Create main shape.
-#     shape1 = ShapeTools.make_pipe_shell(spine1, [profile1, profile2],
-#                                         surface_part, True)
-#     if not shape1:
-#         return None
-#
-#     # TODO Handle case if there is an edge in the surface part between the
-#     # profile and end of spine. Should just remove all edges up to a point.
-#     # Then be sure to use those when creating spines for run-outs.
-#
-#     # Run-out 1
-#     spine2 = ShapeTools.to_wire(ordered_edges[0])
-#     shape2 = ShapeTools.make_pipe_shell(spine2, [spine0.v1, profile1],
-#                                         surface_part, True)
-#
-#     # Run-out 2
-#     spine3 = ShapeTools.to_wire(ordered_edges[-1])
-#     shape3 = ShapeTools.make_pipe_shell(spine3, [profile2, spine0.v2],
-#                                         surface_part, True)
-#     if not shape2 or not shape3:
-#         return None
-#
-#     # Fuse together shapes.
-#     shape = ShapeTools.bop_algo([shape1], [shape2, shape3])
-#     if not shape:
-#         return None
-#
-#     # Create stringer.
-#     if etype in ['stringer']:
-#         part = Stringer(label, shape, cref, sref, assy)
-#         return part
-#
-#     # Create stiffener
-#     stiffener = Stiffener2D(label, shape, cref, sref)
-#
-#     # TODO Fuse the surface part and the stiffener?
-#     # surface_part.fuse(stiffener)
-#     # bop = ShapeTools.bfuse(surface_part, stiffener, 'builder')
-#     # if not bop.IsDone():
-#     #     return None
-#     # surface_part.set_shape(bop.Shape())
-#     #
-#     # # Reshape stiffener part.
-#     # stiffener.reshape(bop)
-#
-#     # Add as subpart.
-#     # surface_part.add_subpart(stiffener.label, stiffener)
-#     # TODO How to handle stiffener 2-d as subpart?
-#
-#     return stiffener
-#
-#
-# def create_stiffener2d_by_section(etype, label, surface_part, surface_shape, h,
-#                                   runout_angle, cut_part=False, assy=None):
-#     """
-#     Create a 2-D stiffener on a surface part by intersection.
-#     """
-#     # if not isinstance(surface_part, SurfacePart):
-#     #     return None
-#
-#     if h <= 0. or runout_angle < 0:
-#         return None
-#
-#     sref = None
-#     if CheckGeom.is_surface_like(surface_shape):
-#         sref = surface_shape
-#
-#     surface_shape = ShapeTools.to_shape(surface_shape)
-#     if not surface_shape:
-#         return None
-#
-#     # Build spine
-#     # edges = ShapeTools.bsection(surface_part, surface_shape, 'edge')
-#     # if not edges:
-#     #     return None
-#     bop = ShapeTools.bcut(surface_part, surface_shape, 'builder')
-#     if bop.ErrorStatus() != 0:
-#         print('here 1')
-#         return None
-#
-#     list_of_edges = bop.SectionEdges()
-#     if list_of_edges.IsEmpty():
-#         print('here 2')
-#         return None
-#
-#     edges = []
-#     while not list_of_edges.IsEmpty():
-#         edges.append(list_of_edges.First())
-#         list_of_edges.RemoveFirst()
-#
-#     wires = ShapeTools.connect_edges(edges)
-#     if not wires:
-#         return None
-#     if len(wires) == 1:
-#         spine0 = wires[0]
-#     else:
-#         spine0 = ShapeTools.longest_wire(wires)
-#     if not spine0:
-#         return None
-#
-#     stiffener = create_stiffener2d_by_wire(etype, label, surface_part, spine0,
-#                                            h, runout_angle, sref, assy)
-#     if not stiffener:
-#         return None
-#
-#     # TODO Reshape surface part after stringer cut?
-#     if cut_part:
-#         surface_part.reshape(bop)
-#
-#     return stiffener
-#
-#
-# def create_stiffener2d_by_sections(etype, label, surface_part,
-#                                    surface_shape, h, runout_angle, assy=None):
-#     """
-#     Create a 2-D stiffener on a surface part by all intersections.
-#     """
-#     # if not isinstance(surface_part, SurfacePart):
-#     #     return []
-#
-#     if h <= 0. or runout_angle < 0:
-#         return None
-#
-#     sref = None
-#     if CheckGeom.is_surface_like(surface_shape):
-#         sref = surface_shape
-#
-#     surface_shape = ShapeTools.to_shape(surface_shape)
-#     if not surface_shape:
-#         return []
-#
-#     # Build spine
-#     edges = ShapeTools.bsection(surface_part, surface_shape, 'edge')
-#     if not edges:
-#         return []
-#     wires = ShapeTools.connect_edges(edges)
-#     if not wires:
-#         return []
-#
-#     # Create stiffener for all wires.
-#     stiffeners = []
-#     for wire in wires:
-#         stiffener = create_stiffener2d_by_wire(etype, label, surface_part,
-#                                                wire, h, runout_angle, sref,
-#                                                assy)
-#         if not stiffener:
-#             continue
-#         stiffeners.append(stiffener)
-#
-#     return stiffeners
