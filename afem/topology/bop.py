@@ -836,10 +836,21 @@ class SplitShapeByEdges(BopCore):
 
 class TrimOpenWire(object):
     """
-    Trim an open wire between two shapes.
+    Trim an open wire between one or two shapes.
+
+    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param shape1: The first shape.
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Geometry
+    :param shape2: The second shape.
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Geometry
+
+    :raise TypeError: If a wire is not provided or it is closed.
+    :raise RuntimeError: If zero or more than two split locations are found. The
+        split shapes must result in one or two split locations. That is, they
+        should intersect the wire at only one location.
     """
 
-    def __init__(self, wire, shape1, shape2):
+    def __init__(self, wire, shape1, shape2=None):
         wire = CheckShape.to_wire(wire)
         if not isinstance(wire, TopoDS_Wire):
             msg = 'Invalid type for wire.'
@@ -864,17 +875,25 @@ class TrimOpenWire(object):
         wire_exp = ExploreWire(split_wire)
         all_verts = wire_exp.ordered_vertices
         new_verts = [v for v in all_verts if v not in old_verts]
-        if len(new_verts) > 2:
-            msg = 'More than two split locations is not supported.'
-            raise RuntimeError(msg)
 
         # Find index of new vertices and use that to extract edges
-        i1 = all_verts.index(new_verts[0])
-        i2 = all_verts.index(new_verts[1])
-        ordered_edges = wire_exp.edges
-        first_edges = ordered_edges[:i1]
-        trimmed_edges = ordered_edges[i1:i2]
-        last_edges = ordered_edges[i2:]
+        n = len(new_verts)
+        if n == 2:
+            i1 = all_verts.index(new_verts[0])
+            i2 = all_verts.index(new_verts[1])
+            ordered_edges = wire_exp.edges
+            first_edges = ordered_edges[:i1]
+            trimmed_edges = ordered_edges[i1:i2]
+            last_edges = ordered_edges[i2:]
+        elif n == 1:
+            i1 = all_verts.index(new_verts[0])
+            ordered_edges = wire_exp.edges
+            first_edges = ordered_edges[:i1]
+            trimmed_edges = []
+            last_edges = ordered_edges[i1:]
+        else:
+            msg = 'Only one or two split locations are supported.'
+            raise RuntimeError(msg)
 
         # Avoid circular imports
         from afem.topology.create import WireByEdges

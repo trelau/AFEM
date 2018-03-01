@@ -1143,7 +1143,8 @@ class CompoundByShapes(object):
         builder = BRep_Builder()
         builder.MakeCompound(cp)
         for shape in shapes:
-            builder.Add(cp, shape)
+            if isinstance(shape, TopoDS_Shape):
+                builder.Add(cp, shape)
         self._cp = cp
 
     @property
