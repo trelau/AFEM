@@ -466,7 +466,7 @@ class ExploreShape(object):
         Compute the global tolerance of the shape.
 
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
-        :param int mode: Average (0), maximal (1), minimal (2)
+        :param int mode: Average (0), maximal (1), minimal (-1)
 
         :return: The tolerance.
         :rtype: float

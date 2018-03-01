@@ -187,7 +187,7 @@ class Part(ViewableItem):
         :return: The minimum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.global_tolerance(self._shape, 2)
+        return ExploreShape.global_tolerance(self._shape, -1)
 
     @property
     def metadata(self):
