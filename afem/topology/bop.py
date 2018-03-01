@@ -21,17 +21,18 @@ from OCCT.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
 from OCCT.BRepFeat import BRepFeat_MakeCylindricalHole, BRepFeat_SplitShape
 from OCCT.Message import Message_Gravity
 from OCCT.TopTools import TopTools_SequenceOfShape
-from OCCT.TopoDS import TopoDS_Face, TopoDS
+from OCCT.TopoDS import TopoDS_Face, TopoDS, TopoDS_Wire
 
 from afem.geometry.check import CheckGeom
 from afem.occ.utils import (to_lst_from_toptools_listofshape,
                             to_toptools_listofshape)
 from afem.topology.check import CheckShape
-from afem.topology.explore import ExploreShape
+from afem.topology.explore import ExploreShape, ExploreWire
 
 __all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes", "VolumesFromShapes",
-           "CutCylindricalHole", "LocalSplit", "SplitShapeByEdges"]
+           "CutCylindricalHole", "LocalSplit", "SplitShapeByEdges",
+           "TrimOpenWire"]
 
 # Turn on parallel Boolean execution by default
 BOPAlgo_Options.SetParallelMode_(True)
@@ -831,6 +832,106 @@ class SplitShapeByEdges(BopCore):
         :return: None.
         """
         self._bop.Add(e1, e2)
+
+
+class TrimOpenWire(object):
+    """
+    Trim an open wire between two shapes.
+    """
+
+    def __init__(self, wire, shape1, shape2):
+        wire = CheckShape.to_wire(wire)
+        if not isinstance(wire, TopoDS_Wire):
+            msg = 'Invalid type for wire.'
+            raise TypeError(msg)
+
+        if wire.Closed():
+            msg = 'Closed wires are not supported.'
+            raise TypeError(msg)
+
+        shape1 = CheckShape.to_shape(shape1)
+        shape2 = CheckShape.to_shape(shape2)
+
+        # Split wire with shapes
+        from afem.topology.create import CompoundByShapes
+
+        other_shape = CompoundByShapes([shape1, shape2]).compound
+        split = SplitShapes(wire, other_shape)
+        split_wire = ExploreShape.get_wires(split.shape)[0]
+
+        # Get new vertices
+        old_verts = ExploreWire(wire).ordered_vertices
+        wire_exp = ExploreWire(split_wire)
+        all_verts = wire_exp.ordered_vertices
+        new_verts = [v for v in all_verts if v not in old_verts]
+        if len(new_verts) > 2:
+            msg = 'More than two split locations is not supported.'
+            raise RuntimeError(msg)
+
+        # Find index of new vertices and use that to extract edges
+        i1 = all_verts.index(new_verts[0])
+        i2 = all_verts.index(new_verts[1])
+        ordered_edges = wire_exp.edges
+        first_edges = ordered_edges[:i1]
+        trimmed_edges = ordered_edges[i1:i2]
+        last_edges = ordered_edges[i2:]
+
+        # Avoid circular imports
+        from afem.topology.create import WireByEdges
+
+        # Collect data and build trimmed wires
+        self._first_wire = None
+        self._trimmed_wire = None
+        self._last_wire = None
+
+        self._split_wire = split_wire
+        if len(first_edges) > 0:
+            self._first_wire = WireByEdges(*first_edges).wire
+        if len(trimmed_edges) > 0:
+            self._trimmed_wire = WireByEdges(*trimmed_edges).wire
+        if len(last_edges) > 0:
+            self._last_wire = WireByEdges(*last_edges).wire
+        self._new_verts = new_verts
+
+    @property
+    def split_wire(self):
+        """
+        :return: The wire after splitting.
+        :rtype: OCCT.TopoDS.TopoDS_Wire
+        """
+        return self._split_wire
+
+    @property
+    def first_wire(self):
+        """
+        :return: The first trimmed segment.
+        :rtype: OCCT.TopoDS.TopoDS_Wire
+        """
+        return self._first_wire
+
+    @property
+    def last_wire(self):
+        """
+        :return: The last trimmed segment.
+        :rtype: OCCT.TopoDS.TopoDS_Wire
+        """
+        return self._last_wire
+
+    @property
+    def trimmed_wire(self):
+        """
+        :return: The interior trimmed segment.
+        :rtype: OCCT.TopoDS.TopoDS_Wire
+        """
+        return self._trimmed_wire
+
+    @property
+    def new_vertices(self):
+        """
+        :return: New vertices after splitting.
+        :rtype: list(OCCT.TopoDS.TopoDS_Vertex)
+        """
+        return self._new_verts
 
 
 if __name__ == "__main__":

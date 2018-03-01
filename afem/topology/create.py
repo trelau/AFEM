@@ -314,12 +314,10 @@ class EdgeByWireConcat(object):
 
 class WireByEdges(object):
     """
-    Create a wire using up to four edges.
+    Create a wire using topologically connected edges.
 
-    :param OCCT.TopoDS.TopoDS_Edge e1: The first edge.
-    :param OCCT.TopoDS.TopoDS_Edge e2: The second edge.
-    :param OCCT.TopoDS.TopoDS_Edge e3: The third edge.
-    :param OCCT.TopoDS.TopoDS_Edge e4: The fourth edge.
+    :param OCCT.TopoDS.TopoDS_Edge edges: The edges. They must share a common
+        vertex to be connected
 
     >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve, WireByEdges
@@ -333,10 +331,10 @@ class WireByEdges(object):
     >>> v = builder.last_vertex
     """
 
-    def __init__(self, e1, e2=None, e3=None, e4=None):
+    def __init__(self, *edges):
         # Build
-        builder = BRepBuilderAPI_MakeWire(e1)
-        for e in [e2, e3, e4]:
+        builder = BRepBuilderAPI_MakeWire()
+        for e in edges:
             if e is not None and e.ShapeType() == TopAbs_EDGE:
                 builder.Add(e)
 
