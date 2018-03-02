@@ -1015,6 +1015,8 @@ class Part(ViewableItem):
         :raise TypeError: If this part is or the splitter not a curve or
             surface part.
         """
+        if isinstance(splitter, Part):
+            other_part = splitter
         splitter = shape_of_entity(splitter)
 
         split = SplitShapes()
@@ -1029,7 +1031,7 @@ class Part(ViewableItem):
 
         parts = [self]
         if rebuild_both:
-            parts += [splitter]
+            parts.append(other_part)
         for part in parts:
             part.rebuild(split)
         return True

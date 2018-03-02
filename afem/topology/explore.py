@@ -527,10 +527,8 @@ class ExploreWire(object):
         # CurrentVertex doesn't get the last vertex. Try to get it.
         ordered_verts = list(current_verts)
         if edges:
-            data = ShapeExtend_WireData(wire)
-            fix = ShapeFix_WireSegment(data)
-            v1 = fix.LastVertex()
-            ordered_verts.append(v1)
+            vi = TopoDS.Vertex_(explorer.CurrentVertex())
+            ordered_verts.append(vi)
 
         self._edges = edges
         self._current_verts = current_verts
