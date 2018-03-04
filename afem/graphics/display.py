@@ -26,7 +26,7 @@ from OCCT.OpenGl import OpenGl_GraphicDriver
 from OCCT.Quantity import (Quantity_TOC_RGB, Quantity_NOC_WHITE,
                            Quantity_Color,
                            Quantity_NOC_BLACK)
-from OCCT.SMESH import SMESH_MeshVSLink, SMESH_Mesh
+from OCCT.SMESH import SMESH_MeshVSLink, SMESH_Mesh, SMESH_subMesh
 from OCCT.TopoDS import TopoDS_Shape
 from OCCT.V3d import V3d_Viewer, V3d_TypeOfOrientation
 from OCCT.WNT import WNT_Window
@@ -326,7 +326,8 @@ class View(QGLWidget):
         """
         Display a mesh.
 
-        :param OCCT.SMESH_SMESH_Mesh mesh: The mesh.
+        :param mesh: The mesh.
+        :type mesh: OCCT.SMESH_SMESH_Mesh or OCCT.SMESH_SMESH_subMesh
         :param int mode: Display mode for mesh elements (1=wireframe, 2=solid).
 
         :return: The MeshVS_Mesh created for the mesh.
@@ -575,7 +576,9 @@ class Viewer(QMainWindow):
             afem.structure.entities.Part or
             afem.structure.assembly.Assembly or
             OCCT.SMESH.SMESH_Mesh or
-            afem.smesh.meshes.Mesh
+            OCCT.SMESH.SMESH_subMesh or
+            afem.smesh.meshes.Mesh or
+            afem.smesh.meshes.SubMesh
 
         :return: None.
         """
@@ -583,7 +586,7 @@ class Viewer(QMainWindow):
         from afem.oml.entities import Body
         from afem.structure.assembly import Assembly
         from afem.structure.entities import Part
-        from afem.smesh.meshes import Mesh
+        from afem.smesh.meshes import Mesh, SubMesh
 
         for item in items:
             if isinstance(item, Part):
@@ -596,9 +599,9 @@ class Viewer(QMainWindow):
                 self.view.display_body(item)
             elif isinstance(item, TopoDS_Shape):
                 self.view.display_shape(item)
-            elif isinstance(item, Mesh):
+            elif isinstance(item, (Mesh, SubMesh)):
                 self.view.display_mesh(item.object)
-            elif isinstance(item, SMESH_Mesh):
+            elif isinstance(item, (SMESH_Mesh, SMESH_subMesh)):
                 self.view.display_mesh(item)
 
     def clear(self):
