@@ -283,6 +283,42 @@ class MeshEditor(object):
         return self._editor.FindFreeBorder_(n1.object, n2.object, n3.object,
                                             node_list, elm_list)
 
+    def tri_to_quad(self, elms=(), method=0, max_bending_angle=30.):
+        """
+        Try to merge triangular elements into quadrangles.
+
+        :param collections.Sequence(afem.smesh.entities.Element) elms: The
+            elements to combine. If empty then the whole mesh is used.
+        :param int method: The criteria used for determining which elements to
+            combine (0=Aspect ratio, 1=Minimum angle, 2=Skew, 3=Area, 4=Warping,
+            5=Taper).
+        :param float max_bending_angle: The maximum bending angle.
+
+        :return: *True* if some elements were merged, *False* if not.
+        :rtype: bool
+        """
+        if len(elms) == 0:
+            ds = self._editor.GetMeshDS()
+            iter_ = ds.facesIterator()
+            elms = set()
+            while iter_.more():
+                elms.add(iter_.next())
+        else:
+            elms = set([e.object for e in elms])
+        if method == 0:
+            return self._editor.TriToQuadAspectRatio(elms, max_bending_angle)
+        if method == 1:
+            return self._editor.TriToQuadMinimumAngle(elms, max_bending_angle)
+        if method == 2:
+            return self._editor.TriToQuadSkew(elms, max_bending_angle)
+        if method == 3:
+            return self._editor.TriToQuadArea(elms, max_bending_angle)
+        if method == 4:
+            return self._editor.TriToQuadWarping(elms, max_bending_angle)
+        if method == 5:
+            return self._editor.TriToQuadTaper(elms, max_bending_angle)
+        return False
+
 
 class MeshHelper(object):
     """
