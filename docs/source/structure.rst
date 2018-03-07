@@ -111,13 +111,13 @@ Stringer
 
 .. autoclass:: Stringer
 
-Assembly
-~~~~~~~~
-.. autoclass:: afem.structure.assembly.Assembly
+Group
+~~~~~
+.. autoclass:: afem.structure.group.Group
 
-AssemblyAPI
-~~~~~~~~~~~
-.. autoclass:: afem.structure.assembly.AssemblyAPI
+GroupAPI
+~~~~~~~~
+.. autoclass:: afem.structure.group.GroupAPI
 
 Create
 ------
@@ -298,9 +298,9 @@ SplitParts
 ~~~~~~~~~~
 .. autoclass:: SplitParts
 
-FuseAssemblies
-~~~~~~~~~~~~~~
-.. autoclass:: FuseAssemblies
+FuseGroups
+~~~~~~~~~~
+.. autoclass:: FuseGroups
 
 Modify
 ------
@@ -314,9 +314,9 @@ Fix
 ---
 .. py:currentmodule:: afem.structure.fix
 
-FixAssembly
-~~~~~~~~~~~
-.. autoclass:: FixAssembly
+FixGroup
+~~~~~~~~
+.. autoclass:: FixGroup
 
 Check
 -----

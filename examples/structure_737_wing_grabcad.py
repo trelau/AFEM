@@ -116,7 +116,7 @@ for p in tool.interior_points:
     center_ribs.append(rib)
     i += 1
 
-wing_parts = AssemblyAPI.get_parts(rtype=SurfacePart)
+wing_parts = GroupAPI.get_parts(rtype=SurfacePart)
 
 # Fuse wing parts and discard faces
 FuseSurfacePartsByCref(wing_parts)
@@ -131,7 +131,7 @@ skin.discard_by_solid(hs)
 
 # Mesh
 print('Meshing the shape...')
-the_shape = AssemblyAPI.prepare_shape_to_mesh()
+the_shape = GroupAPI.prepare_shape_to_mesh()
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(the_shape)
 alg2d = NetgenAlgo2D(the_gen)
@@ -142,7 +142,7 @@ the_gen.compute(the_mesh, the_shape)
 # View
 skin.set_transparency(0.5)
 v = Viewer()
-v.add(AssemblyAPI.get_master())
+v.add(GroupAPI.get_master())
 v.start()
 v.add(the_mesh)
 v.start()

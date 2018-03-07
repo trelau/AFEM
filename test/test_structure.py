@@ -35,7 +35,7 @@ class TestEntities(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        AssemblyAPI.reset()
+        GroupAPI.reset()
 
     def test_part_label(self):
         self.assertEqual('fspar', self.fspar.label)
@@ -113,7 +113,7 @@ class TestCreate(unittest.TestCase):
         cls.fuselage = Body(shape, 'fuselage')
 
     def tearDown(self):
-        AssemblyAPI.reset()
+        GroupAPI.reset()
 
     def test_curve_part_by_shape(self):
         e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge

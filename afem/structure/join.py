@@ -21,7 +21,7 @@ from afem.topology.explore import ExploreShape
 from afem.topology.modify import RebuildShapesByTool, SewShape
 
 __all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "CutParts",
-           "SewSurfaceParts", "SplitParts", "FuseAssemblies"]
+           "SewSurfaceParts", "SplitParts", "FuseGroups"]
 
 
 class FuseSurfaceParts(object):
@@ -267,37 +267,37 @@ class SplitParts(object):
         return self._split_shape
 
 
-class FuseAssemblies(object):
+class FuseGroups(object):
     """
     Fuse assemblies and rebuild the part shapes. This tool puts all the part
     shapes into compounds before the Boolean operation.
 
-    :param assys: The assemblies.
-    :type assys: collections.Sequence[afem.structure.assembly.Assembly]
+    :param groups: The assemblies.
+    :type groups: collections.Sequence[afem.structure.group.Group]
     :param float fuzzy_val: Fuzzy tolerance value.
-    :param bool include_subassy: Option to recursively include parts
-            from any sub-assemblies.
+    :param bool include_subgroup: Option to recursively include parts
+            from all subgroups.
 
     :raise ValueError: If less than two assemblies are provided.
     """
 
-    def __init__(self, assys, fuzzy_val=None, include_subassy=True):
-        if len(assys) < 2:
+    def __init__(self, groups, fuzzy_val=None, include_subgroup=True):
+        if len(groups) < 2:
             raise ValueError('Not enough assemblies to fuse. Need at least '
                              'two.')
 
         bop = FuseShapes(fuzzy_val=fuzzy_val)
 
-        assys = list(assys)
-        parts1 = assys[0].get_parts(include_subassy)
+        groups = list(groups)
+        parts1 = groups[0].get_parts(include_subgroup)
         shapes1 = [part.shape for part in parts1]
         shape1 = CompoundByShapes(shapes1).compound
         bop.set_args([shape1])
 
         tools = []
         other_parts = []
-        for assy in assys[1:]:
-            parts = assy.get_parts(include_subassy)
+        for group in groups[1:]:
+            parts = group.get_parts(include_subgroup)
             other_parts += parts
             shapes = [part.shape for part in parts]
             shape = CompoundByShapes(shapes).compound

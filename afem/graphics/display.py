@@ -371,17 +371,17 @@ class View(QGLWidget):
         for part in parts:
             self.display_part(part)
 
-    def display_assy(self, assy, include_subassy=True):
+    def display_groups(self, group, include_subgroup=True):
         """
-        Display all parts of an assembly.
+        Display all parts of a group.
 
-        :param afem.structure.assembly.Assembly assy: The assembly.
-        :param bool include_subassy: Option to recursively include parts
-            from any sub-assemblies.
+        :param afem.structure.group.Group group: The group.
+        :param bool include_subgroup: Option to recursively include parts
+            from any subgroups.
 
         :return: None.
         """
-        for part in assy.get_parts(include_subassy):
+        for part in group.get_parts(include_subgroup):
             self.display_part(part)
 
     def set_bg_color(self, r, g, b):
@@ -574,7 +574,7 @@ class Viewer(QMainWindow):
             afem.geometry.entities.Geometry or
             afem.oml.entities.Body or
             afem.structure.entities.Part or
-            afem.structure.assembly.Assembly or
+            afem.structure.group.Group or
             OCCT.SMESH.SMESH_Mesh or
             OCCT.SMESH.SMESH_subMesh or
             afem.smesh.meshes.Mesh or
@@ -584,15 +584,15 @@ class Viewer(QMainWindow):
         """
         from afem.geometry.entities import Geometry
         from afem.oml.entities import Body
-        from afem.structure.assembly import Assembly
+        from afem.structure.group import Group
         from afem.structure.entities import Part
         from afem.smesh.meshes import Mesh, SubMesh
 
         for item in items:
             if isinstance(item, Part):
                 self.view.display_part(item)
-            elif isinstance(item, Assembly):
-                self.view.display_assy(item)
+            elif isinstance(item, Group):
+                self.view.display_groups(item)
             elif isinstance(item, Geometry):
                 self.view.display_geom(item)
             elif isinstance(item, Body):

@@ -18,7 +18,7 @@ vsp_import = ImportVSP(fn)
 wing = vsp_import.get_body('WingGeom')
 
 # Build structure
-wingbox = AssemblyAPI.create_assy('wing box')
+wingbox = GroupAPI.create_group('wing box')
 fspar = SparByParameters('front spar', 0.15, 0., 0.15, 1., wing).spar
 rspar = SparByParameters('rear spar', 0.70, 0., 0.70, 1., wing).spar
 RibByPoints('root rib', fspar.p1, rspar.p1, wing)

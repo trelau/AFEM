@@ -29,7 +29,7 @@ other_wing = vsp_import.get_body('Wing.2')
 other_htail = vsp_import.get_body('Htail.1')
 
 # FUSELAGE --------------------------------------------------------------------
-fuse_assy = AssemblyAPI.create_assy('fuselage assy')
+fuse_group = GroupAPI.create_group('fuselage group')
 
 # Nose bulkhead
 pln = PlaneByAxes((36, 0, 0), 'yz').plane
@@ -188,7 +188,7 @@ for pln1, pln2 in pairwise(plns):
 # Join
 # FuseSurfaceParts([fwd_bh, rear_bh, aft_bh, floor, fskin], frames)
 
-master = AssemblyAPI.get_master()
+master = GroupAPI.get_master()
 v = Viewer(1280, 1024)
 v.add(master)
 v.start()

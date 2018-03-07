@@ -20,36 +20,36 @@ wing.set_transparency(0.5)
 fuselage.set_transparency(0.5)
 
 # WING
-wing_assy = AssemblyAPI.create_assy('wing assy')
+wing_group = GroupAPI.create_group('wing group')
 
-rib_assy = AssemblyAPI.create_assy('rib assy', wing_assy)
+rib_group = GroupAPI.create_group('rib group', wing_group)
 
 root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, wing).rib
 tip = RibByParameters('tip', 0.15, 0.2, 0.70, 0.2, wing).rib
 
-spar_assy = AssemblyAPI.create_assy('spar assy', wing_assy)
+spar_group = GroupAPI.create_group('spar group', wing_group)
 
 fspar = SparByPoints('fspar', root.p1, tip.p1, wing).spar
 rspar = SparByPoints('rspar', root.p2, tip.p2, wing).spar
 
-rib_assy.activate()
+rib_group.activate()
 RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, wing,
                        d1=30., d2=-50)
 
-# Use FuseAssemblies
-FuseAssemblies([rib_assy, spar_assy])
-DiscardByCref(wing_assy.get_parts())
+# Use FuseGroups
+FuseGroups([rib_group, spar_group])
+DiscardByCref(wing_group.get_parts())
 
-wing_assy.activate()
+wing_group.activate()
 skin = SkinByBody('wing skin', wing).skin
-parts = rib_assy.get_parts() + spar_assy.get_parts()
+parts = rib_group.get_parts() + spar_group.get_parts()
 skin.fuse(*parts)
 skin.discard_by_dmin(wing.sref_shape, 1.)
 skin.fix()
 skin.set_transparency(0.5)
 
 # FUSELAGE
-fuse_assy = AssemblyAPI.create_assy('fuse assy')
+fuse_group = GroupAPI.create_group('fuse group')
 
 skin = SkinByBody('fuselage skin', fuselage).skin
 skin.set_transparency(0.5)
@@ -57,15 +57,15 @@ skin.set_transparency(0.5)
 pln = PlaneByAxes(root.point_from_parameter(0.5, is_rel=True), 'yz').plane
 frame = FrameByPlane('frame', pln, fuselage, 3.).frame
 
-# Causing issues with fusing assy
-# vol = VolumesFromShapes(wing_assy.get_parts()).shape
+# Causing issues with fusing group
+# vol = VolumesFromShapes(wing_group.get_parts()).shape
 # skin.cut(vol)
 # frame.cut(vol)
 
 skin.fuse(frame)
 
 # HTAIL
-htail_assy = AssemblyAPI.create_assy('htail assy')
+htail_group = GroupAPI.create_group('htail group')
 
 root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, htail).rib
 tip = RibByParameters('tip', 0.15, 0.5, 0.70, 0.5, htail).rib
@@ -77,7 +77,7 @@ pln = PlaneByAxes().plane
 RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, htail,
                        d1=12, d2=-12, ref_pln=pln)
 
-parts = htail_assy.get_parts()
+parts = htail_group.get_parts()
 FuseSurfacePartsByCref(parts)
 DiscardByCref(parts)
 
@@ -89,18 +89,18 @@ skin.set_transparency(0.5)
 
 # JOIN
 start = time.time()
-bop = FuseAssemblies([wing_assy, fuse_assy, htail_assy])
+bop = FuseGroups([wing_group, fuse_group, htail_group])
 print(time.time() - start)
 
 shape = bop.shape
 tool = ExploreFreeEdges(shape)
 print(tool.free_edges)
 
-parts = AssemblyAPI.get_master().get_parts()
+parts = GroupAPI.get_master().get_parts()
 
 # MESH
-master_assy = AssemblyAPI.get_master()
-shape_to_mesh = master_assy.prepare_shape_to_mesh()
+master_group = GroupAPI.get_master()
+shape_to_mesh = master_group.prepare_shape_to_mesh()
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(shape_to_mesh)
 

@@ -87,13 +87,13 @@ for frame in frames:
 main_floor.set_transparency(0.5)
 cargo_floor.set_transparency(0.5)
 
-all_parts = AssemblyAPI.get_parts(order=True)
+all_parts = GroupAPI.get_parts(order=True)
 
 # Split all parts together
 join = SplitParts(all_parts)
 
 # Mesh
-the_shape = AssemblyAPI.prepare_shape_to_mesh()
+the_shape = GroupAPI.prepare_shape_to_mesh()
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(the_shape)
 
@@ -119,6 +119,6 @@ the_gen.compute(the_mesh)
 
 # View
 v = Viewer()
-v.add(AssemblyAPI.get_master())
+v.add(GroupAPI.get_master())
 v.add(the_mesh)
 v.start()

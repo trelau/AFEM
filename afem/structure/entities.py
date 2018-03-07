@@ -23,7 +23,7 @@ from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.display import ViewableItem
-from afem.structure.assembly import AssemblyAPI
+from afem.structure.group import GroupAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)
 from afem.topology.check import CheckShape, ClassifyPointInSolid
@@ -76,9 +76,9 @@ class Part(ViewableItem):
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
     :type sref: afem.geometry.entities.Surface or None
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
@@ -86,7 +86,7 @@ class Part(ViewableItem):
     _indx = 1
     _mesh = None
 
-    def __init__(self, label, shape, cref=None, sref=None, assy=None):
+    def __init__(self, label, shape, cref=None, sref=None, group=None):
         super(Part, self).__init__()
 
         self._cref, self._sref = None, None
@@ -105,8 +105,8 @@ class Part(ViewableItem):
         if sref is not None:
             self.set_sref(sref)
 
-        # Add to assembly
-        AssemblyAPI.add_parts(assy, self)
+        # Add to group
+        GroupAPI.add_parts(group, self)
 
         # Log
         msg = ' '.join(['Creating part:', label])
@@ -953,24 +953,24 @@ class Part(ViewableItem):
         raise RuntimeError(msg)
 
     def fix(self, precision=None, min_tol=None, max_tol=None, context=None,
-            include_subassy=True):
+            include_subgroup=True):
         """
         Attempt to fix the shape of the part using :class:`.FixShape`.
 
         :param float precision: Basic precision value.
         :param float min_tol: Minimum tolerance.
         :param float max_tol: Maximum tolerance.
-        :param context: The context shape or assembly.
+        :param context: The context shape or group.
         :type context: OCCT.TopoDS.TopoDS_Shape or
-            afem.structure.entities.Assembly or str
-        :param bool include_subassy: Option to recursively include parts
-            from any sub-assemblies.
+            afem.structure.entities.Group or str
+        :param bool include_subgroup: Option to recursively include parts
+            from any subgroups.
 
         :return: None.
         """
         if context is not None:
             if not isinstance(context, TopoDS_Shape):
-                context = AssemblyAPI.as_compound(context, include_subassy)
+                context = GroupAPI.as_compound(context, include_subgroup)
 
         new_shape = FixShape(self._shape, precision, min_tol, max_tol,
                              context).shape
@@ -1256,16 +1256,16 @@ class CurvePart(Part):
     :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
     :param cref: The reference curve.
     :type cref: afem.geometry.entities.Curve or None
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
     """
 
-    def __init__(self, label, shape, cref=None, assy=None):
-        super(CurvePart, self).__init__(label, shape, cref, None, assy)
+    def __init__(self, label, shape, cref=None, group=None):
+        super(CurvePart, self).__init__(label, shape, cref, None, group)
 
     @property
     def length(self):
@@ -1293,16 +1293,16 @@ class SurfacePart(Part):
     :type cref: afem.geometry.entities.Curve or None
     :param sref: The reference surface.
     :type sref: afem.geometry.entities.Surface or None
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     :raise RuntimeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
     """
 
-    def __init__(self, label, shape, cref=None, sref=None, assy=None):
-        super(SurfacePart, self).__init__(label, shape, cref, sref, assy)
+    def __init__(self, label, shape, cref=None, sref=None, group=None):
+        super(SurfacePart, self).__init__(label, shape, cref, sref, group)
 
     @property
     def length(self):

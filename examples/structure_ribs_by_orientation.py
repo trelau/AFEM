@@ -21,7 +21,7 @@ def build_wingbox(wing, params):
                 'rspar chord': 0.65,
                 'root span': 0.05,
                 'tip span': 0.925,
-                'assy name': 'RH main wingbox'}
+                'group name': 'RH main wingbox'}
 
     for key in _default:
         if key not in params:
@@ -33,10 +33,10 @@ def build_wingbox(wing, params):
     rspar_chord = params['rspar chord']
     root_span = params['root span']
     tip_span = params['tip span']
-    assy_name = params['assy name']
+    group_name = params['group name']
 
     # BUILD -------------------------------------------------------------------
-    AssemblyAPI.create_assy(assy_name)
+    GroupAPI.create_group(group_name)
 
     # Front spar
     fspar = SparByParameters('front spar', fspar_chord, root_span,
@@ -77,11 +77,11 @@ def build_wingbox(wing, params):
 
     # JOIN --------------------------------------------------------------------
     # Fuse internal structure and discard faces
-    internal_parts = AssemblyAPI.get_parts(order=True)
+    internal_parts = GroupAPI.get_parts(order=True)
     FuseSurfacePartsByCref(internal_parts)
     DiscardByCref(internal_parts)
 
-    return AssemblyAPI.get_active()
+    return GroupAPI.get_active()
 
 
 if __name__ == '__main__':
@@ -93,10 +93,10 @@ if __name__ == '__main__':
     wing_in = vsp_import.get_body('Wing')
 
     # Build wing box
-    assy = build_wingbox(wing_in, {})
+    group = build_wingbox(wing_in, {})
 
     print('Complete in ', time.time() - start, ' seconds.')
 
     v = Viewer()
-    v.add(*assy.parts)
+    v.add(*group.parts)
     v.start()

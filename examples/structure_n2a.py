@@ -32,7 +32,7 @@ for body in [wing, other_wing, vtail, other_vtail]:
 # Construction geometry
 root_chord = wing.sref.v_iso(0.)
 
-AssemblyAPI.create_assy('wing assy')
+GroupAPI.create_group('wing group')
 
 # Centerbody structure
 pln = PlaneByAxes((fd_length, 0, 0), 'yz').plane
@@ -126,7 +126,7 @@ spar2.cut(solid)
 spar3.cut(solid)
 
 # Fuse
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)
 DiscardByCref(internal_parts)
 
@@ -135,7 +135,7 @@ skin.fuse(*internal_parts)
 skin.set_transparency(0.5)
 
 # Vtail structure
-AssemblyAPI.create_assy('vtail assy')
+GroupAPI.create_group('vtail group')
 
 fspar = SparByParameters('vtail fspar', 0.15, 0.01, 0.15, 0.99, vtail).spar
 rspar = SparByParameters('vtail rspar', 0.70, 0.01, 0.70, 0.99, vtail).spar
@@ -144,7 +144,7 @@ RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
 RibsAlongCurveByDistance('vtail rib', rspar.cref, 18, fspar.shape, rspar.shape,
                          vtail, d1=18, d2=-30)
 
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)
 DiscardByCref(internal_parts)
 
@@ -156,5 +156,5 @@ skin.fix()
 # View
 skin.set_transparency(0.5)
 v = Viewer()
-v.add(AssemblyAPI.get_master())
+v.add(GroupAPI.get_master())
 v.start()

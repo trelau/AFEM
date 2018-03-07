@@ -30,7 +30,7 @@ other_wing = vsp_import.get_body('Wing.2')
 other_htail = vsp_import.get_body('Htail.1')
 
 # FUSELAGE --------------------------------------------------------------------
-fuse_assy = AssemblyAPI.create_assy('fuselage assy')
+fuse_group = GroupAPI.create_group('fuselage group')
 
 # Fwd bulkhead at 25% wing chord
 p0 = wing.eval(0.25, 0.)
@@ -109,7 +109,7 @@ CutParts([fskin, fwd_bh, rear_bh, aft_bh, floor] + frames, cutter)
 FuseSurfaceParts([fwd_bh, rear_bh, aft_bh, floor, fskin], frames)
 
 # WING ------------------------------------------------------------------------
-wing_assy = AssemblyAPI.create_assy('wing assy')
+wing_group = GroupAPI.create_group('wing group')
 
 # Root rib
 
@@ -203,7 +203,7 @@ center_ribs = RibsAlongCurveByNumber('center rib', fc_spar.cref, 3,
                                      ref_pln=xz_pln, d1=30., d2=-30.).ribs
 
 # Fuse wing internal structure and discard faces
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)
 DiscardByCref(internal_parts)
 
@@ -223,11 +223,11 @@ wskin.fix()
 # JOIN ------------------------------------------------------------------------
 print('Fusing assemblies...')
 start = time.time()
-bop = FuseAssemblies([wing_assy, fuse_assy])
+bop = FuseGroups([wing_group, fuse_group])
 print('complete', time.time() - start)
 
 # Mesh
-shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
+shape_to_mesh = GroupAPI.prepare_shape_to_mesh()
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(shape_to_mesh)
 

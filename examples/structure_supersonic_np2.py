@@ -18,8 +18,8 @@ def build(wing, fuselage):
     """
 
     # Create to assemblies for storing parts in
-    wa = AssemblyAPI.create_assy('wing assy')
-    fa = AssemblyAPI.create_assy('fuselage assy')
+    wa = GroupAPI.create_group('wing group')
+    fa = GroupAPI.create_group('fuselage group')
 
     # Extract a bounding box of the fuselage enlarged by 6 units
     fuselage_bbox = fuselage.bbox(6.)
@@ -174,7 +174,7 @@ def build(wing, fuselage):
     # bulkhead. Specify the spacing and the height.
     yz_plane = PlaneByAxes(axes='yz').plane
     frames = FramesBetweenPlanesByDistance('frame', yz_plane, fbh.plane, 60.,
-                                           fuselage, 3., 84., assy=fa).frames
+                                           fuselage, 3., 84., group=fa).frames
 
     # Aft bulkheads between the rear spar bulkhead and a distance offset from
     # the aft end of the fuselage. Get the maximum x-distance (i.e., length of
@@ -231,10 +231,10 @@ def build(wing, fuselage):
     v.clear()
 
     # Fuselage skin using the shell of the fuselage body
-    fskin = SkinByBody('fuselage skin', fuselage, assy=fa).skin
+    fskin = SkinByBody('fuselage skin', fuselage, group=fa).skin
 
     # Wing skin using the shell of the wing body
-    wskin = SkinByBody('wing skin', wing, assy=wa).skin
+    wskin = SkinByBody('wing skin', wing, group=wa).skin
 
     # Discard the "caps" of the wing skin since ribs have been defined there
     # and we don't want overlapping structure. For this, define an iso-curve
@@ -310,18 +310,18 @@ def build(wing, fuselage):
     # assembly. Fixing part shapes in the context of their assembly is
     # important since the tool can look at the topology of the overall shape
     # rather than just the part shape by itself.
-    FixAssembly(wa)
-    FixAssembly(fa)
+    FixGroup(wa)
+    FixGroup(fa)
 
     # Fuse assemblies together. This tool will build two separate compounds
     # from the parts of each assembly and then do a Boolean fuse operation.
     # The shapes of each part are then updated.
-    FuseAssemblies([wa, fa])
+    FuseGroups([wa, fa])
 
     # Fix master assembly, hopefully addressing global issues after a large
     # Boolean operation like fusing assemblies.
-    master = AssemblyAPI.get_master()
-    FixAssembly(master)
+    master = GroupAPI.get_master()
+    FixGroup(master)
 
     # Set some viewing options and show the model
     wskin.set_transparency(0.5)
@@ -337,7 +337,7 @@ def build(wing, fuselage):
     # user friendly and intuitive.
 
     # Retrieve the global shape to mesh
-    the_shape = AssemblyAPI.prepare_shape_to_mesh()
+    the_shape = GroupAPI.prepare_shape_to_mesh()
     the_gen = MeshGen()
     the_mesh = the_gen.create_mesh(the_shape)
 

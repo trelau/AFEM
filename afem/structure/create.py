@@ -58,9 +58,9 @@ class CurvePartByShape(object):
     :type shape: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     Usage:
 
@@ -70,7 +70,7 @@ class CurvePartByShape(object):
     >>> part = CurvePartByShape('part', e).curve_part
     """
 
-    def __init__(self, label, shape, cref=None, assy=None):
+    def __init__(self, label, shape, cref=None, group=None):
         if isinstance(shape, Curve):
             cref = shape
             shape = EdgeByCurve(shape).edge
@@ -78,7 +78,7 @@ class CurvePartByShape(object):
         if cref is None:
             cref = ExploreShape.curve_of_shape(shape)
 
-        self._curve_part = CurvePart(label, shape, cref, assy)
+        self._curve_part = CurvePart(label, shape, cref, group)
 
     @property
     def curve_part(self):
@@ -100,9 +100,9 @@ class BeamByShape(object):
     :type shape: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     Usage:
 
@@ -112,14 +112,14 @@ class BeamByShape(object):
     >>> beam = BeamByShape('part', e).beam
     """
 
-    def __init__(self, label, shape, cref=None, assy=None):
+    def __init__(self, label, shape, cref=None, group=None):
         if isinstance(shape, Curve):
             shape = EdgeByCurve(shape).edge
 
         if cref is None:
             cref = ExploreShape.curve_of_shape(shape)
 
-        self._beam = Beam(label, shape, cref, assy)
+        self._beam = Beam(label, shape, cref, group)
 
     @property
     def beam(self):
@@ -136,9 +136,9 @@ class BeamByCurve(BeamByShape):
 
     :param str label: Part label.
     :param afem.geometry.entities.Curve crv: The curve.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     Usage:
 
@@ -148,9 +148,9 @@ class BeamByCurve(BeamByShape):
     >>> part = BeamByCurve('part', c).beam
     """
 
-    def __init__(self, label, crv, assy=None):
+    def __init__(self, label, crv, group=None):
         e = EdgeByCurve(crv).edge
-        super(BeamByCurve, self).__init__(label, e, crv, assy)
+        super(BeamByCurve, self).__init__(label, e, crv, group)
 
 
 class BeamByPoints(BeamByCurve):
@@ -160,9 +160,9 @@ class BeamByPoints(BeamByCurve):
     :param str label: Part label.
     :param point_like p1: First point.
     :param point_like p2: Second point.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     Usage:
 
@@ -172,11 +172,11 @@ class BeamByPoints(BeamByCurve):
     10.0
     """
 
-    def __init__(self, label, p1, p2, assy=None):
+    def __init__(self, label, p1, p2, group=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
         c = NurbsCurveByPoints([p1, p2]).curve
-        super(BeamByPoints, self).__init__(label, c, assy)
+        super(BeamByPoints, self).__init__(label, c, group)
 
 
 # SURFACE PART ----------------------------------------------------------------
@@ -192,9 +192,9 @@ class SurfacePartByShape(object):
     :param afem.geometry.entities.Surface sref: The reference surface. If
         not provided then the basis surface of the largest face of the shape
         will be used.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     Usage:
 
@@ -207,7 +207,7 @@ class SurfacePartByShape(object):
     99.99999999999997
     """
 
-    def __init__(self, label, shape, cref=None, sref=None, assy=None):
+    def __init__(self, label, shape, cref=None, sref=None, group=None):
         if isinstance(shape, Surface):
             sref = shape
             shape = FaceBySurface(shape).face
@@ -215,7 +215,7 @@ class SurfacePartByShape(object):
         if sref is None:
             sref = ExploreShape.surface_of_shape(shape)
 
-        self._surface_part = SurfacePart(label, shape, cref, sref, assy)
+        self._surface_part = SurfacePart(label, shape, cref, sref, group)
 
     @property
     def surface_part(self):
@@ -244,9 +244,9 @@ class SparByParameters(object):
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
         OCCT.TopoDS.TopoDS_Shape
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
@@ -259,7 +259,7 @@ class SparByParameters(object):
     """
 
     def __init__(self, label, u1, v1, u2, v2, body, basis_shape=None,
-                 assy=None):
+                 group=None):
         # Determine reference surface and basis shape
         if basis_shape is None:
             pln = body.extract_plane(u1, v1, u2, v2)
@@ -282,7 +282,7 @@ class SparByParameters(object):
         shape = common.shape
 
         # Create the part
-        self._spar = Spar(label, shape, cref, sref, assy)
+        self._spar = Spar(label, shape, cref, sref, group)
 
     @property
     def spar(self):
@@ -308,9 +308,9 @@ class SparByPoints(SparByParameters):
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
         OCCT.TopoDS.TopoDS_Shape
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     .. note::
 
@@ -322,7 +322,7 @@ class SparByPoints(SparByParameters):
           reference shape.
     """
 
-    def __init__(self, label, p1, p2, body, basis_shape=None, assy=None):
+    def __init__(self, label, p1, p2, body, basis_shape=None, group=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
 
@@ -332,7 +332,7 @@ class SparByPoints(SparByParameters):
 
         # Use SparByParameters
         super(SparByPoints, self).__init__(label, u1, v1, u2, v2, body,
-                                           basis_shape, assy)
+                                           basis_shape, group)
 
 
 class SparByEnds(SparByParameters):
@@ -352,15 +352,15 @@ class SparByEnds(SparByParameters):
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
         OCCT.TopoDS.TopoDS_Shape
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     :raise TypeError: If *e1* or *e2* are not *point_like* or a sequence of
         two surface parameters.
     """
 
-    def __init__(self, label, e1, e2, body, basis_shape=None, assy=None):
+    def __init__(self, label, e1, e2, body, basis_shape=None, group=None):
         if len(e1) == 2:
             u1, v1 = e1
         elif CheckGeom.is_point_like(e1):
@@ -376,7 +376,7 @@ class SparByEnds(SparByParameters):
             raise TypeError('Invalid type for e2.')
 
         super(SparByEnds, self).__init__(label, u1, v1, u2, v2, body,
-                                         basis_shape, assy)
+                                         basis_shape, group)
 
 
 class SparBySurface(object):
@@ -386,9 +386,9 @@ class SparBySurface(object):
     :param str label: Part label.
     :param afem.geometry.entities.Surface srf: The surface.
     :param afem.oml.entities.Body body: The body.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     .. note::
 
@@ -397,7 +397,7 @@ class SparBySurface(object):
         reference shape.
     """
 
-    def __init__(self, label, srf, body, assy=None):
+    def __init__(self, label, srf, body, group=None):
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
@@ -427,7 +427,7 @@ class SparBySurface(object):
         shape = common.shape
 
         # Create the part
-        self._spar = Spar(label, shape, cref, srf, assy)
+        self._spar = Spar(label, shape, cref, srf, group)
 
     @property
     def spar(self):
@@ -445,9 +445,9 @@ class SparByShape(object):
     :param str label: Part label.
     :param OCCT.TopoDS.TopoDS_Shape basis_shape: The basis shape.
     :param afem.oml.entities.Body body: The body.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     .. note::
 
@@ -459,7 +459,7 @@ class SparByShape(object):
           surface of the largest face in the basis shape.
     """
 
-    def __init__(self, label, basis_shape, body, assy=None):
+    def __init__(self, label, basis_shape, body, group=None):
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape,
                                   approximate=True)
@@ -490,7 +490,7 @@ class SparByShape(object):
         sref = ExploreShape.surface_of_shape(basis_shape)
 
         # Create the part
-        self._spar = Spar(label, basis_shape, cref, sref, assy)
+        self._spar = Spar(label, basis_shape, cref, sref, group)
 
     @property
     def spar(self):
@@ -518,12 +518,12 @@ class SparBetweenShapes(SparByPoints):
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
         OCCT.TopoDS.TopoDS_Shape
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, shape1, shape2, body, basis_shape, assy=None):
+    def __init__(self, label, shape1, shape2, body, basis_shape, group=None):
         if isinstance(basis_shape, Surface):
             shape = FaceBySurface(basis_shape).face
         else:
@@ -541,7 +541,7 @@ class SparBetweenShapes(SparByPoints):
         p2 = ExploreShape.pnt_of_vertex(v2)
 
         super(SparBetweenShapes, self).__init__(label, p1, p2, body,
-                                                basis_shape, assy)
+                                                basis_shape, group)
 
 
 class SparsBetweenPlanesByNumber(object):
@@ -569,13 +569,13 @@ class SparsBetweenPlanesByNumber(object):
     :param str delimiter: The delimiter to use when joining the part label
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, pln1, pln2, n, shape1, shape2, body, d1=None,
-                 d2=None, first_index=1, delimiter=' ', assy=None):
+                 d2=None, first_index=1, delimiter=' ', group=None):
         n = int(n)
         first_index = int(first_index)
 
@@ -588,7 +588,7 @@ class SparsBetweenPlanesByNumber(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             spar = SparBetweenShapes(label_indx, shape1, shape2, body,
-                                     basis_shape, assy).spar
+                                     basis_shape, group).spar
             first_index += 1
             self._spars.append(spar)
         self._next_index = first_index
@@ -654,13 +654,13 @@ class SparsBetweenPlanesByDistance(object):
     :param str delimiter: The delimiter to use when joining the part label
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, pln1, pln2, maxd, shape1, shape2, body, d1=None,
-                 d2=None, nmin=0, first_index=1, delimiter=' ', assy=None):
+                 d2=None, nmin=0, first_index=1, delimiter=' ', group=None):
         first_index = int(first_index)
 
         builder = PlanesBetweenPlanesByDistance(pln1, pln2, maxd, d1, d2, nmin)
@@ -672,7 +672,7 @@ class SparsBetweenPlanesByDistance(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             spar = SparBetweenShapes(label_indx, shape1, shape2, body,
-                                     basis_shape, assy).spar
+                                     basis_shape, group).spar
             first_index += 1
             self._spars.append(spar)
         self._next_index = first_index
@@ -741,14 +741,14 @@ class SparsAlongCurveByNumber(object):
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, crv, n, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, first_index=1,
-                 delimiter=' ', tol=1.0e-7, assy=None):
+                 delimiter=' ', tol=1.0e-7, group=None):
         n = int(n)
         first_index = int(first_index)
 
@@ -762,7 +762,7 @@ class SparsAlongCurveByNumber(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             spar = SparBetweenShapes(label_indx, shape1, shape2, body,
-                                     basis_shape, assy).spar
+                                     basis_shape, group).spar
             first_index += 1
             self._spars.append(spar)
         self._next_index = first_index
@@ -833,14 +833,14 @@ class SparsAlongCurveByDistance(object):
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, crv, maxd, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
-                 delimiter=' ', tol=1.0e-7, assy=None):
+                 delimiter=' ', tol=1.0e-7, group=None):
         first_index = int(first_index)
 
         builder = PlanesAlongCurveByDistance(crv, maxd, ref_pln, u1, u2, d1,
@@ -853,7 +853,7 @@ class SparsAlongCurveByDistance(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             spar = SparBetweenShapes(label_indx, shape1, shape2, body,
-                                     basis_shape, assy).spar
+                                     basis_shape, group).spar
             first_index += 1
             self._spars.append(spar)
         self._next_index = first_index
@@ -909,9 +909,9 @@ class RibByParameters(object):
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
         OCCT.TopoDS.TopoDS_Shape
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     .. note::
 
@@ -921,7 +921,7 @@ class RibByParameters(object):
     """
 
     def __init__(self, label, u1, v1, u2, v2, body, basis_shape=None,
-                 assy=None):
+                 group=None):
         # Determine reference surface and basis shape
         if basis_shape is None:
             pln = body.extract_plane(u1, v1, u2, v2)
@@ -944,7 +944,7 @@ class RibByParameters(object):
         shape = common.shape
 
         # Create the part
-        self._rib = Rib(label, shape, cref, sref, assy)
+        self._rib = Rib(label, shape, cref, sref, group)
 
     @property
     def rib(self):
@@ -970,9 +970,9 @@ class RibByPoints(RibByParameters):
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
         OCCT.TopoDS.TopoDS_Shape
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     .. note::
 
@@ -984,7 +984,7 @@ class RibByPoints(RibByParameters):
           reference shape.
     """
 
-    def __init__(self, label, p1, p2, body, basis_shape=None, assy=None):
+    def __init__(self, label, p1, p2, body, basis_shape=None, group=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
 
@@ -994,7 +994,7 @@ class RibByPoints(RibByParameters):
 
         # Use SparByParameters
         super(RibByPoints, self).__init__(label, u1, v1, u2, v2, body,
-                                          basis_shape, assy)
+                                          basis_shape, group)
 
 
 class RibBySurface(object):
@@ -1004,9 +1004,9 @@ class RibBySurface(object):
     :param str label: Part label.
     :param afem.geometry.entities.Surface srf: The surface.
     :param afem.oml.entities.Body body: The body.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     .. note::
 
@@ -1015,7 +1015,7 @@ class RibBySurface(object):
         reference shape.
     """
 
-    def __init__(self, label, srf, body, assy=None):
+    def __init__(self, label, srf, body, group=None):
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
@@ -1045,7 +1045,7 @@ class RibBySurface(object):
         shape = common.shape
 
         # Create the part
-        self._rib = Rib(label, shape, cref, srf, assy)
+        self._rib = Rib(label, shape, cref, srf, group)
 
     @property
     def rib(self):
@@ -1063,9 +1063,9 @@ class RibByShape(object):
     :param str label: Part label.
     :param OCCT.TopoDS.TopoDS_Shape basis_shape: The basis shape.
     :param afem.oml.entities.Body body: The body.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     .. note::
 
@@ -1077,7 +1077,7 @@ class RibByShape(object):
           surface of the largest face in the basis shape.
     """
 
-    def __init__(self, label, basis_shape, body, assy=None):
+    def __init__(self, label, basis_shape, body, group=None):
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape,
                                   approximate=True)
@@ -1108,7 +1108,7 @@ class RibByShape(object):
         sref = ExploreShape.surface_of_shape(basis_shape)
 
         # Create the part
-        self._rib = Rib(label, basis_shape, cref, sref, assy)
+        self._rib = Rib(label, basis_shape, cref, sref, group)
 
     @property
     def rib(self):
@@ -1136,12 +1136,12 @@ class RibBetweenShapes(RibByPoints):
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
         OCCT.TopoDS.TopoDS_Shape
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, shape1, shape2, body, basis_shape, assy=None):
+    def __init__(self, label, shape1, shape2, body, basis_shape, group=None):
         if isinstance(basis_shape, Surface):
             shape = FaceBySurface(basis_shape).face
         else:
@@ -1159,7 +1159,7 @@ class RibBetweenShapes(RibByPoints):
         p2 = ExploreShape.pnt_of_vertex(v2)
 
         super(RibBetweenShapes, self).__init__(label, p1, p2, body,
-                                               basis_shape, assy)
+                                               basis_shape, group)
 
 
 class RibByOrientation(RibBySurface):
@@ -1176,16 +1176,16 @@ class RibByOrientation(RibBySurface):
     :param float gamma: Rotation in degrees about global z-axis.
     :param str axes: The axes for the original plane before rotation and
         translation ('xy', 'xz', 'yz').
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, origin, body, alpha=0., beta=0., gamma=0.,
-                 axes='xz', assy=None):
+                 axes='xz', group=None):
         pln = PlaneByOrientation(origin, axes, alpha, beta, gamma).plane
 
-        super(RibByOrientation, self).__init__(label, pln, body, assy)
+        super(RibByOrientation, self).__init__(label, pln, body, group)
 
 
 class RibsBetweenPlanesByNumber(object):
@@ -1213,13 +1213,13 @@ class RibsBetweenPlanesByNumber(object):
     :param str delimiter: The delimiter to use when joining the part label
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, pln1, pln2, n, shape1, shape2, body, d1=None,
-                 d2=None, first_index=1, delimiter=' ', assy=None):
+                 d2=None, first_index=1, delimiter=' ', group=None):
         n = int(n)
         first_index = int(first_index)
 
@@ -1232,7 +1232,7 @@ class RibsBetweenPlanesByNumber(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
-                                   basis_shape, assy).rib
+                                   basis_shape, group).rib
             first_index += 1
             self._ribs.append(rib)
         self._next_index = first_index
@@ -1298,13 +1298,13 @@ class RibsBetweenPlanesByDistance(object):
     :param str delimiter: The delimiter to use when joining the part label
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, pln1, pln2, maxd, shape1, shape2, body, d1=None,
-                 d2=None, nmin=0, first_index=1, delimiter=' ', assy=None):
+                 d2=None, nmin=0, first_index=1, delimiter=' ', group=None):
         first_index = int(first_index)
 
         builder = PlanesBetweenPlanesByDistance(pln1, pln2, maxd, d1, d2, nmin)
@@ -1316,7 +1316,7 @@ class RibsBetweenPlanesByDistance(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
-                                   basis_shape, assy).rib
+                                   basis_shape, group).rib
             first_index += 1
             self._ribs.append(rib)
         self._next_index = first_index
@@ -1385,14 +1385,14 @@ class RibsAlongCurveByNumber(object):
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, crv, n, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, first_index=1,
-                 delimiter=' ', tol=1.0e-7, assy=None):
+                 delimiter=' ', tol=1.0e-7, group=None):
         n = int(n)
         first_index = int(first_index)
 
@@ -1406,7 +1406,7 @@ class RibsAlongCurveByNumber(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
-                                   basis_shape, assy).rib
+                                   basis_shape, group).rib
             first_index += 1
             self._ribs.append(rib)
         self._next_index = first_index
@@ -1477,14 +1477,14 @@ class RibsAlongCurveByDistance(object):
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, crv, maxd, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
-                 delimiter=' ', tol=1.0e-7, assy=None):
+                 delimiter=' ', tol=1.0e-7, group=None):
         first_index = int(first_index)
 
         builder = PlanesAlongCurveByDistance(crv, maxd, ref_pln, u1, u2, d1,
@@ -1497,7 +1497,7 @@ class RibsAlongCurveByDistance(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
-                                   basis_shape, assy).rib
+                                   basis_shape, group).rib
             first_index += 1
             self._ribs.append(rib)
         self._next_index = first_index
@@ -1570,14 +1570,14 @@ class RibsAlongCurveAndSurfaceByDistance(object):
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, crv, srf, maxd, shape1, shape2, body,
                  u1=None, u2=None, d1=None, d2=None, rot_x=None, rot_y=None,
-                 nmin=0, first_index=1, delimiter=' ', tol=1.0e-7, assy=None):
+                 nmin=0, first_index=1, delimiter=' ', tol=1.0e-7, group=None):
         first_index = int(first_index)
 
         builder = PlanesAlongCurveAndSurfaceByDistance(crv, srf, maxd, u1, u2,
@@ -1594,7 +1594,7 @@ class RibsAlongCurveAndSurfaceByDistance(object):
             basis_shape = FaceBySurface(pln).face
             label_indx = delimiter.join([label, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
-                                   basis_shape, assy).rib
+                                   basis_shape, group).rib
             first_index += 1
             self._ribs.append(rib)
         self._next_index = first_index
@@ -1641,15 +1641,15 @@ class BulkheadBySurface(object):
     :param str label: Part label.
     :param afem.geometry.entities.Surface srf: The surface.
     :param afem.oml.entities.Body body: The body.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, srf, body, assy=None):
+    def __init__(self, label, srf, body, group=None):
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
@@ -1660,7 +1660,7 @@ class BulkheadBySurface(object):
         shape = common.shape
 
         # Create the part
-        self._bh = Bulkhead(label, shape, None, srf, assy)
+        self._bh = Bulkhead(label, shape, None, srf, group)
 
     @property
     def bulkhead(self):
@@ -1680,15 +1680,15 @@ class FloorBySurface(object):
     :param str label: Part label.
     :param afem.geometry.entities.Surface srf: The surface.
     :param afem.oml.entities.Body body: The body.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, srf, body, assy=None):
+    def __init__(self, label, srf, body, group=None):
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
@@ -1699,7 +1699,7 @@ class FloorBySurface(object):
         shape = common.shape
 
         # Create the part
-        self._floor = Floor(label, shape, None, srf, assy)
+        self._floor = Floor(label, shape, None, srf, group)
 
     @property
     def floor(self):
@@ -1721,15 +1721,15 @@ class FrameByPlane(object):
     :param afem.geometry.entities.Plane pln: The plane.
     :param afem.oml.entities.Body body: The body.
     :param float height: The height. The absolute value is used.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
 
     :raise TypeError: If an input type is invalid.
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, pln, body, height, assy=None):
+    def __init__(self, label, pln, body, height, group=None):
         basis_shape = FaceBySurface(pln).face
 
         # Find initial shape
@@ -1760,7 +1760,7 @@ class FrameByPlane(object):
         shape = cut.shape
 
         # Create the part
-        self._frame = Frame(label, shape, None, pln, assy)
+        self._frame = Frame(label, shape, None, pln, group)
 
     @property
     def frame(self):
@@ -1785,20 +1785,20 @@ class FramesByPlanes(object):
     :param str delimiter: The delimiter to use when joining the part label
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, plns, body, height, first_index=1,
-                 delimiter=' ', assy=None):
+                 delimiter=' ', group=None):
         first_index = int(first_index)
 
         self._frames = []
         self._nframes = len(plns)
         for pln in plns:
             label_indx = delimiter.join([label, str(first_index)])
-            frame = FrameByPlane(label_indx, pln, body, height, assy).frame
+            frame = FrameByPlane(label_indx, pln, body, height, group).frame
             first_index += 1
             self._frames.append(frame)
         self._next_index = first_index
@@ -1848,13 +1848,13 @@ class FramesBetweenPlanesByNumber(object):
     :param str delimiter: The delimiter to use when joining the part label
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, pln1, pln2, n, body, height, d1=None,
-                 d2=None, first_index=1, delimiter=' ', assy=None):
+                 d2=None, first_index=1, delimiter=' ', group=None):
         n = int(n)
         first_index = int(first_index)
 
@@ -1865,7 +1865,7 @@ class FramesBetweenPlanesByNumber(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             label_indx = delimiter.join([label, str(first_index)])
-            frame = FrameByPlane(label_indx, pln, body, height, assy).frame
+            frame = FrameByPlane(label_indx, pln, body, height, group).frame
             first_index += 1
             self._frames.append(frame)
         self._next_index = first_index
@@ -1925,13 +1925,13 @@ class FramesBetweenPlanesByDistance(object):
     :param str delimiter: The delimiter to use when joining the part label
         with the index. The final part label will be
         'label' + 'delimiter' + 'index'.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, pln1, pln2, maxd, body, height, d1=None,
-                 d2=None, nmin=0, first_index=1, delimiter=' ', assy=None):
+                 d2=None, nmin=0, first_index=1, delimiter=' ', group=None):
         first_index = int(first_index)
 
         builder = PlanesBetweenPlanesByDistance(pln1, pln2, maxd, d1, d2, nmin)
@@ -1941,7 +1941,7 @@ class FramesBetweenPlanesByDistance(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             label_indx = delimiter.join([label, str(first_index)])
-            frame = FrameByPlane(label_indx, pln, body, height, assy).frame
+            frame = FrameByPlane(label_indx, pln, body, height, group).frame
             first_index += 1
             self._frames.append(frame)
         self._next_index = first_index
@@ -1988,17 +1988,17 @@ class SkinBySolid(object):
     :param str label: Part label.
     :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
     :param bool copy: Option to copy the outer shell.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, solid, copy=False, assy=None):
+    def __init__(self, label, solid, copy=False, group=None):
         shell = ExploreShape.outer_shell(solid)
         if copy:
             shell = ExploreShape.copy_shape(shell, False)
 
-        self._skin = Skin(label, shell, None, None, assy)
+        self._skin = Skin(label, shell, None, None, group)
 
     @property
     def skin(self):
@@ -2016,13 +2016,13 @@ class SkinByBody(SkinBySolid):
     :param str label: Part label.
     :param afem.oml.entities.Body body: The body.
     :param bool copy: Option to copy the outer shell.
-    :param assy: The assembly to add the part to. If not provided the part will
-        be added to the active assembly.
-    :type assy: str or afem.structure.assembly.Assembly or None
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, body, copy=False, assy=None):
-        super(SkinByBody, self).__init__(label, body.solid, copy, assy)
+    def __init__(self, label, body, copy=False, group=None):
+        super(SkinByBody, self).__init__(label, body.solid, copy, group)
 
 
 # STRINGER --------------------------------------------------------------------
@@ -2033,7 +2033,7 @@ class StringerByShape(object):
     """
 
     def __init__(self, label, basis_shape, support_shape, height, angle=30.,
-                 shape1=None, shape2=None, assy=None):
+                 shape1=None, shape2=None, group=None):
 
         # Convert to shapes
         support_shape = CheckShape.to_shape(support_shape)
@@ -2116,7 +2116,7 @@ class StringerByShape(object):
         cmp = CompoundByShapes([first_shape, middle_shape, last_shape]).compound
         shape = SewShape(cmp).sewed_shape
 
-        self._stringer = Stringer(label, shape, assy=assy)
+        self._stringer = Stringer(label, shape, group=group)
 
     @property
     def stringer(self):

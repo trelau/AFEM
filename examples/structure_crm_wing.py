@@ -115,7 +115,7 @@ rspar1 = SparByPoints('rspar 1', root_rib.p2, p2, rhs_wing, pln).spar
 # Rear spar 2 is between the third and last wing stations
 rspar2 = SparByPoints('rspar 2', rspar1.p2, tip_rib.p2, rhs_wing).spar
 
-parts = AssemblyAPI.get_parts()
+parts = GroupAPI.get_parts()
 
 # Fuse together boundary of wing box
 FuseSurfacePartsByCref(parts)
@@ -154,7 +154,7 @@ ribs = RibsBetweenPlanesByNumber('center rib', xz_pln, root_rib.plane, 4,
 FuseSurfaceParts(ribs, [fc_spar, rc_spar])
 DiscardByCref(ribs)
 
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 
 # Skin
 skin = SkinByBody('skin', rhs_wing).skin
@@ -163,10 +163,10 @@ skin.discard_by_dmin(rhs_wing.sref_shape, 1.)
 skin.fix()
 skin.set_transparency(0.5)
 
-parts = AssemblyAPI.get_parts()
+parts = GroupAPI.get_parts()
 
 # Mesh
-shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
+shape_to_mesh = GroupAPI.prepare_shape_to_mesh()
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(shape_to_mesh)
 
@@ -189,7 +189,7 @@ the_gen.compute(the_mesh, shape_to_mesh)
 
 # View
 v = Viewer()
-v.add(AssemblyAPI.get_master())
+v.add(GroupAPI.get_master())
 v.start()
 v.add(the_mesh)
 v.start()

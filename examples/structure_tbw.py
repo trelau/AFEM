@@ -37,7 +37,7 @@ for body in [fuselage, wing, other_wing, gear, other_gear, htail, other_htail,
     vr.add(body)
 
 # WING ------------------------------------------------------------------------
-AssemblyAPI.create_assy('wing assy')
+GroupAPI.create_group('wing group')
 
 # Center wing structure will be based on the intersection between the wings
 # and fuselage.
@@ -121,7 +121,7 @@ outbd_ribs = RibsAlongCurveByDistance('outbd rib', outbd_rspar.cref, 30.,
                                       wing, d1=18, d2=-30).ribs
 
 # Join and discard internal structure.
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)
 DiscardByCref(internal_parts)
 
@@ -138,10 +138,10 @@ wskin.discard_by_dmin(wing.sref_shape, 1.)
 # shells (upper and lower skin).
 wskin.fix()
 
-vr.add(*AssemblyAPI.get_parts())
+vr.add(*GroupAPI.get_parts())
 
 # HTAIL -----------------------------------------------------------------------
-AssemblyAPI.create_assy('htail assy')
+GroupAPI.create_group('htail group')
 
 fspar = SparByParameters('htail fspar', 0.15, 0.01, 0.15, 0.99, htail).spar
 rspar = SparByParameters('htail rspar', 0.70, 0.01, 0.70, 0.99, htail).spar
@@ -150,7 +150,7 @@ tip = RibByPoints('htail tip rib', fspar.p2, rspar.p2, htail).rib
 ribs = RibsAlongCurveByDistance('htail rib', rspar.cref, 12, fspar.shape,
                                 rspar.shape, htail, d1=12, d2=-12).ribs
 
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)
 DiscardByCref(internal_parts)
 
@@ -159,10 +159,10 @@ skin.fuse(*internal_parts)
 skin.discard_by_dmin(htail.sref_shape, 1.)
 skin.fix()
 
-vr.add(*AssemblyAPI.get_parts())
+vr.add(*GroupAPI.get_parts())
 
 # VTAIL -----------------------------------------------------------------------
-AssemblyAPI.create_assy('vtail assy')
+GroupAPI.create_group('vtail group')
 
 u, v = ProjectPointToSurface(fspar.p1, vtail.sref).nearest_param
 mspar = SparByParameters('vtail mspar', u, 0.05, u, v, vtail).spar
@@ -175,7 +175,7 @@ RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
 RibsAlongCurveByDistance('vtail rib', rspar.cref, 18., fspar.shape, rspar.shape,
                          vtail, d1=18, d2=-72)
 
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)
 DiscardByCref(internal_parts)
 
@@ -184,10 +184,10 @@ skin.fuse(*internal_parts)
 skin.discard_by_dmin(vtail.sref_shape, 1.)
 skin.fix()
 
-vr.add(*AssemblyAPI.get_parts())
+vr.add(*GroupAPI.get_parts())
 
 # FUSELAGE --------------------------------------------------------------------
-AssemblyAPI.create_assy('fuselage assy')
+GroupAPI.create_group('fuselage group')
 
 pln = PlaneByAxes((60, 0, 0), 'yz').plane
 bh1 = BulkheadBySurface('bh 1', pln, fuselage).bulkhead
@@ -234,28 +234,28 @@ for pln1, pln2 in pairwise(plns):
     frames += builder.frames
     indx = builder.next_index
 
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 
 skin = SkinByBody('fuselage skin', fuselage).skin
 skin.set_transparency(0.5)
 
 FuseSurfaceParts([skin], internal_parts)
 
-vr.add(*AssemblyAPI.get_parts())
+vr.add(*GroupAPI.get_parts())
 
 # MIRROR ----------------------------------------------------------------------
 xz_pln = PlaneByAxes().plane
 
-parts = AssemblyAPI.get_parts('wing assy')
+parts = GroupAPI.get_parts('wing group')
 for part in parts:
     part.set_mirror(xz_pln)
 
-parts = AssemblyAPI.get_parts('htail assy')
+parts = GroupAPI.get_parts('htail group')
 for part in parts:
     part.set_mirror(xz_pln)
 
 # GEAR ------------------------------------------------------------------------
-AssemblyAPI.create_assy('gear assy')
+GroupAPI.create_group('gear group')
 
 p0 = gear.eval(0.15, 1.)
 pln = PlaneByAxes(p0, 'yz').plane
@@ -272,7 +272,7 @@ for pln in plns:
     RibBySurface(name, pln, gear)
     i += 1
 
-internal_parts = AssemblyAPI.get_parts()
+internal_parts = GroupAPI.get_parts()
 FuseSurfacePartsByCref(internal_parts)
 
 skin = SkinByBody('gear skin', gear).skin
@@ -296,9 +296,9 @@ beam3 = BeamByPoints('beam 3', beam1.p1, p2).beam
 beam3.set_color(1, 0, 0)
 
 # VIEW ------------------------------------------------------------------------
-parts = AssemblyAPI.get_parts()
+parts = GroupAPI.get_parts()
 for part in parts:
     part.set_mirror(xz_pln)
 
-vr.add(*AssemblyAPI.get_parts())
+vr.add(*GroupAPI.get_parts())
 vr.start()

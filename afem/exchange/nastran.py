@@ -16,7 +16,7 @@ __all__ = ["export_bdf"]
 
 def export_bdf(the_mesh, fn):
     """
-    Export assembly of parts to Nastran bulk data format (only nodes and
+    Export groups of parts to Nastran bulk data format (only nodes and
     elements). Dummy materials and properties are applied to enable import into
     some pre-processors. Intended for development and debugging. Only supports
     tri and quad elements for now.

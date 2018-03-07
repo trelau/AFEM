@@ -26,7 +26,7 @@ def build_wingbox(wing, params):
                 'rspar chord': 0.65,
                 'root span': 0.05,
                 'tip span': 0.925,
-                'assy name': 'RH main wingbox',
+                'group name': 'RH main wingbox',
                 'mid spar rib': 10,
                 'root rib axes': 'xz',
                 'part tol': 0.01,
@@ -44,14 +44,14 @@ def build_wingbox(wing, params):
     rspar_chord = params['rspar chord']
     root_span = params['root span']
     tip_span = params['tip span']
-    assy_name = params['assy name']
+    group_name = params['group name']
     mid_spar_rib = params['mid spar rib']
     build_aux_spar = params['build aux']
     aux_rib_list = params['aux rib list']
     aux_spar_xloc = params['aux spar xloc']
 
     # BUILD -------------------------------------------------------------------
-    AssemblyAPI.create_assy(assy_name)
+    GroupAPI.create_group(group_name)
 
     # Front spar
     fspar = SparByParameters('front spar', fspar_chord, root_span,
@@ -196,11 +196,11 @@ def build_wingbox(wing, params):
 
     # Aux ribs
     if build_aux_spar:
-        assy = AssemblyAPI.get_active()
+        group = GroupAPI.get_active()
         aux_rib_id = 1
         for rib_id in aux_rib_list:
             rib_name = ' '.join(['rib', rib_id])
-            rib = assy.get_part(rib_name)
+            rib = group.get_part(rib_name)
             if not rib:
                 continue
             # Since the structure is not joined yet, intersect the rear spar
@@ -216,7 +216,7 @@ def build_wingbox(wing, params):
 
     # JOIN --------------------------------------------------------------------
     # Fuse internal structure and discard faces
-    internal_parts = AssemblyAPI.get_parts(order=True)
+    internal_parts = GroupAPI.get_parts(order=True)
     FuseSurfacePartsByCref(internal_parts)
     DiscardByCref(internal_parts)
 
@@ -235,7 +235,7 @@ def build_wingbox(wing, params):
     skin.fix()
 
     # Check free edges.
-    all_parts = AssemblyAPI.get_parts(order=True)
+    all_parts = GroupAPI.get_parts(order=True)
     all_shapes = [part.shape for part in all_parts]
 
     # VOLUMES -----------------------------------------------------------------
@@ -277,7 +277,7 @@ def build_wingbox(wing, params):
 
     # MESH --------------------------------------------------------------------
     # Initialize
-    shape_to_mesh = AssemblyAPI.prepare_shape_to_mesh()
+    shape_to_mesh = GroupAPI.prepare_shape_to_mesh()
     the_gen = MeshGen()
     the_mesh = the_gen.create_mesh(shape_to_mesh)
 
@@ -318,7 +318,7 @@ def build_wingbox(wing, params):
     # step.transfer(shape_to_mesh)
     # step.write('wingbox.step')
 
-    return AssemblyAPI.get_active()
+    return GroupAPI.get_active()
 
 
 if __name__ == '__main__':
@@ -333,10 +333,10 @@ if __name__ == '__main__':
     inputs = {'build aux': True,
               'mid spar rib': 10,
               'aux rib list': ['2', '5', '8']}
-    assy = build_wingbox(wing_in, inputs)
+    group = build_wingbox(wing_in, inputs)
 
     v = Viewer(1280, 1024)
-    v.add(assy)
+    v.add(group)
     v.start()
 
     print('Complete in ', time.time() - start, ' seconds.')

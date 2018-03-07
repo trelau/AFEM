@@ -11,7 +11,7 @@
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
-from afem.structure.assembly import *
+from afem.structure.group import *
 from afem.structure.check import *
 from afem.structure.create import *
 from afem.structure.entities import *
