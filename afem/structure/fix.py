@@ -20,7 +20,7 @@ __all__ = ["FixGroup"]
 class FixGroup(object):
     """
     Attempt to fix the shapes of each part in an group using
-    :class:`.FixShape`. Sub-assemblies are included by default.
+    :class:`.FixShape`. Subgroups are included by default.
 
     :param group: The group. If ``None`` then the active group is used.
     :type group: str or afem.structure.group.Group or None

@@ -269,21 +269,21 @@ class SplitParts(object):
 
 class FuseGroups(object):
     """
-    Fuse assemblies and rebuild the part shapes. This tool puts all the part
+    Fuse groups and rebuild the part shapes. This tool puts all the part
     shapes into compounds before the Boolean operation.
 
-    :param groups: The assemblies.
+    :param groups: The groups.
     :type groups: collections.Sequence[afem.structure.group.Group]
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool include_subgroup: Option to recursively include parts
             from all subgroups.
 
-    :raise ValueError: If less than two assemblies are provided.
+    :raise ValueError: If less than two groups are provided.
     """
 
     def __init__(self, groups, fuzzy_val=None, include_subgroup=True):
         if len(groups) < 2:
-            raise ValueError('Not enough assemblies to fuse. Need at least '
+            raise ValueError('Not enough groups to fuse. Need at least '
                              'two.')
 
         bop = FuseShapes(fuzzy_val=fuzzy_val)
