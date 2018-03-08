@@ -1,3 +1,22 @@
+Acknowledgments
+===============
+AFEM development was partially funded by NASA through award No. NNX15AV85A under
+the Transformational Tools and Technology (TTT) project.
+
+How to Cite AFEM
+================
+The following Bibtex template can be used to cite AFEM in scientific and
+engineering publications:
+
+.. code-block:: bash
+
+    @misc{AFEM,
+       author = {Laughlin Research, LLC},
+       year = {2018},
+       note = {info@laughlinresearch.com},
+       title = {AFEM -- Aiframe Finite Element Modeler}
+    }
+
 License
 =======
 The AFEM Code, including its source code and related software
@@ -13,5 +32,3 @@ whole or a part of the AFEM Code constitutes acknowledgement and
 acceptance of said covenants. Any unauthorized use, disclosure,
 and/or sale of the AFEM Code or any portion thereof may be actionable
 under current law.
-
-Laughlin Research, LLC retains all commercial rights to the AFEM Code.

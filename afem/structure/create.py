@@ -2030,6 +2030,25 @@ class SkinByBody(SkinBySolid):
 class StringerByShape(object):
     """
     Create a Stringer using a basis shape.
+
+    :param str label: Part label.
+    :param basis_shape: The basis shape that will define the path of the
+        stringer.
+    :type basis_shape: OCCT.TopoDS.TopoDS_Shape or
+        afem.geometry.entities.Surface
+    :param support_shape: The shape that will defines the normal direction along
+        the path.
+    :type support_shape: OCCT.TopoDS.TopoDS_Shape or
+        afem.geometry.entities.Surface
+    :param float height: The height.
+    :param float angle: The runout angle at each end.
+    :param shape1: The starting shape.
+    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :param shape2: The ending shape.
+    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, basis_shape, support_shape, height, angle=30.,

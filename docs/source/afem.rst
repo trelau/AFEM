@@ -1,8 +1,7 @@
-AFEM Documentation
-==================
-This documentation is for the proprietary Airframe Finite Element Modeler
-(AFEM) program developed by Laughlin Research, LLC.
-
+AFEM -- Aiframe Finite Element Modeler
+======================================
+This documentation is for the Airframe Finite Element Modeler (AFEM) program
+developed by Laughlin Research, LLC.
 
 .. attention::
     The AFEM Code, including its source code and related software
@@ -19,12 +18,27 @@ This documentation is for the proprietary Airframe Finite Element Modeler
     and/or sale of the AFEM Code or any portion thereof may be actionable
     under current law.
 
+.. toctree::
+   :maxdepth: 1
+
+   intro
 
 .. toctree::
-   :maxdepth: 4
+   :caption: Getting Started
+   :maxdepth: 2
 
-   introduction
-   installation
+   install
+
+.. toctree::
+   :caption: Overview
+   :maxdepth: 2
+
+   design
+
+.. toctree::
+   :caption: Modules
+   :maxdepth: 2
+
    settings
    geometry
    topology
@@ -33,12 +47,9 @@ This documentation is for the proprietary Airframe Finite Element Modeler
    smesh
    exchange
    graphics
-   license
 
+.. toctree::
+   :caption: Extra Information
+   :maxdepth: 1
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   extra

@@ -38,14 +38,14 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.ifconfig',
-    'sphinx.ext.inheritance_diagram',
+    # 'sphinx.ext.inheritance_diagram',
     'sphinx.ext.autosummary',
-    'sphinx.ext.graphviz',
+    # 'sphinx.ext.graphviz',
     'sphinx.ext.githubpages'
 ]
 
 # graphviz dot command
-graphviz_dot = r'C:\Miniconda\envs\afem\Library\bin\graphviz\dot.exe'
+# graphviz_dot = r'C:\Miniconda\envs\afem\Library\bin\graphviz\dot.exe'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -61,7 +61,7 @@ master_doc = 'afem'
 
 # General information about the project.
 project = 'AFEM'
-copyright = '2017, Laughlin Research, LLC'
+copyright = '2018, Laughlin Research, LLC'
 author = 'Laughlin Research, LLC'
 
 # The version info for the project you're documenting, acts as replacement for

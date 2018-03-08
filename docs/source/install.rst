@@ -1,5 +1,5 @@
-Installation
-============
+Install
+=======
 This section explains how to install AFEM.
 
 Supported Platforms
@@ -86,3 +86,7 @@ Then navigate to the docs/ folder and run:
 
 This should build html documentation in a docs/build/html folder. Open the
 afem.html file with a web browser.
+
+Examples
+========
+# TODO Point to some examples to run the first time
