@@ -30,12 +30,13 @@ __all__ = ["Body"]
 
 class Body(ViewableItem):
     """
-    Generic class for working with OML solid bodies.
+    Generic class for solid bodies and encapsulating necessary
+    information when creating structural components.
 
     :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
     :param str label: The label.
 
-    :raise TypeError: If *shape* is not a solid.
+    :raise TypeError: If ``solid`` is not a ``TopoDS_Solid``.
     """
 
     def __init__(self, solid, label=None):

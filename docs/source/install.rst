@@ -25,7 +25,7 @@ Prompt::
     conda create -n afem python=3.5
 
 The *-n* flag signifies the name and in this example it is *afem*, but it
-can be anything. The *python=3.5* command tells Anaconda to create an
+can be anything. The ``python=3.5`` command tells Anaconda to create an
 environment based on Python 3.5.
 
 Make sure this environment is active when installing and using AFEM. For
@@ -82,6 +82,13 @@ Installation files can be cleaned by::
 
     conda clean -a
 
+If installing AFEM from a prebuilt wheel, use pip::
+
+    pip install afem-0.2.0-cp35-none-win_amd64.whl
+
+from the folder where the wheel is located. Be sure that the appropriate
+environment is active before running this command.
+
 Building Documentation
 ----------------------
 The documentation can be built from sources using sphinx. Install sphinx and
@@ -95,7 +102,3 @@ Then navigate to the *docs/* folder and run::
 
 This should build html documentation in a *docs/build/html* folder. Open the
 afem.html file with a web browser.
-
-Examples
-========
-# TODO Point to some examples to run the first time

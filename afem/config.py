@@ -56,10 +56,24 @@ class Settings(object):
     Settings.
 
     :var str units: The default units ('in', 'ft', 'm', 'mm'). The default
-        value is inches.
+        value is inches ('INCH').
     """
     # Class variables for settings
     units = 'INCH'
+
+    @classmethod
+    def set_units(cls, units='in'):
+        """
+        Set units.
+
+        :param str units: The units ('in', 'ft', 'm', 'mm').
+
+        :return: None.
+
+        :raise KeyError: If the given units are not supported.
+        """
+        units = units.lower()
+        cls.units = units_dict[units]
 
     @staticmethod
     def log_to_console():
@@ -85,22 +99,8 @@ class Settings(object):
         :raise KeyError: If the given level is not supported.
 
         .. note::
-            Note all logging levels are currently utilized in the AFEM program.
-            The default value of 'info' is recommended for general use.
+            Note all logging levels are currently utilized. The default value of
+            'info' is recommended for general use.
         """
         level = level.lower()
         logger.setLevel(log_dict[level])
-
-    @classmethod
-    def set_units(cls, units='in'):
-        """
-        Set units.
-        
-        :param str units: The units ('in', 'ft', 'm', 'mm').
-         
-        :return: None.
-
-        :raise KeyError: If the given units are not supported.
-        """
-        units = units.lower()
-        cls.units = units_dict[units]

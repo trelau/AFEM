@@ -1,11 +1,20 @@
 About
 =====
-This documentation is provided for use with the Airframe Finite Element
-Modeler (AFEM) program developed by Laughlin Research, LLC.
+AFEM is a "fit-for-purpose" engineering development toolkit designed to enable
+the use of high-order structural analysis during the early phases of aircraft
+conceptual design. As a development toolkit, it provides the engineer with a
+flexible, modular, and extensible library of components and tools to rapidly
+build a useful structural model. It is **not** an end-user GUI application, but
+rather a library enabling engineers to rapidly build their own application
+specific tools and processes, encoding their own design rules and best practices
+along the way.
 
 Technology Stack
 ================
 The AFEM core technology stack includes:
+
+* `Python <https://www.python.org/>`_: The Python programming language enables
+  rapid development and integration with other systems.
 
 * `OpenCASCADE <https://www.opencascade.com>`_: This mature library provides
   advanced geometric modeling and CAD functionality and is under active

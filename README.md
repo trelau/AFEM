@@ -6,6 +6,9 @@ analysis in the early phases of aircraft design.
 ## Technology Stack
 The AFEM core technology stack includes:
 
+* [Python](https://www.python.org/): The Python programming language enables
+  rapid development and integration with other systems.
+
 * [OpenCASCADE](https://www.opencascade.com): This mature library provides
   advanced geometric modeling and CAD functionality and is under active
   development.

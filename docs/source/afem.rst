@@ -28,6 +28,7 @@ developed by Laughlin Research, LLC.
    :maxdepth: 2
 
    install
+   examples
 
 .. toctree::
    :caption: Overview

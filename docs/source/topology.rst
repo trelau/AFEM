@@ -1,9 +1,22 @@
 Topology
 ========
-This section describes the topology package. The topology tools can be
-imported by::
+The ``Topology`` package provides tools for the creation and use of OpenCASCADE
+native topology (i.e., shapes). While geometry defines curves and surfaces,
+topology describes their connectivity and boundary representation. OpenCASCADE
+shapes are the core building blocks for building more complex parts and
+assemblies. The topology entities and tools can be imported by::
 
     from afem.topology import *
+
+It is important to note that AFEM does not provide a "Pythonic" wrapper layer
+for OpenCASCADE shapes like it does for geometry. The user should become
+familiar with OpenCASCADE topology by reviewing OpenCASCADE documentation:
+
+* `OpenCASCADE Reference Manual-Topology <https://www.opencascade.com/doc/occt-7.2.0/overview/html/occt_user_guides__modeling_data.html#occt_modat_5>`_
+
+Many tools are provided for user to easily create, modify, and operate on
+OpenCASCADE shapes. If a type or tool is not available via AFEM, the user can
+still use the **pyOCCT** package required by AFEM.
 
 Entities
 --------
