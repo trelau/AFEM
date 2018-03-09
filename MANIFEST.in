@@ -1,9 +1,9 @@
 graft examples
 graft models
+graft test/test_io
 include README.md
 include LICENSE.md
 include AUTHORS.md
-include requirements.txt
 include .gitignore
 global-exclude *.log
 global-exclude *.py[co]
