@@ -18,5 +18,5 @@ editor.tri_to_quad()
 editor.smooth(iters=20)
 
 v = Viewer()
-v.view.display_mesh(the_mesh.object, 2)
+v.display_mesh(the_mesh.object, 2)
 v.start()

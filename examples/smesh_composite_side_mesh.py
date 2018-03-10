@@ -30,8 +30,8 @@ for e in ExploreShape.get_edges(wire):
         break
 
 v = Viewer()
-v.view.view_top()
+v.view_top()
 for vert in ExploreShape.get_vertices(face):
     v.add(vert)
-v.view.display_mesh(the_mesh.object, 2)
+v.display_mesh(the_mesh.object, 2)
 v.start()

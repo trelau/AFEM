@@ -55,7 +55,7 @@ FixShape.limit_tolerance(shape)
 print('Tol after limiting: ', ExploreShape.global_tolerance(shape))
 
 # Display the fused shape
-v.view.display_shape(shape, transparency=0.5)
+v.display_shape(shape, transparency=0.5)
 v.start()
 v.clear()
 
@@ -81,5 +81,5 @@ print('Complete in ', time.time() - start, 'seconds.')
 
 # View the shape using flat shading. Need to figure out how to better render
 # meshes.
-v.view.display_mesh(mesh.object, 2)
+v.display_mesh(mesh.object, 2)
 v.start()

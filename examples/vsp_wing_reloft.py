@@ -52,7 +52,7 @@ for u in parms:
 
 v.add(*wires)
 v.start()
-v.view.remove_all()
+v.clear()
 
 # Loft the sections into a continuous surface. This may result in unexpected
 # behavior since you are potentially skinning a complex shape with a single
@@ -70,7 +70,7 @@ srf = ExploreShape.surface_of_face(face)
 # Should be a NURBS surface
 srf = NurbsSurface.downcast(srf)
 
-v.view.remove_all()
+v.clear()
 
 srf.set_color(0.5, 0.5, 0.5)
 srf.set_transparency(0.5)
@@ -81,7 +81,7 @@ c = NurbsCurve.downcast(c)
 
 v.add(c)
 v.start()
-v.view.remove_all()
+v.clear()
 
 # Grab a column of control points and move them to see what happens
 i1, i2 = srf.locate_v(0.5, with_knot_repetition=True)
@@ -98,7 +98,7 @@ for i in range(1, srf.n + 1):
     srf.set_cp(i, i1, new_p)
 
 v.start()
-v.view.remove_all()
+v.clear()
 
 # Open issues:
 # - Figure out right index for bounding control points
@@ -109,7 +109,7 @@ vsp_surf = wing.get_metadata('vsp surface')
 
 v.add(vsp_surf)
 v.start()
-v.view.remove_all()
+v.clear()
 
 # Grab some control points and modify
 cp = vsp_surf.cp

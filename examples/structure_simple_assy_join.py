@@ -121,5 +121,5 @@ else:
 
 v = Viewer()
 v.add(*tool.free_edges)
-v.view.display_mesh(the_mesh.object, 2)
+v.display_mesh(the_mesh.object, 2)
 v.start()

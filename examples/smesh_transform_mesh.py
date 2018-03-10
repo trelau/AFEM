@@ -40,5 +40,5 @@ editor.transform(trsf, copy=True)
 v = Viewer()
 for vert in ExploreShape.get_vertices(face):
     v.add(vert)
-v.view.display_mesh(the_mesh.object, 2)
+v.display_mesh(the_mesh.object, 2)
 v.start()

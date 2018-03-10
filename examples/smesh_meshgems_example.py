@@ -19,5 +19,5 @@ the_gen.compute(the_mesh)
 print('MeshGems complete in ', time.time() - start, ' seconds.')
 
 v = Viewer()
-v.view.display_mesh(the_mesh.object, 2)
+v.display_mesh(the_mesh.object, 2)
 v.start()

@@ -353,7 +353,7 @@ def build(wing, fuselage):
     # internal mesh better.
     wskin.set_transparency(0.)
     fskin.set_transparency(0.)
-    v.view.display_mesh(the_mesh.object, 2)
+    v.display_mesh(the_mesh.object, 2)
     v.start()
     v.clear()
 

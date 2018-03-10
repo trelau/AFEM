@@ -64,10 +64,10 @@ or pip:
 
     pip install numpy scipy
     
-A minimal graphical user interface requires the PySide package which can be
+A minimal graphical user interface requires the wxPython package which can be
 installed by:
 
-    conda install -c conda-forge pyside=1.2.4
+    conda install -c conda-forge wxpython
 
 # Installing AFEM
 Be sure to activate the designed AFEM environment before installation.

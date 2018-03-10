@@ -21,15 +21,15 @@ wing = vsp_import.get_body('Wing')
 vsp_srf_35 = wing.get_metadata('vsp surface')
 
 v = Viewer()
-v.view.set_white_background()
-v.view.display_shape(step.shape, (0.5, 0.5, 0.5))
+v.set_white_background()
+v.display_shape(step.shape, (0.5, 0.5, 0.5))
 v.start()
 v.clear()
 
 c0_shape = DivideC0Shape(step.shape).shape
 
 for f in ExploreShape.get_faces(c0_shape):
-    v.view.display_shape(f)
+    v.display_shape(f)
 v.start()
 v.clear()
 
@@ -42,16 +42,16 @@ vsp_import = ImportVSP(fn, False)
 wing = vsp_import.get_body('Wing')
 vsp_srf_315 = wing.get_metadata('vsp surface')
 
-v.view.display_shape(step.shape, (0.5, 0.5, 0.5))
+v.display_shape(step.shape, (0.5, 0.5, 0.5))
 v.start()
 v.clear()
 
 c0_shape = DivideC0Shape(step.shape).shape
 
 for f in ExploreShape.get_faces(c0_shape):
-    v.view.display_shape(f)
+    v.display_shape(f)
 v.start()
-v.view.remove_all()
+v.clear()
 
 # First derivatives ------------------------------------------------------------
 u_35 = vsp_srf_35.local_to_global_param('u', 0.5)
