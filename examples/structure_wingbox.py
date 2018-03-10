@@ -308,9 +308,9 @@ def build_wingbox(wing, params):
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    vv = Viewer()
-    vv.display_mesh(the_mesh.object, 2)
-    vv.start()
+    v.display_mesh(the_mesh.object, 2)
+    v.start()
+    v.clear()
 
     # Uncomment this to export STEP file.
     # from afem.io import StepExport
@@ -329,13 +329,13 @@ if __name__ == '__main__':
     vsp_import = ImportVSP(fname)
     wing_in = vsp_import.get_body('Wing')
 
+    v = Viewer(1280, 1024)
     # Build wing box
     inputs = {'build aux': True,
               'mid spar rib': 10,
               'aux rib list': ['2', '5', '8']}
     group = build_wingbox(wing_in, inputs)
 
-    v = Viewer(1280, 1024)
     v.add(group)
     v.start()
 
