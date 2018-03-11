@@ -24,7 +24,7 @@ Prompt::
 
     conda create -n afem python=3.5
 
-The *-n* flag signifies the name and in this example it is *afem*, but it
+The ``-n`` flag signifies the name and in this example it is *afem*, but it
 can be anything. The ``python=3.5`` command tells Anaconda to create an
 environment based on Python 3.5.
 
@@ -62,11 +62,14 @@ installed by::
 
     conda install -c conda-forge wxpython
 
+or with pip::
+
+    pip install wxpython
+
 Installing AFEM
 ---------------
-Be sure to activate the designed AFEM environment before installation.
-
-AFEM is a pure Python package and can be installed using the command::
+Be sure to activate the designed AFEM environment before installation. AFEM is a
+pure Python package and can be installed using the command::
 
     python setup.py develop
 
@@ -76,7 +79,8 @@ The regular installation command::
 
     python setup.py install
 
-can be used to actually install the AFEM package into the Python root directory.
+can be used to actually install the AFEM package into the Python *site-packages*
+folder.
 
 Installation files can be cleaned by::
 

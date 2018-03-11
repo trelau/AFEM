@@ -1,6 +1,6 @@
 Geometry
 ========
-The ``Geometry`` package provides entities and tools for the creation and use of
+The ``geometry`` package provides entities and tools for the creation and use of
 what is commonly referred to as "construction geometry" or "reference geometry"
 for both 2-D and 3-D domains. This package primarily wraps a number of
 OpenCASCADE native types and tools in order to provide a more "Pythonic" user

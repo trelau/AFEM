@@ -1,6 +1,6 @@
 Graphics
 ========
-The ``Graphics`` package provides a base class for viewable objects as well as a
+The ``graphics`` package provides a base class for viewable objects as well as a
 minimal tool to visualize AFEM shapes, geometry, and meshes. The most used tool
 will be the ``Viewer`` class which can be imported by::
 

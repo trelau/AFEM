@@ -1,6 +1,6 @@
 Topology
 ========
-The ``Topology`` package provides tools for the creation and use of OpenCASCADE
+The ``topology`` package provides tools for the creation and use of OpenCASCADE
 native topology (i.e., shapes). While geometry defines curves and surfaces,
 topology describes their connectivity and boundary representation. OpenCASCADE
 shapes are the core building blocks for building more complex parts and

@@ -103,8 +103,15 @@ This should build html documentation in a *docs/build/html* folder. Open the
 afem.html file with a web browser.
 
 # Getting Started
-The best way to get started is to examine and run the files in the examples and
-test folders.
+The best way to get started is to examine and run the files in the *examples/*
+folder. Running the script:
+
+    python structure_wingbox.py
+    
+should generate an image similar to the one shown below. Remeber to make sure
+the appropriate environment is active when using AFEM is applicable.
+
+![wingbox](./docs/source/resources/wingbox.png)
 
 # Notice
 Copyright (c) 2018, Laughlin Research, LLC
