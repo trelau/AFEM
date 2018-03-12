@@ -100,7 +100,7 @@ Then navigate to the *docs/* folder and run:
     make html
 
 This should build html documentation in a *docs/build/html* folder. Open the 
-afem.html file with a web browser.
+index.html file with a web browser.
 
 # Getting Started
 The best way to get started is to examine and run the files in the *examples/*
