@@ -26,6 +26,7 @@ from OCCT.GeomLib import GeomLib_IsPlanarSurface
 from OCCT.IFSelect import (IFSelect_ItemsByEntity, IFSelect_RetDone,
                            IFSelect_RetVoid)
 from OCCT.Interface import Interface_Static
+from OCCT.STEPCAFControl import STEPCAFControl_Writer
 from OCCT.STEPControl import STEPControl_Reader
 from OCCT.ShapeAnalysis import ShapeAnalysis
 from OCCT.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
@@ -33,9 +34,14 @@ from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                                ShapeUpgrade_SplitSurface,
                                ShapeUpgrade_UnifySameDomain)
 from OCCT.TColStd import TColStd_HSequenceOfReal
+from OCCT.TCollection import TCollection_ExtendedString
+from OCCT.TDataStd import TDataStd_Name
+from OCCT.TDocStd import TDocStd_Document
 from OCCT.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
 from OCCT.TopExp import TopExp_Explorer
 from OCCT.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
+from OCCT.XCAFApp import XCAFApp_Application
+from OCCT.XCAFDoc import XCAFDoc_DocumentTool
 
 from afem.config import Settings, logger
 from afem.geometry.create import (PointFromParameter, NurbsSurfaceByInterp,
@@ -297,6 +303,32 @@ class ImportVSP(object):
         # Update
         self._bodies.update(bodies)
 
+    def export_step(self, fn):
+        """
+        Export the OpenVSP model as a STEP file using Extended Data Exchange.
+        Each OpenVSP component will be a named product in the STEP file
+        product structure.
+
+        :param str fn: The filename.
+
+        :return: None.
+        """
+        fmt = TCollection_ExtendedString('MDTV-Standard')
+        doc = TDocStd_Document(fmt)
+        app = XCAFApp_Application.GetApplication_()
+        app.InitDocument(doc)
+
+        the_assembly = XCAFDoc_DocumentTool.ShapeTool_(doc.Main())
+        for name in self.bodies:
+            solid = self.get_body(name).solid
+            txt = TCollection_ExtendedString(name)
+            label = the_assembly.AddShape(solid)
+            TDataStd_Name.Set_(label, txt)
+
+        writer = STEPCAFControl_Writer()
+        writer.SetNameMode(True)
+        writer.Perform(doc, fn)
+
     @staticmethod
     def rebuild_wing_solid(srfs, divide_closed=True, reloft=False, tol=0.01):
         """
@@ -329,7 +361,8 @@ class ImportVSP(object):
 
         nsrfs = len(srfs)
         if nsrfs == 1:
-            solid, _ = _process_unsplit_wing(compound, divide_closed, reloft, tol)
+            solid, _ = _process_unsplit_wing(compound, divide_closed, reloft,
+                                             tol)
             return solid
         elif nsrfs > 1:
             solid, _ = _build_solid(compound, divide_closed)
