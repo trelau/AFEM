@@ -446,6 +446,11 @@ class GroupAPI(object):
 
         :return: *True* if saved, *False* otherwise.
         :rtype: bool
+
+        .. note::
+
+            Currently only the part type, label, shape, and color are saved.
+            Additional part data like reference geometry is not saved.
         """
         group = cls.get_master()
 
