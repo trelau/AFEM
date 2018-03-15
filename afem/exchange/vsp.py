@@ -319,10 +319,19 @@ class ImportVSP(object):
         app.InitDocument(doc)
 
         the_assembly = XCAFDoc_DocumentTool.ShapeTool_(doc.Main())
+
+        solids = []
+        names = []
         for name in self.bodies:
             solid = self.get_body(name).solid
-            txt = TCollection_ExtendedString(name)
+            solids.append(solid)
+            names.append(name)
+        cmp = CompoundByShapes(solids).compound
+        the_assembly.AddShape(cmp)
+
+        for name, solid in zip(names, solids):
             label = the_assembly.AddShape(solid)
+            txt = TCollection_ExtendedString(name)
             TDataStd_Name.Set_(label, txt)
 
         writer = STEPCAFControl_Writer()
