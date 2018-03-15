@@ -112,26 +112,13 @@ class Part(ViewableItem):
         msg = ' '.join(['Creating part:', label])
         logger.info(msg)
 
-    @classmethod
-    def reset(cls):
+    @property
+    def type(self):
         """
-        Reset the part index counter back to 1 and the mesh to None.
-
-        :return: None.
+        :return: The type of the part.
+        :rtype: str
         """
-        cls._indx = 1
-        cls._mesh = None
-
-    @classmethod
-    def set_mesh(cls, mesh):
-        """
-        Set the active mesh for all parts.
-
-        :param afem.smesh.meshes.Mesh mesh: The mesh.
-
-        :return: None.
-        """
-        cls._mesh = mesh
+        return self.__class__.__name__
 
     @property
     def label(self):
@@ -1246,6 +1233,27 @@ class Part(ViewableItem):
         status1 = self.discard_by_solid(hs1)
         status2 = self.discard_by_solid(hs2)
         return status1 or status2
+
+    @classmethod
+    def reset(cls):
+        """
+        Reset the part index counter back to 1 and the mesh to None.
+
+        :return: None.
+        """
+        cls._indx = 1
+        cls._mesh = None
+
+    @classmethod
+    def set_mesh(cls, mesh):
+        """
+        Set the active mesh for all parts.
+
+        :param afem.smesh.meshes.Mesh mesh: The mesh.
+
+        :return: None.
+        """
+        cls._mesh = mesh
 
 
 class CurvePart(Part):

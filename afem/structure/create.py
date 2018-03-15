@@ -44,7 +44,45 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "BulkheadBySurface", "FloorBySurface",
            "FrameByPlane", "FramesByPlanes", "FramesBetweenPlanesByNumber",
            "FramesBetweenPlanesByDistance", "SkinBySolid",
-           "SkinByBody", "StringerByShape"]
+           "SkinByBody", "StringerByShape", "CreatePartByName"]
+
+_type_to_part = {
+    'Part': Part,
+    'CurvePart': CurvePart,
+    'Beam': Beam,
+    'SurfacePart': SurfacePart,
+    'WingPart': WingPart,
+    'Spar': Spar,
+    'Rib': Rib,
+    'FuselagePart': FuselagePart,
+    'Bulkhead': Bulkhead,
+    'Floor': Floor,
+    'Frame': Frame,
+    'Skin': Skin,
+    'Stiffener1D': Stiffener1D,
+    'Stiffener2D': Stiffener2D,
+    'Stringer': Stringer
+}
+
+
+class CreatePartByName(object):
+    """
+    Create a part by its type name. This is a tool mostly for loading models
+    and it not recommended for general use.
+
+    :param str type_: The type of part.
+    """
+
+    def __init__(self, type_, *args, **kwargs):
+        self._part = _type_to_part[type_](*args, **kwargs)
+
+    @property
+    def part(self):
+        """
+        :return: The part.
+        :rtype: afem.structure.entities.Part
+        """
+        return self._part
 
 
 # CURVE PART ------------------------------------------------------------------
