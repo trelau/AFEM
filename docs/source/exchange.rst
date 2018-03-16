@@ -29,6 +29,10 @@ STL
 ---
 .. automodule:: afem.exchange.stl
 
+XDE
+---
+.. automodule:: afem.exchange.xde
+
 OpenVSP
 -------
 .. automodule:: afem.exchange.vsp

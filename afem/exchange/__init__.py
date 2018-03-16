@@ -14,3 +14,4 @@ from afem.exchange.iges import IgesRead, IgesWrite
 from afem.exchange.step import StepWrite, StepRead
 from afem.exchange.stl import StlExport
 from afem.exchange.vsp import ImportVSP
+from afem.exchange.xde import XdeRead
