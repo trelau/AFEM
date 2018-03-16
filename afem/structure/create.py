@@ -116,7 +116,7 @@ class CurvePartByShape(object):
         if cref is None:
             cref = ExploreShape.curve_of_shape(shape)
 
-        self._curve_part = CurvePart(label, shape, cref, group)
+        self._curve_part = CurvePart(label, shape, cref, None, group)
 
     @property
     def curve_part(self):
@@ -157,7 +157,7 @@ class BeamByShape(object):
         if cref is None:
             cref = ExploreShape.curve_of_shape(shape)
 
-        self._beam = Beam(label, shape, cref, group)
+        self._beam = Beam(label, shape, cref, None, group)
 
     @property
     def beam(self):

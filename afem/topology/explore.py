@@ -18,12 +18,11 @@ from OCCT.BRepAdaptor import BRepAdaptor_Curve
 from OCCT.BRepBuilderAPI import BRepBuilderAPI_Copy
 from OCCT.BRepClass3d import BRepClass3d
 from OCCT.BRepTools import BRepTools_WireExplorer, BRepTools
-from OCCT.Geom import Geom_BSplineCurve
+from OCCT.Geom import (Geom_BSplineCurve, Geom_Line, Geom_Plane,
+                       Geom_BSplineSurface)
 from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCCT.ShapeAnalysis import (ShapeAnalysis_Edge, ShapeAnalysis_FreeBounds,
                                 ShapeAnalysis_ShapeTolerance)
-from OCCT.ShapeExtend import ShapeExtend_WireData
-from OCCT.ShapeFix import ShapeFix_WireSegment
 from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_EDGE, TopAbs_FACE,
                          TopAbs_SHELL, TopAbs_SOLID, TopAbs_VERTEX, TopAbs_WIRE,
                          TopAbs_SHAPE)
@@ -32,7 +31,8 @@ from OCCT.TopoDS import (TopoDS_Compound, TopoDS_Edge, TopoDS_Face,
                          TopoDS_Shell, TopoDS_Solid, TopoDS_Vertex,
                          TopoDS_Wire, TopoDS)
 
-from afem.geometry.entities import Curve, NurbsCurve, Point, Surface
+from afem.geometry.entities import (Curve, Line, NurbsCurve, Plane, Point,
+                                    Surface, NurbsSurface)
 from afem.topology.props import AreaOfShapes
 
 __all__ = ["ExploreShape", "ExploreWire", "ExploreFreeEdges"]
@@ -293,8 +293,13 @@ class ExploreShape(object):
         :return: Underlying curve of edge.
         :rtype: afem.geometry.entities.Curve
         """
-        h_crv = BRep_Tool.Curve_(edge, 0., 0.)
-        return Curve(h_crv[0])
+        h_crv, _, _ = BRep_Tool.Curve_(edge, 0., 0.)
+        if isinstance(h_crv, Geom_Line):
+            return Line(h_crv)
+        elif isinstance(h_crv, Geom_BSplineCurve):
+            return NurbsCurve(h_crv)
+        else:
+            return Curve(h_crv)
 
     @staticmethod
     def curve_of_wire(wire):
@@ -356,7 +361,12 @@ class ExploreShape(object):
         :rtype: afem.geometry.entities.Surface
         """
         hsrf = BRep_Tool.Surface_(face)
-        return Surface(hsrf)
+        if isinstance(hsrf, Geom_Plane):
+            return Plane(hsrf)
+        elif isinstance(hsrf, Geom_BSplineSurface):
+            return NurbsSurface(hsrf)
+        else:
+            return Surface(hsrf)
 
     @classmethod
     def surface_of_shape(cls, shape):

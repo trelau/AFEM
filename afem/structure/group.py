@@ -21,7 +21,9 @@ from OCCT.XCAFApp import XCAFApp_Application
 from OCCT.XCAFDoc import XCAFDoc_DocumentTool, XCAFDoc_Color
 
 from afem.structure.utils import order_parts_by_id
-from afem.topology.create import CompoundByShapes
+from afem.topology.check import CheckShape
+from afem.topology.create import CompoundByShapes, EdgeByCurve, FaceBySurface
+from afem.topology.explore import ExploreShape
 
 __all__ = ["Group", "GroupAPI"]
 
@@ -446,11 +448,6 @@ class GroupAPI(object):
 
         :return: *True* if saved, *False* otherwise.
         :rtype: bool
-
-        .. note::
-
-            Currently only the part type, label, shape, and color are saved.
-            Additional part data like reference geometry is not saved.
         """
         group = cls.get_master()
 
@@ -479,6 +476,24 @@ class GroupAPI(object):
 
             # Color
             XCAFDoc_Color.Set_(label, part.color)
+
+            # Reference curve
+            if part.has_cref:
+                edge = EdgeByCurve(part.cref).edge
+                label = tool.AddShape(edge, False)
+                txt = TCollection_ExtendedString(part.label)
+                TDataStd_Name.Set_(label, txt)
+                type_ = TCollection_AsciiString('CREF')
+                TDataStd_AsciiString.Set_(label, type_)
+
+            # Reference surface
+            if part.has_sref:
+                face = FaceBySurface(part.sref).face
+                label = tool.AddShape(face, False)
+                txt = TCollection_ExtendedString(part.label)
+                TDataStd_Name.Set_(label, txt)
+                type_ = TCollection_AsciiString('SREF')
+                TDataStd_AsciiString.Set_(label, type_)
 
         if not fn.endswith('.xbf'):
             fn += '.xbf'
@@ -521,43 +536,67 @@ class GroupAPI(object):
         label = XCAFDoc_DocumentTool.ShapesLabel_(doc.Main())
         iter_ = TDF_ChildIterator(label)
         part_data = []
+        cref_to_part = {}
+        sref_to_part = {}
         while iter_.More():
             current = iter_.Value()
             iter_.Next()
 
+            name, shape, type_, color = 4 * [None]
+
             # Name
             attr1 = TDataStd_Name()
             status1, attr1 = current.FindAttribute(attr1.GetID_(), attr1)
+            if status1:
+                name = attr1.Get().ToExtString()
 
             # Named shape
             attr2 = TNaming_NamedShape()
             status2, attr2 = current.FindAttribute(attr2.GetID_(), attr2)
+            if status2:
+                shape = attr2.Get()
 
             # Type
             attr3 = TDataStd_AsciiString()
             status3, attr3 = current.FindAttribute(attr3.GetID_(), attr3)
+            if status3:
+                type_ = attr3.Get().ToCString()
 
             # Color
             attr4 = XCAFDoc_Color()
             status4, attr4 = current.FindAttribute(attr4.GetID_(), attr4)
+            if status4:
+                color = attr4.GetColor()
 
-            if status1 and status2 and status3:
-                name = attr1.Get().ToExtString()
-                shape = attr2.Get()
-                type_ = attr3.Get().ToCString()
-                if status4:
-                    color = attr4.GetColor()
-                    part_data.append((type_, name, shape, color))
-                else:
-                    part_data.append((type_, name, shape, None))
+            if None in [name, shape, type_]:
+                continue
+
+            # Check for reference geometry
+            if type_ == 'CREF':
+                edge = CheckShape.to_edge(shape)
+                cref_to_part[name] = ExploreShape.curve_of_edge(edge)
+                continue
+
+            if type_ == 'SREF':
+                face = CheckShape.to_face(shape)
+                sref_to_part[name] = ExploreShape.surface_of_face(face)
+                continue
+
+            # Add part data
+            part_data.append((type_, name, shape, color))
 
         # Create parts
         # TODO Support group hierarchy
         for type_, label, shape, color in part_data:
-            tool = CreatePartByName(type_, label=label, shape=shape,
-                                    group=group)
+            cref, sref = None, None
+            if label in cref_to_part:
+                cref = cref_to_part[label]
+            if label in sref_to_part:
+                sref = sref_to_part[label]
+
+            part = CreatePartByName(type_, label=label, shape=shape,
+                                    group=group, cref=cref, sref=sref).part
             if color is not None:
-                part = tool.part
                 part.color = color
 
         return True

@@ -1259,21 +1259,7 @@ class Part(ViewableItem):
 class CurvePart(Part):
     """
     Base class for curve parts.
-
-    :param str label: The label.
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param group: The group to add the part to. If not provided the part will
-        be added to the active group.
-    :type group: str or afem.structure.group.Group or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, group=None):
-        super(CurvePart, self).__init__(label, shape, cref, None, group)
 
     @property
     def length(self):
@@ -1294,23 +1280,7 @@ class Beam(CurvePart):
 class SurfacePart(Part):
     """
     Base class for surface parts.
-
-    :param str label: The label.
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
-    :param cref: The reference curve.
-    :type cref: afem.geometry.entities.Curve or None
-    :param sref: The reference surface.
-    :type sref: afem.geometry.entities.Surface or None
-    :param group: The group to add the part to. If not provided the part will
-        be added to the active group.
-    :type group: str or afem.structure.group.Group or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
-
-    def __init__(self, label, shape, cref=None, sref=None, group=None):
-        super(SurfacePart, self).__init__(label, shape, cref, sref, group)
 
     @property
     def length(self):
