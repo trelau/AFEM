@@ -10,6 +10,15 @@
 # WITHOUT ANY WARRANTIES OR REPRESENTATIONS EXPRESS, IMPLIED OR
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+from OCCT.BinXCAFDrivers import BinXCAFDrivers
+from OCCT.PCDM import PCDM_StoreStatus
+from OCCT.TCollection import TCollection_AsciiString, TCollection_ExtendedString
+from OCCT.TDF import TDF_ChildIterator
+from OCCT.TDataStd import TDataStd_Name, TDataStd_AsciiString
+from OCCT.TDocStd import TDocStd_Document
+from OCCT.TNaming import TNaming_NamedShape
+from OCCT.XCAFApp import XCAFApp_Application
+from OCCT.XCAFDoc import XCAFDoc_DocumentTool, XCAFDoc_Color
 
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import Surface
@@ -369,3 +378,147 @@ class Body(ViewableItem):
             sref.mirror(pln)
             body.set_sref(sref)
         return body
+
+    @staticmethod
+    def save_bodies(fn, *bodies):
+        """
+        Save Body instances.
+
+        :param str fn: The filename. The extension will be ".xbf" and appended
+            if not provided.
+        :param afem.oml.entities.Body bodies: The Body instance(s).
+
+        :return: *True* if saved, *False* otherwise.
+        :rtype: bool
+
+        .. note::
+
+            This method only saves the label, shape, and color of the Body.
+            User-defined metadata is currently not saved.
+        """
+        # Create document and application
+        fmt = TCollection_ExtendedString('BinXCAF')
+        doc = TDocStd_Document(fmt)
+        app = XCAFApp_Application.GetApplication_()
+        BinXCAFDrivers.DefineFormat_(app)
+        app.InitDocument(doc)
+
+        tool = XCAFDoc_DocumentTool.ShapeTool_(doc.Main())
+        for body in bodies:
+            # New label
+            label = tool.AddShape(body.solid, False)
+
+            # Name
+            txt = TCollection_ExtendedString(body.label)
+            TDataStd_Name.Set_(label, txt)
+
+            # Type
+            type_ = TCollection_AsciiString('Body')
+            TDataStd_AsciiString.Set_(label, type_)
+
+            # Color
+            XCAFDoc_Color.Set_(label, body.color)
+
+            # Reference surface
+            if body.sref is not None:
+                face = FaceBySurface(body.sref).face
+                label = tool.AddShape(face, False)
+                txt = TCollection_ExtendedString(body.label)
+                TDataStd_Name.Set_(label, txt)
+                type_ = TCollection_AsciiString('SREF')
+                TDataStd_AsciiString.Set_(label, type_)
+
+        if not fn.endswith('.xbf'):
+            fn += '.xbf'
+        txt = TCollection_ExtendedString(fn)
+        status = app.SaveAs(doc, txt)
+        return status == PCDM_StoreStatus.PCDM_SS_OK
+
+    @staticmethod
+    def load_bodies(fn):
+        """
+        Load saved Body instances.
+
+        :param str fn: The filename. The extension will be ".xbf" and appended
+            if not provided.
+
+        :return: A dictionary where the key is the label and the value is the
+            Body instance.
+        :rtype: dict(str, afem.oml.entities.Body)
+        """
+        # Create document and application
+        fmt = TCollection_ExtendedString('BinXCAF')
+        doc = TDocStd_Document(fmt)
+        app = XCAFApp_Application.GetApplication_()
+        BinXCAFDrivers.DefineFormat_(app)
+        app.InitDocument(doc)
+
+        # Open the document
+        if not fn.endswith('.xbf'):
+            fn += '.xbf'
+        txt = TCollection_ExtendedString(fn)
+        status, doc = app.Open(txt, doc)
+
+        # Get the main label and iterate on top-level children which
+        # should be parts
+        label = XCAFDoc_DocumentTool.ShapesLabel_(doc.Main())
+        iter_ = TDF_ChildIterator(label)
+        body_data = []
+        sref_to_body = {}
+        while iter_.More():
+            current = iter_.Value()
+            iter_.Next()
+
+            name, shape, type_, color = 4 * [None]
+
+            # Name
+            attr1 = TDataStd_Name()
+            status1, attr1 = current.FindAttribute(attr1.GetID_(), attr1)
+            if status1:
+                name = attr1.Get().ToExtString()
+
+            # Named shape
+            attr2 = TNaming_NamedShape()
+            status2, attr2 = current.FindAttribute(attr2.GetID_(), attr2)
+            if status2:
+                shape = attr2.Get()
+
+            # Type
+            attr3 = TDataStd_AsciiString()
+            status3, attr3 = current.FindAttribute(attr3.GetID_(), attr3)
+            if status3:
+                type_ = attr3.Get().ToCString()
+
+            # Color
+            attr4 = XCAFDoc_Color()
+            status4, attr4 = current.FindAttribute(attr4.GetID_(), attr4)
+            if status4:
+                color = attr4.GetColor()
+
+            if None in [name, shape, type_]:
+                continue
+
+            # Check for reference geometry
+            if type_ == 'SREF':
+                face = CheckShape.to_face(shape)
+                sref_to_body[name] = ExploreShape.surface_of_face(face)
+                continue
+
+            # Add part data
+            body_data.append((name, shape, color))
+
+        # Create bodies
+        label_to_bodies = {}
+        for label, shape, color in body_data:
+            sref = None
+            if label in sref_to_body:
+                sref = sref_to_body[label]
+            solid = CheckShape.to_solid(shape)
+            body = Body(solid, label)
+            if sref is not None:
+                body.set_sref(sref)
+            if color is not None:
+                body.color = color
+            label_to_bodies[label] = body
+
+        return label_to_bodies
