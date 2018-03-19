@@ -338,6 +338,24 @@ class ImportVSP(object):
         writer.SetNameMode(True)
         writer.Perform(doc, fn)
 
+    def save_bodies(self, fn):
+        """
+        Save the Body instances.
+
+        :param str fn: The filename. The extension will be ".xbf" and appended
+            if not provided.
+
+        :return: *True* if saved, *False* otherwise.
+        :rtype: bool
+
+        .. note::
+
+            This method only saves the label, shape, and color of the Body.
+            User-defined metadata is currently not saved.
+        """
+        bodies = list(self.bodies.values())
+        return Body.save_bodies(fn, *bodies)
+
     @staticmethod
     def rebuild_wing_solid(srfs, divide_closed=True, reloft=False, tol=0.01):
         """

@@ -3,9 +3,9 @@ from __future__ import print_function
 import time
 
 from afem.config import Settings
-from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
+from afem.oml import Body
 from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
@@ -325,9 +325,9 @@ if __name__ == '__main__':
     start = time.time()
 
     # Import model
-    fname = r'..\models\777-200LR.stp'
-    vsp_import = ImportVSP(fname)
-    wing_in = vsp_import.get_body('Wing')
+    fname = '../models/777-200LR.xbf'
+    bodies = Body.load_bodies(fname)
+    wing_in = bodies['Wing']
 
     v = Viewer(1280, 1024)
     # Build wing box

@@ -3,11 +3,11 @@ from __future__ import print_function
 import time
 
 from afem.config import Settings
-from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import *
 from afem.misc.check import pairwise
+from afem.oml import Body
+from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -17,17 +17,17 @@ Settings.log_to_console()
 Settings.set_units('in')
 
 # Import model
-fn = r'../models/777-200LR.stp'
-vsp_import = ImportVSP(fn)
+fn = '../models/777-200LR.xbf'
+bodies = Body.load_bodies(fn)
 
 # Get components.
-wing = vsp_import.get_body('Wing')
-gear = vsp_import.get_body('Gear Pod')
-fuselage = vsp_import.get_body('Fuselage')
-vtail = vsp_import.get_body('Vtail')
-htail = vsp_import.get_body('Htail')
-other_wing = vsp_import.get_body('Wing.2')
-other_htail = vsp_import.get_body('Htail.1')
+wing = bodies['Wing']
+gear = bodies['Gear Pod']
+fuselage = bodies['Fuselage']
+vtail = bodies['Vtail']
+htail = bodies['Htail']
+other_wing = bodies['Wing.2']
+other_htail = bodies['Htail.1']
 
 # FUSELAGE --------------------------------------------------------------------
 fuse_group = GroupAPI.create_group('fuselage group')

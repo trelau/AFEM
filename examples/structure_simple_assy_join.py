@@ -1,20 +1,21 @@
 import time
 
 from afem.config import Settings
-from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
+from afem.oml import Body
 from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
 Settings.log_to_console()
 
-fname = r'..\models\777-200LR.stp'
-vsp_import = ImportVSP(fname)
-wing = vsp_import.get_body('Wing')
-fuselage = vsp_import.get_body('Fuselage')
-htail = vsp_import.get_body('Htail')
+fn = r'../models/777-200LR.xbf'
+bodies = Body.load_bodies(fn)
+
+wing = bodies['Wing']
+fuselage = bodies['Fuselage']
+htail = bodies['Htail']
 
 wing.set_transparency(0.5)
 fuselage.set_transparency(0.5)
@@ -117,7 +118,6 @@ if not status:
     print('Failed to compute mesh')
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
-
 
 v = Viewer()
 v.add(*tool.free_edges)

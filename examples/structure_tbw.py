@@ -1,48 +1,45 @@
 from __future__ import print_function
 
 from afem.config import Settings
-from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.misc.check import pairwise
+from afem.oml import Body
 from afem.structure import *
 from afem.topology import *
 
 Settings.log_to_console()
 
 # Import model
-fname = r'..\models\TBW_SUGAR.stp'
-vsp_import = ImportVSP(fname)
+fname = r'..\models\tbw.xbf'
+bodies = Body.load_bodies(fname)
 
 # Get bodies.
-fuselage = vsp_import.get_body('Fuselage')
-wing = vsp_import.get_body('Wing')
-other_wing = vsp_import.get_body('Wing.2')
-gear = vsp_import.get_body('Gear Pod')
-other_gear = vsp_import.get_body('Gear Pod.1')
-htail = vsp_import.get_body('Htail')
-other_htail = vsp_import.get_body('Htail.3')
-vtail = vsp_import.get_body('Vtail')
-jury = vsp_import.get_body('Jury')
-other_jury = vsp_import.get_body('Jury.4')
-strut = vsp_import.get_body('Strut')
-other_strut = vsp_import.get_body('Strut.5')
+fuselage = bodies['Fuselage']
+wing = bodies['Wing']
+other_wing = bodies['Wing.2']
+gear = bodies['Gear Pod']
+other_gear = bodies['Gear Pod.1']
+htail = bodies['Htail']
+other_htail = bodies['Htail.3']
+vtail = bodies['Vtail']
+jury = bodies['Jury']
+other_jury = bodies['Jury.4']
+strut = bodies['Strut']
+other_strut = bodies['Strut.5']
 
-vr = Viewer()
-
+gui = Viewer()
 for body in [fuselage, wing, other_wing, gear, other_gear, htail, other_htail,
-             vtail]:
+             vtail, jury, other_jury, strut, other_strut]:
     body.set_color(0.5, 0.5, 0.5)
     body.set_transparency(0.5)
-    vr.add(body)
+    gui.add(body)
 
 # WING ------------------------------------------------------------------------
 GroupAPI.create_group('wing group')
 
 # Center wing structure will be based on the intersection between the wings
 # and fuselage.
-joined_wings = FuseShapes(wing.solid, other_wing.solid).shape
-shape = IntersectShapes(fuselage.solid, joined_wings).shape
+shape = IntersectShapes(fuselage.solid, wing.solid).shape
 
 # Use the y-dimensions of the bounding box of the intersection curve.
 bbox = BBox()
@@ -138,146 +135,135 @@ wskin.discard_by_dmin(wing.sref_shape, 1.)
 # shells (upper and lower skin).
 wskin.fix()
 
-vr.add(*GroupAPI.get_parts())
+gui.add(*GroupAPI.get_parts())
 
 # HTAIL -----------------------------------------------------------------------
-GroupAPI.create_group('htail group')
-
-fspar = SparByParameters('htail fspar', 0.15, 0.01, 0.15, 0.99, htail).spar
-rspar = SparByParameters('htail rspar', 0.70, 0.01, 0.70, 0.99, htail).spar
-root = RibByPoints('htail root rib', fspar.p1, rspar.p1, htail).rib
-tip = RibByPoints('htail tip rib', fspar.p2, rspar.p2, htail).rib
-ribs = RibsAlongCurveByDistance('htail rib', rspar.cref, 12, fspar.shape,
-                                rspar.shape, htail, d1=12, d2=-12).ribs
-
-internal_parts = GroupAPI.get_parts()
-FuseSurfacePartsByCref(internal_parts)
-DiscardByCref(internal_parts)
-
-skin = SkinByBody('htail skin', htail).skin
-skin.fuse(*internal_parts)
-skin.discard_by_dmin(htail.sref_shape, 1.)
-skin.fix()
-
-vr.add(*GroupAPI.get_parts())
+# GroupAPI.create_group('htail group')
+#
+# fspar = SparByParameters('htail fspar', 0.15, 0.01, 0.15, 0.99, htail).spar
+# rspar = SparByParameters('htail rspar', 0.70, 0.01, 0.70, 0.99, htail).spar
+# root = RibByPoints('htail root rib', fspar.p1, rspar.p1, htail).rib
+# tip = RibByPoints('htail tip rib', fspar.p2, rspar.p2, htail).rib
+# ribs = RibsAlongCurveByDistance('htail rib', rspar.cref, 12, fspar.shape,
+#                                 rspar.shape, htail, d1=12, d2=-12).ribs
+#
+# internal_parts = GroupAPI.get_parts()
+# FuseSurfacePartsByCref(internal_parts)
+# DiscardByCref(internal_parts)
+#
+# skin = SkinByBody('htail skin', htail).skin
+# skin.fuse(*internal_parts)
+# skin.discard_by_dmin(htail.sref_shape, 1.)
+# skin.fix()
+#
+# gui.add(*GroupAPI.get_parts())
 
 # VTAIL -----------------------------------------------------------------------
-GroupAPI.create_group('vtail group')
-
-u, v = ProjectPointToSurface(fspar.p1, vtail.sref).nearest_param
-mspar = SparByParameters('vtail mspar', u, 0.05, u, v, vtail).spar
-
-u, v = ProjectPointToSurface(rspar.p1, vtail.sref).nearest_param
-rspar = SparByParameters('vtail rspar', u, 0.05, u, v, vtail).spar
-fspar = SparByParameters('vtail fspar', 0.12, 0.05, 0.12, v, vtail).spar
-RibByPoints('vtail root rib', fspar.p1, rspar.p1, vtail)
-RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
-RibsAlongCurveByDistance('vtail rib', rspar.cref, 18., fspar.shape, rspar.shape,
-                         vtail, d1=18, d2=-72)
-
-internal_parts = GroupAPI.get_parts()
-FuseSurfacePartsByCref(internal_parts)
-DiscardByCref(internal_parts)
-
-skin = SkinByBody('vtail skin', vtail).skin
-skin.fuse(*internal_parts)
-skin.discard_by_dmin(vtail.sref_shape, 1.)
-skin.fix()
-
-vr.add(*GroupAPI.get_parts())
+# GroupAPI.create_group('vtail group')
+#
+# u, v = ProjectPointToSurface(fspar.p1, vtail.sref).nearest_param
+# mspar = SparByParameters('vtail mspar', u, 0.05, u, v, vtail).spar
+#
+# u, v = ProjectPointToSurface(rspar.p1, vtail.sref).nearest_param
+# rspar = SparByParameters('vtail rspar', u, 0.05, u, v, vtail).spar
+# fspar = SparByParameters('vtail fspar', 0.12, 0.05, 0.12, v, vtail).spar
+# RibByPoints('vtail root rib', fspar.p1, rspar.p1, vtail)
+# RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
+# RibsAlongCurveByDistance('vtail rib', rspar.cref, 18., fspar.shape, rspar.shape,
+#                          vtail, d1=18, d2=-72)
+#
+# internal_parts = GroupAPI.get_parts()
+# FuseSurfacePartsByCref(internal_parts)
+# DiscardByCref(internal_parts)
+#
+# skin = SkinByBody('vtail skin', vtail).skin
+# skin.fuse(*internal_parts)
+# skin.discard_by_dmin(vtail.sref_shape, 1.)
+# skin.fix()
+#
+# gui.add(*GroupAPI.get_parts())
 
 # FUSELAGE --------------------------------------------------------------------
-GroupAPI.create_group('fuselage group')
-
-pln = PlaneByAxes((60, 0, 0), 'yz').plane
-bh1 = BulkheadBySurface('bh 1', pln, fuselage).bulkhead
-
-pln = PlaneByAxes((180, 0, 0), 'yz').plane
-bh2 = BulkheadBySurface('bh 2', pln, fuselage).bulkhead
-p0 = fc_spar.p1
-pln = PlaneByAxes(p0, 'yz').plane
-bh3 = BulkheadBySurface('bh 3', pln, fuselage).bulkhead
-
-p0 = rc_spar.p1
-pln = PlaneByAxes(p0, 'yz').plane
-bh4 = BulkheadBySurface('bh 4', pln, fuselage).bulkhead
-
-p0 = fspar.p1
-pln = PlaneByAxes(p0, 'yz').plane
-bh5 = BulkheadBySurface('bh 5', pln, fuselage).bulkhead
-
-p0 = mspar.p1
-pln = PlaneByAxes(p0, 'yz').plane
-bh6 = BulkheadBySurface('bh 6', pln, fuselage).bulkhead
-
-p0 = rspar.p1
-pln = PlaneByAxes(p0, 'yz').plane
-bh7 = BulkheadBySurface('bh 7', pln, fuselage).bulkhead
-
-pln = PlaneByAxes((0, 0, -24), 'xy').plane
-floor = FloorBySurface('floor', pln, fuselage).floor
-
-shell = ShellByFaces(bh1.faces).shell
-fwd = HalfspaceByShape(shell, (-1e6, 0, 0)).solid
-floor.cut(fwd)
-shell = ShellByFaces(bh5.faces).shell
-aft = HalfspaceByShape(shell, (1e6, 0, 0)).solid
-floor.cut(aft)
-
-plns = [bh1.sref, bh2.sref, bh3.sref, bh4.sref, bh5.sref, bh6.sref, bh7.sref]
-
-indx = 1
-frames = []
-for pln1, pln2 in pairwise(plns):
-    builder = FramesBetweenPlanesByDistance('frame', pln1, pln2, 24., fuselage,
-                                            3.5, first_index=indx)
-    frames += builder.frames
-    indx = builder.next_index
-
-internal_parts = GroupAPI.get_parts()
-
-skin = SkinByBody('fuselage skin', fuselage).skin
-skin.set_transparency(0.5)
-
-FuseSurfaceParts([skin], internal_parts)
-
-vr.add(*GroupAPI.get_parts())
-
-# MIRROR ----------------------------------------------------------------------
-xz_pln = PlaneByAxes().plane
-
-parts = GroupAPI.get_parts('wing group')
-for part in parts:
-    part.set_mirror(xz_pln)
-
-parts = GroupAPI.get_parts('htail group')
-for part in parts:
-    part.set_mirror(xz_pln)
+# GroupAPI.create_group('fuselage group')
+#
+# pln = PlaneByAxes((60, 0, 0), 'yz').plane
+# bh1 = BulkheadBySurface('bh 1', pln, fuselage).bulkhead
+#
+# pln = PlaneByAxes((180, 0, 0), 'yz').plane
+# bh2 = BulkheadBySurface('bh 2', pln, fuselage).bulkhead
+# p0 = fc_spar.p1
+# pln = PlaneByAxes(p0, 'yz').plane
+# bh3 = BulkheadBySurface('bh 3', pln, fuselage).bulkhead
+#
+# p0 = rc_spar.p1
+# pln = PlaneByAxes(p0, 'yz').plane
+# bh4 = BulkheadBySurface('bh 4', pln, fuselage).bulkhead
+#
+# p0 = fspar.p1
+# pln = PlaneByAxes(p0, 'yz').plane
+# bh5 = BulkheadBySurface('bh 5', pln, fuselage).bulkhead
+#
+# p0 = mspar.p1
+# pln = PlaneByAxes(p0, 'yz').plane
+# bh6 = BulkheadBySurface('bh 6', pln, fuselage).bulkhead
+#
+# p0 = rspar.p1
+# pln = PlaneByAxes(p0, 'yz').plane
+# bh7 = BulkheadBySurface('bh 7', pln, fuselage).bulkhead
+#
+# pln = PlaneByAxes((0, 0, -24), 'xy').plane
+# floor = FloorBySurface('floor', pln, fuselage).floor
+#
+# shell = ShellByFaces(bh1.faces).shell
+# fwd = HalfspaceByShape(shell, (-1e6, 0, 0)).solid
+# floor.cut(fwd)
+# shell = ShellByFaces(bh5.faces).shell
+# aft = HalfspaceByShape(shell, (1e6, 0, 0)).solid
+# floor.cut(aft)
+#
+# plns = [bh1.sref, bh2.sref, bh3.sref, bh4.sref, bh5.sref, bh6.sref, bh7.sref]
+#
+# indx = 1
+# frames = []
+# for pln1, pln2 in pairwise(plns):
+#     builder = FramesBetweenPlanesByDistance('frame', pln1, pln2, 24., fuselage,
+#                                             3.5, first_index=indx)
+#     frames += builder.frames
+#     indx = builder.next_index
+#
+# internal_parts = GroupAPI.get_parts()
+#
+# skin = SkinByBody('fuselage skin', fuselage).skin
+# skin.set_transparency(0.5)
+#
+# FuseSurfaceParts([skin], internal_parts)
+#
+# gui.add(*GroupAPI.get_parts())
 
 # GEAR ------------------------------------------------------------------------
-GroupAPI.create_group('gear group')
-
-p0 = gear.eval(0.15, 1.)
-pln = PlaneByAxes(p0, 'yz').plane
-spar1 = SparBySurface('gear spar 1', pln, gear).spar
-
-p0 = gear.eval(0.70, 1.)
-pln = PlaneByAxes(p0, 'yz').plane
-spar2 = SparBySurface('gear spar 2', pln, gear).spar
-
-plns = PlanesAlongCurveByDistance(spar2.cref, 30, d1=30, d2=-30).planes
-i = 1
-for pln in plns:
-    name = ' '.join(['gear rib', str(i)])
-    RibBySurface(name, pln, gear)
-    i += 1
-
-internal_parts = GroupAPI.get_parts()
-FuseSurfacePartsByCref(internal_parts)
-
-skin = SkinByBody('gear skin', gear).skin
-skin.fuse(*internal_parts)
-skin.set_transparency(0.5)
+# GroupAPI.create_group('gear group')
+#
+# p0 = gear.eval(0.15, 1.)
+# pln = PlaneByAxes(p0, 'yz').plane
+# spar1 = SparBySurface('gear spar 1', pln, gear).spar
+#
+# p0 = gear.eval(0.70, 1.)
+# pln = PlaneByAxes(p0, 'yz').plane
+# spar2 = SparBySurface('gear spar 2', pln, gear).spar
+#
+# plns = PlanesAlongCurveByDistance(spar2.cref, 30, d1=30, d2=-30).planes
+# i = 1
+# for pln in plns:
+#     name = ' '.join(['gear rib', str(i)])
+#     RibBySurface(name, pln, gear)
+#     i += 1
+#
+# internal_parts = GroupAPI.get_parts()
+# FuseSurfacePartsByCref(internal_parts)
+#
+# skin = SkinByBody('gear skin', gear).skin
+# skin.fuse(*internal_parts)
+# skin.set_transparency(0.5)
 
 # STRUTS ----------------------------------------------------------------------
 crv = strut.extract_curve(0.5, 0., 0.5, 1.)
@@ -296,9 +282,5 @@ beam3 = BeamByPoints('beam 3', beam1.p1, p2).beam
 beam3.set_color(1, 0, 0)
 
 # VIEW ------------------------------------------------------------------------
-parts = GroupAPI.get_parts()
-for part in parts:
-    part.set_mirror(xz_pln)
-
-vr.add(*GroupAPI.get_parts())
-vr.start()
+gui.add(*GroupAPI.get_parts())
+gui.start()
