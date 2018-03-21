@@ -69,6 +69,10 @@ Stringer
 ~~~~~~~~
 .. autoclass:: Stringer
 
+Beam2D
+~~~~~~
+.. autoclass:: Beam2D
+
 Group
 ~~~~~
 .. autoclass:: afem.structure.group.Group
@@ -220,6 +224,10 @@ SkinByBody
 StringerByShape
 ~~~~~~~~~~~~~~~
 .. autoclass:: StringerByShape
+
+Beam2DBySweep
+~~~~~~~~~~~~~
+.. autoclass:: Beam2DBySweep
 
 Explore
 -------

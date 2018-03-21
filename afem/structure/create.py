@@ -25,7 +25,7 @@ from afem.topology.create import *
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.explore import ExploreFreeEdges, ExploreShape
 from afem.topology.modify import SewShape
-from afem.topology.offset import SweepShapeWithNormal
+from afem.topology.offset import SweepShapeWithNormal, SweepShape
 from afem.topology.props import *
 
 __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
@@ -44,7 +44,8 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
            "BulkheadBySurface", "FloorBySurface",
            "FrameByPlane", "FramesByPlanes", "FramesBetweenPlanesByNumber",
            "FramesBetweenPlanesByDistance", "SkinBySolid",
-           "SkinByBody", "StringerByShape", "CreatePartByName"]
+           "SkinByBody", "StringerByShape", "Beam2DBySweep",
+           "CreatePartByName"]
 
 _type_to_part = {
     'Part': Part,
@@ -61,7 +62,8 @@ _type_to_part = {
     'Skin': Skin,
     'Stiffener1D': Stiffener1D,
     'Stiffener2D': Stiffener2D,
-    'Stringer': Stringer
+    'Stringer': Stringer,
+    'Beam2D': Beam2D
 }
 
 
@@ -127,7 +129,7 @@ class CurvePartByShape(object):
         return self._curve_part
 
 
-# BEAM -----------------------------------------------------------------------
+# BEAM ------------------------------------------------------------------------
 
 class BeamByShape(object):
     """
@@ -1670,7 +1672,7 @@ class RibsAlongCurveAndSurfaceByDistance(object):
         return self._next_index
 
 
-# BULKHEAD -------------------------------------------------------------------
+# BULKHEAD --------------------------------------------------------------------
 
 class BulkheadBySurface(object):
     """
@@ -2170,7 +2172,8 @@ class StringerByShape(object):
         last_shape = pipe.shape
 
         # Sew segments
-        cmp = CompoundByShapes([first_shape, middle_shape, last_shape]).compound
+        cmp = CompoundByShapes(
+            [first_shape, middle_shape, last_shape]).compound
         shape = SewShape(cmp).sewed_shape
 
         self._stringer = Stringer(label, shape, group=group)
@@ -2182,6 +2185,38 @@ class StringerByShape(object):
         :rtype: afem.structure.entities.Stringer
         """
         return self._stringer
+
+
+# BEAM2D ----------------------------------------------------------------------
+
+class Beam2DBySweep(object):
+    """
+    Create a Beam2D by sweeping a profile along a path.
+    """
+
+    def __init__(self, label, spine, profile, group=None):
+        cref = None
+        if CheckGeom.is_curve(spine):
+            cref = spine
+        elif CheckShape.is_edge(spine):
+            cref = ExploreShape.curve_of_edge(spine)
+
+        spine = CheckShape.to_wire(spine)
+        profile = CheckShape.to_shape(profile)
+
+        if cref is None:
+            cref = ExploreShape.curve_of_wire(spine)
+
+        tool = SweepShape(spine, profile)
+        self._beam = Beam2D(label, tool.shape, cref, None, group)
+
+    @property
+    def beam2d(self):
+        """
+        :return: The beam.
+        :rtype: afem.structure.entities.Beam2D
+        """
+        return self._beam
 
 
 if __name__ == "__main__":

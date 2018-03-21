@@ -42,7 +42,8 @@ from afem.topology.props import LengthOfShapes, LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
            "Rib", "FuselagePart", "Bulkhead", "Floor", "Frame", "Skin",
-           "Stiffener1D", "Stiffener2D", "Stringer", "shape_of_entity"]
+           "Stiffener1D", "Stiffener2D", "Stringer", "Beam2D",
+           "shape_of_entity"]
 
 
 def shape_of_entity(entity):
@@ -1617,5 +1618,12 @@ class Stiffener2D(SurfacePart):
 class Stringer(SurfacePart):
     """
     Stringer.
+    """
+    pass
+
+
+class Beam2D(SurfacePart):
+    """
+    Beam 2-D.
     """
     pass

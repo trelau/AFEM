@@ -362,6 +362,66 @@ class CheckShape(object):
         return isinstance(shape, TopoDS_Shape)
 
     @staticmethod
+    def is_vertex(shape):
+        """
+        Check if the shape is a vertex.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if a vertex, *False* if not.
+        :rtype: bool
+        """
+        try:
+            return shape.ShapeType() == TopAbs_VERTEX
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def is_edge(shape):
+        """
+        Check if the shape is a edge.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if an edge, *False* if not.
+        :rtype: bool
+        """
+        try:
+            return shape.ShapeType() == TopAbs_EDGE
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def is_wire(shape):
+        """
+        Check if the shape is a wire.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if a wire, *False* if not.
+        :rtype: bool
+        """
+        try:
+            return shape.ShapeType() == TopAbs_WIRE
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def is_face(shape):
+        """
+        Check if the shape is a face.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: *True* if a face, *False* if not.
+        :rtype: bool
+        """
+        try:
+            return shape.ShapeType() == TopAbs_FACE
+        except AttributeError:
+            return False
+
+    @staticmethod
     def is_shell(shape):
         """
         Check if the shape is a shell.
