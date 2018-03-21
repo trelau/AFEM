@@ -167,6 +167,17 @@ class Group(object):
             return parts
         return order_parts_by_id(parts)
 
+    def remove_part(self, label):
+        """
+        Remove a part from the group if present.
+
+        :param str label: Part label.
+
+        :return: None.
+        """
+        part = self.get_part(label)
+        self._parts.discard(part)
+
     def prepare_shape_to_mesh(self, include_subgroup=True):
         """
         Prepare a shape to mesh using the parts in the group and its
@@ -368,6 +379,21 @@ class GroupAPI(object):
         """
         group = cls.get_group(group)
         return group.get_parts(include_subgroup, rtype, order)
+
+    @classmethod
+    def remove_part(cls, label, group=None):
+        """
+        Remove a part from the group if present.
+
+        :param str label: Part label.
+        :param group: The group. If ``None`` then the active group is
+            used.
+        :type group: str or afem.structure.group.Group or None
+
+        :return: None.
+        """
+        group = cls.get_group(group)
+        group.remove_part(label)
 
     @classmethod
     def prepare_shape_to_mesh(cls, group='_master', include_subgroup=True):

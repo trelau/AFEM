@@ -10,7 +10,6 @@
 # WITHOUT ANY WARRANTIES OR REPRESENTATIONS EXPRESS, IMPLIED OR 
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-
 from OCCT.TopoDS import TopoDS_Shape
 from numpy import mean
 
@@ -23,6 +22,7 @@ from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.display import ViewableItem
+from afem.oml.entities import Body
 from afem.structure.group import GroupAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)
@@ -54,13 +54,16 @@ def shape_of_entity(entity):
 
     :param entity: The entity.
     :type entity: afem.geometry.entities.Geometry or
-        afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
+        afem.structure.entities.Part or afem.oml.entities.Body or
+        OCCT.TopoDS.TopoDS_Shape
 
     :return: The shape.
     :rtype: OCCT.TopoDS.TopoDS_Shape
     """
     if isinstance(entity, Part):
         return entity.shape
+    elif isinstance(entity, Body):
+        return entity.solid
     else:
         return CheckShape.to_shape(entity)
 
