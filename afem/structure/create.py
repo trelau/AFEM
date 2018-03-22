@@ -2192,6 +2192,16 @@ class StringerByShape(object):
 class Beam2DBySweep(object):
     """
     Create a Beam2D by sweeping a profile along a path.
+
+    :param str label: Part label.
+    :param spine: The path for the sweep.
+    :type spine: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Edge or
+        OCCT.TopoDS.TopoDS_Wire
+    :param profile: The profile to sweep.
+    :type profile: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Shape
+    :param group: The group to add the part to. If not provided the part will
+        be added to the active group.
+    :type group: str or afem.structure.group.Group or None
     """
 
     def __init__(self, label, spine, profile, group=None):

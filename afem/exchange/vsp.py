@@ -182,6 +182,11 @@ class ImportVSP(object):
         wing_bodies = {}
         ref_surfs = {}
 
+        # Data structures for fuselage reference surfaces
+        fuselage_bodies = {}
+        href_surfs = {}
+        vref_surfs = {}
+
         # Build a compound for geometric sets.
         compound = TopoDS_Compound()
         BRep_Builder().MakeCompound(compound)
@@ -251,6 +256,31 @@ class ImportVSP(object):
                 # Next shape.
                 iterator.Next()
                 continue
+            elif key in metadata and metadata[key] == 100:
+                # Fuselage horizontal sref
+                f = ExploreShape.get_faces(compound)[0]
+                srf = ExploreShape.surface_of_face(f)
+                sref = NurbsSurface.downcast(srf)
+                sref.set_udomain(-1., 1.)
+                sref.set_vdomain(0., 1.)
+                sref.object.ExchangeUV()
+                sref.object.UReverse()
+                sref_id = metadata['ID']
+                href_surfs[sref_id] = sref
+                iterator.Next()
+                continue
+            elif key in metadata and metadata[key] == 101:
+                f = ExploreShape.get_faces(compound)[0]
+                srf = ExploreShape.surface_of_face(f)
+                sref = NurbsSurface.downcast(srf)
+                sref.set_udomain(-1., 1.)
+                sref.set_vdomain(0., 1.)
+                sref.object.ExchangeUV()
+                sref.object.UReverse()
+                sref_id = metadata['ID']
+                vref_surfs[sref_id] = sref
+                iterator.Next()
+                continue
 
             comp_name = metadata['m_Name']
             if comp_name in bodies:
@@ -280,6 +310,8 @@ class ImportVSP(object):
                 if fuse is not None:
                     fuse.set_label(comp_name)
                     bodies[comp_name] = fuse
+                    sref_id = metadata['Sref ID']
+                    fuselage_bodies[sref_id] = fuse
 
             # Unknown
             else:
@@ -299,6 +331,17 @@ class ImportVSP(object):
             wing = wing_bodies[sref_id]
             sref = ref_surfs[sref_id]
             wing.set_sref(sref)
+
+        # Attach fuselage reference surfaces to the bodies.
+        for sref_id in fuselage_bodies:
+            if sref_id in href_surfs:
+                fuselage = fuselage_bodies[sref_id]
+                sref = href_surfs[sref_id]
+                fuselage.add_metadata('hsref', sref)
+            if sref_id in vref_surfs:
+                fuselage = fuselage_bodies[sref_id]
+                sref = vref_surfs[sref_id]
+                fuselage.add_metadata('vsref', sref)
 
         # Update
         self._bodies.update(bodies)
