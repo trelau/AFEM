@@ -1,6 +1,6 @@
 import unittest
 
-from OCCT.TopoDS import TopoDS_Solid
+from OCCT.TopoDS import TopoDS_Face, TopoDS_Shell, TopoDS_Solid
 
 from afem.exchange import brep
 from afem.geometry import Point
@@ -23,8 +23,10 @@ class TestCreate(unittest.TestCase):
         p1 = Point(0, 0, 0)
         p2 = Point(1, 0, 0)
         p3 = Point(0.5, 0.5, 0)
-        solid = SphereBy3Points(p1, p2, p3).solid
-        self.assertIsInstance(solid, TopoDS_Solid)
+        builder = SphereBy3Points(p1, p2, p3)
+        self.assertIsInstance(builder.face, TopoDS_Face)
+        self.assertIsInstance(builder.shell, TopoDS_Shell)
+        self.assertIsInstance(builder.solid, TopoDS_Solid)
 
 
 class TestBop(unittest.TestCase):

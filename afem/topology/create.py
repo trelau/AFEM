@@ -1394,18 +1394,39 @@ class SphereBy3Points(object):
 
         circle = CircleBy3Points(p1, p2, p3).circle
 
-        builder = BRepPrimAPI_MakeSphere(circle.center, circle.radius)
+        self._builder = BRepPrimAPI_MakeSphere(circle.center, circle.radius)
 
-        self._sphere = builder.Sphere()
-        self._solid = builder.Solid()
+    @property
+    def is_done(self):
+        """
+        :return: *True* if done, *False* otherwise.
+        :rtype: bool
+        """
+        return self._builder.IsDone()
+
+    @property
+    def face(self):
+        """
+        :return: The sphere as a face.
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return self._builder.Face()
+
+    @property
+    def shell(self):
+        """
+        :return: The sphere as a shell.
+        :rtype: OCCT.TopoDS.TopoDS_Shell
+        """
+        return self._builder.Shell()
 
     @property
     def solid(self):
         """
-        :return: The solid.
+        :return: The sphere as a solid.
         :rtype: OCCT.TopoDS.TopoDS_Solid
         """
-        return self._solid
+        return self._builder.Solid()
 
     @property
     def sphere(self):
@@ -1413,7 +1434,7 @@ class SphereBy3Points(object):
         :return: The sphere primitive.
         :rtype: OCCT.BRepPrim.BRepPrim_Sphere
         """
-        return self._sphere
+        return self._builder.Sphere()
 
 
 # GEOMETRY --------------------------------------------------------------------
