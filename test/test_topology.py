@@ -1,6 +1,9 @@
 import unittest
 
+from OCCT.TopoDS import TopoDS_Solid
+
 from afem.exchange import brep
+from afem.geometry import Point
 from afem.graphics import Viewer
 from afem.topology import *
 
@@ -9,6 +12,19 @@ def show_shapes(*shapes):
     v = Viewer()
     v.add(*shapes)
     v.start()
+
+
+class TestCreate(unittest.TestCase):
+    """
+    Test cases for topology creation.
+    """
+
+    def test_sphere_by_3_points(self):
+        p1 = Point(0, 0, 0)
+        p2 = Point(1, 0, 0)
+        p3 = Point(0.5, 0.5, 0)
+        solid = SphereBy3Points(p1, p2, p3).solid
+        self.assertIsInstance(solid, TopoDS_Solid)
 
 
 class TestBop(unittest.TestCase):

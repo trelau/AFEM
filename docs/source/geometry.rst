@@ -150,6 +150,10 @@ CircleByPlane
 ~~~~~~~~~~~~~
 .. autoclass:: CircleByPlane
 
+CircleBy3Points
+~~~~~~~~~~~~~~~
+.. autoclass:: CircleBy3Points
+
 NurbsCurveByData
 ~~~~~~~~~~~~~~~~
 .. autoclass:: NurbsCurveByData

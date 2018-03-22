@@ -190,6 +190,10 @@ ShapeByDrag
 ~~~~~~~~~~~
 .. autoclass:: ShapeByDrag
 
+SphereBy3Points
+~~~~~~~~~~~~~~~
+.. autoclass:: SphereBy3Points
+
 PointAlongShape
 ~~~~~~~~~~~~~~~
 .. autoclass:: PointAlongShape

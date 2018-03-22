@@ -22,11 +22,13 @@ from OCCT.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
                                  BRepBuilderAPI_MakeShell,
                                  BRepBuilderAPI_MakeSolid,
                                  BRepBuilderAPI_MakeVertex,
-                                 BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
+                                 BRepBuilderAPI_MakeWire,
+                                 BRepBuilderAPI_Sewing)
 from OCCT.BRepMesh import BRepMesh_IncrementalMesh
 from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset)
 from OCCT.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
-                              BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism)
+                              BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism,
+                              BRepPrimAPI_MakeSphere)
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCCT.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCCT.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
@@ -41,7 +43,7 @@ from OCCT.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
 from numpy import ceil
 
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import PlaneByApprox
+from afem.geometry.create import CircleBy3Points, PlaneByApprox
 from afem.geometry.entities import Plane, Point
 from afem.topology.bop import IntersectShapes
 from afem.topology.check import CheckShape
@@ -57,7 +59,9 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
            "SolidByCylinder",
            "CompoundByShapes", "HalfspaceByShape", "HalfspaceBySurface",
-           "ShapeByFaces", "ShapeByDrag", "PointAlongShape",
+           "ShapeByFaces", "ShapeByDrag",
+           "SphereBy3Points",
+           "PointAlongShape",
            "PointsAlongShapeByNumber", "PointsAlongShapeByDistance",
            "PlaneByEdges", "PlaneByIntersectingShapes"]
 
@@ -979,6 +983,8 @@ class ShellBySewing(object):
         return self._shells
 
 
+# SOLID -----------------------------------------------------------------------
+
 class SolidByShell(object):
     """
     Create a solid using a shell. The shell can either be closed (finite
@@ -998,8 +1004,6 @@ class SolidByShell(object):
         """
         return self._solid
 
-
-# SOLID -----------------------------------------------------------------------
 
 class SolidByPlane(object):
     """
@@ -1370,6 +1374,46 @@ class ShapeByDrag(object):
         :rtype: bool
         """
         return self.shape.ShapeType() == TopAbs_COMPOUND
+
+
+# SPHERE ----------------------------------------------------------------------
+
+class SphereBy3Points(object):
+    """
+    Create a sphere using three points.
+
+    :param point_like p1: The first point.
+    :param point_like p2: The second point.
+    :param point_like p3: The third point.
+    """
+
+    def __init__(self, p1, p2, p3):
+        p1 = CheckGeom.to_point(p1)
+        p2 = CheckGeom.to_point(p2)
+        p3 = CheckGeom.to_point(p3)
+
+        circle = CircleBy3Points(p1, p2, p3).circle
+
+        builder = BRepPrimAPI_MakeSphere(circle.center, circle.radius)
+
+        self._sphere = builder.Sphere()
+        self._solid = builder.Solid()
+
+    @property
+    def solid(self):
+        """
+        :return: The solid.
+        :rtype: OCCT.TopoDS.TopoDS_Solid
+        """
+        return self._solid
+
+    @property
+    def sphere(self):
+        """
+        :return: The sphere primitive.
+        :rtype: OCCT.BRepPrim.BRepPrim_Sphere
+        """
+        return self._sphere
 
 
 # GEOMETRY --------------------------------------------------------------------

@@ -16,6 +16,7 @@ from warnings import warn
 
 from OCCT.Approx import Approx_ChordLength, Approx_IsoParametric
 from OCCT.BSplCLib import BSplCLib
+from OCCT.GC import GC_MakeCircle
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCCT.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
                        Geom_Line, Geom_Plane, Geom_TrimmedCurve)
@@ -55,7 +56,7 @@ __all__ = ["PointByXYZ", "PointByArray",
            "PointsAlongCurveByDistance", "DirectionByXYZ", "DirectionByArray",
            "DirectionByPoints", "VectorByXYZ", "VectorByArray",
            "VectorByPoints", "LineByVector", "LineByPoints", "CircleByNormal",
-           "CircleByPlane",
+           "CircleByPlane", "CircleBy3Points",
            "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
            "NurbsCurveByPoints", "TrimmedCurveByParameters",
            "TrimmedCurveByPoints", "TrimmedCurveByCurve",
@@ -694,6 +695,8 @@ class LineByPoints(object):
         return self._line
 
 
+# CIRCLE ----------------------------------------------------------------------
+
 class CircleByNormal(object):
     """
     Create a circle using a center, normal, and radius.
@@ -764,6 +767,32 @@ class CircleByPlane(object):
         gp_circ = gce_MakeCirc(center, plane.object.Pln(), radius).Value()
 
         self._circle = Circle(Geom_Circle(gp_circ))
+
+    @property
+    def circle(self):
+        """
+        :return: The circle.
+        :rtype: afem.geometry.entities.Circle
+        """
+        return self._circle
+
+
+class CircleBy3Points(object):
+    """
+    Create a circle using three points.
+
+    :param point_like p1: The first point.
+    :param point_like p2: The second point.
+    :param point_like p3: The third point.
+    """
+
+    def __init__(self, p1, p2, p3):
+        p1 = CheckGeom.to_point(p1)
+        p2 = CheckGeom.to_point(p2)
+        p3 = CheckGeom.to_point(p3)
+
+        geom_circ = GC_MakeCircle(p1, p2, p3).Value()
+        self._circle = Circle(geom_circ)
 
     @property
     def circle(self):

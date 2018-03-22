@@ -1360,6 +1360,14 @@ class Circle(Curve):
         """
         return self.object.Radius()
 
+    @property
+    def center(self):
+        """
+        :return: The center point of the circle.
+        :rtype: afem.geometry.entities.Point
+        """
+        return Point(self.object.Location().XYZ())
+
     @staticmethod
     def downcast(crv):
         """
