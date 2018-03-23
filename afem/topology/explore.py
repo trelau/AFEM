@@ -44,6 +44,35 @@ class ExploreShape(object):
     """
 
     @staticmethod
+    def get_shapes(shape, unique=True, type_=TopAbs_SHAPE):
+        """
+        Get sub-shapes from a shape.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param bool unique: Option to return only unique shapes.
+        :param OCCT.TopAbs.TopAbs_ShapeEnum type_: The shape type.
+
+        :return: List of shapes of specified type.
+        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        """
+        exp = TopExp_Explorer(shape, type_)
+        shapes = []
+        while exp.More():
+            si = exp.Current()
+            if unique:
+                is_unique = True
+                for s in shapes:
+                    if s.IsSame(si):
+                        is_unique = False
+                        break
+                if is_unique:
+                    shapes.append(si)
+            else:
+                shapes.append(si)
+            exp.Next()
+        return shapes
+
+    @staticmethod
     def get_vertices(shape, unique=True):
         """
         Get vertices from a shape.
@@ -216,6 +245,35 @@ class ExploreShape(object):
             compounds.append(compound)
             exp.Next()
         return compounds
+
+    @staticmethod
+    def get_shared_vertices(shape1, shape2):
+        """
+        Get the shared vertices between the two shapes.
+
+        :param TopoDS.TopoDS_Shape shape1: The first shape.
+        :param TopoDS.TopoDS_Shape shape2: The second shape.
+
+        :rtype: List of shared edges.
+        :rtype: list[OCCT.TopoDS.TopoDS_Vertex]
+        """
+        verts1 = ExploreShape.get_vertices(shape1)
+        verts2 = ExploreShape.get_vertices(shape2)
+        if not verts1 or not verts2:
+            return []
+
+        shared_verts = []
+        for v1, v2 in product(verts1, verts2):
+            if v1.IsSame(v2):
+                unique = True
+                for vi in shared_verts:
+                    if vi.IsSame(v1):
+                        unique = False
+                        break
+                if unique:
+                    shared_verts.append(v1)
+
+        return shared_verts
 
     @staticmethod
     def get_shared_edges(shape1, shape2):

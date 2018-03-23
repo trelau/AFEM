@@ -10,6 +10,7 @@
 # WITHOUT ANY WARRANTIES OR REPRESENTATIONS EXPRESS, IMPLIED OR 
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+from OCCT.TopAbs import TopAbs_SHAPE, TopAbs_EDGE, TopAbs_FACE
 from OCCT.TopoDS import TopoDS_Shape
 from numpy import mean
 
@@ -89,6 +90,7 @@ class Part(ViewableItem):
     """
     _indx = 1
     _mesh = None
+    _core_shape = TopAbs_SHAPE
 
     def __init__(self, label, shape, cref=None, sref=None, group=None):
         super(Part, self).__init__()
@@ -1006,6 +1008,7 @@ class Part(ViewableItem):
         :raise TypeError: If this part is or the splitter not a curve or
             surface part.
         """
+        other_part = None
         if isinstance(splitter, Part):
             other_part = splitter
         splitter = shape_of_entity(splitter)
@@ -1021,7 +1024,7 @@ class Part(ViewableItem):
             return False
 
         parts = [self]
-        if rebuild_both:
+        if rebuild_both and other_part is not None:
             parts.append(other_part)
         for part in parts:
             part.rebuild(split)
@@ -1238,6 +1241,42 @@ class Part(ViewableItem):
         status2 = self.discard_by_solid(hs2)
         return status1 or status2
 
+    def shared_vertices(self, other, as_compound=False):
+        """
+        Get vertices shared between the two parts.
+
+        :param other: The other part or shape.
+        :type other: afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
+        :param bool as_compound: Option to return the shared vertices in a
+            compound.
+
+        :return: Shared vertices.
+        :rtype: list[OCCT.TopoDS.TopoDS_Vertex] or OCCT.TopoDS.TopoDS_Compound
+        """
+        other = shape_of_entity(other)
+        verts = ExploreShape.get_shared_vertices(self._shape, other)
+        if not as_compound:
+            return verts
+        return CompoundByShapes(verts).compound
+
+    def shared_edges(self, other, as_compound=False):
+        """
+        Get edges shared between the two parts.
+
+        :param other: The other part or shape.
+        :type other: afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
+        :param bool as_compound: Option to return the shared edges in a
+            compound.
+
+        :return: Shared edges.
+        :rtype: list[OCCT.TopoDS.TopoDS_Edge] or OCCT.TopoDS.TopoDS_Compound
+        """
+        other = shape_of_entity(other)
+        edges = ExploreShape.get_shared_edges(self._shape, other)
+        if not as_compound:
+            return edges
+        return CompoundByShapes(edges).compound
+
     @classmethod
     def reset(cls):
         """
@@ -1264,6 +1303,7 @@ class CurvePart(Part):
     """
     Base class for curve parts.
     """
+    _core_shape = TopAbs_EDGE
 
     @property
     def length(self):
@@ -1285,6 +1325,7 @@ class SurfacePart(Part):
     """
     Base class for surface parts.
     """
+    _core_shape = TopAbs_FACE
 
     @property
     def length(self):
@@ -1443,24 +1484,6 @@ class SurfacePart(Part):
 
         self.rebuild(bop)
         return True
-
-    def shared_edges(self, other, as_compound=False):
-        """
-        Get edges shared between the two parts.
-
-        :param other: The other part or shape.
-        :type other: afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
-        :param bool as_compound: Option to return the shared edges in a
-            compound.
-
-        :return: Shared edges.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge] or OCCT.TopoDS.TopoDS_Compound
-        """
-        other = shape_of_entity(other)
-        edges = ExploreShape.get_shared_edges(self._shape, other)
-        if not as_compound:
-            return edges
-        return CompoundByShapes(edges).compound
 
     def shared_nodes(self, other):
         """
