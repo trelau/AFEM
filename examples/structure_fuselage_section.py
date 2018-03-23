@@ -18,7 +18,7 @@ floor_beam_height = 6
 radius = diameter / 2.
 
 # Create a solid cylinder to represent fuselage section.
-cylinder = SolidByCylinder(radius, length).solid
+cylinder = CylinderByAxis(radius, length).solid
 fuselage = Body(cylinder)
 
 # Skin

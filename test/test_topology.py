@@ -19,6 +19,34 @@ class TestCreate(unittest.TestCase):
     Test cases for topology creation.
     """
 
+    def test_box_by_size(self):
+        builder = BoxBySize(10., 10., 10.)
+        self.assertIsInstance(builder.shell, TopoDS_Shell)
+        self.assertIsInstance(builder.solid, TopoDS_Solid)
+        self.assertIsInstance(builder.bottom_face, TopoDS_Face)
+        self.assertIsInstance(builder.back_face, TopoDS_Face)
+        self.assertIsInstance(builder.front_face, TopoDS_Face)
+        self.assertIsInstance(builder.left_face, TopoDS_Face)
+        self.assertIsInstance(builder.right_face, TopoDS_Face)
+        self.assertIsInstance(builder.top_face, TopoDS_Face)
+
+    def test_box_by_2_points(self):
+        builder = BoxBy2Points((0, 0, 0), (10, 10, 10))
+        self.assertIsInstance(builder.shell, TopoDS_Shell)
+        self.assertIsInstance(builder.solid, TopoDS_Solid)
+        self.assertIsInstance(builder.bottom_face, TopoDS_Face)
+        self.assertIsInstance(builder.back_face, TopoDS_Face)
+        self.assertIsInstance(builder.front_face, TopoDS_Face)
+        self.assertIsInstance(builder.left_face, TopoDS_Face)
+        self.assertIsInstance(builder.right_face, TopoDS_Face)
+        self.assertIsInstance(builder.top_face, TopoDS_Face)
+
+    def test_cylinder_by_axis(self):
+        builder = CylinderByAxis(1, 10)
+        self.assertIsInstance(builder.face, TopoDS_Face)
+        self.assertIsInstance(builder.shell, TopoDS_Shell)
+        self.assertIsInstance(builder.solid, TopoDS_Solid)
+
     def test_sphere_by_3_points(self):
         p1 = Point(0, 0, 0)
         p2 = Point(1, 0, 0)

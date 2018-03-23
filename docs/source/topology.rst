@@ -166,10 +166,6 @@ SolidByDrag
 ~~~~~~~~~~~
 .. autoclass:: SolidByDrag
 
-SolidByCylinder
-~~~~~~~~~~~~~~~
-.. autoclass:: SolidByCylinder
-
 CompoundByShapes
 ~~~~~~~~~~~~~~~~
 .. autoclass:: CompoundByShapes
@@ -189,6 +185,22 @@ ShapeByFaces
 ShapeByDrag
 ~~~~~~~~~~~
 .. autoclass:: ShapeByDrag
+
+BoxBuilder
+~~~~~~~~~~
+.. autoclass:: BoxBuilder
+
+BoxBySize
+~~~~~~~~~
+.. autoclass:: BoxBySize
+
+BoxBy2Points
+~~~~~~~~~~~~
+.. autoclass:: BoxBy2Points
+
+CylinderByAxis
+~~~~~~~~~~~~~~
+.. autoclass:: CylinderByAxis
 
 SphereBy3Points
 ~~~~~~~~~~~~~~~

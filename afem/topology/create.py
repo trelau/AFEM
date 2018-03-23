@@ -28,7 +28,7 @@ from OCCT.BRepMesh import BRepMesh_IncrementalMesh
 from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset)
 from OCCT.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
                               BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism,
-                              BRepPrimAPI_MakeSphere)
+                              BRepPrimAPI_MakeSphere, BRepPrimAPI_MakeBox)
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCCT.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCCT.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
@@ -57,9 +57,10 @@ __all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
            "FaceByPlane", "FaceByPlanarWire", "FaceByDrag", "ShellBySurface",
            "ShellByFaces", "ShellBySewing",
            "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
-           "SolidByCylinder",
            "CompoundByShapes", "HalfspaceByShape", "HalfspaceBySurface",
            "ShapeByFaces", "ShapeByDrag",
+           "BoxBuilder", "BoxBySize", "BoxBy2Points",
+           "CylinderByAxis",
            "SphereBy3Points",
            "PointAlongShape",
            "PointsAlongShapeByNumber", "PointsAlongShapeByDistance",
@@ -1098,40 +1099,6 @@ class SolidByDrag(object):
         return self._f2
 
 
-class SolidByCylinder(object):
-    """
-    Create a cylindrical solid.
-
-    :param float radius: The radius.
-    :param float height: The height.
-    :param axis2: Not yet implemented. Solid will be constructed in xy-plane.
-
-    :raise NotImplementedError: If an axis is provided.
-
-    Usage:
-
-    >>> from afem.topology import SolidByCylinder
-    >>> builder = SolidByCylinder(1., 1.)
-    >>> solid=builder.solid
-    """
-
-    def __init__(self, radius, height, axis2=None):
-        if axis2 is None:
-            builder = BRepPrimAPI_MakeCylinder(radius, height)
-        else:
-            raise NotImplementedError('Providing Axis2 not yet implemented.')
-
-        self._solid = builder.Solid()
-
-    @property
-    def solid(self):
-        """
-        :return: The solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
-        """
-        return self._solid
-
-
 # COMPOUND --------------------------------------------------------------------
 
 class CompoundByShapes(object):
@@ -1376,6 +1343,152 @@ class ShapeByDrag(object):
         return self.shape.ShapeType() == TopAbs_COMPOUND
 
 
+# BOX -------------------------------------------------------------------------
+
+class BoxBuilder(object):
+    """
+    Base class for building boxes.
+    """
+
+    def __init__(self, *args):
+        self._builder = BRepPrimAPI_MakeBox(*args)
+
+    @property
+    def shell(self):
+        """
+        :return: The box as a shell.
+        :rtype: OCCT.TopoDS.TopoDS_Shell
+        """
+        return self._builder.Shell()
+
+    @property
+    def solid(self):
+        """
+        :return: The box as a solid.
+        :rtype: OCCT.TopoDS.TopoDS_Solid
+        """
+        return self._builder.Solid()
+
+    @property
+    def bottom_face(self):
+        """
+        :return: The bottom face.
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return self._builder.BottomFace()
+
+    @property
+    def back_face(self):
+        """
+        :return: The back face.
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return self._builder.BackFace()
+
+    @property
+    def front_face(self):
+        """
+        :return: The front face.
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return self._builder.FrontFace()
+
+    @property
+    def left_face(self):
+        """
+        :return: The left face.
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return self._builder.LeftFace()
+
+    @property
+    def right_face(self):
+        """
+        :return: The right face.
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return self._builder.RightFace()
+
+    @property
+    def top_face(self):
+        """
+        :return: The top face.
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return self._builder.TopFace()
+
+
+class BoxBySize(BoxBuilder):
+    """
+    Build a box with the corner at (0, 0, 0) and the other at (dx, dy, dz).
+
+    :param float dx: The corner x-location.
+    :param float dy: The corner y-location.
+    :param float dz: The corner z-location.
+    """
+
+    def __init__(self, dx=1., dy=1., dz=1.):
+        super(BoxBySize, self).__init__(dx, dy, dz)
+
+
+class BoxBy2Points(BoxBuilder):
+    """
+    Build a box between two points.
+
+    :param point_like p1: The first corner point.
+    :param point_like p2: The other corner point.
+    """
+
+    def __init__(self, p1, p2):
+        p1 = CheckGeom.to_point(p1)
+        p2 = CheckGeom.to_point(p2)
+        super(BoxBy2Points, self).__init__(p1, p2)
+
+
+# CYLINDER --------------------------------------------------------------------
+
+class CylinderByAxis(object):
+    """
+    Create a cylinder.
+
+    :param float radius: The radius.
+    :param float height: The height.
+    :param axis2: Not yet implemented. Solid will be constructed in xy-plane.
+
+    :raise NotImplementedError: If an axis is provided.
+    """
+
+    def __init__(self, radius, height, axis2=None):
+        if axis2 is None:
+            self._builder = BRepPrimAPI_MakeCylinder(radius, height)
+        else:
+            raise NotImplementedError('Providing Axis2 not yet implemented.')
+
+    @property
+    def face(self):
+        """
+        :return: The lateral face of the cylinder
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return self._builder.Face()
+
+    @property
+    def shell(self):
+        """
+        :return: The cylinder as a shell.
+        :rtype: OCCT.TopoDS.TopoDS_Shell
+        """
+        return self._builder.Shell()
+
+    @property
+    def solid(self):
+        """
+        :return: The cylinder as a solid.
+        :rtype: OCCT.TopoDS.TopoDS_Solid
+        """
+        return self._builder.Solid()
+
+
 # SPHERE ----------------------------------------------------------------------
 
 class SphereBy3Points(object):
@@ -1395,14 +1508,6 @@ class SphereBy3Points(object):
         circle = CircleBy3Points(p1, p2, p3).circle
 
         self._builder = BRepPrimAPI_MakeSphere(circle.center, circle.radius)
-
-    @property
-    def is_done(self):
-        """
-        :return: *True* if done, *False* otherwise.
-        :rtype: bool
-        """
-        return self._builder.IsDone()
 
     @property
     def face(self):
