@@ -28,7 +28,8 @@ from afem.topology.modify import SewShape
 from afem.topology.offset import SweepShapeWithNormal, SweepShape
 from afem.topology.props import *
 
-__all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
+__all__ = ["CurvePartByShape", "Beam1DByShape", "Beam1DByCurve",
+           "Beam1DByPoints",
            "SurfacePartByShape", "SparByParameters", "SparByPoints",
            "SparByEnds",
            "SparBySurface", "SparByShape",
@@ -50,7 +51,7 @@ __all__ = ["CurvePartByShape", "BeamByShape", "BeamByCurve", "BeamByPoints",
 _type_to_part = {
     'Part': Part,
     'CurvePart': CurvePart,
-    'Beam': Beam,
+    'Beam1D': Beam1D,
     'SurfacePart': SurfacePart,
     'WingPart': WingPart,
     'Spar': Spar,
@@ -129,9 +130,9 @@ class CurvePartByShape(object):
         return self._curve_part
 
 
-# BEAM ------------------------------------------------------------------------
+# BEAM1D ----------------------------------------------------------------------
 
-class BeamByShape(object):
+class Beam1DByShape(object):
     """
     Create a beam using a shape.
 
@@ -147,9 +148,9 @@ class BeamByShape(object):
     Usage:
 
     >>> from afem.topology import EdgeByPoints
-    >>> from afem.structure import BeamByShape
+    >>> from afem.structure import Beam1DByShape
     >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> beam = BeamByShape('part', e).beam
+    >>> beam = Beam1DByShape('part', e).beam
     """
 
     def __init__(self, label, shape, cref=None, group=None):
@@ -159,18 +160,18 @@ class BeamByShape(object):
         if cref is None:
             cref = ExploreShape.curve_of_shape(shape)
 
-        self._beam = Beam(label, shape, cref, None, group)
+        self._beam = Beam1D(label, shape, cref, None, group)
 
     @property
     def beam(self):
         """
         :return: The beam.
-        :rtype: afem.structure.entities.Beam
+        :rtype: afem.structure.entities.Beam1D
         """
         return self._beam
 
 
-class BeamByCurve(BeamByShape):
+class Beam1DByCurve(Beam1DByShape):
     """
     Create a beam using a curve.
 
@@ -183,17 +184,17 @@ class BeamByCurve(BeamByShape):
     Usage:
 
     >>> from afem.geometry import NurbsCurveByPoints
-    >>> from afem.structure import BeamByCurve
+    >>> from afem.structure import Beam1DByCurve
     >>> c = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> part = BeamByCurve('part', c).beam
+    >>> part = Beam1DByCurve('part', c).beam
     """
 
     def __init__(self, label, crv, group=None):
         e = EdgeByCurve(crv).edge
-        super(BeamByCurve, self).__init__(label, e, crv, group)
+        super(Beam1DByCurve, self).__init__(label, e, crv, group)
 
 
-class BeamByPoints(BeamByCurve):
+class Beam1DByPoints(Beam1DByCurve):
     """
     Create a beam between two points.
 
@@ -206,8 +207,8 @@ class BeamByPoints(BeamByCurve):
 
     Usage:
 
-    >>> from afem.structure import BeamByPoints
-    >>> beam = BeamByPoints('part', (0., 0., 0.), (10., 0., 0.)).beam
+    >>> from afem.structure import Beam1DByPoints
+    >>> beam = Beam1DByPoints('part', (0., 0., 0.), (10., 0., 0.)).beam
     >>> beam.length
     10.0
     """
@@ -216,7 +217,7 @@ class BeamByPoints(BeamByCurve):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
         c = NurbsCurveByPoints([p1, p2]).curve
-        super(BeamByPoints, self).__init__(label, c, group)
+        super(Beam1DByPoints, self).__init__(label, c, group)
 
 
 # SURFACE PART ----------------------------------------------------------------

@@ -40,7 +40,7 @@ from afem.topology.modify import (RebuildShapeByTool,
                                   SewShape, UnifyShape)
 from afem.topology.props import LengthOfShapes, LinearProps, SurfaceProps
 
-__all__ = ["Part", "CurvePart", "Beam", "SurfacePart", "WingPart", "Spar",
+__all__ = ["Part", "CurvePart", "Beam1D", "SurfacePart", "WingPart", "Spar",
            "Rib", "FuselagePart", "Bulkhead", "Floor", "Frame", "Skin",
            "Stiffener1D", "Stiffener2D", "Stringer", "Beam2D",
            "shape_of_entity"]
@@ -1274,9 +1274,9 @@ class CurvePart(Part):
         return LinearProps(self._shape).length
 
 
-class Beam(CurvePart):
+class Beam1D(CurvePart):
     """
-    Beam.
+    Beam 1-D.
     """
     pass
 

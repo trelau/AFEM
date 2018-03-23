@@ -131,7 +131,7 @@ for frame in frames[3:]:
     section = IntersectShapes(frame.plane, post_face1).shape
     shape = CutShapes(section, rev_fuselage).shape
     if not shape.IsNull():
-        post = Beam('post', shape)
+        post = Beam1D('post', shape)
         post.set_color(1, 0, 0)
         post.cut(floor)
         post.cut(above_floor2)
@@ -139,7 +139,7 @@ for frame in frames[3:]:
     section = IntersectShapes(frame.plane, post_face2).shape
     shape = CommonShapes(section, fuselage.solid).shape
     if not shape.IsNull():
-        post = Beam('post', shape)
+        post = Beam1D('post', shape)
         post.set_color(1, 0, 0)
         post.cut(floor)
         post.cut(above_floor2)

@@ -17,9 +17,9 @@ CurvePart
 ~~~~~~~~~
 .. autoclass:: CurvePart
 
-Beam
-~~~~
-.. autoclass:: Beam
+Beam1D
+~~~~~~
+.. autoclass:: Beam1D
 
 SurfacePart
 ~~~~~~~~~~~
@@ -89,17 +89,17 @@ CurvePartByShape
 ~~~~~~~~~~~~~~~~
 .. autoclass:: CurvePartByShape
 
-BeamByShape
-~~~~~~~~~~~
-.. autoclass:: BeamByShape
+Beam1DByShape
+~~~~~~~~~~~~~
+.. autoclass:: Beam1DByShape
 
-BeamByCurve
-~~~~~~~~~~~
-.. autoclass:: BeamByCurve
+Beam1DByCurve
+~~~~~~~~~~~~~
+.. autoclass:: Beam1DByCurve
 
-BeamByPoints
-~~~~~~~~~~~~
-.. autoclass:: BeamByPoints
+Beam1DByPoints
+~~~~~~~~~~~~~~
+.. autoclass:: Beam1DByPoints
 
 SurfacePartByShape
 ~~~~~~~~~~~~~~~~~~

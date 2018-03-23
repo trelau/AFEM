@@ -123,20 +123,20 @@ class TestCreate(unittest.TestCase):
 
     def test_beam_by_shape(self):
         e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-        builder = BeamByShape('beam', e)
+        builder = Beam1DByShape('beam', e)
         part = builder.beam
-        self.assertIsInstance(part, Beam)
+        self.assertIsInstance(part, Beam1D)
 
     def test_beam_by_curve(self):
         c = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-        builder = BeamByCurve('beam', c)
+        builder = Beam1DByCurve('beam', c)
         part = builder.beam
-        self.assertIsInstance(part, Beam)
+        self.assertIsInstance(part, Beam1D)
 
     def test_beam_by_points(self):
-        builder = BeamByPoints('part', (0., 0., 0.), (10., 0., 0.))
+        builder = Beam1DByPoints('part', (0., 0., 0.), (10., 0., 0.))
         part = builder.beam
-        self.assertIsInstance(part, Beam)
+        self.assertIsInstance(part, Beam1D)
 
     def test_surface_part_by_shape(self):
         e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
