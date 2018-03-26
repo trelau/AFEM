@@ -1,9 +1,7 @@
-from __future__ import print_function
-
 from afem.config import Settings
+from afem.exchange import ImportVSP
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.oml import Body
 from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
@@ -11,62 +9,75 @@ from afem.topology import *
 Settings.log_to_console()
 
 # Import model
-fname = r'..\models\tbw.xbf'
-bodies = Body.load_bodies(fname)
+fname = '../models/uniform_wing.stp'
+vsp = ImportVSP(fname)
+wing = vsp.get_body('Wing')
 
-# Get the fuselage and define some bulkheads
-fuselage = bodies['Fuselage']
-fuselage.set_transparency(0.5)
+# Reference curves using wing reference surface generated from modified
+# OpenVSP
+cref1 = wing.sref.u_iso(0.25)
+cref2 = wing.sref.u_iso(0.65)
 
-pln1 = PlaneByAxes((100, 0, 0), 'yz').plane
-pln2 = PlaneByAxes((400, 0, 0), 'yz').plane
+# Plane at rear spar to cut ribs with. The will enable the 1-D beam to be
+# properly fused.
+aft_pln = wing.extract_plane(0.65, 0., 0.65, 1.)
 
-planes = PlanesBetweenPlanesByNumber(pln1, pln2, 3).planes
+# Ribs
+xz_pln = PlaneByAxes(axes='xz').plane
+ribs = RibsAlongCurveByDistance('Rib', cref1, 16., cref1, cref2, wing, xz_pln,
+                                d1=6).ribs
 
-bulkheads = []
-for pln in planes:
-    bh = BulkheadBySurface('bh', pln, fuselage).bulkhead
-    bulkheads.append(bh)
+# Cut the ribs so there is an edge to join the 1-D beam with
+CutParts(ribs, aft_pln)
 
-# Define some edges to form a beam cross section. Build the section oriented
-# with the started point and orientation in mind.
-e1 = EdgeByPoints((100, -3, 4), (100, 3, 4)).edge
-e2 = EdgeByPoints((100, -3, -4), (100, 3, -4)).edge
-e3 = EdgeByPoints((100, 0, 4), (100, 0, -4)).edge
-bop = FuseShapes()
-bop.set_args([e1, e2])
-bop.set_tools([e3])
-bop.build()
-profile = bop.shape
+# Circular cross section for front spar
+circle1 = CircleByNormal(cref1.eval(0.), cref1.deriv(0., 1), 2.75).circle
+beam1 = Beam2DBySweep('beam 1', cref1, circle1).beam2d
 
-# Define the spine (i.e., path)
-spine = EdgeByPoints((100, 0, 0), (400, 0, 0)).edge
+# Aft spar is a 1-D beam
+beam2 = Beam1DByCurve('beam 2', cref2).beam
 
-# Build the beam
-ibeam = Beam2DBySweep('beam', spine, profile).beam2d
+# Create a solid to cut the ribs with
+face = FaceByPlanarWire(circle1).face
+solid = SweepShape(cref1, face).shape
+CutParts(ribs, solid)
 
-# Fuse all the surface parts
-FuseSurfaceParts(bulkheads, [ibeam])
+# Wing skin
+skin = SkinByBody('skin', wing).skin
+skin.set_color(0.5, 0.5, 0.5)
+skin.set_transparency(0.5)
 
-v = Viewer()
-v.add(fuselage, ibeam, *bulkheads)
-print('Press \'c\' to continue...')
-v.start()
+# Discard end caps of skin
+skin.discard_by_dmin(cref1, 0.5)
 
-# Mesh to test connection
+# Join all the parts
+parts = GroupAPI.get_parts()
+SplitParts(parts)
+
+gui = Viewer()
+gui.add(*parts)
+gui.start()
+
+# Mesh
 print('Computing the mesh...')
 the_shape = GroupAPI.prepare_shape_to_mesh()
 the_gen = MeshGen()
 the_mesh = MeshGen.create_mesh(the_gen)
 the_mesh.shape_to_mesh(the_shape)
 
-hyp2d = NetgenSimple2D(the_gen, 2.)
+# 2-D mesh
+hyp2d = NetgenSimple2D(the_gen, 1.)
 alg2d = NetgenAlgo2D(the_gen)
 the_mesh.add_hypothesis(hyp2d, the_shape)
 the_mesh.add_hypothesis(alg2d, the_shape)
 
+# 1-D mesh for beam
+hyp1d = MaxLength1D(the_gen, 1.)
+alg1d = Regular1D(the_gen)
+the_mesh.add_hypotheses([hyp1d, alg1d], beam2.shape)
+
 the_gen.compute(the_mesh, the_shape)
 
-v.clear()
-v.display_mesh(the_mesh.object)
-v.start()
+gui.clear()
+gui.add(the_mesh)
+gui.start()

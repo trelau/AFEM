@@ -337,9 +337,11 @@ class SweepShape(object):
     """
     Sweep a profile along a spine.
 
-    :param OCCT.TopoDS.TopoDS_Wire spine: The path for the sweep. This must
-        be at least G1 continuous.
-    :param OCCT.TopoDS.TopoDS_Shape profile: The profile.
+    :param spine: The path for the sweep. This must be at least G1 continuous.
+    :type spine: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Edge or
+        OCCT.TopoDS.TopoDS_Wire
+    :param profile: The profile.
+    :type profile: afem.geometry.entities.Geometry or OCCT.TopoDS.TopoDS_Shape
 
     For more information see BRepOffsetAPI_MakePipe_.
 
@@ -347,6 +349,8 @@ class SweepShape(object):
     """
 
     def __init__(self, spine, profile):
+        spine = CheckShape.to_wire(spine)
+        profile = CheckShape.to_shape(profile)
         self._tool = BRepOffsetAPI_MakePipe(spine, profile)
 
         self._tool.Build()

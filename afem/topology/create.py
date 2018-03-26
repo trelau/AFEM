@@ -689,7 +689,9 @@ class FaceByPlanarWire(object):
     """
     Create a face from a planar wire.
 
-    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param wire: The wire.
+    :type wire: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Edge or
+        OCCT.TopoDS.TopoDS_Wire
 
     Usage:
 
@@ -704,6 +706,7 @@ class FaceByPlanarWire(object):
     """
 
     def __init__(self, wire):
+        wire = CheckShape.to_wire(wire)
         self._f = BRepBuilderAPI_MakeFace(wire, True).Face()
 
     @property
