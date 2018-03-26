@@ -1921,6 +1921,15 @@ class Plane(Surface):
         """
         return self._object
 
+    @property
+    def origin(self):
+        """
+        :return: The origin of the plane. This simply evaluates the plane at
+            u=0 and v=0.
+        :rtype: afem.geometry.entities.Point
+        """
+        return self.eval()
+
     @staticmethod
     def downcast(srf):
         """
