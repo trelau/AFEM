@@ -9,7 +9,7 @@ from afem.structure import *
 from afem.topology import *
 
 
-class TestEntities(unittest.TestCase):
+class TestStructureEntities(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -99,7 +99,7 @@ class TestEntities(unittest.TestCase):
         self.assertIsInstance(self.fspar.face_compound, TopoDS_Compound)
 
 
-class TestCreate(unittest.TestCase):
+class TestStructureCreate(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

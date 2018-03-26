@@ -14,7 +14,7 @@ def show_shapes(*shapes):
     v.start()
 
 
-class TestCreate(unittest.TestCase):
+class TestTopologyCreate(unittest.TestCase):
     """
     Test cases for topology creation.
     """
@@ -57,7 +57,7 @@ class TestCreate(unittest.TestCase):
         self.assertIsInstance(builder.solid, TopoDS_Solid)
 
 
-class TestBop(unittest.TestCase):
+class TestTopologyBop(unittest.TestCase):
     """
     Test cases for Boolean operations.
     """

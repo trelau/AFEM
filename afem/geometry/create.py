@@ -80,12 +80,6 @@ class PointByXYZ(object):
     :param float x: x-location.
     :param float y: y-location.
     :param float z: z-location.
-
-    Usage:
-
-    >>> from afem.geometry import PointByXYZ
-    >>> PointByXYZ(1., 2., 3.).point
-    Point(1.000, 2.000, 3.000)
     """
 
     def __init__(self, x=0., y=0., z=0.):
@@ -108,20 +102,13 @@ class PointByArray(PointByXYZ):
     :param array_like xyz: Array-like object describing point location.
 
     :raise ValueError: If `len(xyz) != 3`.
-
-    Usage:
-
-    >>> from afem.geometry import PointByArray
-    >>> PointByArray([1., 2., 3.]).point
-    Point(1.000, 2.000, 3.000)
     """
 
     def __init__(self, xyz=(0., 0., 0.)):
         if len(xyz) != 3:
             msg = 'Invalid array size.'
             raise ValueError(msg)
-        x, y, z = xyz
-        super(PointByArray, self).__init__(x, y, z)
+        super(PointByArray, self).__init__(*xyz)
 
 
 class PointFromParameter(object):
@@ -134,18 +121,6 @@ class PointFromParameter(object):
     :param float tol: Tolerance.
 
     :raise RuntimeError: If OCC method fails.
-
-    Usage:
-
-    >>> from afem.geometry import LineByPoints, Point, PointFromParameter
-    >>> p1 = Point()
-    >>> p2 = Point(10., 0., 0.)
-    >>> line = LineByPoints(p1, p2).line
-    >>> builder = PointFromParameter(line, 0., 1.)
-    >>> builder.point
-    Point(1.000, 0.000, 0.000)
-    >>> builder.parameter
-    1.0
     """
 
     def __init__(self, c, u0, ds, tol=1.0e-7):
@@ -198,20 +173,6 @@ class PointsAlongCurveByNumber(object):
     For more information see GCPnts_UniformAbscissa_.
 
     .. _GCPnts_UniformAbscissa: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_g_c_pnts___uniform_abscissa.html
-
-    Usage:
-
-    >>> from afem.geometry import LineByPoints, Point, PointsAlongCurveByNumber
-    >>> p1 = Point()
-    >>> p2 = Point(10., 0., 0.)
-    >>> line = LineByPoints(p1, p2).line
-    >>> builder = PointsAlongCurveByNumber(line, 3, 0., 10.)
-    >>> builder.npts
-    3
-    >>> builder.points
-    [Point(0.000, 0.000, 0.000), Point(5.000, 0.000, 0.000), Point(10.000, 0.000, 0.000)]
-    >>> builder.parameters
-    [0.0, 5.0, 10.0]
     """
 
     def __init__(self, c, n, u1=None, u2=None, d1=None, d2=None, tol=1.0e-7):
@@ -328,20 +289,6 @@ class PointsAlongCurveByDistance(object):
     :param float tol: Tolerance.
 
     :raise RuntimeError: If OCC method fails.
-
-    Usage:
-
-    >>> from afem.geometry import LineByPoints, Point, PointsAlongCurveByDistance
-    >>> p1 = Point()
-    >>> p2 = Point(10., 0., 0.)
-    >>> line = LineByPoints(p1, p2).line
-    >>> builder = PointsAlongCurveByDistance(line, 5., 0., 10.)
-    >>> builder.npts
-    3
-    >>> builder.points
-    [Point(0.000, 0.000, 0.000), Point(5.000, 0.000, 0.000), Point(10.000, 0.000, 0.000)]
-    >>> builder.parameters
-    [0.0, 5.0, 10.0]
     """
 
     def __init__(self, c, maxd, u1=None, u2=None, d1=None, d2=None, nmin=0,
@@ -458,15 +405,9 @@ class DirectionByXYZ(object):
     :param float x: x-component.
     :param float y: y-component.
     :param float z: z-component.
-
-    Usage:
-
-    >>> from afem.geometry import DirectionByXYZ
-    >>> DirectionByXYZ(10., 0., 0.).direction
-    Direction(1.0, 0.0, 0.0)
     """
 
-    def __init__(self, x=0., y=0., z=0.):
+    def __init__(self, x=1., y=0., z=0.):
         d = Direction(x, y, z)
         self._d = d
 
@@ -486,20 +427,13 @@ class DirectionByArray(DirectionByXYZ):
     :param array_like xyz: Array-like object defining xyz-components.
 
     :raise ValueError: If `len(xyz) != 3`.
-
-    Usage:
-
-    >>> from afem.geometry import DirectionByArray
-    >>> DirectionByArray([10., 0., 0.]).direction
-    Direction(1.0, 0.0, 0.0)
     """
 
     def __init__(self, xyz=(1., 0., 0.)):
         if len(xyz) != 3:
             msg = 'Invalid array size.'
             raise ValueError(msg)
-        x, y, z = xyz
-        super(DirectionByArray, self).__init__(x, y, z)
+        super(DirectionByArray, self).__init__(*xyz)
 
 
 class DirectionByPoints(DirectionByArray):
@@ -508,14 +442,6 @@ class DirectionByPoints(DirectionByArray):
 
     :param point_like p1: The first point.
     :param point_like p2: The last point.
-
-    Usage:
-
-    >>> from afem.geometry import DirectionByPoints, Point
-    >>> p1 = Point()
-    >>> p2 = Point(10., 0., 0.)
-    >>> DirectionByPoints(p1, p2).direction
-    Direction(1.0, 0.0, 0.0)
     """
 
     def __init__(self, p1, p2):
@@ -533,15 +459,9 @@ class VectorByXYZ(object):
     :param float x: x-component.
     :param float y: y-component.
     :param float z: z-component.
-
-    Usage:
-
-    >>> from afem.geometry import VectorByXYZ
-    >>> VectorByXYZ(1., 2., 3.).vector
-    Vector(1.0, 2.0, 3.0)
     """
 
-    def __init__(self, x=0., y=0., z=0.):
+    def __init__(self, x=1., y=0., z=0.):
         v = Vector(x, y, z)
         self._v = v
 
@@ -561,36 +481,23 @@ class VectorByArray(VectorByXYZ):
     :param array_like xyz: Array-like object defining xyz-components.
 
     :raise ValueError: If `len(xyz) != 3`.
-
-    Usage:
-
-    >>> from afem.geometry import VectorByArray
-    >>> VectorByArray([1., 2., 3.]).vector
-    Vector(1.0, 2.0, 3.0)
     """
 
     def __init__(self, xyz=(1., 0., 0.)):
         if len(xyz) != 3:
             msg = 'Invalid array size.'
             raise ValueError(msg)
-        x, y, z = xyz
-        super(VectorByArray, self).__init__(x, y, z)
+        super(VectorByArray, self).__init__(*xyz)
 
 
 class VectorByPoints(object):
     """
-    Create a vecotr between two points.
+    Create a vector between two points.
 
     :param point_like p1: The first point.
     :param point_like p2: The last point.
 
     :raise TypeError: If *p1* or *p2* cannot be converted to a :class:`.Point`.
-
-    >>> from afem.geometry import Point, VectorByPoints
-    >>> p1 = Point()
-    >>> p2 = Point(1., 2., 3.)
-    >>> VectorByPoints(p1, p2).vector
-    Vector(1.0, 2.0, 3.0)
     """
 
     def __init__(self, p1, p2):
@@ -623,14 +530,6 @@ class LineByVector(object):
 
     :raise TypeError: If *p* cannot be converted to a :class:`.Point`
     :raise TypeError: If *d* cannot be converted to a :class:`.Direction`
-
-    Usage:
-
-    >>> from afem.geometry import Point, LineByVector
-    >>> p = Point()
-    >>> d = Direction(1., 0., 0.)
-    >>> builder = LineByVector(p, d)
-    >>> line = builder.line
     """
 
     def __init__(self, p, d):
@@ -662,14 +561,6 @@ class LineByPoints(object):
     :param point_like p2: The last point.
 
     :raise TypeError: If *p1* or *p2* cannot be converted to a :class:`.Point`.
-
-    Usage:
-
-    >>> from afem.geometry import LineByPoints, Point
-    >>> p1 = Point()
-    >>> p2 = Point(10., 0. ,0.)
-    >>> builder = LineByPoints(p1, p2)
-    >>> line = builder.line
     """
 
     def __init__(self, p1, p2):
@@ -704,14 +595,6 @@ class CircleByNormal(object):
     :param point_like center: The center point.
     :param vector_like normal: The normal of the plane.
     :param float radius: The radius.
-
-    Usage:
-
-    >>> from afem.geometry import CircleByNormal
-    >>> builder = CircleByNormal((0., 0., 0.), (1., 0., 0.), 1.)
-    >>> c = builder.circle
-    >>> c.eval(0.)
-    Point(0.000, 0.000, 1.000)
     """
 
     def __init__(self, center, normal, radius):
@@ -744,15 +627,6 @@ class CircleByPlane(object):
     :param point_like center: The center point.
     :param afem.geometry.entities.Plane plane: The plane.
     :param float radius: The radius.
-
-    Usage:
-
-    >>> from afem.geometry import CircleByPlane, PlaneByAxes
-    >>> pln = PlaneByAxes(axes='xy').plane
-    >>> builder = CircleByPlane((0., 0., 0.), pln, 1.)
-    >>> c = builder.circle
-    >>> c.eval(0.)
-    Point(1.000, 0.000, 0.000)
     """
 
     def __init__(self, center, plane, radius):
@@ -809,28 +683,12 @@ class NurbsCurveByData(object):
     """
     Create a NURBS curve by data.
 
-    :param list[point_like] cp: Control points.
-    :param list[float] knots: Knot vector.
-    :param list[int] mult: Multiplicities of knot vector.
+    :param collections.Sequence(point_like) cp: Control points.
+    :param collections.Sequence(float) knots: Knot vector.
+    :param collections.Sequence(int) mult: Multiplicities of knot vector.
     :param int p: Degree.
-    :param list[float] weights: Weights of control points.
+    :param collections.Sequence(float) weights: Weights of control points.
     :param bool is_periodic: Flag for periodicity.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByData, Point
-    >>> cp = [Point(), Point(10., 0., 0.)]
-    >>> knots = [0., 1.]
-    >>> mult = [2, 2]
-    >>> p = 1
-    >>> builder = NurbsCurveByData(cp, knots, mult, p)
-    >>> c = builder.curve
-    >>> c.knots
-    array([ 0.,  1.])
-    >>> c.mult
-    array([2, 2])
-    >>> c.eval(0.5)
-    Point(5.000, 0.000, 0.000)
     """
 
     def __init__(self, cp, knots, mult, p, weights=None, is_periodic=False):
@@ -859,7 +717,7 @@ class NurbsCurveByInterp(object):
     """
     Create a cubic curve by interpolating points.
 
-    :param list[point_like] qp: List of points to interpolate.
+    :param collections.Sequence(point_like) qp: Points to interpolate.
     :param bool is_periodic: Flag for curve periodicity. If *True* the curve
         will be periodic and closed.
     :param vector_like v1: Tangent to match at first point.
@@ -872,21 +730,6 @@ class NurbsCurveByInterp(object):
     For more information see GeomAPI_Interpolate_.
 
     .. _GeomAPI_Interpolate: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___interpolate.html
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByInterp, Point
-    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
-    >>> builder = NurbsCurveByInterp(qp)
-    >>> c = builder.curve
-    >>> c.p
-    2
-    >>> c.u1
-    0.0
-    >>> round(c.u2, 3)
-    14.142
-    >>> c.eval(5.)
-    Point(3.536, 4.571, 0.000)
     """
 
     def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
@@ -920,7 +763,7 @@ class NurbsCurveByApprox(object):
     """
     Create a NURBS curve by approximating points.
 
-    :param list[point_like] qp: List of points to approximate.
+    :param collections.Sequence(point_like qp: Points to approximate.
     :param int dmin: Minimum degree.
     :param int dmax: Maximum degree.
     :param OCCT.GeomAbs.GeomAbs_Shape continuity: Desired continuity of curve.
@@ -935,21 +778,6 @@ class NurbsCurveByApprox(object):
     For more information see GeomAPI_PointsToBSpline_.
 
     .. _GeomAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___points_to_b_spline.html
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByApprox, Point
-    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
-    >>> builder = NurbsCurveByApprox(qp)
-    >>> c = builder.curve
-    >>> c.p
-    3
-    >>> c.u1
-    0.0
-    >>> c.u2
-    1.0
-    >>> c.eval(0.5)
-    Point(5.000, 5.000, 0.000)
     """
 
     def __init__(self, qp, dmin=3, dmax=8, continuity=GeomAbs_C2,
@@ -980,22 +808,7 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
     Create a linear curve (i.e., a polyline) between points. This method uses
     :class:`.NurbsCurveByApprox` to fit a linear curve.
 
-    :param list[point_like] qp: List of points.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByPoints, Point
-    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
-    >>> builder = NurbsCurveByPoints(qp)
-    >>> c = builder.curve
-    >>> c.p
-    1
-    >>> c.u1
-    0.0
-    >>> c.u2
-    1.0
-    >>> c.eval(0.5)
-    Point(5.000, 5.000, 0.000)
+    :param collections.Sequence(point_like) qp: Points.
     """
 
     def __init__(self, qp):
@@ -1020,22 +833,6 @@ class TrimmedCurveByParameters(object):
 
     :raise TypeError: If the basis curve is not a valid curve type.
     :raise ValueError: If *u1* >= *u2*.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsSurfaceByInterp, TrimmedCurveByParameters
-    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
-    >>> basis_curve = NurbsCurveByInterp(qp).curve
-    >>> basis_curve.u1
-    0.0
-    >>> basis_curve.p1
-    Point(0.000, 0.000, 0.000)
-    >>> builder = TrimmedCurveByParameters(basis_curve, 1., 10.)
-    >>> c = builder.curve
-    >>> round(c.u1, 1)
-    1.0
-    >>> c.p1
-    Point(0.707, 1.314, 0.000)
     """
 
     def __init__(self, basis_curve, u1, u2, sense=True, adjust_periodic=True):
@@ -1072,7 +869,6 @@ class TrimmedCurveByCurve(TrimmedCurveByParameters):
         ``True``.
 
     :raise TypeError: If the basis curve is not a valid curve type.
-
     """
 
     def __init__(self, basis_curve, sense=True, adjust_periodic=True):
@@ -1102,24 +898,6 @@ class TrimmedCurveByPoints(TrimmedCurveByParameters):
 
     :raise TypeError: If the basis curve is not a valid curve type.
     :raise ValueError: If *u1* >= *u2*.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsSurfaceByInterp, TrimmedCurveByPoints
-    >>> qp = [Point(), Point(5., 5., 0.), Point(10., 0., 0.)]
-    >>> basis_curve = NurbsCurveByInterp(qp).curve
-    >>> basis_curve.u1
-    0.0
-    >>> basis_curve.p1
-    Point(0.000, 0.000, 0.000)
-    >>> p1 = basis_curve.eval(1.0)
-    >>> p2 = basis_curve.eval(10.0)
-    >>> builder = TrimmedCurveByPoints(basis_curve, p1, p2)
-    >>> c = builder.curve
-    >>> round(c.u1, 1)
-    1.0
-    >>> c.p1
-    Point(0.707, 1.314, 0.000)
     """
 
     def __init__(self, basis_curve, p1, p2, sense=True,
@@ -1145,14 +923,6 @@ class PlaneByNormal(object):
 
     :raise TypeError: If *origin* cannot be converted to :class:`.Point`.
     :raise TypeError: If *vnorm* cannot be converted to :class:`.Direction`.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByNormal
-    >>> builder = PlaneByNormal((0., 0., 0.), (0., 0., 1.))
-    >>> pln = builder.plane
-    >>> pln.eval(1., 1.)
-    Point(1.000, 1.000, 0.000)
     """
 
     def __init__(self, origin=(0., 0., 0.), vnorm=(0., 0., 1.)):
@@ -1185,14 +955,6 @@ class PlaneByAxes(object):
 
     :raise TypeError: If *origin* cannot be converted to :class:`.Point`.
     :raise ValueError: If *axes* is not a supported option.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByAxes
-    >>> builder = PlaneByAxes((0., 0., 0.), 'xz')
-    >>> pln = builder.plane
-    >>> pln.eval(1., 1.)
-    Point(1.000, 0.000, -1.000)
     """
 
     def __init__(self, origin=(0., 0., 0.), axes='xz'):
@@ -1213,7 +975,7 @@ class PlaneByAxes(object):
             n = Direction(1., 0., 0.)
         elif axes in ['xz', 'zx']:
             vx = Direction(1., 0., 0.)
-            n = Direction(0., 1., 0.)
+            n = Direction(0., -1., 0.)
         else:
             msg = 'Unknown axes.'
             raise ValueError(msg)
@@ -1244,17 +1006,6 @@ class PlaneByPoints(object):
     :raise TypeError: if *p1*, *p2*, or *p3* cannot be converted to a
         :class:`.Point`.
     :raise ValueError: If the points are collinear.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByPoints, Point
-    >>> p1 = Point()
-    >>> p2 = Point(1., 0., 0.)
-    >>> p3 = Point(0., 1., 0.)
-    >>> builder = PlaneByPoints(p1, p2, p3)
-    >>> pln = builder.plane
-    >>> pln.eval(1., 1.)
-    Point(1.000, 1.000, 0.000)
     """
 
     def __init__(self, p1, p2, p3):
@@ -1306,13 +1057,6 @@ class PlaneByApprox(object):
     For more information see GeomPlate_BuildAveragePlane_.
 
     .. _GeomPlate_BuildAveragePlane: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_plate___build_average_plane.html
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByApprox, Point
-    >>> pnts = [Point(), Point(1., 0., 0.), Point(0., 1., 0.)]
-    >>> builder = PlaneByApprox(pnts)
-    >>> pln = builder.plane
     """
 
     def __init__(self, pnts, tol=1.0e-7):
@@ -1364,15 +1108,6 @@ class PlaneFromParameter(object):
     :rtype: afem.geometry.entities.Plane
 
     :raise RuntimeError: If OCC method fails.
-
-    Usage:
-
-    >>> from afem.geometry import LineByPoints, Point, PlaneFromParameter
-    >>> p1 = Point()
-    >>> p2 = Point(10., 0., 0.)
-    >>> line = LineByPoints(p1, p2).line
-    >>> builder = PlaneFromParameter(line, 0., 1.)
-    >>> pln = builder.plane
     """
 
     def __init__(self, c, u0, ds, ref_pln=None, tol=1.0e-7):
