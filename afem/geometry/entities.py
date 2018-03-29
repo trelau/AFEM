@@ -58,6 +58,22 @@ class Geometry2D(ViewableItem):
         super(Geometry2D, self).__init__()
         self._object = obj
 
+    def scale(self, pnt2d, s):
+        """
+        Scale the geometry.
+
+        :param point2d_like pnt2d: The reference point.
+        :param float s: The scaling value.
+
+        :return: *True* if scaled.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt2d = CheckGeom.to_point2d(pnt2d)
+        self._object.Scale(pnt2d, s)
+        return True
+
 
 class Point2D(gp_Pnt2d, Geometry2D):
     """
