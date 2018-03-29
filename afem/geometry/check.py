@@ -10,8 +10,7 @@
 # WITHOUT ANY WARRANTIES OR REPRESENTATIONS EXPRESS, IMPLIED OR 
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-
-from OCCT.gp import gp_Pnt, gp_Vec
+from OCCT.gp import gp_Pnt, gp_Vec, gp_Pnt2d
 from numpy import ndarray
 
 from afem.geometry.entities import *
@@ -66,17 +65,6 @@ class CheckGeom(object):
         return isinstance(geom, Point)
 
     @staticmethod
-    def is_point2d(geom):
-        """
-        Check if the entity is a :class:`.Point2D`.
-
-        :param geom: An entity.
-        :return: *True* if the entity is a Point2D, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(geom, Point2D)
-
-    @staticmethod
     def to_point(geom):
         """
         Convert entity to a :class:`.Point` if possible.
@@ -84,16 +72,22 @@ class CheckGeom(object):
         :param geom: An entity.
 
         :return: The entity if already a Point, or a new Point if it is
-            array_like. Returns *None* otherwise.
-        :rtype: afem.geometry.entities.Point or None
+            point_like.
+        :rtype: afem.geometry.entities.Point
+
+        :raise TypeError: If entity cannot be converted to a Point.
         """
+        if geom is None:
+            return None
+
         if isinstance(geom, Point):
             return geom
         elif isinstance(geom, gp_Pnt):
             return Point(geom.XYZ())
         elif CheckGeom.is_point_like(geom):
             return Point(geom[0], geom[1], geom[2])
-        return None
+        else:
+            raise TypeError('Cannot convert to Point.')
 
     @staticmethod
     def to_points(geoms):
@@ -107,6 +101,60 @@ class CheckGeom(object):
         """
         return [CheckGeom.to_point(p) for p in geoms if
                 CheckGeom.is_point_like(p)]
+
+    @staticmethod
+    def is_point2d_like(geom):
+        """
+        Check if the entity is point2d_like.
+
+        :param geom: An entity.
+
+        :return: *True* if the entity is point2d_like, *False* if not.
+        :rtype: bool
+        """
+        if isinstance(geom, Point2D):
+            return True
+        if isinstance(geom, gp_Pnt2d):
+            return True
+        if isinstance(geom, (tuple, list, ndarray)):
+            return len(geom) == 2
+        return False
+
+    @staticmethod
+    def is_point2d(geom):
+        """
+        Check if the entity is a :class:`.Point2D`.
+
+        :param geom: An entity.
+        :return: *True* if the entity is a Point2D, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(geom, Point2D)
+
+    @staticmethod
+    def to_point2d(geom):
+        """
+        Convert entity to a :class:`.Point2D` if possible.
+
+        :param geom: An entity.
+
+        :return: The entity if already a Point2D, or a new Point2D if it is
+            point2d_like.
+        :rtype: afem.geometry.entities.Point2D
+
+        :raise TypeError: If entity cannot be converted to a Point2D.
+        """
+        if geom is None:
+            return None
+
+        if isinstance(geom, Point2D):
+            return geom
+        elif isinstance(geom, gp_Pnt2d):
+            return Point2D(geom.XY())
+        elif CheckGeom.is_point2d_like(geom):
+            return Point(geom[0], geom[1])
+        else:
+            raise TypeError('Cannot convert to Point2D.')
 
     @staticmethod
     def is_vector(geom):
@@ -127,9 +175,14 @@ class CheckGeom(object):
         :param vector_like geom: An entity.
 
         :return: The entity if already a Vector, or a new Vector if it is
-            array_like. Returns *None* otherwise.
-        :rtype: afem.geometry.entities.Vector or None
+            vector_like.
+        :rtype: afem.geometry.entities.Vector
+
+        :raise TypeError: If entity cannot be converted to a Vector.
         """
+        if geom is None:
+            return None
+
         if isinstance(geom, Vector):
             return geom
         elif isinstance(geom, (tuple, list, ndarray)):
@@ -138,7 +191,8 @@ class CheckGeom(object):
             return Vector(geom)
         elif isinstance(geom, gp_Vec):
             return Vector(geom.XYZ())
-        return None
+        else:
+            raise TypeError('Cannot convert to Vector.')
 
     @staticmethod
     def is_direction(geom):
@@ -159,16 +213,22 @@ class CheckGeom(object):
         :param vector_like geom: An entity.
 
         :return: The entity if already a Direction, or a new Direction if it is
-            array_like. Returns *None* otherwise.
-        :rtype: afem.geometry.entities.Direction or None
+            vector_like.
+        :rtype: afem.geometry.entities.Direction
+
+        :raise TypeError: If entity cannot be converted to a Direction.
         """
+        if geom is None:
+            return None
+
         if isinstance(geom, Direction):
             return geom
         elif isinstance(geom, (tuple, list, ndarray)):
             return Direction(geom[0], geom[1], geom[2])
         elif isinstance(geom, Vector):
             return Direction(geom)
-        return None
+        else:
+            raise TypeError('Cannot convert to Direction.')
 
     @staticmethod
     def is_plane(geom):

@@ -24,9 +24,8 @@ from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
 from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array2OfPnt)
-from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec,
-                     gp_XYZ)
-from numpy import add, array, float64, ndarray, subtract
+from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec)
+from numpy import add, array, float64, subtract
 
 from afem.geometry.utils import (global_to_local_param,
                                  homogenize_array1d,
@@ -34,7 +33,6 @@ from afem.geometry.utils import (global_to_local_param,
                                  local_to_global_param,
                                  reparameterize_knots)
 from afem.graphics.display import ViewableItem
-from afem.misc.check import is_array_like
 from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolgp_array2_pnt,
                             to_np_from_tcolstd_array1_integer,
@@ -167,37 +165,30 @@ class Point2D(gp_Pnt2d, Geometry2D):
         """
         Set point coordinates.
 
-        :param array_like xy: Point coordinates.
+        :param point2d_like xy: Point coordinates.
 
         :return: *True* if set, *False* if not.
         :rtype: bool
         """
-        if isinstance(xy, gp_Pnt):
-            self.SetXY(xy.XYZ())
-            return True
-        if isinstance(xy, gp_XYZ):
-            self.SetXY(xy)
-            return True
-        if is_array_like(xy) and len(xy) == 2:
-            self.x, self.y = xy
-            return True
-        return False
+        from afem.geometry.check import CheckGeom
+
+        xy = CheckGeom.to_point2d(xy)
+        self.SetXY(xy.XY())
+        return True
 
     def distance(self, other):
         """
         Compute the distance between two points.
 
-        :param point_like other: The other point.
+        :param point2d_like other: The other point.
 
         :return: Distance to the other point.
         :rtype: float
         """
-        if isinstance(other, gp_Pnt2d):
-            return self.Distance(other)
-        if is_array_like(other) and len(other) == 2:
-            other = Point2D(*other)
-            return self.Distance(other)
-        return None
+        from afem.geometry.check import CheckGeom
+
+        other = CheckGeom.to_point2d(other)
+        return self.Distance(other)
 
     def is_equal(self, other, tol=1.0e-7):
         """
@@ -209,12 +200,10 @@ class Point2D(gp_Pnt2d, Geometry2D):
         :return: *True* if coincident, *False* if not.
         :rtype: bool
         """
-        if isinstance(other, gp_Pnt2d):
-            return self.IsEqual(other, tol)
-        if is_array_like(other) and len(other) == 2:
-            other = Point2D(*other)
-            return self.IsEqual(other, tol)
-        return False
+        from afem.geometry.check import CheckGeom
+
+        other = CheckGeom.to_point2d(other)
+        return self.IsEqual(other, tol)
 
     def copy(self):
         """
@@ -459,16 +448,9 @@ class Geometry(ViewableItem):
 
         :raise TypeError: If *v* cannot be converted to a vector.
         """
-        if isinstance(v, (tuple, list, ndarray)):
-            v = Vector(v[0], v[1], v[2])
-        elif isinstance(v, Direction):
-            v = Vector(v)
-        elif isinstance(v, gp_Vec):
-            v = Vector(v.XYZ())
-        else:
-            msg = 'Invalid vector type.'
-            raise TypeError(msg)
+        from afem.geometry.check import CheckGeom
 
+        v = CheckGeom.to_vector(v)
         self._object.Translate(v)
         return True
 
@@ -485,6 +467,22 @@ class Geometry(ViewableItem):
         gp_ax2 = gp_Ax2()
         gp_ax2.SetAxis(gp_pln.Axis())
         self._object.Mirror(gp_ax2)
+        return True
+
+    def scale(self, pnt, s):
+        """
+        Scale the geometry.
+
+        :param point_like pnt: The reference point.
+        :param float s: The scaling value.
+
+        :return: *True* if scaled.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point(pnt)
+        self._object.Scale(pnt, s)
         return True
 
 
@@ -617,16 +615,11 @@ class Point(gp_Pnt, Geometry):
         :return: *True* if set, *False* if not.
         :rtype: bool
         """
-        if isinstance(xyz, gp_Pnt):
-            self.SetXYZ(xyz.XYZ())
-            return True
-        if isinstance(xyz, gp_XYZ):
-            self.SetXYZ(xyz)
-            return True
-        if is_array_like(xyz) and len(xyz) == 3:
-            self.x, self.y, self.z = xyz
-            return True
-        return False
+        from afem.geometry.check import CheckGeom
+
+        xyz = CheckGeom.to_point(xyz)
+        self.SetXYZ(xyz.XYZ())
+        return True
 
     def distance(self, other):
         """
@@ -637,12 +630,10 @@ class Point(gp_Pnt, Geometry):
         :return: Distance to the other point.
         :rtype: float
         """
-        if isinstance(other, gp_Pnt):
-            return self.Distance(other)
-        if is_array_like(other) and len(other) == 3:
-            other = Point(*other)
-            return self.Distance(other)
-        return None
+        from afem.geometry.check import CheckGeom
+
+        other = CheckGeom.to_point(other)
+        return self.Distance(other)
 
     def is_equal(self, other, tol=1.0e-7):
         """
@@ -654,12 +645,10 @@ class Point(gp_Pnt, Geometry):
         :return: *True* if coincident, *False* if not.
         :rtype: bool
         """
-        if isinstance(other, gp_Pnt):
-            return self.IsEqual(other, tol)
-        if is_array_like(other) and len(other) == 3:
-            other = Point(*other)
-            return self.IsEqual(other, tol)
-        return False
+        from afem.geometry.check import CheckGeom
+
+        other = CheckGeom.to_point(other)
+        return self.IsEqual(other, tol)
 
     def rotate(self, axis, angle):
         """
@@ -686,17 +675,14 @@ class Point(gp_Pnt, Geometry):
         :param float z: Rotation about z-axis in degrees.
 
         :return: None.
-
-        :raise TypeError: If *origin* cannot be converted to a Point or is not
-            ax Axis3.
         """
         is_local = False
         if isinstance(origin, Axis3):
             is_local = True
-        elif is_array_like(origin) and len(origin) == 3:
-            origin = gp_Pnt(*origin)
-        if not isinstance(origin, (gp_Pnt, Axis3)):
-            raise TypeError('Invalid origin provided.')
+        else:
+            from afem.geometry.check import CheckGeom
+
+            origin = CheckGeom.to_point(origin)
 
         # x-axis
         if is_local:
@@ -1970,14 +1956,9 @@ class Plane(Surface):
 
         :raises TypeError: If *pnt* cannot be converted to a point.
         """
-        if isinstance(pnt, gp_Pnt):
-            pnt = Point(pnt.XYZ())
-        elif isinstance(pnt, (tuple, list, ndarray)):
-            pnt = Point(pnt[0], pnt[1], pnt[2])
-        else:
-            msg = 'Invalid point type.'
-            raise TypeError(msg)
+        from afem.geometry.check import CheckGeom
 
+        pnt = CheckGeom.to_point(pnt)
         return self.object.Pln().Distance(pnt)
 
     def rotate(self, axis, angle):
