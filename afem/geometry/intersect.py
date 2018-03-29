@@ -306,6 +306,7 @@ class IntersectSurfaceSurface(SurfaceIntersector):
     :param afem.geometry.entities.Surface srf1: The first surface.
     :param afem.geometry.entities.Surface srf2: The second surface.
     :param float itol: Intersection tolerance.
+    :param bool approx: Approximate intersection curves.
 
     For more information see GeomAPI_IntSS_.
 
@@ -328,14 +329,12 @@ class IntersectSurfaceSurface(SurfaceIntersector):
     Point(5.000, 5.000, 5.000)
     """
 
-    def __init__(self, srf1, srf2, itol=1.0e-7):
+    def __init__(self, srf1, srf2, itol=1.0e-7, approx=True):
         super(IntersectSurfaceSurface, self).__init__()
-
-        # Perform
 
         # OCC intersect
         ssi = GeomInt_IntSS(srf1.object, srf2.object, itol,
-                            True, False, False)
+                            approx, False, False)
 
         # Build curves
         ncrvs = ssi.NbLines()
@@ -345,6 +344,15 @@ class IntersectSurfaceSurface(SurfaceIntersector):
             crvs.append(Curve(hcrv))
 
         self._crvs = crvs
+        self._tol3d = ssi.TolReached3d()
+
+    @property
+    def tol3d(self):
+        """
+        :return: Tolerance reached for 3-D intersection curves.
+        :rtype: float
+        """
+        return self._tol3d
 
 
 def _distance_point_to_curve(point, curve):

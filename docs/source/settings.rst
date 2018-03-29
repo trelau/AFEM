@@ -11,7 +11,7 @@ A logging utility is used to provide useful information during program
 execution. A file with the name *afem.log* will be automatically created
 wherever the main script is executed and whose contents will be dependent on
 the logging level. In order to output the logging content to the command window
-the following method must be executed before the main process begins::
+the following method should be called before the main script begins::
 
     Settings.log_to_console()
 

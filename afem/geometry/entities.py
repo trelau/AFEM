@@ -526,6 +526,7 @@ class Point(gp_Pnt, Geometry):
     def __init__(self, *args):
         super(Point, self).__init__(*args)
         Geometry.__init__(self, self)
+        self.set_color(1, 1, 0)
 
     def __str__(self):
         return 'Point({0:.3f}, {1:.3f}, {2:.3f})'.format(*self.xyz)
@@ -1118,6 +1119,7 @@ class Curve(Geometry):
 
     def __init__(self, obj):
         super(Curve, self).__init__(obj)
+        self.set_color(1, 0, 0)
 
     @property
     def object(self):
@@ -1746,6 +1748,7 @@ class Surface(Geometry):
 
     def __init__(self, obj):
         super(Surface, self).__init__(obj)
+        self.set_color(0.5, 0.5, 0.5)
 
     @property
     def object(self):

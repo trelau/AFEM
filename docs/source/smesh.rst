@@ -10,8 +10,8 @@ package. The entities and tools can be imported by::
 
     from afem.smesh import *
 
-There are a few key concepts and entities that need to be understood by the user
-in order use the meshing package effectively. These are best discussed by
+There are a few key concepts and entities that need to be understood by the
+user in order use the meshing package effectively. These are best discussed by
 working through a simple but complete example:
 
 
