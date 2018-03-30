@@ -42,10 +42,12 @@ class Body(ViewableItem):
     Generic class for solid bodies and encapsulating necessary
     information when creating structural components.
 
-    :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
+    :param solid: The solid.
+    :type solid: OCCT.TopoDS.TopoDS_Solid or OCCT.TopoDS.TopoDS_Shape
     :param str label: The label.
 
-    :raise TypeError: If ``solid`` is not a ``TopoDS_Solid``.
+    :raise TypeError: If ``solid`` is not a ``TopoDS_Solid`` or cannot be
+        converted to one.
     """
 
     def __init__(self, solid, label=None):
