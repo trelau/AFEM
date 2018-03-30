@@ -41,6 +41,7 @@ developed by Laughlin Research, LLC.
    :maxdepth: 2
 
    settings
+   sketch
    geometry
    topology
    oml

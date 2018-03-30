@@ -20,6 +20,7 @@ from OCCT.GProp import GProp_GProps
 from OCCT.Geom import (Geom_Line, Geom_Circle, Geom_Ellipse, Geom_BSplineCurve,
                        Geom_TrimmedCurve, Geom_Plane, Geom_BSplineSurface)
 from OCCT.Geom2dAdaptor import Geom2dAdaptor_Curve
+from OCCT.GeomAPI import GeomAPI
 from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
@@ -58,20 +59,37 @@ class Geometry2D(ViewableItem):
         super(Geometry2D, self).__init__()
         self._object = obj
 
-    def scale(self, pnt2d, s):
+    def scale(self, pnt, scale):
         """
         Scale the geometry.
 
-        :param point2d_like pnt2d: The reference point.
-        :param float s: The scaling value.
+        :param point2d_like pnt: The reference point.
+        :param float scale: The scaling value.
 
         :return: *True* if scaled.
         :rtype: bool
         """
         from afem.geometry.check import CheckGeom
 
-        pnt2d = CheckGeom.to_point2d(pnt2d)
-        self._object.Scale(pnt2d, s)
+        pnt = CheckGeom.to_point2d(pnt)
+        self._object.Scale(pnt, scale)
+        return True
+
+    def rotate(self, pnt, angle):
+        """
+        Rotate the geometry about a point.
+
+        :param point2d_like pnt: The reference point.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point2d(pnt)
+        angle = radians(angle)
+        self._object.Rotate(pnt, angle)
         return True
 
 
@@ -110,7 +128,7 @@ class Point2D(gp_Pnt2d, Geometry2D):
 
     def __init__(self, *args):
         super(Point2D, self).__init__(*args)
-        Geometry2D.__init__(self)
+        Geometry2D.__init__(self, self)
 
     def __str__(self):
         return 'Point2D({0}, {1})'.format(*self.xy)
@@ -439,6 +457,18 @@ class NurbsCurve2D(Geometry2D):
         h_crv = self.object.Copy()
         return NurbsCurve2D(h_crv)
 
+    def to_3d(self, pln):
+        """
+        Convert this 2-D curve in the plane.
+
+        :param afem.geometry.entities.Plane pln: The plane.
+
+        :return: The 3-D curve.
+        :rtype: afem.geometry.entities.NurbsCurve
+        """
+        geom_crv = GeomAPI.To3d_(self.object, pln.gp_pln)
+        return NurbsCurve(geom_crv)
+
 
 # 3-D -------------------------------------------------------------------------
 
@@ -499,6 +529,20 @@ class Geometry(ViewableItem):
 
         pnt = CheckGeom.to_point(pnt)
         self._object.Scale(pnt, s)
+        return True
+
+    def rotate(self, ax1, angle):
+        """
+        Rotate the geometry about an axis.
+
+        :param afem.geometry.entities.Axis1 ax1: The axis of rotation.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        angle = radians(angle)
+        self._object.Rotate(ax1, angle)
         return True
 
 
@@ -1934,6 +1978,23 @@ class Plane(Surface):
         :rtype: afem.geometry.entities.Point
         """
         return self.eval()
+
+    @property
+    def axis(self):
+        """
+        :return: The main axis (normal) of the plane.
+        :rtype: afem.geometry.entities.Axis1
+        """
+        ax = self.object.Pln().Axis()
+        return Axis1(ax.Location(), ax.Direction())
+
+    @property
+    def gp_pln(self):
+        """
+        :return: The underlying gp_Pln.
+        :rtype: OCCT.gp.gp_Pln
+        """
+        return self.object.Pln()
 
     @staticmethod
     def downcast(srf):

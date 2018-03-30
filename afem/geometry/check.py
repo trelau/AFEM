@@ -152,7 +152,7 @@ class CheckGeom(object):
         elif isinstance(geom, gp_Pnt2d):
             return Point2D(geom.XY())
         elif CheckGeom.is_point2d_like(geom):
-            return Point(geom[0], geom[1])
+            return Point2D(geom[0], geom[1])
         else:
             raise TypeError('Cannot convert to Point2D.')
 

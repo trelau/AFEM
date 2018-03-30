@@ -344,6 +344,14 @@ CircleBy3Points
 ~~~~~~~~~~~~~~~
 .. autoclass:: CircleBy3Points
 
+NurbsCurve2DByInterp
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsCurve2DByInterp
+
+NurbsCurve2DByApprox
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsCurve2DByApprox
+
 NurbsCurveByData
 ~~~~~~~~~~~~~~~~
 .. autoclass:: NurbsCurveByData

@@ -10,16 +10,16 @@
 # WITHOUT ANY WARRANTIES OR REPRESENTATIONS EXPRESS, IMPLIED OR 
 # STATUTORY; INCLUDING, WITHOUT LIMITATION, WARRANTIES OF QUALITY,
 # PERFORMANCE, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
-
 from math import ceil, radians
 from warnings import warn
 
-from OCCT.Approx import Approx_ChordLength, Approx_IsoParametric
+from OCCT.Approx import (Approx_ChordLength, Approx_IsoParametric)
 from OCCT.BSplCLib import BSplCLib
 from OCCT.GC import GC_MakeCircle
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCCT.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
                        Geom_Line, Geom_Plane, Geom_TrimmedCurve)
+from OCCT.Geom2dAPI import Geom2dAPI_Interpolate, Geom2dAPI_PointsToBSpline
 from OCCT.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                           GeomAPI_PointsToBSpline)
 from OCCT.GeomAbs import GeomAbs_C0, GeomAbs_C2
@@ -49,7 +49,9 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_tcolgp_harray1_pnt,
                             to_tcolstd_array1_integer,
                             to_tcolstd_array1_real,
-                            to_tcolstd_array2_real)
+                            to_tcolstd_array2_real,
+                            to_tcolgp_array1_pnt2d,
+                            to_tcolgp_harray1_pnt2d)
 
 __all__ = ["PointByXYZ", "PointByArray",
            "PointFromParameter", "PointsAlongCurveByNumber",
@@ -57,6 +59,7 @@ __all__ = ["PointByXYZ", "PointByArray",
            "DirectionByPoints", "VectorByXYZ", "VectorByArray",
            "VectorByPoints", "LineByVector", "LineByPoints", "CircleByNormal",
            "CircleByPlane", "CircleBy3Points",
+           "NurbsCurve2DByInterp", "NurbsCurve2DByApprox",
            "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
            "NurbsCurveByPoints", "TrimmedCurveByParameters",
            "TrimmedCurveByPoints", "TrimmedCurveByCurve",
@@ -679,6 +682,97 @@ class CircleBy3Points(object):
 
 # NURBSCURVE ------------------------------------------------------------------
 
+class NurbsCurve2DByInterp(object):
+    """
+    Create a 2-D cubic curve by interpolating 2-D points.
+
+    :param collections.Sequence(point2d_like) qp: Points to interpolate.
+    :param bool is_periodic: Flag for curve periodicity. If *True* the curve
+        will be periodic and closed.
+    :param vector2d_like v1: Tangent to match at first point.
+    :param vector2d_like v2: Tangent to match at last point.
+    :param float tol: Tolerance used to check for coincident points and the
+        magnitude of end vectors.
+
+    :raise RuntimeError: If OCC method fails.
+
+    For more information see Geom2dAPI_Interpolate_.
+
+    .. _Geom2dAPI_Interpolate: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d_a_p_i___interpolate.html
+    """
+
+    def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
+        tcol_hpnts = to_tcolgp_harray1_pnt2d(qp)
+        interp = Geom2dAPI_Interpolate(tcol_hpnts,
+                                       is_periodic, tol)
+
+        # TODO Support Vector2D
+        # if None not in [v1, v2]:
+        #     v1 = CheckGeom.to_vector(v1)
+        #     v2 = CheckGeom.to_vector(v2)
+        #     if v1 and v2:
+        #         interp.Load(v1, v2)
+
+        interp.Perform()
+        if not interp.IsDone():
+            msg = "GeomAPI_Interpolate failed."
+            raise RuntimeError(msg)
+
+        self._c = NurbsCurve2D(interp.Curve())
+
+    @property
+    def curve(self):
+        """
+        :return: The 2-D NURBS curve.
+        :rtype: afem.geometry.entities.NurbsCurve2D
+        """
+        return self._c
+
+
+class NurbsCurve2DByApprox(object):
+    """
+    Create a 2-D NURBS curve by approximating 2-D points.
+
+    :param collections.Sequence(point2d_like) qp: Points to approximate.
+    :param int dmin: Minimum degree.
+    :param int dmax: Maximum degree.
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity: Desired continuity of curve.
+    :param OCCT.Approx.Approx_ParametrizationType parm_type: Parametrization
+        type.
+    :param float tol: The tolerance used for approximation. The distance
+        from the points to the resulting curve should be lower than *tol*.
+
+    :raise RuntimeError: If OCC method fails to interpolate the points with
+        a curve.
+
+    For more information see Geom2dAPI_PointsToBSpline_.
+
+    .. _Geom2dAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d_a_p_i___points_to_b_spline.html
+    """
+
+    def __init__(self, qp, dmin=3, dmax=8, continuity=GeomAbs_C2,
+                 parm_type=Approx_ChordLength, tol=1.0e-6):
+        dmin = int(dmin)
+        dmax = int(dmax)
+        tcol_pnts = to_tcolgp_array1_pnt2d(qp)
+
+        fit = Geom2dAPI_PointsToBSpline(tcol_pnts, parm_type, dmin,
+                                        dmax, continuity, tol)
+        if not fit.IsDone():
+            msg = "Geom2dAPI_PointsToBSpline failed."
+            raise RuntimeError(msg)
+
+        self._c = NurbsCurve2D(fit.Curve())
+
+    @property
+    def curve(self):
+        """
+        :return: The 2-D NURBS curve.
+        :rtype: afem.geometry.entities.NurbsCurve2D
+        """
+        return self._c
+
+
 class NurbsCurveByData(object):
     """
     Create a NURBS curve by data.
@@ -763,7 +857,7 @@ class NurbsCurveByApprox(object):
     """
     Create a NURBS curve by approximating points.
 
-    :param collections.Sequence(point_like qp: Points to approximate.
+    :param collections.Sequence(point_like) qp: Points to approximate.
     :param int dmin: Minimum degree.
     :param int dmax: Maximum degree.
     :param OCCT.GeomAbs.GeomAbs_Shape continuity: Desired continuity of curve.

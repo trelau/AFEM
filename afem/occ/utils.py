@@ -14,7 +14,8 @@
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
 from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
-                         TColgp_Array2OfPnt, TColgp_HArray1OfPnt)
+                         TColgp_Array2OfPnt, TColgp_HArray1OfPnt,
+                         TColgp_HArray1OfPnt2d)
 from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
                          TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID,
                          TopAbs_VERTEX,
@@ -25,16 +26,6 @@ from OCCT.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
 from afem.misc.check import is_array_like
-
-__all__ = ["to_gp_pnt", "to_gp_pnt2d", "to_np_from_tcolgp_array1_pnt",
-           "to_np_from_tcolgp_array2_pnt",
-           "to_np_from_tcolstd_array1_integer",
-           "to_np_from_tcolstd_array1_real", "to_np_from_tcolstd_array2_real",
-           "to_tcolgp_array1_pnt", "to_tcolgp_array1_pnt2d",
-           "to_tcolgp_array2_pnt", "to_tcolgp_harray1_pnt",
-           "to_tcolstd_array1_integer", "to_tcolstd_array1_real",
-           "to_tcolstd_array2_real", "to_toptools_listofshape",
-           "to_lst_from_toptools_listofshape"]
 
 
 def to_gp_pnt(p):
@@ -125,6 +116,30 @@ def to_tcolgp_harray1_pnt(pnts):
 
     n = len(gp_pnts)
     harray = TColgp_HArray1OfPnt(1, n)
+    for i, gp in enumerate(gp_pnts, 1):
+        harray.SetValue(i, gp)
+
+    return harray
+
+
+def to_tcolgp_harray1_pnt2d(pnts):
+    """
+    Convert the 1-D array of point2d_like entities to OCC data.
+
+    :param point2d_like pnts: Array of 2-D points to convert.
+
+    :return: OCC array of points.
+    :rtype: TColgp_HArray1OfPnt2d
+    """
+    gp_pnts = []
+    for gp in pnts:
+        gp = to_gp_pnt2d(gp)
+        if not gp:
+            continue
+        gp_pnts.append(gp)
+
+    n = len(gp_pnts)
+    harray = TColgp_HArray1OfPnt2d(1, n)
     for i, gp in enumerate(gp_pnts, 1):
         harray.SetValue(i, gp)
 
