@@ -17,7 +17,7 @@ wire1 = cs.wires[0]
 
 # Define plane at the tip and rotate
 pln2 = PlaneByAxes((3, 15, 0), axes='xz').plane
-cs.build(pln2, scale=1.5, rotate=8)
+cs.build(pln2, scale=1.5, rotate=3)
 wire2 = cs.wires[0]
 
 # Use the wires to loft a solid
