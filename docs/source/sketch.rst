@@ -16,11 +16,11 @@ that 2-D geometry into 3-D space. The example below demonstrates this process:
 
     from afem.geometry import *
     from afem.graphics import Viewer
-    from afem.sketch import CrossSection
+    from afem.sketch import *
     from afem.topology import *
 
     # Create a new cross section
-    cs = CrossSection()
+    cs = Airfoil()
 
     # Generate a 2-D profile by reading and approximating an airfoil file from
     # the UIUC database. Close the trailing edge if necessary.
@@ -49,12 +49,13 @@ The ``sketch`` entities and tools are imported by:
 
     from afem.geometry import *
     from afem.graphics import Viewer
-    from afem.sketch import CrossSection
+    from afem.sketch import *
     from afem.topology import *
 
-A new ``CrossSection`` is initialized by::
+A special type of ``CrossSection`` will be used to generate a section from an
+airfoil file::
 
-    cs = CrossSection()
+    cs = Airfoil()
 
 where ``cs`` uses the xy-plane by default since no plane was provided. This
 default reference plane is the one used when defining 2-D geometry. The plane's
@@ -117,3 +118,8 @@ Entities
 CrossSection
 ~~~~~~~~~~~~
 .. autoclass:: CrossSection
+
+Airfoil
+~~~~~~~
+.. autoclass:: Airfoil
+

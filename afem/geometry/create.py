@@ -66,6 +66,7 @@ __all__ = ["PointByXYZ", "PointByArray",
            "VectorByPoints", "LineByVector", "LineByPoints", "CircleByNormal",
            "CircleByPlane", "CircleBy3Points",
            "NurbsCurve2DByInterp", "NurbsCurve2DByApprox",
+           "NurbsCurve2DByPoints",
            "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
            "NurbsCurveByPoints", "TrimmedCurveByParameters",
            "TrimmedCurveByPoints", "TrimmedCurveByCurve",
@@ -777,6 +778,18 @@ class NurbsCurve2DByApprox(object):
         :rtype: afem.geometry.entities.NurbsCurve2D
         """
         return self._c
+
+
+class NurbsCurve2DByPoints(NurbsCurve2DByApprox):
+    """
+    Create a 2-D linear curve (i.e., a polyline) between points. This method
+    uses :class:`.NurbsCurve2DByApprox` to fit a linear curve.
+
+    :param collections.Sequence(point2d_like) qp: Points.
+    """
+
+    def __init__(self, qp):
+        super(NurbsCurve2DByPoints, self).__init__(qp, 1, 1, GeomAbs_C0)
 
 
 class NurbsCurveByData(object):

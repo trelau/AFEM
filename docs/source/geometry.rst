@@ -352,6 +352,10 @@ NurbsCurve2DByApprox
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: NurbsCurve2DByApprox
 
+NurbsCurve2DByPoints
+~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: NurbsCurve2DByPoints
+
 NurbsCurveByData
 ~~~~~~~~~~~~~~~~
 .. autoclass:: NurbsCurveByData

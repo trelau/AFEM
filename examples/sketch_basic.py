@@ -1,10 +1,10 @@
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.sketch import CrossSection
+from afem.sketch import *
 from afem.topology import *
 
 # Create a new cross section
-cs = CrossSection()
+cs = Airfoil()
 
 # Generate a 2-D profile by reading and approximating an airfoil file from the
 # UIUC database. Close the trailing edge if necessary.

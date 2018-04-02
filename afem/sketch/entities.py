@@ -18,12 +18,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from OCCT.TopoDS import TopoDS_Face
 
-from afem.geometry import (PlaneByAxes, NurbsCurve2DByApprox,
-                           NurbsCurve2DByInterp, Point2D)
-from afem.topology import (CheckShape, FuseShapes, WiresByConnectedEdges,
-                           FaceByPlanarWire)
+from afem.geometry import *
+from afem.topology import *
 
-__all__ = ["CrossSection"]
+__all__ = ["CrossSection", "Airfoil"]
 
 
 class CrossSection(object):
@@ -96,6 +94,14 @@ class CrossSection(object):
         p1 = c.eval(c.u1)
         p2 = c.eval(c.u2)
         self.add_segment(p1, p2)
+
+    def clear(self):
+        """
+        Remove all 2-D curves from the cross section.
+
+        :return: None.
+        """
+        return self._crvs.clear()
 
     def add_segment(self, p1, p2):
         """
@@ -189,53 +195,6 @@ class CrossSection(object):
 
         return new_cs
 
-    def read_uiuc(self, fn, close=True):
-        """
-        Generate 2-D curves by reading an airfoil file from the UIUC database.
-
-        :param str fn: The filename.
-        :param bool close: Option to close the airfoil by adding a segment.
-
-        :return: The 2-D curve.
-        :rtype: afem.geometry.entities.NurbsCurve2D
-
-        .. note::
-
-            The UIUC airfoil is assumed to be in a particular format and this
-            method may fail it's not. The points for the upper and lower
-            surfaces from the file are combined to form a single curve that
-            starts at the trailing edge, moves along the upper surface towards
-            the leading edge, and then proceeds back to the trailing edge along
-            the lower surface.
-        """
-        with open(fn, 'r') as fin:
-            content = fin.read().splitlines()
-
-        upr, lwr = [], []
-        i = 3
-        while i < len(content):
-            line = content[i].strip().split()
-            i += 1
-            if not line:
-                break
-            x = float(line[0])
-            z = float(line[1])
-            upr.append(Point2D(x, z))
-
-        while i < len(content):
-            line = content[i].strip().split()
-            i += 1
-            if not line:
-                break
-            x = float(line[0])
-            z = float(line[1])
-            lwr.append(Point2D(x, z))
-
-        upr.reverse()
-        pnts = upr + lwr[1:]
-
-        return self.add_approx(pnts, close)
-
     def build(self, pln=None, scale=None, rotate=None):
         """
         Build a shape in 3-D using the 2-D cross section curves. This method
@@ -292,3 +251,139 @@ class CrossSection(object):
             self._face = FaceByPlanarWire(self.wires[0]).face
 
         return True
+
+
+class Airfoil(CrossSection):
+    """
+    Simple airfoil cross section. This class is similar to a generic
+    ``CrossSection`` but assumes that the section curves are approximated by a
+    distinct set of upper and lower points. This allows the class to store the
+    leading and trailing edge points and build a chord line.
+    """
+
+    def __init__(self, pln=None):
+        super(Airfoil, self).__init__(pln)
+
+        self._le2d = None
+        self._upr_te2d = None
+        self._lwr_te2d = None
+
+    def approx_points(self, upr, lwr, close=True):
+        """
+        Approximate a 2-D airfoil curve using a collection of upper and lower
+        points. All other curves will be cleared from the cross section before
+        this method is called.
+
+        :param collections.Sequence(point2d_like) upr: The upper points to
+            approximate. The sequence should start at the leading edge and
+            move towards the trailing edge.
+        :param collections.Sequence(point2d_like) lwr: The lower points to
+            approximate. The sequence should start at the leading edge and
+            move towards the trailing edge.
+        :param bool close: Option to close the airfoil by adding a segment.
+
+        :return: The 2-D curve.
+        :rtype: afem.geometry.entities.NurbsCurve2D
+
+        .. note::
+
+            Before approximating the 2-D curve the upper and lower points
+            are combined to form a single curve. It is important that the
+            points are organized as described above so they are sorted
+            correctly for the approximation.
+        """
+        upr = [CheckGeom.to_point2d(p) for p in upr]
+        lwr = [CheckGeom.to_point2d(p) for p in lwr]
+
+        # Store 2-D LE and TE points
+        self._le2d = upr[0]
+        self._upr_te2d = upr[-1]
+        self._lwr_te2d = lwr[-1]
+
+        # Combine points for approximation
+        upr.reverse()
+        pnts = upr + lwr[1:]
+
+        self.clear()
+        return self.add_approx(pnts, close)
+
+    def read_uiuc(self, fn, close=True):
+        """
+        Generate 2-D curves by reading an airfoil file from the UIUC database.
+
+        :param str fn: The filename.
+        :param bool close: Option to close the airfoil by adding a segment.
+
+        :return: The 2-D curve.
+        :rtype: afem.geometry.entities.NurbsCurve2D
+
+        .. note::
+
+            The UIUC airfoil is assumed to be in a particular format and this
+            method may fail if it's not. The points for the upper and lower
+            surfaces from the file are combined to form a single curve that
+            starts at the trailing edge, moves along the upper surface towards
+            the leading edge, and then proceeds back to the trailing edge along
+            the lower surface.
+        """
+        with open(fn, 'r') as fin:
+            content = fin.read().splitlines()
+
+        upr, lwr = [], []
+        i = 3
+        while i < len(content):
+            line = content[i].strip().split()
+            i += 1
+            if not line:
+                break
+            x = float(line[0])
+            z = float(line[1])
+            upr.append(Point2D(x, z))
+
+        while i < len(content):
+            line = content[i].strip().split()
+            i += 1
+            if not line:
+                break
+            x = float(line[0])
+            z = float(line[1])
+            lwr.append(Point2D(x, z))
+
+        return self.approx_points(upr, lwr, close)
+
+    def build_chord(self, pln=None, scale=None, rotate=None):
+        """
+
+        :param pln:
+        :param scale:
+        :param rotate:
+
+        :return:
+        """
+        if pln is None:
+            pln = self._pln
+        if pln is None:
+            raise RuntimeError('No plane is defined.')
+        origin = pln.origin
+        axis = pln.axis
+
+        # Find TE point
+        if not self._upr_te2d.is_equal(self._lwr_te2d):
+            c = NurbsCurve2DByPoints([self._upr_te2d, self._lwr_te2d]).curve
+            c.set_domain(0., 1.)
+            te2d = c.eval(0.5)
+        else:
+            te2d = self._upr_te2d
+
+        # Build 2-D chord
+        cte2d = NurbsCurve2DByPoints([self._le2d, te2d]).curve
+        cte2d.set_domain(0., 1.)
+
+        # Build 3-D chord
+        c3d = cte2d.to_3d(pln)
+        if scale is not None:
+            c3d.scale(origin, scale)
+        if rotate is not None:
+            c3d.rotate(axis, rotate)
+
+        return c3d
