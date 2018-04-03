@@ -20,7 +20,8 @@ import json
 
 from OCCT.BRep import BRep_Builder, BRep_Tool
 from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
-                                 BRepBuilderAPI_MakeWire, BRepBuilderAPI_Sewing)
+                                 BRepBuilderAPI_MakeWire,
+                                 BRepBuilderAPI_Sewing)
 from OCCT.BRepCheck import BRepCheck_Analyzer, BRepCheck_NoError
 from OCCT.BRepGProp import BRepGProp
 from OCCT.GCPnts import GCPnts_QuasiUniformDeflection
@@ -32,6 +33,7 @@ from OCCT.IFSelect import (IFSelect_ItemsByEntity, IFSelect_RetDone,
                            IFSelect_RetVoid)
 from OCCT.Interface import Interface_Static
 from OCCT.STEPCAFControl import STEPCAFControl_Writer
+from OCCT.STEPConstruct import STEPConstruct
 from OCCT.STEPControl import STEPControl_Reader
 from OCCT.ShapeAnalysis import ShapeAnalysis
 from OCCT.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
@@ -39,7 +41,8 @@ from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                                ShapeUpgrade_SplitSurface,
                                ShapeUpgrade_UnifySameDomain)
 from OCCT.TColStd import TColStd_HSequenceOfReal
-from OCCT.TCollection import TCollection_ExtendedString
+from OCCT.TCollection import (TCollection_ExtendedString,
+                              TCollection_HAsciiString)
 from OCCT.TDataStd import TDataStd_Name
 from OCCT.TDocStd import TDocStd_Document
 from OCCT.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
@@ -351,23 +354,27 @@ class ImportVSP(object):
         # Update
         self._bodies.update(bodies)
 
-    def export_step(self, fn):
+    def export_step(self, fn, label_subshapes=True):
         """
         Export the OpenVSP model as a STEP file using Extended Data Exchange.
         Each OpenVSP component will be a named product in the STEP file
-        product structure.
+        structure.
 
         :param str fn: The filename.
+        :param bool label_subshapes: Option to label faces of the solid bodies.
+            Each face of the solid body will be labeled "Face 1", "Face 2",
+            etc.
 
         :return: None.
         """
+        # Initialize the document
         fmt = TCollection_ExtendedString('MDTV-Standard')
         doc = TDocStd_Document(fmt)
         app = XCAFApp_Application.GetApplication_()
         app.InitDocument(doc)
-
         the_assembly = XCAFDoc_DocumentTool.ShapeTool_(doc.Main())
 
+        # Gather OpenVSP bodies and names and build single compound
         solids = []
         names = []
         for name in self.bodies:
@@ -375,16 +382,39 @@ class ImportVSP(object):
             solids.append(solid)
             names.append(name)
         cmp = CompoundByShapes(solids).compound
-        the_assembly.AddShape(cmp)
 
+        # Add main shape and top-level assembly
+        main = the_assembly.AddShape(cmp)
+        txt = TCollection_ExtendedString('Vehicle')
+        TDataStd_Name.Set_(main, txt)
+
+        # Each body should be a product so names are transferred to other
+        # CAD systems
         for name, solid in zip(names, solids):
-            label = the_assembly.AddShape(solid)
+            label = the_assembly.AddSubShape(main, solid)
             txt = TCollection_ExtendedString(name)
             TDataStd_Name.Set_(label, txt)
 
+        # Transfer the document and then modify the STEP item name directly
+        # rather than using a label. This only applies when labeling
+        # sub-shapes.
         writer = STEPCAFControl_Writer()
         writer.SetNameMode(True)
-        writer.Perform(doc, fn)
+        writer.Transfer(doc)
+        if label_subshapes:
+            tw = writer.ChangeWriter().WS().TransferWriter()
+            fp = tw.FinderProcess()
+            for solid in solids:
+                i = 1
+                for f in ExploreShape.get_faces(solid):
+                    name = ' '.join(['Face', str(i)])
+                    item = STEPConstruct.FindEntity_(fp, f)
+                    if not item:
+                        continue
+                    item.SetName(TCollection_HAsciiString(name))
+                    i += 1
+
+        writer.Write(fn)
 
     def save_bodies(self, fn):
         """

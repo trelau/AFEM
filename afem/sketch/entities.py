@@ -353,12 +353,18 @@ class Airfoil(CrossSection):
 
     def build_chord(self, pln=None, scale=None, rotate=None):
         """
+        Build a chord line using the leading and trailing edge points of the
+        airfoil.
 
-        :param pln:
-        :param scale:
-        :param rotate:
+        :param pln: The plane to build on. If *None*, then the default plane
+            is used.
+        :param float scale: Scale the 3-D curve after construction on the
+            plane. The reference point is the plane origin.
+        :param float rotate: Rotate the 3-D curve after construction on the
+            plane. The reference point is the plane origin.
 
-        :return:
+        :return: The 3-D chord line.
+        :rtype: afem.geometry.entities.NurbsCurve
         """
         if pln is None:
             pln = self._pln
