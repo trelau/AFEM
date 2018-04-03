@@ -19,8 +19,10 @@
 from OCCT.IFSelect import (IFSelect_RetError,
                            IFSelect_RetDone)
 from OCCT.Interface import Interface_Static
+from OCCT.STEPConstruct import STEPConstruct
 from OCCT.STEPControl import (STEPControl_AsIs, STEPControl_Writer,
                               STEPControl_Reader)
+from OCCT.TCollection import TCollection_HAsciiString
 
 from afem.config import Settings, units_dict
 from afem.topology.check import CheckShape
@@ -36,14 +38,19 @@ class StepWrite(object):
     :param str units: Units to convert STEP file to.
     """
 
-    def __init__(self, schema='AP203', units=None):
+    def __init__(self, schema='AP203', units=None, product_name=None):
         self._writer = STEPControl_Writer()
+        self._fp = self._writer.WS().TransferWriter().FinderProcess()
         Interface_Static.SetCVal_('write.step.schema', schema)
+
         try:
             units = units_dict[units]
         except KeyError:
             units = Settings.units
         Interface_Static.SetCVal_('write.step.unit', units)
+
+        if product_name is not None:
+            Interface_Static.SetCVal_('write.step.product.name', product_name)
 
     @property
     def object(self):
@@ -71,6 +78,24 @@ class StepWrite(object):
             if int(status) < int(IFSelect_RetError):
                 added_shape = True
         return added_shape
+
+    def set_name(self, shape, name):
+        """
+        Set the name of the STEP entity for the given shape. The shape(s)
+        should be transferred before naming them.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape (or sub-shape).
+        :param str name: The name.
+
+        :return: *True* if name is set, *False* otherwise.
+        :rtype: bool
+        """
+        item = STEPConstruct.FindEntity_(self._fp, shape)
+        if not item:
+            return False
+
+        item.SetName(TCollection_HAsciiString(name))
+        return True
 
     def write(self, fn='afem.stp'):
         """
