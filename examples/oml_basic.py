@@ -43,16 +43,43 @@ wire3 = cs.wires[0]
 shape = LoftShape([wire1, wire2, wire3], True, make_ruled=True).shape
 
 # Make a body
-wing = Body(shape, 'wing')
+wing = Body(shape, 'Wing')
 wing.set_transparency(0.5)
+wing.set_color(1, 0, 0)
 
 # Build a reference surface using chord lines of the cross sections. Make sure
-# to use the same scaling and rotation parameters.
+# to use the same scaling and rotation parameters. Set the parametric domains
+# to be between 0 and 1 for convenience.
 chord1 = cs.build_chord(pln1, scale=c1)
 chord2 = cs.build_chord(pln2, scale=c2)
 chord3 = cs.build_chord(pln3, scale=c3, rotate=t3)
 sref = NurbsSurfaceByInterp([chord1, chord2, chord3], 1).surface
+sref.set_udomain(0., 1.)
+sref.set_vdomain(0., 1.)
 
+# Set the wing reference surface
+wing.set_sref(sref)
+
+# Show wing and reference surface
 gui = Viewer()
-gui.add(wing, sref)
+gui.add(wing, wing.sref)
+gui.start()
+
+# Show the underlying shape of the reference surface
+gui.clear()
+gui.add(wing.sref_shape)
+gui.start()
+
+# Evaluate point
+p = wing.eval(0.5, 0.5)
+
+# Extract a plane
+pln = wing.extract_plane(0.5, 0., 0.5, 0.5)
+face = FaceByPlane(pln, -10, 10, -10, 10).face
+
+# Extract a trimmed curve
+crv = wing.extract_curve(0.15, 0.05, 0.15, 0.95)
+
+gui.clear()
+gui.add(wing.sref, p, face, crv)
 gui.start()
