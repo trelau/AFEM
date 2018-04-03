@@ -36,9 +36,23 @@ class StepWrite(object):
     
     :param str schema: Define schema for STEP file ('AP203', or 'AP214').
     :param str units: Units to convert STEP file to.
+    :param str product_name: The name of the STEP product entry. If more than
+        one product is generated during translation, then OpenCASCADE will
+        automatically append a unique integer.
+    :param int assembly_mode: Mode for writing assemblies (0, 1, or 2).
+
+    .. note::
+        The assembly modes are as follows:
+
+        * 0 (off, default): Writes STEP files without assemblies.
+        * 1(on): Writes all shapes in the form of STEP assemblies.
+        * 2(auto): Writes shapes having a structure of (possibly nested)
+          compounds in the form of STEP assemblies, single shapes are written
+          without assembly structures.
     """
 
-    def __init__(self, schema='AP203', units=None, product_name=None):
+    def __init__(self, schema='AP203', units=None, product_name=None,
+                 assembly_mode=None):
         self._writer = STEPControl_Writer()
         self._fp = self._writer.WS().TransferWriter().FinderProcess()
         Interface_Static.SetCVal_('write.step.schema', schema)
@@ -51,6 +65,9 @@ class StepWrite(object):
 
         if product_name is not None:
             Interface_Static.SetCVal_('write.step.product.name', product_name)
+
+        if assembly_mode is not None:
+            Interface_Static.SetIVal_('write.step.assembly', assembly_mode)
 
     @property
     def object(self):

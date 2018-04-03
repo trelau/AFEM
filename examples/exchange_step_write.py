@@ -42,4 +42,4 @@ step.set_name(f5, 'left face')
 step.set_name(f6, 'right face')
 
 # Write the STEP file
-step.write('box_with_face_names.step')
+step.write('named_box.step')

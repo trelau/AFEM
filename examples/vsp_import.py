@@ -4,7 +4,6 @@ from afem.graphics import Viewer
 
 Settings.log_to_console()
 
-# v = Viewer()
 fn = r'..\models\777-200LR.stp'
 # fn = r'..\models\TBW_SUGAR.stp'
 # fn = r'..\models\F-16.stp'

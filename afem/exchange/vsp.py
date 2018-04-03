@@ -354,16 +354,18 @@ class ImportVSP(object):
         # Update
         self._bodies.update(bodies)
 
-    def export_step(self, fn, label_subshapes=True):
+    def export_step(self, fn, label_solids=True, label_faces=False):
         """
         Export the OpenVSP model as a STEP file using Extended Data Exchange.
         Each OpenVSP component will be a named product in the STEP file
         structure.
 
         :param str fn: The filename.
-        :param bool label_subshapes: Option to label faces of the solid bodies.
-            Each face of the solid body will be labeled "Face 1", "Face 2",
-            etc.
+        :param bool label_solids: Option to label the solid bodies in the
+            STEP entity. The name will be the same as the OpenVSP component.
+        :param bool label_faces: Option to label the faces in each of the
+            solids. Each face of the solid body will be labeled "Face 1",
+            "Face 2", etc.
 
         :return: None.
         """
@@ -401,18 +403,23 @@ class ImportVSP(object):
         writer = STEPCAFControl_Writer()
         writer.SetNameMode(True)
         writer.Transfer(doc)
-        if label_subshapes:
+        if label_solids or label_faces:
             tw = writer.ChangeWriter().WS().TransferWriter()
             fp = tw.FinderProcess()
-            for solid in solids:
-                i = 1
-                for f in ExploreShape.get_faces(solid):
-                    name = ' '.join(['Face', str(i)])
-                    item = STEPConstruct.FindEntity_(fp, f)
-                    if not item:
-                        continue
-                    item.SetName(TCollection_HAsciiString(name))
-                    i += 1
+            for name, solid in zip(names, solids):
+                if label_solids:
+                    item = STEPConstruct.FindEntity_(fp, solid)
+                    if item:
+                        item.SetName(TCollection_HAsciiString(name))
+                if label_faces:
+                    i = 1
+                    for f in ExploreShape.get_faces(solid):
+                        name = ' '.join(['Face', str(i)])
+                        item = STEPConstruct.FindEntity_(fp, f)
+                        if not item:
+                            continue
+                        item.SetName(TCollection_HAsciiString(name))
+                        i += 1
 
         writer.Write(fn)
 
