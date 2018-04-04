@@ -26,7 +26,7 @@ from OCCT.STEPConstruct import STEPConstruct
 from OCCT.TCollection import (TCollection_ExtendedString,
                               TCollection_AsciiString,
                               TCollection_HAsciiString)
-from OCCT.TDF import TDF_ChildIterator, TDF_Label
+from OCCT.TDF import TDF_ChildIterator, TDF_Label, TDF_LabelSequence
 from OCCT.TDataStd import TDataStd_Name, TDataStd_AsciiString
 from OCCT.TDocStd import TDocStd_Document
 from OCCT.TNaming import TNaming_NamedShape
@@ -299,6 +299,31 @@ class XdeDocument(object):
         """
         return self._tool.RemoveShape(label.object, remove_completely)
 
+    def get_shapes(self):
+        """
+        Get a list containing all top-level shapes.
+
+        :return: List of top-level shapes.
+        :rtype: list(afem.exchange.xde.XdeLabel)
+        """
+        labels = TDF_LabelSequence()
+        self._tool.GetShapes(labels)
+        return [XdeLabel(label) for label in labels]
+
+    def get_shape_by_name(self, name):
+        """
+        Get a shape label by its name. This only applies to top-level shapes
+        and will return the first match.
+
+        :param str name: The name.
+
+        :return: The label or *None* if not found.
+        :rtype afem.exchange.xde.XdeLabel or None
+        """
+        for label in self.get_shapes():
+            if label.name == name:
+                return label
+
     def find_subshape(self, label, shape):
         """
         Find a label for the sub-shape stored on the given label.
@@ -332,6 +357,18 @@ class XdeDocument(object):
             return label
         label.set_name(name)
         return label
+
+    def set_auto_naming(self, mode):
+        """
+        Set the option to auto-name shape labels. This only applies to
+        top-level shapes.
+
+        :param bool mode: The mode. If *True*, added shapes are automatically
+            named based on their type (e.g., "SOLID", "SHELL", etc.).
+
+        :return: None.
+        """
+        self._tool.SetAutoNaming_(mode)
 
 
 class XdeLabel(object):
