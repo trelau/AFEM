@@ -16,8 +16,32 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from afem.exchange.iges import *
-from afem.exchange.step import *
-from afem.exchange.stl import *
-from afem.exchange.vsp import *
-from afem.exchange.xde import *
+from afem.exchange import *
+from afem.topology import *
+
+# Build a box and get faces
+builder = BoxBySize()
+solid = builder.solid
+f1 = builder.top_face
+f2 = builder.bottom_face
+f3 = builder.front_face
+f4 = builder.back_face
+f5 = builder.left_face
+f6 = builder.right_face
+
+# Initialize a document
+doc = XdeDocument(False)
+
+# Add label for the main shape
+main = doc.add_shape(solid, 'The Box')
+
+# Add labels for the sub-shapes
+doc.add_subshape(main, f1, 'top face')
+doc.add_subshape(main, f2, 'bottom face')
+doc.add_subshape(main, f3, 'front face')
+doc.add_subshape(main, f4, 'back face')
+doc.add_subshape(main, f5, 'left face')
+doc.add_subshape(main, f6, 'right face')
+
+# Save document
+doc.save_as('named_box')

@@ -124,9 +124,7 @@ class StepWrite(object):
         :rtype: bool
         """
         status = self._writer.Write(fn)
-        if int(status) < int(IFSelect_RetError):
-            return True
-        return False
+        return int(status) < int(IFSelect_RetError)
 
 
 class StepRead(object):
