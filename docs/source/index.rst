@@ -9,23 +9,11 @@ developed by Laughlin Research, LLC.
    intro
 
 .. toctree::
-   :caption: Getting Started
-   :maxdepth: 2
-
-   install
-   examples
-
-.. toctree::
    :caption: The Basics
    :maxdepth: 2
 
+   install
    design
-
-.. toctree::
-   :caption: Advanced Topics
-   :maxdepth: 2
-
-   advanced
 
 .. toctree::
    :caption: Modules
