@@ -185,6 +185,7 @@ class Viewer(BasicViewer):
         from afem.structure.group import Group
         from afem.structure.entities import Part
         from afem.smesh.meshes import Mesh, SubMesh
+        from afem.topology.entities import Shape
 
         for item in items:
             if isinstance(item, Part):
@@ -201,3 +202,5 @@ class Viewer(BasicViewer):
                 self.display_mesh(item.object)
             elif isinstance(item, (SMESH_Mesh, SMESH_subMesh)):
                 self.display_mesh(item)
+            elif isinstance(item, Shape):
+                self.display_shape(item.object, item.color, item.transparency)
