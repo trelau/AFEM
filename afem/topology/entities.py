@@ -16,10 +16,16 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+from itertools import product
 from math import sqrt
 
+from OCCT.BRep import BRep_Tool
 from OCCT.BRepBndLib import BRepBndLib
+from OCCT.BRepBuilderAPI import BRepBuilderAPI_Copy
+from OCCT.BRepClass3d import BRepClass3d
+from OCCT.BRepTools import BRepTools
 from OCCT.Bnd import Bnd_Box
+from OCCT.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_ShapeTolerance
 from OCCT.TopAbs import TopAbs_ShapeEnum
 from OCCT.TopExp import TopExp_Explorer
 from OCCT.TopoDS import TopoDS
@@ -173,6 +179,118 @@ class Shape(ViewableItem):
         """
         return self.object.Infinite()
 
+    @property
+    def vertices(self):
+        """
+        :return: The vertices of the shape.
+        :rtype: list(afem.topology.entities.Vertex)
+        """
+        return self._get_shapes(self.VERTEX)
+
+    @property
+    def edges(self):
+        """
+        :return: The edges of the shape.
+        :rtype: list(afem.topology.entities.Edge)
+        """
+        return self._get_shapes(self.EDGE)
+
+    @property
+    def wires(self):
+        """
+        :return: The wires of the shape.
+        :rtype: list(afem.topology.entities.Wire)
+        """
+        return self._get_shapes(self.WIRE)
+
+    @property
+    def faces(self):
+        """
+        :return: The Face of the shape.
+        :rtype: list(afem.topology.entities.Face)
+        """
+        return self._get_shapes(self.FACE)
+
+    @property
+    def shells(self):
+        """
+        :return: The shells of the shape.
+        :rtype: list(afem.topology.entities.Shell)
+        """
+        return self._get_shapes(self.SHELL)
+
+    @property
+    def solids(self):
+        """
+        :return: The solids of the shape.
+        :rtype: list(afem.topology.entities.Solid)
+        """
+        return self._get_shapes(self.SOLID)
+
+    @property
+    def compounds(self):
+        """
+        :return: The compounds of the shape.
+        :rtype: list(afem.topology.entities.Compound)
+        """
+        return self._get_shapes(self.COMPOUND)
+
+    @property
+    def compsolids(self):
+        """
+        :return: The compsolids of the shape.
+        :rtype: list(afem.topology.entities.CompSolid)
+        """
+        return self._get_shapes(self.COMPSOLID)
+
+    @property
+    def tol(self):
+        """
+        :return: The average global tolerance.
+        :rtype: float
+        """
+        tol = ShapeAnalysis_ShapeTolerance()
+        tol.AddTolerance(self.object)
+        return tol.GlobalTolerance(0)
+
+    @property
+    def tol_min(self):
+        """
+        :return: The minimum global tolerance.
+        :rtype: float
+        """
+        tol = ShapeAnalysis_ShapeTolerance()
+        tol.AddTolerance(self.object)
+        return tol.GlobalTolerance(-1)
+
+    @property
+    def tol_max(self):
+        """
+        :return: The minimum global tolerance.
+        :rtype: float
+        """
+        tol = ShapeAnalysis_ShapeTolerance()
+        tol.AddTolerance(self.object)
+        return tol.GlobalTolerance(1)
+
+    def _get_shapes(self, type_):
+        """
+        Get sub-shapes of a specified type from the shape.
+        """
+        explorer = TopExp_Explorer(self.object, type_)
+        shapes = []
+        while explorer.More():
+            si = Shape(explorer.Current()).downcasted()
+            is_unique = True
+            for s in shapes:
+                if s.is_same(si):
+                    is_unique = False
+                    break
+            if is_unique:
+                shapes.append(si)
+            explorer.Next()
+        return shapes
+
     def reverse(self):
         """
         Reverse the orientation of the shape.
@@ -250,28 +368,70 @@ class Shape(ViewableItem):
             return CompSolid(c)
         return self
 
-    def get_shapes(self, type_):
+    def copy(self, geom=True):
         """
-        Get sub-shapes of a specified type from the shape.
+        Copy this shape.
 
-        :param OCCT.TopAbs.TopAbs_ShapeEnum type_: The shape type.
+        :param bool geom: Option to copy geometry.
 
-        :return: List of sub-shapes.
-        :rtype: list(afem.topology.entities.Shape)
+        :return: The copied shape.
+        :rtype: afem.topology.entities.Shape
         """
-        explorer = TopExp_Explorer(self.object, type_)
-        shapes = []
-        while explorer.More():
-            si = Shape(explorer.Current()).downcasted()
-            is_unique = True
-            for s in shapes:
-                if s.is_same(si):
-                    is_unique = False
-                    break
-            if is_unique:
-                shapes.append(si)
-            explorer.Next()
-        return shapes
+        return Shape(BRepBuilderAPI_Copy(self.object, geom).Shape())
+
+    def shared_vertices(self, other):
+        """
+        Get shared vertices between this shape and the other.
+
+        :param afem.topology.entities.Shape other: The other shape.
+
+        :return: Shared vertices.
+        :rtype: list(afem.topology.entities.Vertex)
+        """
+        verts1 = self.vertices
+        verts2 = other.vertices
+        if not verts1 or not verts2:
+            return []
+
+        shared_verts = []
+        for v1, v2 in product(verts1, verts2):
+            if v1.is_same(v2):
+                unique = True
+                for vi in shared_verts:
+                    if vi.is_same(v1):
+                        unique = False
+                        break
+                if unique:
+                    shared_verts.append(v1)
+
+        return shared_verts
+
+    def shared_edges(self, other):
+        """
+        Get shared edges between this shape and the other.
+
+        :param afem.topology.entities.Shape other: The other shape.
+
+        :return: Shared edges.
+        :rtype: list(afem.topology.entities.Edge)
+        """
+        edges1 = self.edges
+        edges2 = other.edges
+        if not edges1 or not edges2:
+            return []
+
+        shared_edges = []
+        for e1, e2 in product(edges1, edges2):
+            if e1.is_same(e2):
+                unique = True
+                for ei in shared_edges:
+                    if ei.is_same(e1):
+                        unique = False
+                        break
+                if unique:
+                    shared_edges.append(e1)
+
+        return shared_edges
 
 
 class Vertex(Shape):
@@ -282,6 +442,18 @@ class Vertex(Shape):
     def __init__(self, vertex):
         super(Vertex, self).__init__(vertex)
 
+    @property
+    def point(self):
+        """
+        :return: The vertex point.
+        :rtype: afem.geometry.entities.Point
+        """
+        gp_pnt = BRep_Tool.Pnt_(self.object)
+        return Point(gp_pnt.X(), gp_pnt.Y(), gp_pnt.Z())
+
+    def parameter(self, edge, face=None):
+        pass
+
 
 class Edge(Shape):
     """
@@ -290,6 +462,26 @@ class Edge(Shape):
 
     def __init__(self, edge):
         super(Edge, self).__init__(edge)
+
+    @property
+    def curve(self):
+        pass
+
+    @property
+    def first_vertex(self):
+        """
+        :return: The first vertex of the edge.
+        :rtype: afem.topology.entities.Vertex
+        """
+        return Vertex(ShapeAnalysis_Edge().FirstVertex(self.object))
+
+    @property
+    def last_vertex(self):
+        """
+        :return: The last vertex of the edge.
+        :rtype: afem.topology.entities.Vertex
+        """
+        return Vertex(ShapeAnalysis_Edge().LastVertex(self.object))
 
 
 class Wire(Shape):
@@ -309,6 +501,18 @@ class Face(Shape):
     def __init__(self, face):
         super(Face, self).__init__(face)
 
+    @property
+    def surface(self):
+        pass
+
+    @property
+    def outer_wire(self):
+        """
+        :return: The outer wire of the face.
+        :rtype: afem.topology.entities.Wire
+        """
+        return Wire(BRepTools.OuterWire_(self.object))
+
 
 class Shell(Shape):
     """
@@ -326,6 +530,14 @@ class Solid(Shape):
 
     def __init__(self, solid):
         super(Solid, self).__init__(solid)
+
+    @property
+    def outer_shell(self):
+        """
+        :return: The outer shell of the face.
+        :rtype: afem.topology.entities.Shell
+        """
+        return Shell(BRepClass3d.OuterShell_(self.object))
 
 
 class Compound(Shape):
