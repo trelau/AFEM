@@ -28,7 +28,9 @@ from OCCT.Bnd import Bnd_Box
 from OCCT.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_ShapeTolerance
 from OCCT.TopAbs import TopAbs_ShapeEnum
 from OCCT.TopExp import TopExp_Explorer
-from OCCT.TopoDS import TopoDS
+from OCCT.TopoDS import (TopoDS, TopoDS_Vertex, TopoDS_Edge, TopoDS_Wire,
+                         TopoDS_Face, TopoDS_Shell, TopoDS_Solid,
+                         TopoDS_Compound, TopoDS_CompSolid)
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Point
@@ -46,6 +48,7 @@ class Shape(ViewableItem):
     :param OCCT.TopoDS.TopoDS_Shape shape: The underlying shape.
     """
 
+    SHAPE = TopAbs_ShapeEnum.TopAbs_SHAPE
     VERTEX = TopAbs_ShapeEnum.TopAbs_VERTEX
     EDGE = TopAbs_ShapeEnum.TopAbs_EDGE
     WIRE = TopAbs_ShapeEnum.TopAbs_WIRE
@@ -58,6 +61,7 @@ class Shape(ViewableItem):
     def __init__(self, shape):
         super(Shape, self).__init__()
 
+        # The underlying OCCT shape
         self._shape = shape
 
     def __hash__(self):
@@ -65,6 +69,12 @@ class Shape(ViewableItem):
         Use the hash code of the shape.
         """
         return hash(self.hash_code)
+
+    def __eq__(self, other):
+        """
+        Check equality using is_same.
+        """
+        return self.is_same(other)
 
     @property
     def object(self):
@@ -105,7 +115,7 @@ class Shape(ViewableItem):
         :return: *True* if a Vertex, *False* if not.
         :rtype: bool
         """
-        return self.shape_type == TopAbs_ShapeEnum.TopAbs_VERTEX
+        return self.shape_type == Shape.VERTEX
 
     @property
     def is_edge(self):
@@ -113,7 +123,7 @@ class Shape(ViewableItem):
         :return: *True* if an Edge, *False* if not.
         :rtype: bool
         """
-        return self.shape_type == TopAbs_ShapeEnum.TopAbs_EDGE
+        return self.shape_type == Shape.EDGE
 
     @property
     def is_wire(self):
@@ -121,7 +131,7 @@ class Shape(ViewableItem):
         :return: *True* if a Wire, *False* if not.
         :rtype: bool
         """
-        return self.shape_type == TopAbs_ShapeEnum.TopAbs_WIRE
+        return self.shape_type == Shape.WIRE
 
     @property
     def is_face(self):
@@ -129,7 +139,7 @@ class Shape(ViewableItem):
         :return: *True* if a Face, *False* if not.
         :rtype: bool
         """
-        return self.shape_type == TopAbs_ShapeEnum.TopAbs_FACE
+        return self.shape_type == Shape.FACE
 
     @property
     def is_shell(self):
@@ -137,7 +147,7 @@ class Shape(ViewableItem):
         :return: *True* if a Shell, *False* if not.
         :rtype: bool
         """
-        return self.shape_type == TopAbs_ShapeEnum.TopAbs_SHELL
+        return self.shape_type == Shape.SHELL
 
     @property
     def is_solid(self):
@@ -145,7 +155,7 @@ class Shape(ViewableItem):
         :return: *True* if a Solid, *False* if not.
         :rtype: bool
         """
-        return self.shape_type == TopAbs_ShapeEnum.TopAbs_SOLID
+        return self.shape_type == Shape.SOLID
 
     @property
     def is_compound(self):
@@ -153,7 +163,7 @@ class Shape(ViewableItem):
         :return: *True* if a Compound, *False* if not.
         :rtype: bool
         """
-        return self.shape_type == TopAbs_ShapeEnum.TopAbs_COMPOUND
+        return self.shape_type == Shape.COMPOUND
 
     @property
     def is_compsolid(self):
@@ -161,7 +171,7 @@ class Shape(ViewableItem):
         :return: *True* if a CompSolid, *False* if not.
         :rtype: bool
         """
-        return self.shape_type == TopAbs_ShapeEnum.TopAbs_COMPSOLID
+        return self.shape_type == Shape.COMPSOLID
 
     @property
     def closed(self):
@@ -280,7 +290,7 @@ class Shape(ViewableItem):
         explorer = TopExp_Explorer(self.object, type_)
         shapes = []
         while explorer.More():
-            si = Shape(explorer.Current()).downcasted()
+            si = Shape.wrap(explorer.Current())
             is_unique = True
             for s in shapes:
                 if s.is_same(si):
@@ -335,39 +345,6 @@ class Shape(ViewableItem):
         """
         return self.object.IsEqual(other.object)
 
-    def downcasted(self):
-        """
-        Convert this shape to a more specific type based on its shape type.
-
-        :return: The new shape. Returns itself if not converted.
-        :rtype: afem.topology.entities.Shape
-        """
-        if self.is_vertex:
-            v = TopoDS.Vertex_(self.object)
-            return Vertex(v)
-        if self.is_edge:
-            e = TopoDS.Edge_(self.object)
-            return Edge(e)
-        if self.is_wire:
-            w = TopoDS.Wire_(self.object)
-            return Wire(w)
-        if self.is_face:
-            f = TopoDS.Face_(self.object)
-            return Face(f)
-        if self.is_shell:
-            s = TopoDS.Shell_(self.object)
-            return Shell(s)
-        if self.is_solid:
-            s = TopoDS.Solid_(self.object)
-            return Solid(s)
-        if self.is_compound:
-            c = TopoDS.Compound_(self.object)
-            return Compound(c)
-        if self.is_compsolid:
-            c = TopoDS.CompSolid_(self.object)
-            return CompSolid(c)
-        return self
-
     def copy(self, geom=True):
         """
         Copy this shape.
@@ -377,7 +354,7 @@ class Shape(ViewableItem):
         :return: The copied shape.
         :rtype: afem.topology.entities.Shape
         """
-        return Shape(BRepBuilderAPI_Copy(self.object, geom).Shape())
+        return Shape.wrap(BRepBuilderAPI_Copy(self.object, geom).Shape())
 
     def shared_vertices(self, other):
         """
@@ -433,13 +410,48 @@ class Shape(ViewableItem):
 
         return shared_edges
 
+    @staticmethod
+    def wrap(shape):
+        """
+        Convert the shape to a more specific type based on its shape type.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: The new shape.
+        :rtype: afem.topology.entities.Shape
+        """
+        if shape.ShapeType() == Shape.VERTEX:
+            return Vertex(shape)
+        if shape.ShapeType() == Shape.EDGE:
+            return Edge(shape)
+        if shape.ShapeType() == Shape.WIRE:
+            return Wire(shape)
+        if shape.ShapeType() == Shape.FACE:
+            return Face(shape)
+        if shape.ShapeType() == Shape.SHELL:
+            return Shell(shape)
+        if shape.ShapeType() == Shape.SOLID:
+            return Solid(shape)
+        if shape.ShapeType() == Shape.COMPOUND:
+            return Compound(shape)
+        if shape.ShapeType() == Shape.COMPSOLID:
+            return CompSolid(shape)
+
+        return Shape(shape)
+
 
 class Vertex(Shape):
     """
     Vertex.
+
+    :param OCCT.TopoDS.TopoDS_Vertex vertex: The vertex.
     """
 
     def __init__(self, vertex):
+        if not vertex.ShapeType() == Shape.VERTEX:
+            raise TypeError('Shape is not a TopoDS_Vertex.')
+        if not isinstance(vertex, TopoDS_Vertex):
+            vertex = TopoDS.Vertex_(vertex)
         super(Vertex, self).__init__(vertex)
 
     @property
@@ -458,9 +470,15 @@ class Vertex(Shape):
 class Edge(Shape):
     """
     Edge.
+
+    :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
     """
 
     def __init__(self, edge):
+        if not edge.ShapeType() == Shape.EDGE:
+            raise TypeError('Shape is not a TopoDS_Edge.')
+        if not isinstance(edge, TopoDS_Edge):
+            edge = TopoDS.Edge_(edge)
         super(Edge, self).__init__(edge)
 
     @property
@@ -487,18 +505,30 @@ class Edge(Shape):
 class Wire(Shape):
     """
     Wire.
+
+    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
     """
 
     def __init__(self, wire):
+        if not wire.ShapeType() == Shape.WIRE:
+            raise TypeError('Shape is not a TopoDS_Wire.')
+        if not isinstance(wire, TopoDS_Wire):
+            wire = TopoDS.Wire_(wire)
         super(Wire, self).__init__(wire)
 
 
 class Face(Shape):
     """
     Face.
+
+    :param OCCT.TopoDS.TopoDS_Face face: The face.
     """
 
     def __init__(self, face):
+        if not face.ShapeType() == Shape.FACE:
+            raise TypeError('Shape is not a TopoDS_Face.')
+        if not isinstance(face, TopoDS_Face):
+            face = TopoDS.Face_(face)
         super(Face, self).__init__(face)
 
     @property
@@ -517,18 +547,30 @@ class Face(Shape):
 class Shell(Shape):
     """
     Shell.
+
+    :param OCCT.TopoDS.TopoDS_Shell shell: The shell.
     """
 
     def __init__(self, shell):
+        if not shell.ShapeType() == Shape.SHELL:
+            raise TypeError('Shape is not a TopoDS_Shell.')
+        if not isinstance(shell, TopoDS_Shell):
+            shell = TopoDS.Shell_(shell)
         super(Shell, self).__init__(shell)
 
 
 class Solid(Shape):
     """
     Solid.
+
+    :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
     """
 
     def __init__(self, solid):
+        if not solid.ShapeType() == Shape.SOLID:
+            raise TypeError('Shape is not a TopoDS_Solid.')
+        if not isinstance(solid, TopoDS_Solid):
+            solid = TopoDS.Solid_(solid)
         super(Solid, self).__init__(solid)
 
     @property
@@ -543,28 +585,36 @@ class Solid(Shape):
 class Compound(Shape):
     """
     Compound.
+
+    :param OCCT.TopoDS.TopoDS_Compound compound: The compound.
     """
 
     def __init__(self, compound):
+        if not compound.ShapeType() == Shape.COMPOUND:
+            raise TypeError('Shape is not a TopoDS_Compound.')
+        if not isinstance(compound, TopoDS_Compound):
+            compound = TopoDS.Compound_(compound)
         super(Compound, self).__init__(compound)
 
 
 class CompSolid(Shape):
     """
     CompSolid.
+
+    :param OCCT.TopoDS.TopoDS_CompSolid compsolid: The compsolid.
     """
 
     def __init__(self, compsolid):
+        if not compsolid.ShapeType() == Shape.COMPSOLID:
+            raise TypeError('Shape is not a TopoDS_CompSolid.')
+        if not isinstance(compsolid, TopoDS_CompSolid):
+            compsolid = TopoDS.CompSolid_(compsolid)
         super(CompSolid, self).__init__(compsolid)
 
 
 class BBox(Bnd_Box):
     """
     Bounding box in 3-D space.
-
-    For more information see Bnd_Box_.
-
-    .. _Bnd_Box: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_bnd___box.html
 
     Usage:
 
