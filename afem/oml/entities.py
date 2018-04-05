@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from afem.exchange.xde import XdeDocument
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import Surface
 from afem.geometry.project import (ProjectPointToCurve,
@@ -430,6 +429,8 @@ class Body(ViewableItem):
             color of the Body. Other user-defined metadata is currently not
             saved.
         """
+        # TODO Fix cirular import. Need to organize differently...
+        from afem.exchange.xde import XdeDocument
         # Create document
         doc = XdeDocument(binary)
 
@@ -461,6 +462,8 @@ class Body(ViewableItem):
 
         :raise TypeError: If the file extension type is not supported.
         """
+        from afem.exchange.xde import XdeDocument
+
         if fn.endswith('.xbf'):
             binary = True
         elif fn.endswith('.xml'):
