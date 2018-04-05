@@ -20,51 +20,47 @@ still use the **pyOCCT** package required by AFEM.
 
 Entities
 --------
-.. py:currentmodule:: OCCT.TopoDS
+.. py:currentmodule:: afem.topology.entities
 
-OpenCASCADE entities are provided here for reference. Rarely will the user
-ever need to initialize any of these entities. The topology builders should
-be used instead.
+Shape
+~~~~~
+.. autoclass:: Shape
+
+Vertex
+~~~~~~~
+.. autoclass:: Vertex
+
+Edge
+~~~~
+.. autoclass:: Edge
+
+Wire
+~~~~
+.. autoclass:: Wire
+
+Face
+~~~~
+.. autoclass:: Face
+
+Shell
+~~~~~
+.. autoclass:: Shell
+
+Solid
+~~~~~
+.. autoclass:: Solid
+
+CompSolid
+~~~~~~~~~
+.. autoclass:: CompSolid
+
+Compound
+~~~~~~~~
+.. autoclass:: Compound
 
 Bounding Box
 ~~~~~~~~~~~~
-.. autoclass:: afem.topology.entities.BBox
-
-TopoDS_Shape
-~~~~~~~~~~~~
-.. autoclass:: TopoDS_Shape
-
-TopoDS_Vertex
-~~~~~~~~~~~~~
-.. autoclass:: TopoDS_Vertex
-
-TopoDS_Edge
-~~~~~~~~~~~
-.. autoclass:: TopoDS_Edge
-
-TopoDS_Wire
-~~~~~~~~~~~
-.. autoclass:: TopoDS_Wire
-
-TopoDS_Face
-~~~~~~~~~~~
-.. autoclass:: TopoDS_Face
-
-TopoDS_Shell
-~~~~~~~~~~~~
-.. autoclass:: TopoDS_Shell
-
-TopoDS_Solid
-~~~~~~~~~~~~
-.. autoclass:: TopoDS_Solid
-
-TopoDS_CompSolid
-~~~~~~~~~~~~~~~~
-.. autoclass:: TopoDS_CompSolid
-
-TopoDS_Compound
-~~~~~~~~~~~~~~~
-.. autoclass:: TopoDS_Compound
+.. autoclass:: BBox
 
 Create
 ------

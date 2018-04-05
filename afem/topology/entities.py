@@ -30,7 +30,7 @@ from OCCT.TopAbs import TopAbs_ShapeEnum
 from OCCT.TopExp import TopExp_Explorer
 from OCCT.TopoDS import (TopoDS, TopoDS_Vertex, TopoDS_Edge, TopoDS_Wire,
                          TopoDS_Face, TopoDS_Shell, TopoDS_Solid,
-                         TopoDS_Compound, TopoDS_CompSolid)
+                         TopoDS_Compound, TopoDS_CompSolid, TopoDS_Shape)
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Point
@@ -46,6 +46,19 @@ class Shape(ViewableItem):
     Shape.
 
     :param OCCT.TopoDS.TopoDS_Shape shape: The underlying shape.
+
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_SHAPE SHAPE: Shape type.
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_VERTEX VERTEX: Vertex type.
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_EDGE EDGE: Edge type.
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_WIRE WIRE: Wire type.
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_FACE FACE: Face type.
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_SHELL SHELL: Shell type.
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_SOLID SOLID: Solid type.
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_COMPSOLID COMPSOLID: CompSolid
+        type.
+    :cvar OCCT.TopAbs.TopAbs_ShapeEnum.TopAbs_COMPOUND COMPOUND: Compound type.
+
+    :raise TypeError: If ``shape`` is not a ``TopoDS_Shape``.
     """
 
     SHAPE = TopAbs_ShapeEnum.TopAbs_SHAPE
@@ -55,10 +68,12 @@ class Shape(ViewableItem):
     FACE = TopAbs_ShapeEnum.TopAbs_FACE
     SHELL = TopAbs_ShapeEnum.TopAbs_SHELL
     SOLID = TopAbs_ShapeEnum.TopAbs_SOLID
-    COMPOUND = TopAbs_ShapeEnum.TopAbs_COMPOUND
     COMPSOLID = TopAbs_ShapeEnum.TopAbs_COMPSOLID
+    COMPOUND = TopAbs_ShapeEnum.TopAbs_COMPOUND
 
     def __init__(self, shape):
+        if not isinstance(shape, TopoDS_Shape):
+            raise TypeError('A TopoDS_Shape was not provided.')
         super(Shape, self).__init__()
 
         # The underlying OCCT shape
@@ -158,20 +173,20 @@ class Shape(ViewableItem):
         return self.shape_type == Shape.SOLID
 
     @property
-    def is_compound(self):
-        """
-        :return: *True* if a Compound, *False* if not.
-        :rtype: bool
-        """
-        return self.shape_type == Shape.COMPOUND
-
-    @property
     def is_compsolid(self):
         """
         :return: *True* if a CompSolid, *False* if not.
         :rtype: bool
         """
         return self.shape_type == Shape.COMPSOLID
+
+    @property
+    def is_compound(self):
+        """
+        :return: *True* if a Compound, *False* if not.
+        :rtype: bool
+        """
+        return self.shape_type == Shape.COMPOUND
 
     @property
     def closed(self):
@@ -413,13 +428,20 @@ class Shape(ViewableItem):
     @staticmethod
     def wrap(shape):
         """
-        Convert the shape to a more specific type based on its shape type.
+        Wrap the OpenCASCADE shape based on its type.
 
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
-        :return: The new shape.
+        :return: The wrapped shape.
         :rtype: afem.topology.entities.Shape
+
+        .. warning::
+
+            If a null shape is provided then it is returned as a ``Shape``.
         """
+        if shape.IsNull():
+            return Shape(shape)
+
         if shape.ShapeType() == Shape.VERTEX:
             return Vertex(shape)
         if shape.ShapeType() == Shape.EDGE:
@@ -432,10 +454,10 @@ class Shape(ViewableItem):
             return Shell(shape)
         if shape.ShapeType() == Shape.SOLID:
             return Solid(shape)
-        if shape.ShapeType() == Shape.COMPOUND:
-            return Compound(shape)
         if shape.ShapeType() == Shape.COMPSOLID:
             return CompSolid(shape)
+        if shape.ShapeType() == Shape.COMPOUND:
+            return Compound(shape)
 
         return Shape(shape)
 
@@ -444,15 +466,20 @@ class Vertex(Shape):
     """
     Vertex.
 
-    :param OCCT.TopoDS.TopoDS_Vertex vertex: The vertex.
+    :param OCCT.TopoDS.TopoDS_Vertex shape: The vertex.
+
+    :raise ValueError: If ``shape`` is null.
+    :raise TypeError: If ``shape`` is not a ``TopoDS_Vertex``.
     """
 
-    def __init__(self, vertex):
-        if not vertex.ShapeType() == Shape.VERTEX:
+    def __init__(self, shape):
+        if shape.IsNull():
+            raise ValueError('Cannot initialize a null shape.')
+        if not shape.ShapeType() == Shape.VERTEX:
             raise TypeError('Shape is not a TopoDS_Vertex.')
-        if not isinstance(vertex, TopoDS_Vertex):
-            vertex = TopoDS.Vertex_(vertex)
-        super(Vertex, self).__init__(vertex)
+        if not isinstance(shape, TopoDS_Vertex):
+            shape = TopoDS.Vertex_(shape)
+        super(Vertex, self).__init__(shape)
 
     @property
     def point(self):
@@ -471,15 +498,20 @@ class Edge(Shape):
     """
     Edge.
 
-    :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+    :param OCCT.TopoDS.TopoDS_Edge shape: The edge.
+
+    :raise ValueError: If ``shape`` is null.
+    :raise TypeError: If ``shape`` is not a ``TopoDS_Edge``.
     """
 
-    def __init__(self, edge):
-        if not edge.ShapeType() == Shape.EDGE:
+    def __init__(self, shape):
+        if shape.IsNull():
+            raise ValueError('Cannot initialize a null shape.')
+        if not shape.ShapeType() == Shape.EDGE:
             raise TypeError('Shape is not a TopoDS_Edge.')
-        if not isinstance(edge, TopoDS_Edge):
-            edge = TopoDS.Edge_(edge)
-        super(Edge, self).__init__(edge)
+        if not isinstance(shape, TopoDS_Edge):
+            shape = TopoDS.Edge_(shape)
+        super(Edge, self).__init__(shape)
 
     @property
     def curve(self):
@@ -506,30 +538,40 @@ class Wire(Shape):
     """
     Wire.
 
-    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param OCCT.TopoDS.TopoDS_Wire shape: The wire.
+
+    :raise ValueError: If ``shape`` is null.
+    :raise TypeError: If ``shape`` is not a ``TopoDS_Wire``.
     """
 
-    def __init__(self, wire):
-        if not wire.ShapeType() == Shape.WIRE:
+    def __init__(self, shape):
+        if shape.IsNull():
+            raise ValueError('Cannot initialize a null shape.')
+        if not shape.ShapeType() == Shape.WIRE:
             raise TypeError('Shape is not a TopoDS_Wire.')
-        if not isinstance(wire, TopoDS_Wire):
-            wire = TopoDS.Wire_(wire)
-        super(Wire, self).__init__(wire)
+        if not isinstance(shape, TopoDS_Wire):
+            shape = TopoDS.Wire_(shape)
+        super(Wire, self).__init__(shape)
 
 
 class Face(Shape):
     """
     Face.
 
-    :param OCCT.TopoDS.TopoDS_Face face: The face.
+    :param OCCT.TopoDS.TopoDS_Face shape: The face.
+
+    :raise ValueError: If ``shape`` is null.
+    :raise TypeError: If ``shape`` is not a ``TopoDS_Face``.
     """
 
-    def __init__(self, face):
-        if not face.ShapeType() == Shape.FACE:
+    def __init__(self, shape):
+        if shape.IsNull():
+            raise ValueError('Cannot initialize a null shape.')
+        if not shape.ShapeType() == Shape.FACE:
             raise TypeError('Shape is not a TopoDS_Face.')
-        if not isinstance(face, TopoDS_Face):
-            face = TopoDS.Face_(face)
-        super(Face, self).__init__(face)
+        if not isinstance(shape, TopoDS_Face):
+            shape = TopoDS.Face_(shape)
+        super(Face, self).__init__(shape)
 
     @property
     def surface(self):
@@ -548,30 +590,40 @@ class Shell(Shape):
     """
     Shell.
 
-    :param OCCT.TopoDS.TopoDS_Shell shell: The shell.
+    :param OCCT.TopoDS.TopoDS_Shell shape: The shell.
+
+    :raise ValueError: If ``shape`` is null.
+    :raise TypeError: If ``shape`` is not a ``TopoDS_Shell``.
     """
 
-    def __init__(self, shell):
-        if not shell.ShapeType() == Shape.SHELL:
+    def __init__(self, shape):
+        if shape.IsNull():
+            raise ValueError('Cannot initialize a null shape.')
+        if not shape.ShapeType() == Shape.SHELL:
             raise TypeError('Shape is not a TopoDS_Shell.')
-        if not isinstance(shell, TopoDS_Shell):
-            shell = TopoDS.Shell_(shell)
-        super(Shell, self).__init__(shell)
+        if not isinstance(shape, TopoDS_Shell):
+            shape = TopoDS.Shell_(shape)
+        super(Shell, self).__init__(shape)
 
 
 class Solid(Shape):
     """
     Solid.
 
-    :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
+    :param OCCT.TopoDS.TopoDS_Solid shape: The solid.
+
+    :raise ValueError: If ``shape`` is null.
+    :raise TypeError: If ``shape`` is not a ``TopoDS_Solid``.
     """
 
-    def __init__(self, solid):
-        if not solid.ShapeType() == Shape.SOLID:
+    def __init__(self, shape):
+        if shape.IsNull():
+            raise ValueError('Cannot initialize a null shape.')
+        if not shape.ShapeType() == Shape.SOLID:
             raise TypeError('Shape is not a TopoDS_Solid.')
-        if not isinstance(solid, TopoDS_Solid):
-            solid = TopoDS.Solid_(solid)
-        super(Solid, self).__init__(solid)
+        if not isinstance(shape, TopoDS_Solid):
+            shape = TopoDS.Solid_(shape)
+        super(Solid, self).__init__(shape)
 
     @property
     def outer_shell(self):
@@ -582,34 +634,44 @@ class Solid(Shape):
         return Shell(BRepClass3d.OuterShell_(self.object))
 
 
-class Compound(Shape):
-    """
-    Compound.
-
-    :param OCCT.TopoDS.TopoDS_Compound compound: The compound.
-    """
-
-    def __init__(self, compound):
-        if not compound.ShapeType() == Shape.COMPOUND:
-            raise TypeError('Shape is not a TopoDS_Compound.')
-        if not isinstance(compound, TopoDS_Compound):
-            compound = TopoDS.Compound_(compound)
-        super(Compound, self).__init__(compound)
-
-
 class CompSolid(Shape):
     """
     CompSolid.
 
-    :param OCCT.TopoDS.TopoDS_CompSolid compsolid: The compsolid.
+    :param OCCT.TopoDS.TopoDS_CompSolid shape: The compsolid.
+
+    :raise ValueError: If ``shape`` is null.
+    :raise TypeError: If ``shape`` is not a ``TopoDS_CompSolid``.
     """
 
-    def __init__(self, compsolid):
-        if not compsolid.ShapeType() == Shape.COMPSOLID:
+    def __init__(self, shape):
+        if shape.IsNull():
+            raise ValueError('Cannot initialize a null shape.')
+        if not shape.ShapeType() == Shape.COMPSOLID:
             raise TypeError('Shape is not a TopoDS_CompSolid.')
-        if not isinstance(compsolid, TopoDS_CompSolid):
-            compsolid = TopoDS.CompSolid_(compsolid)
-        super(CompSolid, self).__init__(compsolid)
+        if not isinstance(shape, TopoDS_CompSolid):
+            shape = TopoDS.CompSolid_(shape)
+        super(CompSolid, self).__init__(shape)
+
+
+class Compound(Shape):
+    """
+    Compound.
+
+    :param OCCT.TopoDS.TopoDS_Compound shape: The compound.
+
+    :raise ValueError: If ``shape`` is null.
+    :raise TypeError: If ``shape`` is not a ``TopoDS_Compound``.
+    """
+
+    def __init__(self, shape):
+        if shape.IsNull():
+            raise ValueError('Cannot initialize a null shape.')
+        if not shape.ShapeType() == Shape.COMPOUND:
+            raise TypeError('Shape is not a TopoDS_Compound.')
+        if not isinstance(shape, TopoDS_Compound):
+            shape = TopoDS.Compound_(shape)
+        super(Compound, self).__init__(shape)
 
 
 class BBox(Bnd_Box):
