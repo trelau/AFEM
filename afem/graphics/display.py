@@ -18,15 +18,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 import os
 
-from OCCT.BRepBuilderAPI import (BRepBuilderAPI_Transform,
-                                 BRepBuilderAPI_MakeVertex,
+from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeVertex,
                                  BRepBuilderAPI_MakeEdge,
                                  BRepBuilderAPI_MakeFace)
 from OCCT.Quantity import (Quantity_TOC_RGB, Quantity_Color)
 from OCCT.SMESH import SMESH_Mesh, SMESH_subMesh
 from OCCT.TopoDS import TopoDS_Shape
 from OCCT.Visualization import BasicViewer
-from OCCT.gce import gce_MakeMirror
 from numpy.random import rand
 
 __all__ = ["ViewableItem", "Viewer"]
@@ -51,7 +49,6 @@ class ViewableItem(object):
         r, g, b = rand(1, 3)[0]
         self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
         self.transparency = 0.
-        self.mirror_plane = None
 
     def set_color(self, r, g, b):
         """
@@ -84,32 +81,6 @@ class ViewableItem(object):
         elif transparency > 1.:
             transparency = 1.
         self.transparency = transparency
-
-    def set_mirror(self, pln):
-        """
-        Set a plane to mirror the item.
-
-        :param afem.geometry.entities.Plane pln: The plane.
-
-        :return: None.
-        """
-        self.mirror_plane = pln
-
-    def get_mirrored(self):
-        """
-        Get the mirrored shape.
-
-        :return: The mirrored shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
-        """
-        if not self.mirror_plane:
-            return None
-
-        trsf = gce_MakeMirror(self.mirror_plane.object.Pln()).Value()
-        builder = BRepBuilderAPI_Transform(self, trsf, True)
-        if not builder.IsDone():
-            return None
-        return builder.Shape()
 
 
 class Viewer(BasicViewer):
