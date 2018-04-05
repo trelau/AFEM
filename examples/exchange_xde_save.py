@@ -17,6 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from afem.exchange import *
+from afem.graphics import Viewer
 from afem.topology import *
 
 # Build a box and get faces
@@ -45,3 +46,18 @@ doc.add_subshape(main, f6, 'right face')
 
 # Save document
 doc.save_as('named_box')
+
+# Close and then reopen the document
+doc.close()
+doc.open('named_box')
+
+# Get the top-level shape
+label = doc.get_shape_by_name('The Box')
+
+# Print the child labels
+for child in label.children_iter:
+    print('Sub-label name:', child.name)
+
+gui = Viewer()
+gui.add(label.shape)
+gui.start()

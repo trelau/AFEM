@@ -16,16 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.BinXCAFDrivers import BinXCAFDrivers
-from OCCT.PCDM import PCDM_StoreStatus
-from OCCT.TCollection import TCollection_AsciiString, TCollection_ExtendedString
-from OCCT.TDF import TDF_ChildIterator
-from OCCT.TDataStd import TDataStd_Name, TDataStd_AsciiString
-from OCCT.TDocStd import TDocStd_Document
-from OCCT.TNaming import TNaming_NamedShape
-from OCCT.XCAFApp import XCAFApp_Application
-from OCCT.XCAFDoc import XCAFDoc_DocumentTool, XCAFDoc_Color
-
+from afem.exchange.xde import XdeDocument
 from afem.structure.utils import order_parts_by_id
 from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes, EdgeByCurve, FaceBySurface
@@ -471,12 +462,13 @@ class GroupAPI(object):
         return group.get_metadata(key)
 
     @classmethod
-    def save_model(cls, fn):
+    def save_model(cls, fn, binary=True):
         """
         Save the model.
 
-        :param str fn: The filename. The extension will be ".xbf" and appended
-            if not provided.
+        :param str fn: The filename.
+        :param bool binary: If *True*, the document will be saved in a binary
+            format. If *False*, the document will be saved in an XML format.
 
         :return: *True* if saved, *False* otherwise.
         :rtype: bool
@@ -484,121 +476,71 @@ class GroupAPI(object):
         group = cls.get_master()
 
         # Create document and application
-        fmt = TCollection_ExtendedString('BinXCAF')
-        doc = TDocStd_Document(fmt)
-        app = XCAFApp_Application.GetApplication_()
-        BinXCAFDrivers.DefineFormat_(app)
-        app.InitDocument(doc)
+        doc = XdeDocument(binary)
 
         # Store parts as top-level shapes
         # TODO Support group hierarchy
-        tool = XCAFDoc_DocumentTool.ShapeTool_(doc.Main())
         parts = group.get_parts()
         for part in parts:
-            # New label
-            label = tool.AddShape(part.shape, False)
-
-            # Name
-            txt = TCollection_ExtendedString(part.label)
-            TDataStd_Name.Set_(label, txt)
-
-            # Type
-            type_ = TCollection_AsciiString(part.type)
-            TDataStd_AsciiString.Set_(label, type_)
-
-            # Color
-            XCAFDoc_Color.Set_(label, part.color)
+            label = doc.add_shape(part.shape, part.label, False)
+            label.set_string(part.type)
+            label.set_color(part.color)
 
             # Reference curve
             if part.has_cref:
                 edge = EdgeByCurve(part.cref).edge
-                label = tool.AddShape(edge, False)
-                txt = TCollection_ExtendedString(part.label)
-                TDataStd_Name.Set_(label, txt)
-                type_ = TCollection_AsciiString('CREF')
-                TDataStd_AsciiString.Set_(label, type_)
+                label = doc.add_shape(edge, part.label, False)
+                label.set_string('CREF')
 
             # Reference surface
             if part.has_sref:
                 face = FaceBySurface(part.sref).face
-                label = tool.AddShape(face, False)
-                txt = TCollection_ExtendedString(part.label)
-                TDataStd_Name.Set_(label, txt)
-                type_ = TCollection_AsciiString('SREF')
-                TDataStd_AsciiString.Set_(label, type_)
+                label = doc.add_shape(face, part.label, False)
+                label.set_string('SREF')
 
-        if not fn.endswith('.xbf'):
-            fn += '.xbf'
-        txt = TCollection_ExtendedString(fn)
-        status = app.SaveAs(doc, txt)
-        return status == PCDM_StoreStatus.PCDM_SS_OK
+        return doc.save_as(fn)
 
     @classmethod
     def load_model(cls, fn, group=None):
         """
         Load a model.
 
-        :param str fn: The filename. The extension will be ".xbf" and appended
-            if not provided.
+        :param str fn: The filename. The extension should be either ".xbf" for
+            a binary file or ".xml" for an XML file.
         :param afem.structure.group.Group group: The group to load the parts
             into. If *None* then the active group is used.
 
         :return: *True* if loaded, *False* otherwise.
         :rtype: bool
+
+        :raise TypeError: If the file extension type is not supported.
         """
         from afem.structure.create import CreatePartByName
 
+        if fn.endswith('.xbf'):
+            binary = True
+        elif fn.endswith('.xml'):
+            binary = False
+        else:
+            raise TypeError('Document type not supported.')
+
         group = cls.get_group(group)
 
-        # Create document and application
-        fmt = TCollection_ExtendedString('BinXCAF')
-        doc = TDocStd_Document(fmt)
-        app = XCAFApp_Application.GetApplication_()
-        BinXCAFDrivers.DefineFormat_(app)
-        app.InitDocument(doc)
-
-        # Open the document
-        if not fn.endswith('.xbf'):
-            fn += '.xbf'
-        txt = TCollection_ExtendedString(fn)
-        status, doc = app.Open(txt, doc)
+        # Open document
+        doc = XdeDocument(binary)
+        doc.open(fn)
 
         # Get the main label and iterate on top-level children which
         # should be parts
-        label = XCAFDoc_DocumentTool.ShapesLabel_(doc.Main())
-        iter_ = TDF_ChildIterator(label)
+        label = doc.shapes_label
         part_data = []
         cref_to_part = {}
         sref_to_part = {}
-        while iter_.More():
-            current = iter_.Value()
-            iter_.Next()
-
-            name, shape, type_, color = 4 * [None]
-
-            # Name
-            attr1 = TDataStd_Name()
-            status1, attr1 = current.FindAttribute(attr1.GetID_(), attr1)
-            if status1:
-                name = attr1.Get().ToExtString()
-
-            # Named shape
-            attr2 = TNaming_NamedShape()
-            status2, attr2 = current.FindAttribute(attr2.GetID_(), attr2)
-            if status2:
-                shape = attr2.Get()
-
-            # Type
-            attr3 = TDataStd_AsciiString()
-            status3, attr3 = current.FindAttribute(attr3.GetID_(), attr3)
-            if status3:
-                type_ = attr3.Get().ToCString()
-
-            # Color
-            attr4 = XCAFDoc_Color()
-            status4, attr4 = current.FindAttribute(attr4.GetID_(), attr4)
-            if status4:
-                color = attr4.GetColor()
+        for current in label.children_iter:
+            name = current.name
+            shape = current.shape
+            type_ = current.string
+            color = current.color
 
             if None in [name, shape, type_]:
                 continue

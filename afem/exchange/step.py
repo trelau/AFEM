@@ -136,6 +136,7 @@ class StepRead(object):
 
     def __init__(self, fn):
         self._reader = STEPControl_Reader()
+        self._tr = self._reader.WS().TransferReader()
 
         # Read file
         status = self._reader.ReadFile(fn)
@@ -165,3 +166,18 @@ class StepRead(object):
         :rtype: OCCT.TopoDS.TopoDS_Shape
         """
         return self._shape
+
+    def name_from_shape(self, shape):
+        """
+        Attempt to extract the name for the STEP entity that corresponds to the
+        shape.
+
+        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+
+        :return: The name or None if not found.
+        :rtype: str or None
+        """
+        item = self._tr.EntityFromShapeResult(shape, 1)
+        if not item:
+            return None
+        return item.Name().ToCString()

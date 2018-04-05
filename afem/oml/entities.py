@@ -16,16 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.BinXCAFDrivers import BinXCAFDrivers
-from OCCT.PCDM import PCDM_StoreStatus
-from OCCT.TCollection import TCollection_AsciiString, TCollection_ExtendedString
-from OCCT.TDF import TDF_ChildIterator
-from OCCT.TDataStd import TDataStd_Name, TDataStd_AsciiString
-from OCCT.TDocStd import TDocStd_Document
-from OCCT.TNaming import TNaming_NamedShape
-from OCCT.XCAFApp import XCAFApp_Application
-from OCCT.XCAFDoc import XCAFDoc_DocumentTool, XCAFDoc_Color
-
+from afem.exchange.xde import XdeDocument
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import Surface
 from afem.geometry.project import (ProjectPointToCurve,
@@ -387,121 +378,110 @@ class Body(ViewableItem):
             body.set_sref(sref)
         return body
 
-    @staticmethod
-    def save_bodies(fn, *bodies):
+    def save(self, fn, binary=True):
         """
-        Save Body instances.
+        Save this body.
 
-        :param str fn: The filename. The extension will be ".xbf" and appended
-            if not provided.
-        :param afem.oml.entities.Body bodies: The Body instance(s).
+        :param str fn: The filename.
+        :param bool binary: If *True*, the document will be saved in a binary
+            format. If *False*, the document will be saved in an XML format.
 
         :return: *True* if saved, *False* otherwise.
         :rtype: bool
 
         .. note::
 
-            This method only saves the label, shape, and color of the Body.
-            User-defined metadata is currently not saved.
+            This method only saves the label, shape, reference surface, and
+            color of the Body. Other user-defined metadata is currently not
+            saved.
         """
-        # Create document and application
-        fmt = TCollection_ExtendedString('BinXCAF')
-        doc = TDocStd_Document(fmt)
-        app = XCAFApp_Application.GetApplication_()
-        BinXCAFDrivers.DefineFormat_(app)
-        app.InitDocument(doc)
+        return self.save_bodies(fn, [self], binary)
 
-        tool = XCAFDoc_DocumentTool.ShapeTool_(doc.Main())
+    def load(self, fn):
+        """
+        Load a document containing a single body.
+
+        :param str fn: The filename. The extension should be either ".xbf" for
+            a binary file or ".xml" for an XML file.
+
+        :return: The body.
+        :rtype: afem.oml.entities.Body
+        """
+        bodies = self.load_bodies(fn)
+        return list(bodies.values())[0]
+
+    @staticmethod
+    def save_bodies(fn, bodies, binary=True):
+        """
+        Save Body instances.
+
+        :param str fn: The filename.
+        :param collections.Sequence(afem.oml.entities.Body) bodies: The Body
+            instances
+        :param bool binary: If *True*, the document will be saved in a binary
+            format. If *False*, the document will be saved in an XML format.
+
+        :return: *True* if saved, *False* otherwise.
+        :rtype: bool
+
+        .. note::
+
+            This method only saves the label, shape, reference surface, and
+            color of the Body. Other user-defined metadata is currently not
+            saved.
+        """
+        # Create document
+        doc = XdeDocument(binary)
+
+        # Add the bodies
         for body in bodies:
-            # New label
-            label = tool.AddShape(body.solid, False)
+            label = doc.add_shape(body.solid, body.label, False)
+            label.set_string('Body')
+            label.set_color(body.color)
 
-            # Name
-            txt = TCollection_ExtendedString(body.label)
-            TDataStd_Name.Set_(label, txt)
-
-            # Type
-            type_ = TCollection_AsciiString('Body')
-            TDataStd_AsciiString.Set_(label, type_)
-
-            # Color
-            XCAFDoc_Color.Set_(label, body.color)
-
-            # Reference surface
+            # Sref
             if body.sref is not None:
                 face = FaceBySurface(body.sref).face
-                label = tool.AddShape(face, False)
-                txt = TCollection_ExtendedString(body.label)
-                TDataStd_Name.Set_(label, txt)
-                type_ = TCollection_AsciiString('SREF')
-                TDataStd_AsciiString.Set_(label, type_)
+                label = doc.add_shape(face, body.label, False)
+                label.set_string('SREF')
 
-        if not fn.endswith('.xbf'):
-            fn += '.xbf'
-        txt = TCollection_ExtendedString(fn)
-        status = app.SaveAs(doc, txt)
-        return status == PCDM_StoreStatus.PCDM_SS_OK
+        return doc.save_as(fn)
 
     @staticmethod
     def load_bodies(fn):
         """
         Load saved Body instances.
 
-        :param str fn: The filename. The extension will be ".xbf" and appended
-            if not provided.
+        :param str fn: The filename. The extension should be either ".xbf" for
+            a binary file or ".xml" for an XML file.
 
-        :return: A dictionary where the key is the label and the value is the
+        :return: A dictionary where the key is the name and the value is the
             Body instance.
         :rtype: dict(str, afem.oml.entities.Body)
-        """
-        # Create document and application
-        fmt = TCollection_ExtendedString('BinXCAF')
-        doc = TDocStd_Document(fmt)
-        app = XCAFApp_Application.GetApplication_()
-        BinXCAFDrivers.DefineFormat_(app)
-        app.InitDocument(doc)
 
-        # Open the document
-        if not fn.endswith('.xbf'):
-            fn += '.xbf'
-        txt = TCollection_ExtendedString(fn)
-        status, doc = app.Open(txt, doc)
+        :raise TypeError: If the file extension type is not supported.
+        """
+        if fn.endswith('.xbf'):
+            binary = True
+        elif fn.endswith('.xml'):
+            binary = False
+        else:
+            raise TypeError('Document type not supported.')
+
+        # Open document
+        doc = XdeDocument(binary)
+        doc.open(fn)
 
         # Get the main label and iterate on top-level children which
         # should be parts
-        label = XCAFDoc_DocumentTool.ShapesLabel_(doc.Main())
-        iter_ = TDF_ChildIterator(label)
+        label = doc.shapes_label
         body_data = []
         sref_to_body = {}
-        while iter_.More():
-            current = iter_.Value()
-            iter_.Next()
-
-            name, shape, type_, color = 4 * [None]
-
-            # Name
-            attr1 = TDataStd_Name()
-            status1, attr1 = current.FindAttribute(attr1.GetID_(), attr1)
-            if status1:
-                name = attr1.Get().ToExtString()
-
-            # Named shape
-            attr2 = TNaming_NamedShape()
-            status2, attr2 = current.FindAttribute(attr2.GetID_(), attr2)
-            if status2:
-                shape = attr2.Get()
-
-            # Type
-            attr3 = TDataStd_AsciiString()
-            status3, attr3 = current.FindAttribute(attr3.GetID_(), attr3)
-            if status3:
-                type_ = attr3.Get().ToCString()
-
-            # Color
-            attr4 = XCAFDoc_Color()
-            status4, attr4 = current.FindAttribute(attr4.GetID_(), attr4)
-            if status4:
-                color = attr4.GetColor()
+        for current in label.children_iter:
+            name = current.name
+            shape = current.shape
+            type_ = current.string
+            color = current.color
 
             if None in [name, shape, type_]:
                 continue

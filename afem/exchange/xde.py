@@ -43,6 +43,9 @@ __all__ = ["XdeDocument", "XdeLabel"]
 class XdeDocument(object):
     """
     Wrapper class to work with Extended Data Exchange.
+
+    :param bool binary: If *True*, the document will be saved in a binary
+        format. If *False*, the document will be saved in an XML format.
     """
 
     def __init__(self, binary=True):
@@ -122,6 +125,14 @@ class XdeDocument(object):
         status = self._app.SaveAs(self._doc, txt)
         return status == PCDM_StoreStatus.PCDM_SS_OK
 
+    def close(self):
+        """
+        Close the document.
+
+        :return: None.
+        """
+        self._doc.Close()
+
     def read_step(self, fn):
         """
         Read and translate a STEP file.
@@ -170,7 +181,7 @@ class XdeDocument(object):
 
         return True
 
-    def set_step_name(self, shape, name):
+    def set_shape_name(self, shape, name):
         """
         Set the name of the STEP entity for the given shape. The shape(s)
         should be transferred before naming them.

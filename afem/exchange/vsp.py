@@ -29,29 +29,19 @@ from OCCT.GProp import GProp_GProps
 from OCCT.Geom import Geom_Plane
 from OCCT.GeomAdaptor import GeomAdaptor_Curve
 from OCCT.GeomLib import GeomLib_IsPlanarSurface
-from OCCT.IFSelect import (IFSelect_ItemsByEntity, IFSelect_RetDone,
-                           IFSelect_RetVoid)
-from OCCT.Interface import Interface_Static
-from OCCT.STEPCAFControl import STEPCAFControl_Writer
-from OCCT.STEPConstruct import STEPConstruct
-from OCCT.STEPControl import STEPControl_Reader
 from OCCT.ShapeAnalysis import ShapeAnalysis
 from OCCT.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
 from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                                ShapeUpgrade_SplitSurface,
                                ShapeUpgrade_UnifySameDomain)
 from OCCT.TColStd import TColStd_HSequenceOfReal
-from OCCT.TCollection import (TCollection_ExtendedString,
-                              TCollection_HAsciiString)
-from OCCT.TDataStd import TDataStd_Name
-from OCCT.TDocStd import TDocStd_Document
 from OCCT.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
 from OCCT.TopExp import TopExp_Explorer
 from OCCT.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
-from OCCT.XCAFApp import XCAFApp_Application
-from OCCT.XCAFDoc import XCAFDoc_DocumentTool
 
-from afem.config import Settings, logger
+from afem.config import logger
+from afem.exchange.step import StepRead
+from afem.exchange.xde import XdeDocument
 from afem.geometry.create import (PointFromParameter, NurbsSurfaceByInterp,
                                   NurbsCurveByPoints, NurbsCurveByApprox)
 from afem.geometry.entities import NurbsCurve, NurbsSurface
@@ -199,28 +189,9 @@ class ImportVSP(object):
         compound = TopoDS_Compound()
         BRep_Builder().MakeCompound(compound)
 
-        # Read file with OCCT.
-        step_reader = STEPControl_Reader()
-        status = step_reader.ReadFile(fn)
-        if status not in [IFSelect_RetVoid, IFSelect_RetDone]:
-            return bodies
-
-        # Convert to desired units.
-        Interface_Static.SetCVal_("xstep.cascade.unit", Settings.units)
-
-        # Check.
-        failsonly = False
-        step_reader.PrintCheckLoad(failsonly, IFSelect_ItemsByEntity)
-        step_reader.PrintCheckTransfer(failsonly, IFSelect_ItemsByEntity)
-
-        # Transfer. OpenVSP STEP files result in one root and one shape (a
-        # compound).
-        step_reader.TransferRoot(1)
-        master_shape = step_reader.Shape(1)
-
-        # Things needed to extract names from STEP entities.
-        session = step_reader.WS()
-        transfer_reader = session.TransferReader()
+        # Read STEP file
+        step_reader = StepRead(fn)
+        master_shape = step_reader.shape
 
         # Iterate over master shape to find compounds for geometric sets. These
         # sets contain the metadata and the surfaces that make up the
@@ -234,9 +205,8 @@ class ImportVSP(object):
             if compound.ShapeType() != TopAbs_COMPOUND:
                 compound = master_shape
                 more = False
-            # Get the metadata.
-            rep_item = transfer_reader.EntityFromShapeResult(compound, 1)
-            name = rep_item.Name().ToCString()
+            # Get the metadata
+            name = step_reader.name_from_shape(compound)
 
             # Unnamed body
             if not name:
@@ -354,7 +324,8 @@ class ImportVSP(object):
         # Update
         self._bodies.update(bodies)
 
-    def export_step(self, fn, label_solids=True, label_faces=False):
+    def export_step(self, fn, label_solids=True, label_faces=False,
+                    names=None):
         """
         Export the OpenVSP model as a STEP file using Extended Data Exchange.
         Each OpenVSP component will be a named product in the STEP file
@@ -366,62 +337,53 @@ class ImportVSP(object):
         :param bool label_faces: Option to label the faces in each of the
             solids. Each face of the solid body will be labeled "Face 1",
             "Face 2", etc.
+        :param names: List of Body names that will be included in export. If
+            *None* then all are exported.
+        :type names: collections.Sequence(str) or None
 
         :return: None.
         """
         # Initialize the document
-        fmt = TCollection_ExtendedString('MDTV-Standard')
-        doc = TDocStd_Document(fmt)
-        app = XCAFApp_Application.GetApplication_()
-        app.InitDocument(doc)
-        the_assembly = XCAFDoc_DocumentTool.ShapeTool_(doc.Main())
+        doc = XdeDocument()
+
+        # Get bodies to include
+        if names is None:
+            bodies = self.all_bodies
+        else:
+            bodies = [self.get_body(name) for name in names]
 
         # Gather OpenVSP bodies and names and build single compound
         solids = []
         names = []
-        for name in self.bodies:
-            solid = self.get_body(name).solid
-            solids.append(solid)
-            names.append(name)
+        for body in bodies:
+            solids.append(body.solid)
+            names.append(body.label)
         cmp = CompoundByShapes(solids).compound
 
         # Add main shape and top-level assembly
-        main = the_assembly.AddShape(cmp)
-        txt = TCollection_ExtendedString('Vehicle')
-        TDataStd_Name.Set_(main, txt)
+        main = doc.add_shape(cmp, 'Vehicle')
 
         # Each body should be a product so names are transferred to other
         # CAD systems
         for name, solid in zip(names, solids):
-            label = the_assembly.AddSubShape(main, solid)
-            txt = TCollection_ExtendedString(name)
-            TDataStd_Name.Set_(label, txt)
+            doc.add_subshape(main, solid, name)
 
         # Transfer the document and then modify the STEP item name directly
         # rather than using a label. This only applies when labeling
         # sub-shapes.
-        writer = STEPCAFControl_Writer()
-        writer.SetNameMode(True)
-        writer.Transfer(doc)
+        doc.transfer_step()
         if label_solids or label_faces:
-            tw = writer.ChangeWriter().WS().TransferWriter()
-            fp = tw.FinderProcess()
             for name, solid in zip(names, solids):
                 if label_solids:
-                    item = STEPConstruct.FindEntity_(fp, solid)
-                    if item:
-                        item.SetName(TCollection_HAsciiString(name))
+                    doc.set_shape_name(solid, name)
                 if label_faces:
                     i = 1
                     for f in ExploreShape.get_faces(solid):
                         name = ' '.join(['Face', str(i)])
-                        item = STEPConstruct.FindEntity_(fp, f)
-                        if not item:
-                            continue
-                        item.SetName(TCollection_HAsciiString(name))
+                        doc.set_shape_name(f, name)
                         i += 1
 
-        writer.Write(fn)
+        doc.write_step(fn)
 
     def save_bodies(self, fn):
         """

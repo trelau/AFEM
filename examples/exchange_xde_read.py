@@ -1,4 +1,4 @@
-from afem.exchange.xde import *
+from afem.exchange import *
 from afem.graphics import Viewer
 
 fn = '../models/777-200LR_Onshape.step'
