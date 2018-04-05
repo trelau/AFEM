@@ -329,7 +329,7 @@ class XdeDocument(object):
         :param str name: The name.
 
         :return: The label or *None* if not found.
-        :rtype afem.exchange.xde.XdeLabel or None
+        :rtype: afem.exchange.xde.XdeLabel or None
         """
         for label in self.get_shapes():
             if label.name == name:

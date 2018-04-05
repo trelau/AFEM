@@ -99,6 +99,7 @@ class Part(ViewableItem):
     _core_shape = TopAbs_SHAPE
 
     def __init__(self, label, shape, cref=None, sref=None, group=None):
+        # TODO Switch back to Part.name instead of label
         super(Part, self).__init__()
 
         self._cref, self._sref = None, None
