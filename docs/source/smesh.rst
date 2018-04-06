@@ -17,19 +17,17 @@ working through a simple but complete example:
 
 .. code-block:: python
 
-    from OCCT.BRepPrimAPI import BRepPrimAPI_MakeBox
-
     from afem.graphics import Viewer
     from afem.smesh import (MeshGen, NetgenAlgo2D, NetgenSimple2D, MaxLength1D,
                             Regular1D)
-    from afem.topology import ExploreShape
+    from afem.topology import *
 
     # Create a simple solid box
-    box = BRepPrimAPI_MakeBox(10, 10, 10).Solid()
+    box = BoxBySize(10, 10, 10).solid
 
     # Get a list of faces and edges of the shape for later use
-    faces = ExploreShape.get_faces(box)
-    edges = ExploreShape.get_edges(box)
+    faces = box.faces
+    edges = box.edges
 
     # Initialize the mesh generator
     gen = MeshGen()
@@ -53,23 +51,24 @@ working through a simple but complete example:
     gen.compute(mesh)
 
     # View the mesh
-    v = Viewer()
-    v.add(mesh)
-    v.start()
-    v.clear()
+    gui = Viewer()
+    gui.add(mesh)
+    gui.start()
+    gui.clear()
 
     # Get sub-meshes from sub-shapes
     face_submesh = mesh.get_submesh(faces[0])
     edge_submesh = mesh.get_submesh(edges[0])
 
     # View the face sub-mesh (2-D elements)
-    v.add(face_submesh)
-    v.start()
-    v.clear()
+    gui.add(face_submesh)
+    gui.start()
+    gui.clear()
 
     # View the edge sub-mesh (1-D elements)
-    v.add(edge_submesh)
-    v.start()
+    gui.add(edge_submesh)
+    gui.start()
+
 
 
 This example creates a simple solid box and then generates a 2-D mesh on its
@@ -78,34 +77,31 @@ imported:
 
 .. code-block:: python
 
-    from OCCT.BRepPrimAPI import BRepPrimAPI_MakeBox
-
     from afem.graphics import Viewer
     from afem.smesh import (MeshGen, NetgenAlgo2D, NetgenSimple2D, MaxLength1D,
                             Regular1D)
-    from afem.topology import ExploreShape
+    from afem.topology import *
 
-The ``BRepPrimAPI_MakeBox`` tool from pyOCCT is used to create a simple solid
-box::
+The ``BoxBySize`` tool is used to create a simple solid box::
 
-    box = BRepPrimAPI_MakeBox(10, 10, 10).Solid()
+    bbox = BoxBySize(10, 10, 10).solid
 
-Providing three numbers creates a box with one corner at (0, 0, 0) and the other
-at x=10, y=10, and z=10. A ``TopoDS_Solid`` is returned by the ``Solid()``
-method.
+Providing three numbers creates a box with one corner at (0, 0, 0) and the
+other at x=10, y=10, and z=10.
 
-When it is time to begin the meshing process, it is required to first initialize
-the core mesh generator and data structure ``MeshGen``. This entity is
-responsible for managing the entire meshing data structure and typically only
-one should be created. Generating more than one instance might be used if two
-entirely different meshes need to be created in a single process. Create an
+When it is time to begin the meshing process, it is required to first
+initialize the core mesh generator and data structure ``MeshGen``. This entity
+is responsible for managing the entire meshing data structure and typically
+only one should be created. Generating more than one instance might be used if
+two entirely different meshes need to be created in a single process. Create an
 instance by::
 
     gen = MeshGen()
 
-The reference to this variable (``gen`` is this example) should not be destroyed
-until the meshing process is complete. When the reference count drops to zero,
-the entire meshing data structure will be destroyed and the memory freed.
+The reference to this variable (``gen`` is this example) should not be
+destroyed until the meshing process is complete. When the reference count drops
+to zero, the entire meshing data structure will be destroyed and the memory
+freed.
 
 A new mesh entity is created by::
 
@@ -115,7 +111,7 @@ The ``box`` variable is provided to this method so that is sets the box as the
 "shape to mesh." Selecting the shape to mesh is an important step as this main
 shape will be used to derive and access information if sub-meshes or local
 meshing controls are applied later in the process. In practice, the main shape
-to mesh will typically be a single ``TopoDS_Compound`` that contains all the
+to mesh will typically be a single ``Compound`` that contains all the
 shapes of the current model. An error will result if a sub-mesh or local mesh
 control is applied to a sub-shape that is not a member of the original main
 shape.
@@ -134,9 +130,9 @@ elements on the faces of the shape:
     hyp2d_1 = NetgenSimple2D(gen, 1.)
     hyp2d_2 = NetgenSimple2D(gen, 1., allow_quads=False)
 
-The ``hyp2d_1`` will be the default global hypothesis and ``hyp2d_2`` is created
-to generate a triangular mesh. At the same time, a 1-D algorithm and hypothesis
-is created that will be used to control the mesh on specific edges:
+The ``hyp2d_1`` will be the default global hypothesis and ``hyp2d_2`` is
+created to generate a triangular mesh. At the same time, a 1-D algorithm and
+hypothesis is created that will be used to control the mesh on specific edges:
 
 .. code-block:: python
 
@@ -156,23 +152,23 @@ sub-shape(s)::
     mesh.add_hypothesis(hyp2d_2, faces[-1])
 
 The second hypothesis using triangles is added to one of the faces of the main
-shape. Only the new hypothesis was applied since the same algorithm can be used.
-Controlling the mesh along a specific edge can be done by::
+shape. Only the new hypothesis was applied since the same algorithm can be
+used. Controlling the mesh along a specific edge can be done by::
 
     mesh.add_hypotheses([alg1d, hyp1d], edges[-1])
 
 It should be noted that the provided shape (or sub-shape) can be a single shape
-like an edge, face, or solid, but it could also be a compound of multiple shapes
-or sub-shapes. That is, edges could be put into a ``TopoDS_Compound`` and the
+like an edge, face, or solid, but it could also be a compound of multiple
+shapes or sub-shapes. That is, edges could be put into a ``Compound`` and the
 1-D controls would be applied to all edges in that compound.
 
 With the shape set and meshing controls applied, the mesh is computed by::
 
     gen.compute(mesh)
 
-The remaining part of the script simply displays the mesh and sub-meshes derived
-from sub-shapes of the main shape. These sub-meshes can be used to access nodes
-and elements.
+The remaining part of the script simply displays the mesh and sub-meshes
+derived from sub-shapes of the main shape. These sub-meshes can be used to
+access nodes and elements.
 
 .. image:: ./resources/simple_mesh.png
 

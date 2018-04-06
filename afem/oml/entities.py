@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+from warnings import warn
+
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import Surface
 from afem.geometry.project import (ProjectPointToCurve,
@@ -46,8 +48,10 @@ class Body(ViewableItem):
     def __init__(self, solid, label=None):
         super(Body, self).__init__()
         if not solid.is_solid:
-            msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
-            raise TypeError(msg)
+            msg = (
+                'Invalid shape provided to Body. Requires Solid but '
+                'got {} instead.'.format(solid.__class__.__name__))
+            warn(msg, RuntimeWarning)
         self._solid = solid
         self._metadata = {}
         self._label = label

@@ -26,7 +26,8 @@ from OCCT.BRepBuilderAPI import (BRepBuilderAPI_Copy,
                                  BRepBuilderAPI_MakeVertex,
                                  BRepBuilderAPI_MakeEdge,
                                  BRepBuilderAPI_MakeWire,
-                                 BRepBuilderAPI_MakeFace)
+                                 BRepBuilderAPI_MakeFace,
+                                 BRepBuilderAPI_MakePolygon)
 from OCCT.BRepClass3d import BRepClass3d
 from OCCT.BRepTools import BRepTools, BRepTools_WireExplorer
 from OCCT.Bnd import Bnd_Box
@@ -694,6 +695,25 @@ class Wire(Shape):
         """
         return Wire(BRepBuilderAPI_MakeWire(edge.object).Wire())
 
+    @staticmethod
+    def by_points(pnts, close=False):
+        """
+        Create polygonal wire by connecting points.
+
+        :param collections.Sequence(point_like) pnts: The ordered points.
+        :param bool close: Option to close the wire.
+
+        :return: The new wire.
+        :rtype: afem.topology.entities.Wire
+        """
+        builder = BRepBuilderAPI_MakePolygon()
+        for p in pnts:
+            p = CheckGeom.to_point(p)
+            builder.Add(p)
+        if close:
+            builder.Close()
+        return Wire(builder.Wire())
+
 
 class Face(Shape):
     """
@@ -754,7 +774,7 @@ class Face(Shape):
         :return: The face.
         :rtype: afem.topology.entities.Face
         """
-        return Face(BRepBuilderAPI_MakeFace(surface.object).Face())
+        return Face(BRepBuilderAPI_MakeFace(surface.object, 1.0e-7).Face())
 
     @staticmethod
     def by_wire(wire):

@@ -18,9 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from OCCT.SMDS import SMDS_ListOfNodes, SMDS_ListOfElements
 from OCCT.SMESH import SMESH_MeshEditor, SMESH_MesherHelper
-from OCCT.TopAbs import TopAbs_EDGE
 
 from afem.smesh.entities import Element, Node
+from afem.topology.entities import Shape
 
 __all__ = ["MeshEditor", "MeshHelper"]
 
@@ -66,7 +66,8 @@ class MeshEditor(object):
         :param str method: Either 'laplacian', 'l', 'centroidal', or 'c'.
         :param int iters: Number of iterations.
         :param float target_ar: Target aspect ratio.
-        :param bool in_2d: Perform smoothing in 2-d parameters of nodes on face.
+        :param bool in_2d: Perform smoothing in 2-d parameters of nodes on
+            face.
 
         :return: None.
         """
@@ -90,7 +91,7 @@ class MeshEditor(object):
         :return: Coincident nodes as a list of list of nodes. The length of the
             returned list will be the number of coincident nodes. Each row
             is a list of nodes that are coincident.
-        :rtype: list[list[afem.smesh.entities.Node]]
+        :rtype: list(list(afem.smesh.entities.Node))
         """
         nodes = set([n.object for n in nodes])
         smesh_list = self._editor.TListOfListOfNodes()
@@ -110,7 +111,7 @@ class MeshEditor(object):
         :param nodes: The nodes to merge. Each row is a list of nodes where the
             first node is kept and the others are replaced with the first. If
             *None* is provided then the entire mesh is first searched.
-        :type nodes: list[list[afem.smesh.entities.Node]]
+        :type nodes: list(list(afem.smesh.entities.Node))
         :param bool avoid_making_holes: Avoid modifications that may spoil mesh
             topology.
         :param float tol: Search tolerance.
@@ -134,10 +135,10 @@ class MeshEditor(object):
             elements to search. If not provided then the whole mesh will be
             searched.
 
-        :return: Equal elements as a list of list of integers. The length of the
-            returned list will be the number of equal elements. Each row
+        :return: Equal elements as a list of list of integers. The length of
+            the returned list will be the number of equal elements. Each row
             is a list of element ID's that are equal.
-        :rtype: list[list[int]]
+        :rtype: list(list(int))
         """
         elements = set([e.object for e in elements])
         smesh_list = self._editor.TListOfListOfElementsID()
@@ -155,9 +156,10 @@ class MeshEditor(object):
         Merge elements.
 
         :param elements: The elements to merge. Each row is a list of element
-            ID's where the first ID is kept and the others are replaced with the
-            first. If *None* is provided then the entire mesh is first searched.
-        :type elements: list[list[int]]
+            ID's where the first ID is kept and the others are replaced with
+            the first. If *None* is provided then the entire mesh is first
+            searched.
+        :type elements: list(list(int))
 
         :return: None.
         """
@@ -240,7 +242,7 @@ class MeshEditor(object):
             elements.
 
         :return: List of element ID's.
-        :rtype: list[int]
+        :rtype: list(int)
         """
         elements = set([e.object for e in elements])
         if target_mesh is None:
@@ -280,8 +282,8 @@ class MeshEditor(object):
         :param afem.smesh.entities.Node n3: The third node.
 
         :return: List of nodes and elements of free borders.
-        :rtype: tuple(list[afem.smesh.entities.Node],
-            list[afem.smesh.entities.Element])
+        :rtype: tuple(list(afem.smesh.entities.Node),
+            list(afem.smesh.entities.Element))
         """
         node_list = SMDS_ListOfNodes()
         elm_list = SMDS_ListOfElements()
@@ -295,8 +297,8 @@ class MeshEditor(object):
         :param collections.Sequence(afem.smesh.entities.Element) elms: The
             elements to combine. If empty then the whole mesh is used.
         :param int method: The criteria used for determining which elements to
-            combine (0=Aspect ratio, 1=Minimum angle, 2=Skew, 3=Area, 4=Warping,
-            5=Taper).
+            combine (0=Aspect ratio, 1=Minimum angle, 2=Skew, 3=Area,
+            4=Warping, 5=Taper).
         :param float max_bending_angle: The maximum bending angle.
 
         :return: *True* if some elements were merged, *False* if not.
@@ -377,79 +379,84 @@ class MeshHelper(object):
         :param afem.smesh.meshes.MeshDS mesh_ds: The mesh data structure.
 
         :return: The support shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return SMESH_MesherHelper.GetSubShapeByNode_(node.object,
-                                                     mesh_ds.object)
+        n, m = node.object, mesh_ds.object
+        shape = Shape.wrap(SMESH_MesherHelper.GetSubShapeByNode_(n, m))
+        return shape
 
     @staticmethod
-    def common_ancestor(shape1, shape2, mesh, ancestor_type=TopAbs_EDGE):
+    def common_ancestor(shape1, shape2, mesh, ancestor_type=Shape.EDGE):
         """
         Get a common ancestor between the two shapes.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape1: The first shape.
-        :param OCCT.TopoDS.TopoDS_Shape shape2: The second shape.
+        :param afem.topology.entities.Shape shape1: The first shape.
+        :param afem.topology.entities.Shape shape2: The second shape.
         :param afem.smesh.meshes.Mesh mesh: The mesh.
         :param OCCT.TopAbs.TopAbs_ShapeEnum ancestor_type: The shape type.
 
         :return: The common ancestor.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
-        return SMESH_MesherHelper.GetCommonAncestor_(shape1, shape2,
-                                                     mesh.object, ancestor_type)
+        s1, s2, m = shape1.object, shape2.object, mesh.object
+        e = Shape.wrap(SMESH_MesherHelper.GetCommonAncestor_(s1, s2, m,
+                                                             ancestor_type))
+        return e
 
     @staticmethod
     def is_subshape_by_shape(shape, main_shape):
         """
         Check to see if the shape is a sub-shape in a shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
-        :param OCCT.TopoDS.TopoDS_Shape main_shape: The main shape.
+        :param afem.topology.entities.Shape shape: The shape.
+        :param afem.topology.entities.Shape main_shape: The main shape.
 
         :return: *True* if a sub-shape, *False* if not.
         :rtype: bool
         """
-        return SMESH_MesherHelper.IsSubShape_(shape, main_shape)
+        return SMESH_MesherHelper.IsSubShape_(shape.object, main_shape.object)
 
     @staticmethod
     def is_subshape_by_mesh(shape, mesh):
         """
         Check to see if the shape is a sub-shape in a mesh.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param afem.smesh.meshes.Mesh mesh: The mesh.
 
         :return: *True* if a sub-shape, *False* if not.
         :rtype: bool
         """
-        return SMESH_MesherHelper.IsSubShape_(shape, mesh.object)
+        return SMESH_MesherHelper.IsSubShape_(shape.object, mesh.object)
 
     @staticmethod
     def get_angle(e1, e2, f, v):
         """
         Determine the angle between the two edges on a face.
 
-        :param OCCT.TopoDS.TopoDS_Edge e1: The first edge.
-        :param OCCT.TopoDS.TopoDS_Edge e2: The second edge.
-        :param OCCT.TopoDS.TopoDS_Face f: The face the edges belong to.
-        :param OCCT.TopoDS.TopoDS_Vertex v: The vertex connecting the two edges.
+        :param afem.topology.entities.Edge e1: The first edge.
+        :param afem.topology.entities.Edge e2: The second edge.
+        :param afem.topology.entities.Face f: The face the edges belong to.
+        :param afem.topology.entities.Vertex v: The vertex connecting the two
+            edges.
 
-        :return: The angle between the egdges.
+        :return: The angle between the edges.
         :rtype: float
         """
-        return SMESH_MesherHelper.GetAngle_(e1, e2, f, v)
+        return SMESH_MesherHelper.GetAngle_(e1.object, e2.object,
+                                            f.object, v.object)
 
     @staticmethod
     def is_closed_edge(edge):
         """
         Check if edge is closed.
 
-        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+        :param afem.topology.entities.Edge edge: The edge.
 
         :return: *True* if closed, *False* if not.
         :rtype: bool
         """
-        return SMESH_MesherHelper.IsClosedEdge_(edge)
+        return SMESH_MesherHelper.IsClosedEdge_(edge.object)
 
     @staticmethod
     def shape_by_hypothesis(hyp, shape, mesh):
@@ -457,47 +464,50 @@ class MeshHelper(object):
         Get a shape the hypothesis is applied to.
 
         :param afem.smesh.hypotheses.Hypothesis hyp: The hypothesis.
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param afem.smesh.meshes.Mesh mesh: The mesh.
 
         :return: The shape that the hypothesis is applied to.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return SMESH_MesherHelper.GetShapeOfHypothesis_(hyp.object, shape,
-                                                        mesh.object)
+        h, s, m = hyp.object, shape.object, mesh.object
+        return Shape.wrap(SMESH_MesherHelper.GetShapeOfHypothesis_(h, s, m))
 
     def is_reversed_submesh(self, face):
         """
         Check to see if the elements have opposite orientation on the face.
 
-        :param OCCT.TopoDS.TopoDS_Face face: The face.
+        :param afem.topology.entities.Face face: The face.
 
         :return: *True* if reversed, *False* if not.
         :rtype: bool
         """
-        return self._helper.IsReversedSubMesh(face)
+        return self._helper.IsReversedSubMesh(face.object)
 
     def set_subshape(self, shape):
         """
         Set the shape to make elements on.
 
         :param shape: The shape or the shape ID.
-        :type shape: OCCT.TopoDS.TopoDS_Shape or int
+        :type shape: afem.topology.entities.Shape or int
 
         :return: None.
         """
-        self._helper.SetSubShape(shape)
+        if isinstance(shape, Shape):
+            self._helper.SetSubShape(shape.object)
+        else:
+            self._helper.SetSubShape(shape)
 
     def shape_to_index(self, shape):
         """
         Get the shape index.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: The shape index.
         :rtype: int
         """
-        return self._helper.ShapeToIndex(shape)
+        return self._helper.ShapeToIndex(shape.object)
 
     def add_node(self, x, y, z, id_=0, u=0., v=0.):
         """

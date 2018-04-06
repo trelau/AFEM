@@ -178,16 +178,7 @@ class ImportVSP(object):
         # Iterate over master shape to find compounds for geometric sets. These
         # sets contain the metadata and the surfaces that make up the
         # component.
-        # iterator = TopoDS_Iterator(master_shape, True, True)
-        # more = True
-        # while iterator.More() and more:
         for compound in master_shape.shape_iter:
-            # The compound.
-            # compound = iterator.Value()
-            # Hack to handle single component for now...
-            if not compound.is_compound:
-                compound = master_shape
-                # more = False
             # Get the metadata
             name = step_reader.name_from_shape(compound)
 
@@ -202,11 +193,10 @@ class ImportVSP(object):
                 if solid is not None:
                     body = Body(solid)
                     bodies[comp_name] = body
-                # iterator.Next()
                 continue
             metadata = json.loads(name)
 
-            # Process wing reference surface and continue.
+            # Process reference surfaces and continue
             key = 'm_SurfType'
             if key in metadata and metadata[key] == 99:
                 # Get surface
@@ -214,8 +204,6 @@ class ImportVSP(object):
                 # Get Sref ID
                 sref_id = metadata['ID']
                 ref_surfs[sref_id] = sref
-                # Next shape.
-                # iterator.Next()
                 continue
             elif key in metadata and metadata[key] == 100:
                 # Fuselage horizontal sref
@@ -229,7 +217,6 @@ class ImportVSP(object):
                 sref.object.UReverse()
                 sref_id = metadata['ID']
                 href_surfs[sref_id] = sref
-                # iterator.Next()
                 continue
             elif key in metadata and metadata[key] == 101:
                 f = compound.faces[0]
@@ -241,7 +228,6 @@ class ImportVSP(object):
                 sref.object.UReverse()
                 sref_id = metadata['ID']
                 vref_surfs[sref_id] = sref
-                # iterator.Next()
                 continue
 
             comp_name = metadata['m_Name']
@@ -282,9 +268,6 @@ class ImportVSP(object):
                 if solid:
                     body = Body(solid)
                     bodies[comp_name] = body
-
-            # Next shape.
-            # iterator.Next()
 
         # Attach wing reference surfaces to the bodies.
         for sref_id in wing_bodies:
@@ -572,7 +555,10 @@ def _build_solid(compound, divide_closed):
     # Make solid
     if not isinstance(shell, Shell):
         logger.info('\tA valid shell was not able to be generated.')
-        return None, []
+        check = CheckShape(shell)
+        logger.info('\tShape errors:')
+        check.show_errors(logger.info)
+        return shell, check.invalid_shapes
 
     solid = Solid.by_shell(shell)
 
@@ -581,16 +567,16 @@ def _build_solid(compound, divide_closed):
 
     # Check the solid and attempt to fix
     invalid = []
-    check_shp = CheckShape(solid)
-    if not check_shp.is_valid:
+    check = CheckShape(solid)
+    if not check.is_valid:
         logger.info('\tFixing the solid...')
         solid = FixShape(solid).shape
-        check_shp = CheckShape(solid)
-        if not check_shp.is_valid:
+        check = CheckShape(solid)
+        if not check.is_valid:
             logger.info('\t...solid could not be fixed.')
-            logger.info('\tShape diagnostics:')
-            check_shp.show_errors(logger.info)
-            failed = check_shp.invalid_shapes
+            logger.info('\tShape errors:')
+            check.show_errors(logger.info)
+            failed = check.invalid_shapes
             invalid += failed
     else:
         tol = solid.tol_avg
@@ -625,7 +611,6 @@ def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
     wing = Body(solid)
 
     if vsp_surf:
-        # vsp_surf = NurbsSurface(vsp_surf.object)
         wing.add_metadata('vsp surface', vsp_surf)
         upr_srf = vsp_surf.copy()
         v_le = vsp_surf.local_to_global_param('v', 0.5)
@@ -651,7 +636,6 @@ def _process_fuse(compound, divide_closed):
     faces = compound.faces
     if len(faces) == 1:
         vsp_surf = faces[0].surface
-        # vsp_surf = NurbsSurface(vsp_surf.object)
         fuselage.add_metadata('vsp surface', vsp_surf)
 
     return fuselage, invalid

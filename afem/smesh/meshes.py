@@ -19,6 +19,7 @@
 from OCCT.SMESH import SMESH_Gen, SMESH_subMesh
 
 from afem.smesh.entities import Node, Element
+from afem.topology.entities import Shape
 
 __all__ = ["MeshGen", "Mesh", "MeshDS", "SubMesh", "SubMeshDS"]
 
@@ -40,7 +41,7 @@ class MeshGen(object):
         return self._gen
 
     @classmethod
-    def new(cls, gen):
+    def wrap(cls, gen):
         """
         Create a new instance using an existing SMESH_Gen instance.
 
@@ -66,7 +67,7 @@ class MeshGen(object):
         """
         Create a mesh.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape to mesh.
+        :param afem.topology.entities.Shape shape: The shape to mesh.
         :param bool is_embedded: Option for embedding mesh.
 
         :return: The mesh.
@@ -82,20 +83,20 @@ class MeshGen(object):
         Check if computation would fail because of some bad algorithm state.
 
         :param afem.smesh.meshes.Mesh mesh: A mesh.
-        :param OCCT.TopoDS.TopoDS_Shape shape: A shape.
+        :param afem.topology.entities.Shape shape: A shape.
 
         :return: *True* if ok, *False* if not.
         :rtype: bool
         """
-        return self._gen.CheckAlgoState(mesh.object, shape)
+        return self._gen.CheckAlgoState(mesh.object, shape.object)
 
     def compute(self, mesh, shape=None):
         """
         Compute a mesh on a shape.
 
         :param afem.smesh.meshes.Mesh mesh: A mesh.
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape to compute mesh on. If
-            not provided then the shape associated to the mesh is used.
+        :param afem.topology.entities.Shape shape: The shape to compute mesh
+            on. If not provided then the shape associated to the mesh is used.
 
         :return: *True* if computed, *False* if not.
         :rtype: bool
@@ -107,7 +108,7 @@ class MeshGen(object):
                 shape = mesh.shape
             else:
                 raise ValueError('No shape could be found.')
-        return self._gen.Compute(mesh.object, shape)
+        return self._gen.Compute(mesh.object, shape.object)
 
 
 class Mesh(object):
@@ -142,9 +143,9 @@ class Mesh(object):
     def shape(self):
         """
         :return: The shape to mesh.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._mesh.GetShapeToMesh()
+        return Shape.wrap(self._mesh.GetShapeToMesh())
 
     @property
     def has_shape(self):
@@ -219,7 +220,7 @@ class Mesh(object):
         return self._ds
 
     @classmethod
-    def new(cls, mesh):
+    def wrap(cls, mesh):
         """
         Create a new instance using an existing SMESH_Mesh instance.
 
@@ -250,7 +251,7 @@ class Mesh(object):
         :param shape: The shape the hypothesis applies to. This can be a
             sub-shape of the master shape. If not provided then the master
             shape is used.
-        :type shape: OCCT.TopoDS.TopoDS_Shape
+        :type shape: afem.topology.entities.Shape
 
         :return: Status of adding hypothesis.
         :rtype: OCCT.SMESH.SMESH_Hypothesis.Hypothesis_Status
@@ -263,21 +264,22 @@ class Mesh(object):
             else:
                 raise ValueError('No shape could be found.')
 
-        return self._mesh.AddHypothesis(shape, hypothesis.id)
+        return self._mesh.AddHypothesis(shape.object, hypothesis.id)
 
     def add_hypotheses(self, hypotheses, shape=None):
         """
         Add a hypotheses to the shape.
 
         :param hypotheses: The hypotheses to add.
-        :type hypotheses: collections.Sequence(afem.smesh.hypotheses.Hypothesis)
+        :type hypotheses:
+            collections.Sequence(afem.smesh.hypotheses.Hypothesis)
         :param shape: The shape the hypothesis applies to. This can be a
             sub-shape of the master shape. If not provided then the master
             shape is used.
-        :type shape: OCCT.TopoDS.TopoDS_Shape
+        :type shape: afem.topology.entities.Shape
 
-        :return: Dictionary where the key is the hypothesis and the value is the
-            hypothesis status.
+        :return: Dictionary where the key is the hypothesis and the value is
+            the hypothesis status.
         :rtype: dict
 
         :raise ValueError: If no shape is available to apply the hypothesis to.
@@ -300,7 +302,7 @@ class Mesh(object):
         """
         Clear the nodes and elements from the shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: None.
         """
@@ -311,25 +313,25 @@ class Mesh(object):
         """
         Get a sub-mesh for the sub-shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape sub_shape: A sub-shape.
+        :param afem.topology.entities.Shape sub_shape: A sub-shape.
 
         :return: A sub-mesh.
         :rtype: afem.smesh.meshes.SubMesh
         """
-        sub_mesh = self._mesh.GetSubMesh(sub_shape)
-        return SubMesh.new(sub_mesh)
+        sub_mesh = self._mesh.GetSubMesh(sub_shape.object)
+        return SubMesh.wrap(sub_mesh)
 
     def get_submesh_containing(self, sub_shape):
         """
         Get a sub-mesh for containing the sub-shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape sub_shape: A sub-shape.
+        :param afem.topology.entities.Shape sub_shape: A sub-shape.
 
         :return: A sub-mesh.
         :rtype: afem.smesh.meshes.SubMesh
         """
-        sub_mesh = self._mesh.GetSubMeshContaining(sub_shape)
-        return SubMesh.new(sub_mesh)
+        sub_mesh = self._mesh.GetSubMeshContaining(sub_shape.object)
+        return SubMesh.wrap(sub_mesh)
 
     def export_dat(self, fn):
         """
@@ -530,35 +532,35 @@ class MeshDS(object):
         """
         Check to see if the shape has mesh elements.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: *True* if the shape has elements, *False* if not.
         :rtype: bool
         """
-        return self._ds.HasMeshElements(shape)
+        return self._ds.HasMeshElements(shape.object)
 
     def mesh_elements(self, shape):
         """
         Get elements of shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: Sub-mesh data structure of elements.
         :rtype: afem.smesh.meshes.SubMeshDS
         """
-        sub_meshds = self._ds.MeshElements(shape)
-        return SubMeshDS.new(sub_meshds)
+        sub_meshds = self._ds.MeshElements(shape.object)
+        return SubMeshDS.wrap(sub_meshds)
 
     def shape_to_index(self, shape):
         """
         Get the shape index.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: The shape index.
         :rtype: int
         """
-        return self._ds.ShapeToIndex(shape)
+        return self._ds.ShapeToIndex(shape.object)
 
     def index_to_shape(self, indx):
         """
@@ -567,9 +569,9 @@ class MeshDS(object):
         :param int indx: The index.
 
         :return: The shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._ds.IndexToShape(indx)
+        return Shape.wrap(self._ds.IndexToShape(indx))
 
 
 class SubMesh(object):
@@ -579,12 +581,12 @@ class SubMesh(object):
     :param afem.smesh.meshes.MeshGen gen: A generator.
     :param afem.smesh.meshes.Mesh mesh: A mesh.
     :param afem.smesh.meshes.MeshDS mesh_ds: A mesh data structure.
-    :param OCCT.TopoDS.TopoDS_Shape sub_shape: The sub-shape.
+    :param afem.topology.entities.Shape sub_shape: The sub-shape.
     """
 
     def __init__(self, gen, mesh, mesh_ds, sub_shape):
         self._mesh = SMESH_subMesh(gen.new_id(), mesh.object, mesh_ds.object,
-                                   sub_shape)
+                                   sub_shape.object)
         self._ds = SubMeshDS(self)
 
     @property
@@ -607,9 +609,9 @@ class SubMesh(object):
     def shape(self):
         """
         :return: The sub-shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._mesh.GetSubShape()
+        return Shape.wrap(self._mesh.GetSubShape())
 
     @property
     def is_empty(self):
@@ -636,7 +638,7 @@ class SubMesh(object):
         return self._ds
 
     @classmethod
-    def new(cls, sub_mesh):
+    def wrap(cls, sub_mesh):
         """
         Create a new instance using an existing SMESH_subMesh instance.
 
@@ -752,7 +754,7 @@ class SubMeshDS(object):
             yield Element(iter_.next())
 
     @classmethod
-    def new(cls, sub_meshds):
+    def wrap(cls, sub_meshds):
         """
         Create a new instance using an existing SMESHDS_SubMesh instance.
 

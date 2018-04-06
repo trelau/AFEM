@@ -36,7 +36,9 @@ def _invalid_subshapes(shape, check, errors):
         list_of_status = result.Status()
         for status in list_of_status:
             if status != BRepCheck_NoError:
-                msg = '\t{0}-->{1}\n'.format(status, sub_shape.shape_type)
+                type_ = sub_shape.__class__.__name__
+                error = str(status).split('.')[-1]
+                msg = '\t{0}: {1}'.format(type_, error)
                 errors.append(msg)
                 invalid.append(sub_shape)
         invalid += _invalid_subshapes(sub_shape, check, errors)

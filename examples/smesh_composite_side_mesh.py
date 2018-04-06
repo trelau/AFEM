@@ -9,8 +9,8 @@ p2 = Point(10, 0, 0)
 p3 = Point(10, 10, 0)
 p4 = Point(5, 10, 0)
 p5 = Point(0, 10, 0)
-wire = WireByPoints([p1, p2, p3, p4, p5], True).wire
-face = FaceByPlanarWire(wire).face
+wire = Wire.by_points([p1, p2, p3, p4, p5], True)
+face = Face.by_wire(wire)
 
 # Mesh using composite side algorithm to avoid making a vertex at edge
 the_gen = MeshGen()
@@ -24,14 +24,14 @@ the_mesh.add_hypotheses([hyp2d, alg2d], face)
 the_gen.compute(the_mesh, face)
 
 # Get the composite side
-for e in ExploreShape.get_edges(wire):
+for e in wire.edges:
     fside = alg1d.get_face_side(the_mesh, e, face)
     if fside.num_nodes:
         break
 
-v = Viewer()
-v.view_top()
-for vert in ExploreShape.get_vertices(face):
-    v.add(vert)
-v.display_mesh(the_mesh.object, 2)
-v.start()
+gui = Viewer()
+gui.view_top()
+for vert in face.vertices:
+    gui.add(vert)
+gui.add(the_mesh)
+gui.start()

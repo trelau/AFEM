@@ -46,7 +46,8 @@ __all__ = ["Hypothesis", "Algorithm", "Regular1D", "CompositeSide1D",
            "MaxLength1D", "LocalLength1D", "NumberOfSegments1D", "Adaptive1D",
            "Deflection1D",
            "QuadrangleAlgo2D", "QuadrangleHypo2D",
-           "NetgenAlgo2D", "NetgenAlgoOnly2D", "NetgenHypo2D", "NetgenSimple2D",
+           "NetgenAlgo2D", "NetgenAlgoOnly2D", "NetgenHypo2D",
+           "NetgenSimple2D",
            "MeshGemsAlgo2D", "MeshGemsHypo2D"]
 
 
@@ -113,83 +114,83 @@ class Algorithm(Hypothesis):
         """
         Compute length of an edge.
 
-        :param OCCT.TopoDS.TopoDS_Edge e: The edge.
+        :param afem.topology.entities.Edge e: The edge.
 
         :return: Edge length.
         :rtype: float
         """
-        return SMESH_Algo.EdgeLength_(e)
+        return SMESH_Algo.EdgeLength_(e.object)
 
     @staticmethod
     def continuity(e1, e2):
         """
         Calculate the continuity of the two edges.
 
-        :param OCCT.TopoDS.TopoDS_Edge e1: The first edge.
-        :param OCCT.TopoDS.TopoDS_Edge e2: The second edge.
+        :param afem.topology.entities.Vertex e1: The first edge.
+        :param afem.topology.entities.Vertex e2: The second edge.
 
         :return: The continuity.
         :rtype: OCCT.GeomAbs.GeomAbs_Shape
         """
-        return SMESH_Algo.Continuity_(e1, e2)
+        return SMESH_Algo.Continuity_(e1.object, e2.object)
 
     @staticmethod
     def is_continuous(e1, e2):
         """
         Check if the two edges can be considered continuous.
 
-        :param OCCT.TopoDS.TopoDS_Edge e1: The first edge.
-        :param OCCT.TopoDS.TopoDS_Edge e2: The second edge.
+        :param afem.topology.entities.Edge e1: The first edge.
+        :param afem.topology.entities.Edge e2: The second edge.
 
         :return: *True* if continuous, *False* otherwise.
         :rtype: bool
         """
-        return SMESH_Algo.IsContinuous_(e1, e2)
+        return SMESH_Algo.IsContinuous_(e1.object, e2.object)
 
     @staticmethod
     def is_straight(e):
         """
         Check if the edge can be considered straight.
 
-        :param OCCT.TopoDS.TopoDS_Edge e: The edge.
+        :param afem.topology.entities.Edge e: The edge.
 
         :return: *True* if straight, *False* otherwise.
         :rtype: bool
         """
-        return SMESH_Algo.IsStraight_(e)
+        return SMESH_Algo.IsStraight_(e.object)
 
     @staticmethod
     def is_degenerated(e):
         """
         Check if the edge has no 3-D curve.
 
-        :param OCCT.TopoDS.TopoDS_Edge e: The edge.
+        :param afem.topology.entities.Edge e: The edge.
 
         :return: *True* if no 3-D curve, *False* otherwise.
         :rtype: bool
         """
-        return SMESH_Algo.isDegenerated_(e)
+        return SMESH_Algo.isDegenerated_(e.object)
 
     @staticmethod
     def vertex_node(v, mesh):
         """
         Get a node built on a vertex.
 
-        :param OCCT.TopoDS.TopoDS_Vertex v: The vertex.
+        :param afem.topology.entities.Vertex v: The vertex.
         :param mesh: The mesh.
         :type mesh: afem.smesh.meshes.Mesh or afem.smesh.meshes.MeshDS
 
         :return: The node.
         :rtype: afem.smesh.entities.Node
         """
-        return Node(SMESH_Algo.VertexNode_(v, mesh.object))
+        return Node(SMESH_Algo.VertexNode_(v.object, mesh.object))
 
     @property
     def compatible_hypotheses(self):
         """
         :return: A list of OCCT hypotheses that are compatible with this
             algorithm.
-        :rtype: list[str]
+        :rtype: list(str)
         """
         return self._hyp.GetCompatibleHypothesis()
 
@@ -214,26 +215,26 @@ class Algorithm(Hypothesis):
         Check the hypothesis in the given mesh and shape.
 
         :param afem.smesh.meshes.Mesh mesh: The mesh.
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param OCCT.SMESH.SMESH_Hypothesis.Hypothesis_Status status: The status
             to check.
 
         :return: *True* if check matches status, *False* otherwise.
         :rtype: bool
         """
-        return self._hyp.CheckHypothesis(mesh.object, shape, status)
+        return self._hyp.CheckHypothesis(mesh.object, shape.object, status)
 
     def compute(self, mesh, shape):
         """
         Compute the mesh on a shape.
 
         :param afem.smesh.meshes.Mesh mesh: The mesh.
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: *True* if completed, *False* if not.
         :rtype: bool
         """
-        return self._hyp.Compute(mesh.object, shape)
+        return self._hyp.Compute(mesh.object, shape.object)
 
 
 class Regular1D(Algorithm):
@@ -268,14 +269,15 @@ class CompositeSide1D(Algorithm):
         Return a face side the edge belongs to.
 
         :param afem.smesh.meshes.Mesh mesh: The mesh.
-        :param OCCT.TopoDS.TopoDS_Edge e: The edge.
-        :param OCCT.TopoDS.TopoDS_Face f: The face.
+        :param afem.topology.entities.Edge e: The edge.
+        :param afem.topology.entities.Face f: The face.
         :param bool ignore_meshed: Unclear what option does.
 
         :return: The face side.
         :rtype: afem.smesh.entities.FaceSide
         """
-        fside = StdMeshers_CompositeSegment_1D.GetFaceSide_(mesh.object, e, f,
+        fside = StdMeshers_CompositeSegment_1D.GetFaceSide_(mesh.object,
+                                                            e.object, f.object,
                                                             ignore_meshed)
         return FaceSide(fside)
 
@@ -441,13 +443,14 @@ class QuadrangleHypo2D(Hypothesis):
         """
         Set enforced nodes on shapes.
 
-        :param list[OCCT.TopoDS.TopoDS_Shape] shapes: List of shapes.
-        :param list[point_like] pnts: List of points for enforced nodes.
+        :param list(afem.topology.entities.Shape) shapes: List of shapes.
+        :param list(point_like) pnts: List of points for enforced nodes.
 
         :return: None.
         """
         pnts = [CheckGeom.to_point(p) for p in pnts]
-        self._hyp.SetEnforcedNodes(shapes, pnts)
+        shapes_ = [s.object for s in shapes]
+        self._hyp.SetEnforcedNodes(shapes_, pnts)
 
 
 class NetgenAlgo2D(Algorithm):
@@ -803,7 +806,7 @@ class MeshGemsHypo2D(Hypothesis):
     def add_hyperpatch(self, patch_ids):
         """
 
-        :param list[set(int)] patch_ids:
+        :param list(set(int)) patch_ids:
         :return:
         """
         patch = [set(patch_ids)]

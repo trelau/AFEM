@@ -1,16 +1,14 @@
-from OCCT.BRepPrimAPI import BRepPrimAPI_MakeBox
-
 from afem.graphics import Viewer
 from afem.smesh import (MeshGen, NetgenAlgo2D, NetgenSimple2D, MaxLength1D,
                         Regular1D)
-from afem.topology import ExploreShape
+from afem.topology import *
 
 # Create a simple solid box
-box = BRepPrimAPI_MakeBox(10, 10, 10).Solid()
+box = BoxBySize(10, 10, 10).solid
 
 # Get a list of faces and edges of the shape for later use
-faces = ExploreShape.get_faces(box)
-edges = ExploreShape.get_edges(box)
+faces = box.faces
+edges = box.edges
 
 # Initialize the mesh generator
 gen = MeshGen()
@@ -34,20 +32,20 @@ mesh.add_hypotheses([alg1d, hyp1d], edges[-1])
 gen.compute(mesh)
 
 # View the mesh
-v = Viewer()
-v.add(mesh)
-v.start()
-v.clear()
+gui = Viewer()
+gui.add(mesh)
+gui.start()
+gui.clear()
 
 # Get sub-meshes from sub-shapes
 face_submesh = mesh.get_submesh(faces[0])
 edge_submesh = mesh.get_submesh(edges[0])
 
 # View the face sub-mesh (2-D elements)
-v.add(face_submesh)
-v.start()
-v.clear()
+gui.add(face_submesh)
+gui.start()
+gui.clear()
 
 # View the edge sub-mesh (1-D elements)
-v.add(edge_submesh)
-v.start()
+gui.add(edge_submesh)
+gui.start()

@@ -5,20 +5,19 @@ from afem.graphics import Viewer
 from afem.smesh import *
 from afem.topology import *
 
-# Create a face with a vertex in middle of one edge
+# Create a face
 p1 = Point()
 p2 = Point(10, 0, 0)
 p3 = Point(10, 10, 0)
-p4 = Point(5, 10, 0)
-p5 = Point(0, 10, 0)
-wire = WireByPoints([p1, p2, p3, p4, p5], True).wire
-face = FaceByPlanarWire(wire).face
+p4 = Point(0, 10, 0)
+wire = Wire.by_points([p1, p2, p3, p4], True)
+face = Face.by_wire(wire)
 
 # Mesh using composite side algorithm to avoid making a vertex at edge
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(face)
-hyp1d = LocalLength1D(the_gen, 4)
-alg1d = CompositeSide1D(the_gen)
+hyp1d = LocalLength1D(the_gen, 1)
+alg1d = Regular1D(the_gen)
 the_mesh.add_hypotheses([hyp1d, alg1d], wire)
 hyp2d = QuadrangleHypo2D(the_gen)
 alg2d = QuadrangleAlgo2D(the_gen)
@@ -28,17 +27,15 @@ the_gen.compute(the_mesh, face)
 
 editor = MeshEditor(the_mesh)
 
-p6 = Point(0, 0, 10)
-
+# TODO Transate a mesh
+pz = Point(0, 0, 10)
 trsf = gp_Trsf()
-trsf.SetTranslation(p1, p6)
+trsf.SetTranslation(p1, pz)
 
 new_mesh = the_gen.create_mesh(face)
 
 editor.transform(trsf, copy=True)
 
-v = Viewer()
-for vert in ExploreShape.get_vertices(face):
-    v.add(vert)
-v.display_mesh(the_mesh.object, 2)
-v.start()
+gui = Viewer()
+gui.add(the_mesh)
+gui.start()

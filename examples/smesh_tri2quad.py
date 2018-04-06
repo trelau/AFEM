@@ -1,9 +1,8 @@
-from OCCT.BRepPrimAPI import BRepPrimAPI_MakeBox
-
 from afem.graphics import Viewer
 from afem.smesh import *
+from afem.topology import *
 
-box = BRepPrimAPI_MakeBox(10, 10, 10).Solid()
+box = BoxBySize(10, 10, 10).solid
 
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(box)
@@ -17,6 +16,6 @@ editor.tri_to_quad()
 
 editor.smooth(iters=20)
 
-v = Viewer()
-v.display_mesh(the_mesh.object, 2)
-v.start()
+gui = Viewer()
+gui.add(the_mesh)
+gui.start()

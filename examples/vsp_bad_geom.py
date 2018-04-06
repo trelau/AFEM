@@ -11,8 +11,10 @@ fn = '../models/vsp_bad_geom.stp'
 vsp_import = ImportVSP(fn)
 htail = vsp_import.get_body('Htail')
 
-v = Viewer()
-v.display(htail.solid, (0.5, 0.5, 0.5))
+gui = Viewer()
+htail.set_color(0.5, 0.5, 0.5)
+gui.add(htail)
 for shape in vsp_import.invalid_shapes:
-    v.display(shape, (1., 0., 0.))
-v.start()
+    shape.set_color(1, 0, 0)
+    gui.add(shape)
+gui.start()

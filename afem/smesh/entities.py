@@ -21,6 +21,7 @@ from __future__ import division
 from numpy import array, cross, linalg
 
 from afem.geometry.entities import Point
+from afem.topology.entities import Shape
 
 __all__ = ["Node", "Element", "FaceSide"]
 
@@ -205,7 +206,7 @@ class Element(object):
     def nids(self):
         """
         :return: The node ID's of the element.
-        :rtype: list[int]
+        :rtype: list(int)
         """
         return [n.id for n in self.node_iter]
 
@@ -456,14 +457,14 @@ class FaceSide(object):
     def ordered_nodes(self):
         """
         :return: List of ordered nodes along the side.
-        :rtype: list[afem.smesh.entities.Node]
+        :rtype: list(afem.smesh.entities.Node)
         """
         return [Node(n) for n in self._fside.GetOrderedNodes()]
 
     @property
     def is_closed(self):
         """
-        :return: *True* if chaing of edges is closed.
+        :return: *True* if chain of edges is closed.
         :rtype: bool
         """
         return self._fside.IsClosed()
@@ -480,25 +481,25 @@ class FaceSide(object):
     def edges(self):
         """
         :return: List of side edges.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list(afem.topology.entities.Edge)
         """
-        return self._fside.Edges()
+        return [Shape.wrap(e) for e in self._fside.Edges()]
 
     @property
     def first_vertex(self):
         """
         :return: First vertex of side.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
-        return self._fside.FirstVertex()
+        return Shape.wrap(self._fside.FirstVertex())
 
     @property
     def last_vertex(self):
         """
         :return: Last vertex of side.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
-        return self._fside.LastVertex()
+        return Shape.wrap(self._fside.LastVertex())
 
     def vertex_node(self, indx):
         """
