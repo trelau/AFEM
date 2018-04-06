@@ -21,7 +21,7 @@ from OCCT.GProp import GProp_GProps
 from numpy import array
 
 from afem.geometry.entities import Point
-from afem.topology.check import CheckShape
+from afem.topology.entities import Shape
 
 __all__ = ["ShapeProps", "LinearProps", "SurfaceProps", "VolumeProps",
            "LengthOfShapes", "AreaOfShapes"]
@@ -207,7 +207,7 @@ class LengthOfShapes(object):
     def __init__(self, shapes):
         results = []
         for shape in shapes:
-            shape = CheckShape.to_shape(shape)
+            shape = Shape.to_shape(shape)
             ls = LinearProps(shape).length
             results.append((ls, shape))
 
@@ -275,7 +275,7 @@ class AreaOfShapes(object):
     def __init__(self, shapes):
         results = []
         for shape in shapes:
-            shape = CheckShape.to_shape(shape)
+            shape = Shape.to_shape(shape)
             a = SurfaceProps(shape).area
             results.append((a, shape))
 

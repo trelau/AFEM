@@ -471,6 +471,35 @@ class Shape(ViewableItem):
 
         return Shape(shape)
 
+    @staticmethod
+    def to_shape(entity):
+        """
+        Convent an entity to a shape. If already a shape the entity is
+        returned. If the entity is geometry it is converted to its
+        corresponding shape.
+
+        :param entity: The entity.
+        :type entity: afem.topology.entities.Shape or
+            afem.geometry.entities.Curve or afem.geometry.entities.Surface or
+            point_like
+
+        :return: The shape.
+        :rtype: afem.topology.entities.Shape
+
+        :raise TypeError: If entity cannot be converted to a shape.
+        """
+        if isinstance(entity, Shape):
+            return entity
+
+        if CheckGeom.is_point_like(entity):
+            return Vertex.by_point(entity)
+        elif CheckGeom.is_curve(entity):
+            return Edge.by_curve(entity)
+        elif CheckGeom.is_surface(entity):
+            return Face.by_surface(entity)
+        else:
+            raise TypeError('Cannot convert entity to a shape.')
+
 
 class Vertex(Shape):
     """

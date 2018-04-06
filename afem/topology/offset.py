@@ -27,7 +27,6 @@ from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
                                 BRepOffsetAPI_ThruSections)
 
 from afem.geometry.entities import Geometry, Curve
-from afem.topology.check import CheckShape
 from afem.topology.entities import Shape, Wire
 
 __all__ = ["ProjectShape", "OffsetShape", "LoftShape", "SweepShape",
@@ -369,7 +368,7 @@ class SweepShape(object):
         if not spine.is_wire:
             raise TypeError('Spine is not a wire.')
 
-        profile = CheckShape.to_shape(profile)
+        profile = Shape.to_shape(profile)
         self._tool = BRepOffsetAPI_MakePipe(spine.object, profile.object)
 
         self._tool.Build()

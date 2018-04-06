@@ -28,10 +28,9 @@ from OCCT.Message import Message_Gravity
 from OCCT.TopTools import TopTools_SequenceOfShape
 from OCCT.TopoDS import TopoDS_Face
 
-from afem.geometry.entities import Geometry, Point, Curve, Surface
+from afem.geometry.entities import Surface
 from afem.occ.utils import list_from_topods_list, to_topods_list
-from afem.topology.check import CheckShape
-from afem.topology.entities import Shape, Vertex, Edge, Face, Solid
+from afem.topology.entities import Shape, Face, Solid
 from afem.topology.explore import ExploreWire
 
 __all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
@@ -852,8 +851,8 @@ class TrimOpenWire(object):
         if wire.closed:
             raise TypeError('Closed wires are not supported.')
 
-        shape1 = CheckShape.to_shape(shape1)
-        shape2 = CheckShape.to_shape(shape2)
+        shape1 = Shape.to_shape(shape1)
+        shape2 = Shape.to_shape(shape2)
 
         # Split wire with shapes
         from afem.topology.create import CompoundByShapes

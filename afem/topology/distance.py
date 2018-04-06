@@ -25,7 +25,6 @@ from OCCT.Extrema import Extrema_ExtFlag_MIN
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Point, Vector, Direction
-from afem.topology.check import CheckShape
 from afem.topology.entities import Shape, Vertex
 
 __all__ = ["DistanceShapeToShape", "DistanceShapeToShapes",
@@ -57,8 +56,8 @@ class DistanceShapeToShape(object):
     """
 
     def __init__(self, shape1, shape2, deflection=1.0e-7):
-        shape1 = CheckShape.to_shape(shape1)
-        shape2 = CheckShape.to_shape(shape2)
+        shape1 = Shape.to_shape(shape1)
+        shape2 = Shape.to_shape(shape2)
         self._tool = BRepExtrema_DistShapeShape(shape1.object, shape2.object,
                                                 deflection,
                                                 Extrema_ExtFlag_MIN)
