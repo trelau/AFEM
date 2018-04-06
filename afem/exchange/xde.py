@@ -35,7 +35,7 @@ from OCCT.XCAFDoc import XCAFDoc_DocumentTool, XCAFDoc_Color
 from OCCT.XmlXCAFDrivers import XmlXCAFDrivers
 
 from afem.config import units_dict, Settings
-from afem.topology.check import CheckShape
+from afem.topology.entities import Shape
 
 __all__ = ["XdeDocument", "XdeLabel"]
 
@@ -144,6 +144,7 @@ class XdeDocument(object):
 
         :raise RuntimeError: If the file cannot be read.
         """
+        # TODO Finish docstrings
         reader = STEPCAFControl_Reader()
         reader.SetNameMode(True)
         reader.SetColorMode(True)
@@ -151,7 +152,7 @@ class XdeDocument(object):
         if not status:
             raise RuntimeError("Error reading STEP file.")
 
-        self._shape = reader.Reader().OneShape()
+        self._shape = Shape.wrap(reader.Reader().OneShape())
         label = XCAFDoc_DocumentTool.ShapesLabel_(self._doc.Main())
         return XdeLabel(label)
 
@@ -163,6 +164,7 @@ class XdeDocument(object):
 
         :return:
         """
+        # TODO Finish docstrings
         self._step_writer = STEPCAFControl_Writer()
         self._step_writer.SetNameMode(True)
         self._step_writer.SetColorMode(True)
@@ -186,7 +188,7 @@ class XdeDocument(object):
         Set the name of the STEP entity for the given shape. The shape(s)
         should be transferred before naming them.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape (or sub-shape).
+        :param afem.topology.entities.Shape shape: The shape (or sub-shape).
         :param str name: The name.
 
         :return: *True* if name is set, *False* otherwise.
@@ -195,7 +197,7 @@ class XdeDocument(object):
         if self._step_writer is None:
             raise RuntimeError('Document has not been transferred.')
 
-        item = STEPConstruct.FindEntity_(self._step_fp, shape)
+        item = STEPConstruct.FindEntity_(self._step_fp, shape.object)
         if not item:
             return False
 
@@ -211,6 +213,7 @@ class XdeDocument(object):
 
         :return:
         """
+        # TODO Finish docstrings
         if self._step_writer is None:
             self.transfer_step(schema, units)
 
@@ -235,19 +238,19 @@ class XdeDocument(object):
         Check if the shape is a sub-shape of the shape stored on the label.
 
         :param afem.exchange.xde.XdeLabel label: The label
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: *True* if a sub-shape, *False* otherwise.
         :rtype: bool
         """
-        return self._tool.IsSubShape(label.object, shape)
+        return self._tool.IsSubShape(label.object, shape.object)
 
     def find_shape(self, shape, find_instance=False):
         """
         Find the label corresponding to the shape. This method searches only
         top-level shapes.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param bool find_instance: If *False*, search for the non-located shape
             in an assembly. If *True*, search for the shape with the same
             location.
@@ -255,7 +258,7 @@ class XdeDocument(object):
         :return: The shape label if found, *None* otherwise.
         :rtype: afem.exchange.xde.XdeLabel
         """
-        label = self._tool.FindShape(shape, find_instance)
+        label = self._tool.FindShape(shape.object, find_instance)
         if not label:
             return None
         return XdeLabel(label)
@@ -274,24 +277,24 @@ class XdeDocument(object):
         Set the shape of the top-level label.
 
         :param afem.exchange.xde.XdeLabel label: The label.
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: None.
         """
-        self._tool.SetShape(label.object, shape)
+        self._tool.SetShape(label.object, shape.object)
 
     def add_shape(self, shape, name=None, make_assy=True):
         """
         Add a new top-level shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param str name: The label name.
         :param bool make_assy: If *True*, then treat compounds as assemblies.
 
         :return: The shape label.
         :rtype: afem.exchange.xde.XdeLabel
         """
-        label = XdeLabel(self._tool.AddShape(shape, make_assy))
+        label = XdeLabel(self._tool.AddShape(shape.object, make_assy))
         if name is not None:
             label.set_name(name)
         return label
@@ -340,13 +343,13 @@ class XdeDocument(object):
         Find a label for the sub-shape stored on the given label.
 
         :param afem.exchange.xde.XdeLabel label: The label.
-        :param OCCT.TopoDS.TopoDS_Shape shape: The sub-shape.
+        :param afem.topology.entities.Shape shape: The sub-shape.
 
         :return: The sub-shape label if found, *None* otherwise.
         :rtype: afem.exchange.xde.XdeLabel or None
         """
         sub_label = TDF_Label()
-        status, sub_label = self._tool.FindSubShape(label.object, shape,
+        status, sub_label = self._tool.FindSubShape(label.object, shape.object,
                                                     sub_label)
         if not status:
             return None
@@ -357,13 +360,13 @@ class XdeDocument(object):
         Add a label for a sub-shape stored on the shape of the label.
 
         :param afem.exchange.xde.XdeLabel label: The label.
-        :param OCCT.TopoDS.TopoDS_Shape shape: The sub-shape.
+        :param afem.topology.entities.Shape shape: The sub-shape.
         :param str name: The name of the sub-shape label.
 
         :return: The sub-shape label.
         :rtype: afem.exchange.xde.XdeLabel
         """
-        label = XdeLabel(self._tool.AddSubShape(label.object, shape))
+        label = XdeLabel(self._tool.AddSubShape(label.object, shape.object))
         if name is None:
             return label
         label.set_name(name)
@@ -485,7 +488,7 @@ class XdeLabel(object):
         shape = TNaming_NamedShape()
         status, shape = self._label.FindAttribute(shape.GetID_(), shape)
         if status:
-            return CheckShape.to_shape(shape.Get())
+            return Shape.wrap(shape.Get())
         return None
 
     @property
@@ -516,7 +519,7 @@ class XdeLabel(object):
     def children_iter(self):
         """
         :return: Yield the children labels.
-        :rtype: collections.Iterable(afem.exchange.xde.XdeLabel)
+        :rtype: afem.exchange.xde.XdeLabel
         """
         iter_ = TDF_ChildIterator(self._label, False)
         while iter_.More():

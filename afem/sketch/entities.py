@@ -226,7 +226,7 @@ class CrossSection(object):
                 c3d.scale(origin, scale)
             if rotate is not None:
                 c3d.rotate(axis, rotate)
-            e = CheckShape.to_edge(c3d)
+            e = Edge.by_curve(c3d)
             edges.append(e)
 
         if len(edges) == 0:

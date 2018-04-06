@@ -29,6 +29,7 @@ from OCCT.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCCT.GeomAPI import GeomAPI
 from OCCT.GeomAbs import GeomAbs_Shape, GeomAbs_JoinType
 from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
+from OCCT.GeomLib import GeomLib_IsPlanarSurface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
 from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array2OfPnt)
@@ -1929,6 +1930,38 @@ class Surface(Geometry):
         """
         h_srf = self.object.Copy()
         return Surface(h_srf)
+
+    def is_planar(self, tol=1.0e-7):
+        """
+        Check if surface is planar.
+
+        :param float tol: The tolerance.
+
+        :return: *True* if planar, *False* if not.
+        :rtype: bool
+        """
+        if isinstance(self, Plane):
+            return TrimmedCurve
+
+        return GeomLib_IsPlanarSurface(self.object, tol)
+
+    def as_plane(self, tol=1.0e-7):
+        """
+        Get a plane if the surface is planar.
+
+        :param float tol: The tolerance.
+
+        :return: Return this plane if it's already a plane, return *None* if
+            the surface is not planar, or return a plane.
+        :rtype: afem.geometry.entities.Surface or None
+        """
+        if isinstance(self, Plane):
+            return self
+        tool = GeomLib_IsPlanarSurface(self.object, tol)
+        if not tool.IsPlanar():
+            return None
+
+        return Surface.wrap(Geom_Plane(tool.Plan()))
 
     def eval(self, u=0., v=0.):
         """

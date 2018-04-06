@@ -25,7 +25,7 @@ from OCCT.STEPControl import (STEPControl_AsIs, STEPControl_Writer,
 from OCCT.TCollection import TCollection_HAsciiString
 
 from afem.config import Settings, units_dict
-from afem.topology.check import CheckShape
+from afem.topology.entities import Shape
 
 __all__ = ["StepWrite", "StepRead"]
 
@@ -81,17 +81,17 @@ class StepWrite(object):
         """
         Transfer and add the shapes to the exported entities.
 
-        :param OCCT.TopoDS.TopoDS_Shape shapes: The shape(s).
+        :param afem.topology.entities.Shape shapes: The shape(s).
 
         :return: *True* if shape was transferred, *False* if not.
         :rtype: bool
         """
         added_shape = False
         for shape in shapes:
-            shape = CheckShape.to_shape(shape)
+            shape = Shape.to_shape(shape)
             if not shape:
                 continue
-            status = self._writer.Transfer(shape, STEPControl_AsIs)
+            status = self._writer.Transfer(shape.object, STEPControl_AsIs)
             if int(status) < int(IFSelect_RetError):
                 added_shape = True
         return added_shape
@@ -101,13 +101,13 @@ class StepWrite(object):
         Set the name of the STEP entity for the given shape. The shape(s)
         should be transferred before naming them.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape (or sub-shape).
+        :param afem.topology.entities.Shape shape: The shape (or sub-shape).
         :param str name: The name.
 
         :return: *True* if name is set, *False* otherwise.
         :rtype: bool
         """
-        item = STEPConstruct.FindEntity_(self._fp, shape)
+        item = STEPConstruct.FindEntity_(self._fp, shape.object)
         if not item:
             return False
 
@@ -149,7 +149,7 @@ class StepRead(object):
         # Transfer
         nroots = self._reader.TransferRoots()
         if nroots > 0:
-            self._shape = self._reader.OneShape()
+            self._shape = Shape.wrap(self._reader.OneShape())
 
     @property
     def object(self):
@@ -163,7 +163,7 @@ class StepRead(object):
     def shape(self):
         """
         :return: The main shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shape
 
@@ -172,12 +172,12 @@ class StepRead(object):
         Attempt to extract the name for the STEP entity that corresponds to the
         shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: The name or None if not found.
         :rtype: str or None
         """
-        item = self._tr.EntityFromShapeResult(shape, 1)
+        item = self._tr.EntityFromShapeResult(shape.object, 1)
         if not item:
             return None
         return item.Name().ToCString()

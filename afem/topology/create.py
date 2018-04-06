@@ -25,8 +25,6 @@ from OCCT.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
                                  BRepBuilderAPI_MakeFace,
                                  BRepBuilderAPI_MakePolygon,
                                  BRepBuilderAPI_MakeShell,
-                                 BRepBuilderAPI_MakeSolid,
-                                 BRepBuilderAPI_MakeVertex,
                                  BRepBuilderAPI_MakeWire,
                                  BRepBuilderAPI_Sewing)
 from OCCT.BRepMesh import BRepMesh_IncrementalMesh
@@ -85,11 +83,7 @@ class VertexByPoint(object):
     """
 
     def __init__(self, pnt):
-        # Build
-        pnt = CheckGeom.to_point(pnt)
-        builder = BRepBuilderAPI_MakeVertex(pnt)
-        v = Vertex(builder.Vertex())
-        self._v = v
+        self._v = Vertex.by_point(pnt)
 
     @property
     def vertex(self):
@@ -970,7 +964,7 @@ class SolidByShell(object):
     """
 
     def __init__(self, shell):
-        self._solid = Solid(BRepBuilderAPI_MakeSolid(shell.object).Solid())
+        self._solid = Solid.by_shell(shell)
 
     @property
     def solid(self):

@@ -29,7 +29,7 @@ from afem.topology.bop import *
 from afem.topology.check import CheckShape
 from afem.topology.create import *
 from afem.topology.distance import DistanceShapeToShape
-from afem.topology.explore import ExploreFreeEdges, ExploreShape
+from afem.topology.explore import ExploreFreeEdges
 from afem.topology.modify import SewShape
 from afem.topology.offset import SweepShapeWithNormal, SweepShape
 from afem.topology.props import *

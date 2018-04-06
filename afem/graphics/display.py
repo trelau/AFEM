@@ -125,7 +125,7 @@ class Viewer(BasicViewer):
         :return: The AIS_Shape created for the body.
         :rtype: OCCT.AIS.AIS_Shape
         """
-        return self.display_shape(body.solid, body.color, body.transparency)
+        return self.display_shape(body.solid.object, body.color, body.transparency)
 
     def display_part(self, part):
         """
@@ -136,7 +136,7 @@ class Viewer(BasicViewer):
         :return: The AIS_Shape created for the part.
         :rtype: OCCT.AIS.AIS_Shape
         """
-        return self.display_shape(part.shape, part.color, part.transparency)
+        return self.display_shape(part.shape.object, part.color, part.transparency)
 
     def display_parts(self, parts):
         """

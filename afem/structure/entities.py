@@ -40,7 +40,6 @@ from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   ShellByFaces, WiresByShape, FaceByPlane,
                                   SolidByDrag)
 from afem.topology.distance import DistanceShapeToShape
-from afem.topology.explore import ExploreShape
 from afem.topology.fix import FixShape
 from afem.topology.modify import (RebuildShapeByTool,
                                   RebuildShapeWithShapes, RebuildShapesByTool,

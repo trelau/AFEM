@@ -18,41 +18,27 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 import json
 
-from OCCT.BRep import BRep_Builder, BRep_Tool
 from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
-                                 BRepBuilderAPI_MakeWire,
-                                 BRepBuilderAPI_Sewing)
-from OCCT.BRepCheck import BRepCheck_Analyzer, BRepCheck_NoError
-from OCCT.BRepGProp import BRepGProp
+                                 BRepBuilderAPI_MakeWire)
 from OCCT.GCPnts import GCPnts_QuasiUniformDeflection
-from OCCT.GProp import GProp_GProps
-from OCCT.Geom import Geom_Plane
 from OCCT.GeomAdaptor import GeomAdaptor_Curve
-from OCCT.GeomLib import GeomLib_IsPlanarSurface
-from OCCT.ShapeAnalysis import ShapeAnalysis
-from OCCT.ShapeFix import ShapeFix_Solid, ShapeFix_Wire
-from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
-                               ShapeUpgrade_SplitSurface,
-                               ShapeUpgrade_UnifySameDomain)
+from OCCT.ShapeFix import ShapeFix_Wire
+from OCCT.ShapeUpgrade import (ShapeUpgrade_SplitSurface)
 from OCCT.TColStd import TColStd_HSequenceOfReal
-from OCCT.TopAbs import TopAbs_COMPOUND, TopAbs_FACE
-from OCCT.TopExp import TopExp_Explorer
-from OCCT.TopoDS import TopoDS_Compound, TopoDS_Iterator, TopoDS_Shell
 
 from afem.config import logger
 from afem.exchange.step import StepRead
 from afem.exchange.xde import XdeDocument
 from afem.geometry.create import (PointFromParameter, NurbsSurfaceByInterp,
                                   NurbsCurveByPoints, NurbsCurveByApprox)
-from afem.geometry.entities import NurbsCurve, NurbsSurface
+from afem.geometry.entities import Geometry, NurbsCurve, NurbsSurface
 from afem.geometry.utils import chord_parameters
 from afem.oml.entities import Body
 from afem.topology.check import CheckShape
-from afem.topology.create import (CompoundByShapes, FaceBySurface, EdgeByCurve,
-                                  WireByEdges)
+from afem.topology.entities import *
 from afem.topology.fix import FixShape
-from afem.topology.modify import ShapeBSplineRestriction
-from afem.topology.props import LinearProps
+from afem.topology.modify import *
+from afem.topology.props import *
 
 __all__ = ["ImportVSP"]
 
@@ -69,7 +55,8 @@ class ImportVSP(object):
     :param bool bspline_restrict: Option to attempt to refit the underlying
         OpenVSP surfaces with surfaces of higher continuity. This may take a
         long time to run and no guarantee it will be successful. At the moment
-        this is only used on known wing components. This method is experimental.
+        this is only used on known wing components. This method is
+        experimental.
     :param bool reloft: For wings that are not split, this option will
         extract isocurves at each spanwise cross section, tessellate the
         curve using *tol*, and then approximate the section using a C1
@@ -100,8 +87,8 @@ class ImportVSP(object):
     @property
     def bodies(self):
         """
-        :return: The dictionary of Body instances where the key is the component
-            name and the value is the Body.
+        :return: The dictionary of Body instances where the key is the
+            component name and the value is the Body.
         :rtype: dict
         """
         return self._bodies
@@ -126,7 +113,7 @@ class ImportVSP(object):
     def invalid_shapes(self):
         """
         :return: List of invalid shapes found during import.
-        :rtype: list(OCCT.TopoDS.TopoDS_Shape)
+        :rtype: list(afem.topology.entities.Shape)
         """
         return self._invalid
 
@@ -155,8 +142,8 @@ class ImportVSP(object):
         """
         Get a copy of the underlying dictionary storing the Body instances.
 
-        :return: Dictionary where the key is the component name and the value is
-            the Body.
+        :return: Dictionary where the key is the component name and the value
+            is the Body.
         :rtype: dict
         """
         return self._bodies.copy()
@@ -184,10 +171,6 @@ class ImportVSP(object):
         href_surfs = {}
         vref_surfs = {}
 
-        # Build a compound for geometric sets.
-        compound = TopoDS_Compound()
-        BRep_Builder().MakeCompound(compound)
-
         # Read STEP file
         step_reader = StepRead(fn)
         master_shape = step_reader.shape
@@ -195,15 +178,16 @@ class ImportVSP(object):
         # Iterate over master shape to find compounds for geometric sets. These
         # sets contain the metadata and the surfaces that make up the
         # component.
-        iterator = TopoDS_Iterator(master_shape, True, True)
-        more = True
-        while iterator.More() and more:
+        # iterator = TopoDS_Iterator(master_shape, True, True)
+        # more = True
+        # while iterator.More() and more:
+        for compound in master_shape.shape_iter:
             # The compound.
-            compound = iterator.Value()
+            # compound = iterator.Value()
             # Hack to handle single component for now...
-            if compound.ShapeType() != TopAbs_COMPOUND:
+            if not compound.is_compound:
                 compound = master_shape
-                more = False
+                # more = False
             # Get the metadata
             name = step_reader.name_from_shape(compound)
 
@@ -218,7 +202,7 @@ class ImportVSP(object):
                 if solid is not None:
                     body = Body(solid)
                     bodies[comp_name] = body
-                iterator.Next()
+                # iterator.Next()
                 continue
             metadata = json.loads(name)
 
@@ -231,12 +215,13 @@ class ImportVSP(object):
                 sref_id = metadata['ID']
                 ref_surfs[sref_id] = sref
                 # Next shape.
-                iterator.Next()
+                # iterator.Next()
                 continue
             elif key in metadata and metadata[key] == 100:
                 # Fuselage horizontal sref
-                f = ExploreShape.get_faces(compound)[0]
-                srf = ExploreShape.surface_of_face(f)
+                f = compound.faces[0]
+                srf = f.surface
+                # TODO Don't use downcast
                 sref = NurbsSurface.downcast(srf)
                 sref.set_udomain(-1., 1.)
                 sref.set_vdomain(0., 1.)
@@ -244,11 +229,11 @@ class ImportVSP(object):
                 sref.object.UReverse()
                 sref_id = metadata['ID']
                 href_surfs[sref_id] = sref
-                iterator.Next()
+                # iterator.Next()
                 continue
             elif key in metadata and metadata[key] == 101:
-                f = ExploreShape.get_faces(compound)[0]
-                srf = ExploreShape.surface_of_face(f)
+                f = compound.faces[0]
+                srf = f.surface
                 sref = NurbsSurface.downcast(srf)
                 sref.set_udomain(-1., 1.)
                 sref.set_vdomain(0., 1.)
@@ -256,7 +241,7 @@ class ImportVSP(object):
                 sref.object.UReverse()
                 sref_id = metadata['ID']
                 vref_surfs[sref_id] = sref
-                iterator.Next()
+                # iterator.Next()
                 continue
 
             comp_name = metadata['m_Name']
@@ -299,7 +284,7 @@ class ImportVSP(object):
                     bodies[comp_name] = body
 
             # Next shape.
-            iterator.Next()
+            # iterator.Next()
 
         # Attach wing reference surfaces to the bodies.
         for sref_id in wing_bodies:
@@ -357,7 +342,7 @@ class ImportVSP(object):
         for body in bodies:
             solids.append(body.solid)
             names.append(body.label)
-        cmp = CompoundByShapes(solids).compound
+        cmp = Compound.by_shapes(solids)
 
         # Add main shape and top-level assembly
         main = doc.add_shape(cmp, 'Vehicle')
@@ -377,7 +362,7 @@ class ImportVSP(object):
                     doc.set_shape_name(solid, name)
                 if label_faces:
                     i = 1
-                    for f in ExploreShape.get_faces(solid):
+                    for f in solid.faces:
                         name = ' '.join(['Face', str(i)])
                         doc.set_shape_name(f, name)
                         i += 1
@@ -429,8 +414,8 @@ class ImportVSP(object):
 
         :raise ValueError: If no surfaces are provided.
         """
-        faces = [FaceBySurface(s).face for s in srfs]
-        compound = CompoundByShapes(faces).compound
+        faces = [Face.by_surface(s) for s in srfs]
+        compound = Compound.by_shapes(faces)
 
         nsrfs = len(srfs)
         if nsrfs == 1:
@@ -454,21 +439,13 @@ class ImportVSP(object):
         form a bilinear surface where the u-direction is chordwise and the
         v-direction is spanwise.
 
-        :param OCCT.TopoDS.TopoDS_Compound compound: The compound.
+        :param afem.topology.entities.Compound compound: The compound.
 
         :return: The reference surface.
         :rtype: afem.geometry.entities.NurbsSurface
-
-        :raise TypeError: If the underlying surface cannot be downcasted to a
-            NurbsSurface.
         """
         # Get underlying surface
-        top_exp = TopExp_Explorer(compound, TopAbs_FACE)
-        face = CheckShape.to_face(top_exp.Current())
-        hsrf = BRep_Tool.Surface_(face)
-
-        # Create NurbsSurface
-        srf = NurbsSurface(hsrf)
+        srf = compound.faces[0].surface
 
         # Loft new surface
         vknots = srf.vknots
@@ -528,50 +505,48 @@ class ImportVSP(object):
 
 
 def _build_solid(compound, divide_closed):
+    """
+    Try to build a solid from the OpenVSP compound of faces.
+
+    :param afem.topology.entities.Compound compound: The compound.
+    :param bool divide_closed: Option to divide closed faces.
+
+    :return: The solid.
+    :rtype: afem.topology.entities.Solid
+    """
     # Get all the faces in the compound. The surfaces must be split. Discard
     # any with zero area.
-    top_exp = TopExp_Explorer(compound, TopAbs_FACE)
     faces = []
-    invalid = []
-    while top_exp.More():
-        shape = top_exp.Current()
-        face = CheckShape.to_face(shape)
-        fprop = GProp_GProps()
-        BRepGProp.SurfaceProperties_(face, fprop, 1.0e-7)
-        a = fprop.Mass()
-        if a <= 1.0e-7:
-            top_exp.Next()
-            continue
-        faces.append(face)
-        top_exp.Next()
+    for face in compound.faces:
+        area = SurfaceProps(face).area
+        if area > 1.0e-7:
+            faces.append(face)
 
     # Replace any planar B-Spline surfaces with planes.
     non_planar_faces = []
     planar_faces = []
     for f in faces:
-        hsrf = BRep_Tool.Surface_(f)
+        srf = f.surface
         try:
-            is_pln = GeomLib_IsPlanarSurface(hsrf, 1.0e-7)
-            if is_pln.IsPlanar():
-                w = ShapeAnalysis.OuterWire_(f)
+            pln = srf.as_plane()
+            if pln:
+                w = f.outer_wire
                 # Fix the wire because they are usually degenerate edges in
                 # the planar end caps.
                 builder = BRepBuilderAPI_MakeWire()
-                for e in ExploreShape.get_edges(w):
+                for e in w.edges:
                     if LinearProps(e).length > 1.0e-7:
-                        builder.Add(e)
+                        builder.Add(e.object)
                 w = builder.Wire()
                 fix = ShapeFix_Wire()
                 fix.Load(w)
-                geom_pln = Geom_Plane(is_pln.Plan())
-                fix.SetSurface(geom_pln)
+                fix.SetSurface(pln.object)
                 fix.FixReorder()
                 fix.FixConnected()
                 fix.FixEdgeCurves()
                 fix.FixDegenerated()
-                w = fix.WireAPIMake()
-                # Build the planar face.
-                fnew = BRepBuilderAPI_MakeFace(w, True).Face()
+                w = Wire(fix.WireAPIMake())
+                fnew = Face.by_wire(w)
                 planar_faces.append(fnew)
             else:
                 non_planar_faces.append(f)
@@ -580,58 +555,45 @@ def _build_solid(compound, divide_closed):
             non_planar_faces.append(f)
 
     # Make a compound of the faces
-    shape = CompoundByShapes(non_planar_faces + planar_faces).compound
+    shape = Compound.by_shapes(non_planar_faces + planar_faces)
 
     # Split closed faces
     if divide_closed:
-        divide = ShapeUpgrade_ShapeDivideClosed(shape)
-        divide.Perform()
-        shape = divide.Result()
+        shape = DivideClosedShape(shape).shape
 
     # Sew shape
-    sew = BRepBuilderAPI_Sewing(1.0e-7)
-    sew.Load(shape)
-    sew.Perform()
-    sewn_shape = sew.SewedShape()
-
-    if sewn_shape.ShapeType() == TopAbs_FACE:
-        face = sewn_shape
-        sewn_shape = TopoDS_Shell()
-        builder = BRep_Builder()
-        builder.MakeShell(sewn_shape)
-        builder.Add(sewn_shape, face)
+    sewn_shape = SewShape(shape).sewed_shape
+    if isinstance(sewn_shape, Face):
+        sewn_shape = sewn_shape.to_shell()
 
     # Attempt to unify planar domains
-    unify_shp = ShapeUpgrade_UnifySameDomain(sewn_shape, False, False, False)
-    try:
-        unify_shp.UnifyFaces()
-        shape = unify_shp.Shape()
-    except RuntimeError:
-        logger.info('...failed to unify faces on solid.')
-        shape = sewn_shape
+    shell = UnifyShape(sewn_shape, False, False, False).shape
 
     # Make solid
-    shell = ExploreShape.get_shells(shape)[0]
-    solid = ShapeFix_Solid().SolidFromShell(shell)
+    if not isinstance(shell, Shell):
+        logger.info('\tA valid shell was not able to be generated.')
+        return None, []
+
+    solid = Solid.by_shell(shell)
 
     # Limit tolerance
     FixShape.limit_tolerance(solid)
 
     # Check the solid and attempt to fix
-    check_shp = BRepCheck_Analyzer(solid, True)
-    if not check_shp.IsValid():
+    invalid = []
+    check_shp = CheckShape(solid)
+    if not check_shp.is_valid:
         logger.info('\tFixing the solid...')
-        fix = ShapeFix_Solid(solid)
-        fix.Perform()
-        solid = fix.Solid()
-        check_shp = BRepCheck_Analyzer(solid, True)
-        if not check_shp.IsValid():
+        solid = FixShape(solid).shape
+        check_shp = CheckShape(solid)
+        if not check_shp.is_valid:
             logger.info('\t...solid could not be fixed.')
             logger.info('\tShape diagnostics:')
-            failed = _topods_iterator_check(solid, check_shp)
+            check_shp.show_errors(logger.info)
+            failed = check_shp.invalid_shapes
             invalid += failed
     else:
-        tol = ExploreShape.global_tolerance(solid)
+        tol = solid.tol_avg
         logger.info(
             '\tSuccessfully generated solid with tolerance={}'.format(tol))
 
@@ -645,12 +607,12 @@ def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
 
     # Process based on number of faces in compound assuming split/no split
     # option was used.
-    faces = ExploreShape.get_faces(compound)
+    faces = compound.faces
     vsp_surf = None
     if len(faces) == 1:
         solid, invalid = _process_unsplit_wing(compound, divide_closed, reloft,
                                                tol)
-        vsp_surf = ExploreShape.surface_of_face(faces[0])
+        vsp_surf = faces[0].surface
     else:
         solid, invalid = _build_solid(compound, divide_closed)
 
@@ -663,7 +625,7 @@ def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
     wing = Body(solid)
 
     if vsp_surf:
-        vsp_surf = NurbsSurface(vsp_surf.object)
+        # vsp_surf = NurbsSurface(vsp_surf.object)
         wing.add_metadata('vsp surface', vsp_surf)
         upr_srf = vsp_surf.copy()
         v_le = vsp_surf.local_to_global_param('v', 0.5)
@@ -686,10 +648,10 @@ def _process_fuse(compound, divide_closed):
 
     fuselage = Body(solid)
 
-    faces = ExploreShape.get_faces(compound)
+    faces = compound.faces
     if len(faces) == 1:
-        vsp_surf = ExploreShape.surface_of_face(faces[0])
-        vsp_surf = NurbsSurface(vsp_surf.object)
+        vsp_surf = faces[0].surface
+        # vsp_surf = NurbsSurface(vsp_surf.object)
         fuselage.add_metadata('vsp surface', vsp_surf)
 
     return fuselage, invalid
@@ -698,14 +660,14 @@ def _process_fuse(compound, divide_closed):
 def _process_unsplit_wing(compound, divide_closed, reloft, tol):
     # Process a wing that was generated without "Split Surfs" option.
 
-    faces = ExploreShape.get_faces(compound)
+    faces = compound.faces
     if len(faces) != 1:
         return None, None
     face = faces[0]
 
     # Get the surface.
-    master_surf = ExploreShape.surface_of_face(face)
-    master_surf = NurbsSurface(master_surf.object)
+    master_surf = face.surface
+    # master_surf = NurbsSurface(master_surf.object)
     uknots, vknots = master_surf.uknots, master_surf.vknots
     vsplit = master_surf.local_to_global_param('v', 0.5)
 
@@ -718,30 +680,30 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
     # Reloft the surface by tessellating a curve at each spanwise knot. This
     # enforces C1 continuity but assumes linear spanwise wing which may not
     # support blending wing sections in newer versions of OpenVSP. Also, since
-    # the tessellated curves may not match up to the wing end caps making sewing
-    # unreliable, flat end caps are assumed.
+    # the tessellated curves may not match up to the wing end caps making
+    # sewing unreliable, flat end caps are assumed.
     if reloft:
         s1 = _reloft_wing_surface(s1, tol)
 
-        # Generate new flat end caps using isocurves at the root and tip of this
-        # new surface
+        # Generate new flat end caps using isocurves at the root and tip of
+        # this new surface
         c0 = s1.v_iso(s1.v1)
         c1 = s1.v_iso(s1.v2)
-        e0 = EdgeByCurve(c0).edge
-        e1 = EdgeByCurve(c1).edge
-        w0 = WireByEdges(e0).wire
-        w1 = WireByEdges(e1).wire
-
-        f0 = BRepBuilderAPI_MakeFace(w0, True).Face()
-        f1 = BRepBuilderAPI_MakeFace(w1, True).Face()
+        e0 = Edge.by_curve(c0)
+        e1 = Edge.by_curve(c1)
+        w0 = Wire.by_edge(e0)
+        w1 = Wire.by_edge(e1)
+        f0 = Face.by_wire(w0)
+        f1 = Face.by_wire(w1)
 
         # Make faces of surfaces
-        f = FaceBySurface(s1).face
+        f = Face.by_surface(s1)
         new_faces = [f, f0, f1]
     else:
         # Reparamterize knots in spanwise direction to be chord length instead
         # of uniform. Use isocurve at quarter-chord to determine knot values.
         # This only works as long as surfaces are linear.
+        # TODO Check downcast method
         c0 = NurbsCurve.downcast(s1.u_iso(s1.u1))
         c0.segment(vsplit, c0.u2)
         qc_u = PointFromParameter(c0, vsplit, 0.25 * c0.length).parameter
@@ -774,7 +736,7 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
         # Make faces of surfaces
         new_faces = []
         for s in [s1, s2, s3, s4, s5]:
-            f = BRepBuilderAPI_MakeFace(s.object, 0.).Face()
+            f = Face.by_surface(s)
             new_faces.append(f)
 
     # Segment off TE.
@@ -819,7 +781,7 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
             new_faces.append(f)
 
     # Put all faces into a compound a generate solid.
-    new_compound = CompoundByShapes(new_faces).compound
+    new_compound = Compound.by_shapes(new_faces)
 
     return _build_solid(new_compound, divide_closed)
 
@@ -838,12 +800,11 @@ def _bspline_restrict(solid, tol):
         return solid
 
     # Get new shape and solid
-    new_shape = tool.modified_shape(solid)
-    new_solid = CheckShape.to_solid(new_shape)
+    new_solid = tool.modified_shape(solid)
 
     # Limit/fix tolerance
     FixShape.limit_tolerance(new_solid)
-    tol = ExploreShape.global_tolerance(new_solid)
+    tol = new_solid.tol_avg
     if not CheckShape(new_solid).is_valid:
         logger.info('Shape invalid. Using original solid.')
         return solid
@@ -872,27 +833,6 @@ def _reloft_wing_surface(srf, tol):
             return srf
         pnts = [c0.eval(tool.Parameter(i)) for i in
                 range(1, tool.NbPoints() + 1)]
-        c = NurbsCurveByApprox(pnts, tol=tol, continuity='C1').curve
+        c = NurbsCurveByApprox(pnts, tol=tol, continuity=Geometry.C1).curve
         crvs.append(c)
     return NurbsSurfaceByInterp(crvs, 1).surface
-
-
-def _topods_iterator_check(shape, check):
-    """
-    Iterate on the shape and dump errors.
-    """
-    invalid = []
-    it = TopoDS_Iterator(shape)
-    while it.More():
-        sub_shape = it.Value()
-        result = check.Result(sub_shape)
-        list_of_status = result.Status()
-        for status in list_of_status:
-            if status != BRepCheck_NoError:
-                str_log = '\t\t{0}-->{1}'.format(status, sub_shape.ShapeType())
-                logger.info(str_log)
-                invalid.append(sub_shape)
-        it.Next()
-        invalid += _topods_iterator_check(sub_shape, check)
-
-    return invalid

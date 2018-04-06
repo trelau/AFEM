@@ -18,24 +18,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from OCCT.StlAPI import StlAPI_Writer
 
-__all__ = ["StlExport"]
+__all__ = ["StlWrite"]
 
 
-class StlExport(StlAPI_Writer):
+class StlWrite(StlAPI_Writer):
     """
     Export shape to STL file.
     """
 
     def __init__(self):
-        super(StlExport, self).__init__()
+        super(StlWrite, self).__init__()
 
     def write(self, shape, fn):
         """
         Converts shape to STL format and writes to a file.
         
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param str fn: The filename.
          
         :return: None.
         """
-        self.Write(shape, fn)
+        self.Write(shape.object, fn)

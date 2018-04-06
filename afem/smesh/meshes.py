@@ -16,10 +16,9 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.SMESH import SMESH_Gen, SMESH_subMesh, SMESH_Hypothesis
+from OCCT.SMESH import SMESH_Gen, SMESH_subMesh
 
 from afem.smesh.entities import Node, Element
-from afem.topology.check import CheckShape
 
 __all__ = ["MeshGen", "Mesh", "MeshDS", "SubMesh", "SubMeshDS"]
 
@@ -237,12 +236,11 @@ class Mesh(object):
         """
         Set the shape to mesh.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: None
         """
-        shape = CheckShape.to_shape(shape)
-        self._mesh.ShapeToMesh(shape)
+        self._mesh.ShapeToMesh(shape.object)
 
     def add_hypothesis(self, hypothesis, shape=None):
         """

@@ -27,7 +27,7 @@ from OCCT.TopTools import (TopTools_DataMapOfShapeShape,
                            TopTools_IndexedMapOfShape)
 
 from afem.geometry.entities import Geometry
-from afem.occ.utils import list_from_topods_list
+from afem.occ.utils import from_topods_list
 from afem.topology.entities import Shape, Edge, Compound
 
 __all__ = ["DivideClosedShape", "DivideContinuityShape", "DivideC0Shape",
@@ -131,7 +131,7 @@ class UnifyShape(object):
         :return: List of modified shapes.
         :rtype: list(afem.topology.entities.Shape)
         """
-        return list_from_topods_list(self._history.Modified(shape.object))
+        return from_topods_list(self._history.Modified(shape.object))
 
     def generated(self, shape):
         """
@@ -142,7 +142,7 @@ class UnifyShape(object):
         :return: List of generated shapes.
         :rtype: list(afem.topology.entities.Shape)
         """
-        return list_from_topods_list(self._history.Generated(shape.object))
+        return from_topods_list(self._history.Generated(shape.object))
 
     def is_deleted(self, shape):
         """

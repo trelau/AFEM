@@ -30,6 +30,7 @@ from OCCT.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
 from afem.misc.check import is_array_like
+# from afem.topology.entities import Shape
 
 
 def to_gp_pnt(p):
@@ -340,7 +341,7 @@ def to_topods_list(shapes):
     return topods_list
 
 
-def list_from_topods_list(topods_list):
+def from_topods_list(topods_list):
     """
     Create a list from a TopoDS_ListOfShape.
 

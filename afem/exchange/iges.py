@@ -21,6 +21,7 @@ from OCCT.IGESControl import IGESControl_Reader, IGESControl_Writer
 from OCCT.Interface import Interface_Static
 
 from afem.config import Settings, units_dict
+from afem.topology.entities import Shape
 
 __all__ = ["IgesWrite", "IgesRead"]
 
@@ -56,12 +57,12 @@ class IgesWrite(object):
         """
         Add the shape to the exported entities.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: *True* if shape was transferred, *False* if not.
         :rtype: bool
         """
-        return self._writer.AddShape(shape)
+        return self._writer.AddShape(shape.object)
 
     def add_geom(self, geom):
         """
@@ -71,6 +72,10 @@ class IgesWrite(object):
 
         :return: *True* if shape was transferred, *False* if not.
         :rtype: bool
+
+        .. note::
+
+            The input type in ``Geom_Geometry`` and not the wrapper.
         """
         return self._writer.AddGeom(geom)
 
@@ -107,7 +112,7 @@ class IgesRead(object):
         # Transfer
         nroots = self._reader.TransferRoots()
         if nroots > 0:
-            self._shape = self._reader.OneShape()
+            self._shape = Shape.wrap(self._reader.OneShape())
 
     @property
     def object(self):
@@ -121,6 +126,6 @@ class IgesRead(object):
     def shape(self):
         """
         :return: The main shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shape

@@ -22,7 +22,6 @@ from afem.structure.entities import SurfacePart
 from afem.topology.bop import FuseShapes, IntersectShapes, SplitShapes
 from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes, EdgeByCurve
-from afem.topology.explore import ExploreShape
 from afem.topology.modify import RebuildShapesByTool, SewShape
 
 __all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "CutParts",

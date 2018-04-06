@@ -22,10 +22,9 @@ from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.display import ViewableItem
 from afem.topology.bop import IntersectShapes
-from afem.topology.check import CheckShape
 from afem.topology.create import FaceBySurface, WiresByConnectedEdges
 from afem.topology.distance import DistancePointToShapes
-from afem.topology.entities import BBox
+from afem.topology.entities import Shape, BBox
 from afem.topology.modify import DivideC0Shape, DivideClosedShape
 from afem.topology.transform import mirror_shape
 
@@ -38,17 +37,15 @@ class Body(ViewableItem):
     information when creating structural components.
 
     :param solid: The solid.
-    :type solid: OCCT.TopoDS.TopoDS_Solid or OCCT.TopoDS.TopoDS_Shape
+    :type solid: afem.topology.entities.Shape
     :param str label: The label.
 
-    :raise TypeError: If ``solid`` is not a ``TopoDS_Solid`` or cannot be
-        converted to one.
+    :raise TypeError: If ``solid`` shape type is not a solid.
     """
 
     def __init__(self, solid, label=None):
         super(Body, self).__init__()
-        solid = CheckShape.to_solid(solid)
-        if solid is None:
+        if not solid.is_solid:
             msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
             raise TypeError(msg)
         self._solid = solid
@@ -69,7 +66,7 @@ class Body(ViewableItem):
     def solid(self):
         """
         :return: The solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
         """
         return self._solid
 
@@ -77,9 +74,9 @@ class Body(ViewableItem):
     def outer_shell(self):
         """
         :return: The outer shell.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
-        return ExploreShape.outer_shell(self._solid)
+        return self._solid.outer_shell
 
     @property
     def metadata(self):
@@ -101,7 +98,7 @@ class Body(ViewableItem):
     def sref_shape(self):
         """
         :return: The reference shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._sref_shape
 
@@ -175,13 +172,13 @@ class Body(ViewableItem):
         """
         Set the solid for the body.
 
-        :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
+        :param afem.topology.entities.Solid solid: The solid.
 
         :return: None.
 
         :raise TypeError: If *solid* is not a solid.
         """
-        if not CheckShape.is_solid(solid):
+        if not solid.is_solid:
             msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
             raise TypeError(msg)
         self._solid = solid
@@ -306,12 +303,12 @@ class Body(ViewableItem):
 
         if basis_shape is None:
             basis_shape = self.extract_plane(u1, v1, u2, v2)
-        basis_shape = CheckShape.to_shape(basis_shape)
+        basis_shape = Shape.to_shape(basis_shape)
 
         bop = IntersectShapes(basis_shape, self.sref_shape, approximate=True)
         shape = bop.shape
 
-        edges = ExploreShape.get_edges(shape)
+        edges = shape.edges
         builder = WiresByConnectedEdges(edges)
         if builder.nwires == 0:
             msg = 'Failed to extract any curves.'
@@ -322,7 +319,7 @@ class Body(ViewableItem):
         else:
             dist = DistancePointToShapes(p1, builder.wires)
             wire = dist.nearest_shape
-        crv = ExploreShape.curve_of_shape(wire)
+        crv = wire.curve
 
         proj = ProjectPointToCurve(p1, crv)
         if not proj.success:
@@ -368,7 +365,7 @@ class Body(ViewableItem):
         :return: Mirrored Body.
         :rtype: afem.oml.entities.Body
         """
-        solid = CheckShape.to_solid(mirror_shape(self.solid, pln))
+        solid = mirror_shape(self.solid, pln)
         body = Body(solid, label)
         if self.sref is not None:
             sref = self.sref.copy()
@@ -489,9 +486,8 @@ class Body(ViewableItem):
                 continue
 
             # Check for reference geometry
-            if type_ == 'SREF':
-                face = CheckShape.to_face(shape)
-                sref_to_body[name] = ExploreShape.surface_of_face(face)
+            if type_ == 'SREF' and shape.is_face:
+                sref_to_body[name] = shape.surface
                 continue
 
             # Add part data
@@ -503,8 +499,7 @@ class Body(ViewableItem):
             sref = None
             if label in sref_to_body:
                 sref = sref_to_body[label]
-            solid = CheckShape.to_solid(shape)
-            body = Body(solid, label)
+            body = Body(shape, label)
             if sref is not None:
                 body.set_sref(sref)
             if color is not None:

@@ -20,7 +20,6 @@ from afem.exchange.xde import XdeDocument
 from afem.structure.utils import order_parts_by_id
 from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes, EdgeByCurve, FaceBySurface
-from afem.topology.explore import ExploreShape
 
 __all__ = ["Group", "GroupAPI"]
 

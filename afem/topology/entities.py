@@ -32,11 +32,13 @@ from OCCT.BRepTools import BRepTools, BRepTools_WireExplorer
 from OCCT.Bnd import Bnd_Box
 from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCCT.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_ShapeTolerance
+from OCCT.ShapeFix import ShapeFix_Solid
 from OCCT.TopAbs import TopAbs_ShapeEnum
 from OCCT.TopExp import TopExp_Explorer
 from OCCT.TopoDS import (TopoDS, TopoDS_Vertex, TopoDS_Edge, TopoDS_Wire,
                          TopoDS_Face, TopoDS_Shell, TopoDS_Solid,
-                         TopoDS_Compound, TopoDS_CompSolid, TopoDS_Shape)
+                         TopoDS_Compound, TopoDS_CompSolid, TopoDS_Shape,
+                         TopoDS_Iterator)
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Point, Curve, Surface
@@ -303,6 +305,17 @@ class Shape(ViewableItem):
         tol = ShapeAnalysis_ShapeTolerance()
         tol.AddTolerance(self.object)
         return tol.GlobalTolerance(1)
+
+    @property
+    def shape_iter(self):
+        """
+        :return: Yield the underlying sub-shape(s).
+        :rtype: collections.Iterable(afem.topology.entities.Shape)
+        """
+        it = TopoDS_Iterator(self.object)
+        while it.More():
+            yield Shape.wrap(it.Value())
+            it.Next()
 
     def _get_shapes(self, type_):
         """
@@ -743,6 +756,18 @@ class Face(Shape):
         """
         return Face(BRepBuilderAPI_MakeFace(surface.object).Face())
 
+    @staticmethod
+    def by_wire(wire):
+        """
+        Create a face by a planar wire.
+
+        :param afem.topology.entities.Wire  wire: The wire.
+
+        :return: The new face.
+        :rtype: afem.topology.entities.Face
+        """
+        return Face(BRepBuilderAPI_MakeFace(wire.object, True).Face())
+
 
 class Shell(Shape):
     """
@@ -819,6 +844,18 @@ class Solid(Shape):
         :rtype: afem.topology.entities.Shell
         """
         return Shell(BRepClass3d.OuterShell_(self.object))
+
+    @staticmethod
+    def by_shell(shell):
+        """
+        Create a solid from the shell.
+
+        :param afem.topology.entities.Shell shell: The shell.
+
+        :return: The new solid.
+        :rtype: afem.topology.entities.Solid
+        """
+        return Solid(ShapeFix_Solid().SolidFromShell(shell.object))
 
 
 class CompSolid(Shape):

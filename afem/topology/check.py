@@ -19,32 +19,27 @@
 from OCCT.BRepCheck import BRepCheck_Analyzer, BRepCheck_NoError
 from OCCT.BRepClass3d import BRepClass3d_SolidClassifier
 from OCCT.TopAbs import TopAbs_IN, TopAbs_ON, TopAbs_OUT, TopAbs_UNKNOWN
-from OCCT.TopoDS import TopoDS_Iterator
 
 from afem.geometry.check import CheckGeom
-from afem.topology.entities import Shape, Vertex, Edge, Face
+from afem.topology.entities import Face
 
 __all__ = ["CheckShape", "ClassifyPointInSolid"]
 
 
-def _invalid_subshapes(shape, check, dump=False):
+def _invalid_subshapes(shape, check, errors):
     """
     Find invalid sub-shapes.
     """
     invalid = []
-    it = TopoDS_Iterator(shape.object)
-    while it.More():
-        sub_shape = Shape.wrap(it.Value())
+    for sub_shape in shape.shape_iter:
         result = check.Result(sub_shape.object)
         list_of_status = result.Status()
         for status in list_of_status:
             if status != BRepCheck_NoError:
-                if dump:
-                    msg = '\t{0}-->{1}\n'.format(status, sub_shape.shape_type)
-                    print(msg)
+                msg = '\t{0}-->{1}\n'.format(status, sub_shape.shape_type)
+                errors.append(msg)
                 invalid.append(sub_shape)
-        it.Next()
-        invalid += _invalid_subshapes(sub_shape, check, dump)
+        invalid += _invalid_subshapes(sub_shape, check, errors)
 
     return invalid
 
@@ -55,14 +50,15 @@ class CheckShape(object):
 
     :param afem.topology.entities.Shape shape: The shape.
     :param bool geom: Option to check geometry in additional to topology.
-    :param bool dump: Option to print invalid statuses.
     """
 
-    def __init__(self, shape, geom=True, dump=False):
+    def __init__(self, shape, geom=True):
         self._check = BRepCheck_Analyzer(shape.object, geom)
         self._invalid = []
+        self._errors = []
         if not self._check.IsValid():
-            self._invalid = _invalid_subshapes(shape, self._check, dump)
+            self._invalid = _invalid_subshapes(shape, self._check,
+                                               self._errors)
 
     @property
     def is_valid(self):
@@ -80,6 +76,19 @@ class CheckShape(object):
         :rtype: list(afem.topology.entities.Shape)
         """
         return self._invalid
+
+    def show_errors(self, logger=None):
+        """
+        Print the errors.
+
+        :param logger: A logger to print to. Otherwise to the console.
+
+        :return: None.
+        """
+        if logger is None:
+            logger = print
+        for msg in self._errors:
+            logger(msg)
 
     def is_subshape_valid(self, shape):
         """

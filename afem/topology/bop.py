@@ -29,7 +29,7 @@ from OCCT.TopTools import TopTools_SequenceOfShape
 from OCCT.TopoDS import TopoDS_Face
 
 from afem.geometry.entities import Surface
-from afem.occ.utils import list_from_topods_list, to_topods_list
+from afem.occ.utils import from_topods_list, to_topods_list
 from afem.topology.entities import Shape, Face, Solid
 from afem.topology.explore import ExploreWire
 
@@ -95,7 +95,7 @@ class BopCore(object):
         :return: List of modified shapes.
         :rtype: list(afem.topology.entities.Shape)
         """
-        return list_from_topods_list(self._bop.Modified(shape.object))
+        return from_topods_list(self._bop.Modified(shape.object))
 
     def generated(self, shape):
         """
@@ -106,7 +106,7 @@ class BopCore(object):
         :return: List of generated shapes.
         :rtype: list(afem.topology.entities.Shape)
         """
-        return list_from_topods_list(self._bop.Generated(shape.object))
+        return from_topods_list(self._bop.Generated(shape.object))
 
     def is_deleted(self, shape):
         """
@@ -227,7 +227,7 @@ class BopAlgo(BopCore):
         :return: The arguments.
         :rtype: list(afem.topology.entities.Shape)
         """
-        return list_from_topods_list(self._bop.Arguments())
+        return from_topods_list(self._bop.Arguments())
 
     @property
     def tools(self):
@@ -235,7 +235,7 @@ class BopAlgo(BopCore):
         :return: The tools.
         :rtype: list(afem.topology.entities.Shape)
         """
-        return list_from_topods_list(self._bop.Tools())
+        return from_topods_list(self._bop.Tools())
 
     def set_args(self, shapes):
         """
@@ -321,7 +321,7 @@ class BopAlgo(BopCore):
                  'list.', RuntimeWarning)
             return []
         else:
-            return list_from_topods_list(self._bop.SectionEdges())
+            return from_topods_list(self._bop.SectionEdges())
 
     @property
     def has_modified(self):
@@ -862,7 +862,6 @@ class TrimOpenWire(object):
         split_wire = split.shape.wires[0]
 
         # Get new vertices
-        # TODO Update ExploreWire tool
         old_verts = ExploreWire(wire).ordered_vertices
         wire_exp = ExploreWire(split_wire)
         all_verts = wire_exp.ordered_vertices
