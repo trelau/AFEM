@@ -25,9 +25,8 @@ from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
                                 BRepOffsetAPI_MakePipeShell,
                                 BRepOffsetAPI_NormalProjection,
                                 BRepOffsetAPI_ThruSections)
-from OCCT.GeomAbs import GeomAbs_C2, GeomAbs_Arc
 
-from afem.geometry.check import CheckGeom
+from afem.geometry.entities import Geometry, Curve
 from afem.topology.check import CheckShape
 from afem.topology.entities import Shape, Wire
 
@@ -73,7 +72,7 @@ class ProjectShape(object):
     """
 
     def __init__(self, shape, to_project, tol3d=1.0e-4, tol2d=None,
-                 continuity=GeomAbs_C2, max_degree=14, max_seg=16,
+                 continuity=Geometry.C2, max_degree=14, max_seg=16,
                  max_dist=None, limit=True):
         tool = BRepOffsetAPI_NormalProjection(shape.object)
 
@@ -178,7 +177,7 @@ class OffsetShape(object):
     >>> shape = tool.shape
     """
 
-    def __init__(self, shape, offset, tol=None, join_mode=GeomAbs_Arc,
+    def __init__(self, shape, offset, tol=None, join_mode=Geometry.ARC,
                  remove_internal_edges=False, perform_simple=False):
         if tol is None:
             tol = shape.tol_avg
@@ -362,7 +361,7 @@ class SweepShape(object):
     """
 
     def __init__(self, spine, profile):
-        if CheckGeom.is_curve(spine):
+        if isinstance(spine, Curve):
             spine = Wire.by_curve(spine)
         elif spine.is_edge:
             spine = Wire.by_edge(spine)

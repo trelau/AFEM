@@ -36,7 +36,6 @@ from OCCT.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
                               BRepPrimAPI_MakeSphere, BRepPrimAPI_MakeBox)
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCCT.GeomAPI import GeomAPI_ProjectPointOnCurve
-from OCCT.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
 from OCCT.ShapeAnalysis import ShapeAnalysis_FreeBounds
 from OCCT.ShapeBuild import ShapeBuild_ReShape
 from OCCT.TopLoc import TopLoc_Location
@@ -46,7 +45,7 @@ from numpy import ceil
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import CircleBy3Points, PlaneByApprox
-from afem.geometry.entities import Plane, Point
+from afem.geometry.entities import Geometry, Plane, Point
 from afem.topology.bop import IntersectShapes
 from afem.topology.entities import (Shape, Vertex, Edge, Wire, Face, Shell,
                                     Solid, Compound)
@@ -68,13 +67,6 @@ __all__ = ["VertexByPoint",
            "PointAlongShape", "PointsAlongShapeByNumber",
            "PointsAlongShapeByDistance",
            "PlaneByEdges", "PlaneByIntersectingShapes"]
-
-_occ_join = {'a': GeomAbs_Arc,
-             'arc': GeomAbs_Arc,
-             't': GeomAbs_Tangent,
-             'tangent': GeomAbs_Tangent,
-             'i': GeomAbs_Intersection,
-             'intersection': GeomAbs_Intersection}
 
 
 # VERTEX ----------------------------------------------------------------------
@@ -436,17 +428,11 @@ class WireByPlanarOffset(object):
     :type spine: afem.topology.entities.Wire or afem.topology.entities.Face
     :param float distance: Offset distance in the plane.
     :param float altitude: Offset altitude normal to the plane.
-    :param str join: Join type ('arc', 'tangent', 'intersection').
+    :param OCCT.GeomAbs.GeomAbs_JoinType join: Join type.
     """
 
-    def __init__(self, spine, distance, altitude=0., join='arc',
+    def __init__(self, spine, distance, altitude=0., join=Geometry.ARC,
                  is_open=False):
-        try:
-            join = join.lower()
-            join = _occ_join[join]
-        except (KeyError, AttributeError):
-            join = GeomAbs_Arc
-
         offset = BRepOffsetAPI_MakeOffset(spine.object, join, is_open)
         offset.Perform(distance, altitude)
         self._w = Wire(offset.Shape())

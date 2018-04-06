@@ -28,7 +28,6 @@ from OCCT.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
 from OCCT.Geom2dAPI import Geom2dAPI_Interpolate, Geom2dAPI_PointsToBSpline
 from OCCT.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                           GeomAPI_PointsToBSpline)
-from OCCT.GeomAbs import GeomAbs_C0, GeomAbs_C2
 from OCCT.GeomAdaptor import GeomAdaptor_Curve
 from OCCT.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
                            GeomFill_SectionGenerator)
@@ -757,7 +756,7 @@ class NurbsCurve2DByApprox(object):
     .. _Geom2dAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d_a_p_i___points_to_b_spline.html
     """
 
-    def __init__(self, qp, dmin=3, dmax=8, continuity=GeomAbs_C2,
+    def __init__(self, qp, dmin=3, dmax=8, continuity=Geometry.C2,
                  parm_type=Approx_ChordLength, tol=1.0e-6):
         dmin = int(dmin)
         dmax = int(dmax)
@@ -789,7 +788,7 @@ class NurbsCurve2DByPoints(NurbsCurve2DByApprox):
     """
 
     def __init__(self, qp):
-        super(NurbsCurve2DByPoints, self).__init__(qp, 1, 1, GeomAbs_C0)
+        super(NurbsCurve2DByPoints, self).__init__(qp, 1, 1, Geometry.C0)
 
 
 class NurbsCurveByData(object):
@@ -893,7 +892,7 @@ class NurbsCurveByApprox(object):
     .. _GeomAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___points_to_b_spline.html
     """
 
-    def __init__(self, qp, dmin=3, dmax=8, continuity=GeomAbs_C2,
+    def __init__(self, qp, dmin=3, dmax=8, continuity=Geometry.C2,
                  parm_type=Approx_ChordLength, tol=1.0e-3):
         dmin = int(dmin)
         dmax = int(dmax)
@@ -925,7 +924,7 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
     """
 
     def __init__(self, qp):
-        super(NurbsCurveByPoints, self).__init__(qp, 1, 1, GeomAbs_C0)
+        super(NurbsCurveByPoints, self).__init__(qp, 1, 1, Geometry.C0)
 
 
 # TRIMMED CURVE ---------------------------------------------------------------
@@ -2156,7 +2155,8 @@ class NurbsSurfaceByApprox(object):
     """
 
     def __init__(self, crvs, dmin=3, dmax=8, tol3d=1.0e-3, tol2d=1.0e-6,
-                 niter=5, continuity=GeomAbs_C2, parm_type=Approx_ChordLength):
+                 niter=5, continuity=Geometry.C2,
+                 parm_type=Approx_ChordLength):
         dmin = int(dmin)
         dmax = int(dmax)
 

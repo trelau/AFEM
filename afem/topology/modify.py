@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from OCCT.BRepBuilderAPI import BRepBuilderAPI_Sewing
 from OCCT.BRepTools import BRepTools_Modifier
-from OCCT.GeomAbs import GeomAbs_C1, GeomAbs_C2
 from OCCT.ShapeBuild import ShapeBuild_ReShape
 from OCCT.ShapeCustom import ShapeCustom_BSplineRestriction
 from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
@@ -27,6 +26,7 @@ from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
 from OCCT.TopTools import (TopTools_DataMapOfShapeShape,
                            TopTools_IndexedMapOfShape)
 
+from afem.geometry.entities import Geometry
 from afem.occ.utils import list_from_topods_list
 from afem.topology.entities import Shape, Edge, Compound
 
@@ -66,7 +66,7 @@ class DivideContinuityShape(object):
     :param OCCT.GeomAbs.GeomAbs_Shape continuity: The continuity to divide.
     """
 
-    def __init__(self, shape, tol=0.001, continuity=GeomAbs_C1):
+    def __init__(self, shape, tol=0.001, continuity=Geometry.C1):
         tool = ShapeUpgrade_ShapeDivideContinuity(shape.object)
         tool.SetTolerance(tol)
         tool.SetBoundaryCriterion(continuity)
@@ -93,7 +93,7 @@ class DivideC0Shape(DivideContinuityShape):
     """
 
     def __init__(self, shape, tol=0.001):
-        super(DivideC0Shape, self).__init__(shape, tol, GeomAbs_C1)
+        super(DivideC0Shape, self).__init__(shape, tol, Geometry.C1)
 
 
 class UnifyShape(object):
@@ -590,7 +590,7 @@ class ShapeBSplineRestriction(object):
     def __init__(self, shape, is_mutable=False, approx_srf=True,
                  approx_crv3d=True, approx_crv2d=True, tol3d=0.01,
                  tol2d=1.0e-6, dmax=9, nmax=10000, degree=True, rational=False,
-                 continuity3d=GeomAbs_C1, continuity2d=GeomAbs_C2):
+                 continuity3d=Geometry.C1, continuity2d=Geometry.C2):
         self._the_mod = ShapeCustom_BSplineRestriction(approx_srf,
                                                        approx_crv3d,
                                                        approx_crv2d, tol3d,

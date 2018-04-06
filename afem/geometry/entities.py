@@ -27,6 +27,7 @@ from OCCT.Geom import (Geom_Line, Geom_Circle, Geom_Ellipse, Geom_BSplineCurve,
                        Geom_Curve, Geom_Surface)
 from OCCT.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCCT.GeomAPI import GeomAPI
+from OCCT.GeomAbs import GeomAbs_Shape, GeomAbs_JoinType
 from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
@@ -483,7 +484,41 @@ class Geometry(ViewableItem):
     Base class for geometry.
 
     :param obj: The geometry object.
+
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C0 C0: Only geometric continuity.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C1 C1: Continuity of the first
+        derivative.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C2 C2: Continuity of the second
+        derivative.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C3 C3: Continuity of the third
+        derivative.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_CN CN: Continuity of the n-th
+        derivative.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_G1 G1: Tangent vectors on either
+        side of a point on a curve are collinear with the same orientation.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_G2 G2: Normalized vectors on
+        either side of a point on a curve are equal.
+
+    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Arc ARC: Arc join type.
+    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Tangent TANGENT: Tangent join
+        type.
+    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Intersection INTERSECT:
+        Intersection join type.
     """
+
+    # Continuities
+    C0 = GeomAbs_Shape.GeomAbs_C0
+    C1 = GeomAbs_Shape.GeomAbs_C1
+    C2 = GeomAbs_Shape.GeomAbs_C2
+    C3 = GeomAbs_Shape.GeomAbs_C3
+    CN = GeomAbs_Shape.GeomAbs_CN
+    G1 = GeomAbs_Shape.GeomAbs_G1
+    G2 = GeomAbs_Shape.GeomAbs_G2
+
+    # Join types
+    ARC = GeomAbs_JoinType.GeomAbs_Arc
+    TANGENT = GeomAbs_JoinType.GeomAbs_Tangent
+    INTERSECT = GeomAbs_JoinType.GeomAbs_Intersection
 
     def __init__(self, obj=None):
         super(Geometry, self).__init__()
