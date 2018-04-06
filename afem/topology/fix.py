@@ -19,7 +19,8 @@
 from OCCT.BRepCheck import BRepCheck_Analyzer
 from OCCT.ShapeBuild import ShapeBuild_ReShape
 from OCCT.ShapeFix import ShapeFix_Shape, ShapeFix_ShapeTolerance
-from OCCT.TopAbs import TopAbs_SHAPE
+
+from afem.topology.entities import Shape
 
 __all__ = ["FixShape"]
 
@@ -30,11 +31,11 @@ class FixShape(object):
     """
     Attempt to fix the shape by applying a number of general fixes.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param float precision: Basic precision value.
     :param float min_tol: Minimum allowed tolerance.
     :param float max_tol: Maximum allowed tolerance.
-    :param OCCT.TopoDS.TopoDS_Shape context: The context shape.
+    :param afem.topology.entities.Shape context: The context shape.
 
     .. note::
 
@@ -56,19 +57,19 @@ class FixShape(object):
 
         if context is not None:
             reshape = ShapeBuild_ReShape()
-            reshape.Apply(context)
+            reshape.Apply(context.object)
             self._tool.SetContext(reshape)
 
-        self._tool.Init(shape)
+        self._tool.Init(shape.object)
         self._tool.Perform()
 
     @property
     def shape(self):
         """
         :return: The fixed shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.Shape()
+        return Shape.wrap(self._tool.Shape())
 
     @property
     def context(self):
@@ -80,21 +81,21 @@ class FixShape(object):
 
     def apply(self, shape):
         """
-        Apply substitutions to the shape (or subshape) and get the result.
+        Apply substitutions to the shape (or sub-shape) and get the result.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: The new shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self.context.Apply(shape)
+        return Shape.wrap(self.context.Apply(shape.object))
 
     @staticmethod
-    def limit_tolerance(shape, tol=1.0e-7, styp=TopAbs_SHAPE):
+    def limit_tolerance(shape, tol=1.0e-7, styp=Shape.SHAPE):
         """
         Limit tolerances in a shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param float tol: Target tolerance.
         :param OCCT.TopAbs.TopAbs_ShapeEnum styp: The level of shape to set
             (i.e., only vertices, only edges, only faces, or all shapes).
@@ -104,20 +105,20 @@ class FixShape(object):
         :rtype: bool
         """
         # Limit tolerance then fix in case of invalid tolerances
-        _fix_tol.LimitTolerance(shape, tol, tol, styp)
-        ShapeFix_Shape(shape).Perform()
-        return BRepCheck_Analyzer(shape, False).IsValid()
+        _fix_tol.LimitTolerance(shape.object, tol, tol, styp)
+        ShapeFix_Shape(shape.object).Perform()
+        return BRepCheck_Analyzer(shape.object, False).IsValid()
 
     @staticmethod
-    def set_tolerance(shape, tol, styp=TopAbs_SHAPE):
+    def set_tolerance(shape, tol, styp=Shape.SHAPE):
         """
         Enforce tolerance on the given shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param float tol: The tolerance.
         :param OCCT.TopAbs.TopAbs_ShapeEnum styp: The level of shape to set
             (i.e., only vertices, only edges, only faces, or all shapes).
 
         :return: None.
         """
-        return _fix_tol.SetTolerance(shape, tol, styp)
+        return _fix_tol.SetTolerance(shape.object, tol, styp)

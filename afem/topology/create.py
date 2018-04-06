@@ -30,7 +30,7 @@ from OCCT.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
                                  BRepBuilderAPI_MakeWire,
                                  BRepBuilderAPI_Sewing)
 from OCCT.BRepMesh import BRepMesh_IncrementalMesh
-from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffset)
+from OCCT.BRepOffsetAPI import BRepOffsetAPI_MakeOffset
 from OCCT.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
                               BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism,
                               BRepPrimAPI_MakeSphere, BRepPrimAPI_MakeBox)
@@ -39,36 +39,34 @@ from OCCT.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCCT.GeomAbs import GeomAbs_Arc, GeomAbs_Intersection, GeomAbs_Tangent
 from OCCT.ShapeAnalysis import ShapeAnalysis_FreeBounds
 from OCCT.ShapeBuild import ShapeBuild_ReShape
-from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
-                         TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID, TopAbs_WIRE)
 from OCCT.TopLoc import TopLoc_Location
 from OCCT.TopTools import TopTools_HSequenceOfShape
-from OCCT.TopoDS import (TopoDS_Compound, TopoDS_Face, TopoDS_Shape,
-                         TopoDS_Shell, TopoDS, TopoDS_ListOfShape)
+from OCCT.TopoDS import TopoDS_Compound, TopoDS_Shell, TopoDS_ListOfShape
 from numpy import ceil
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import CircleBy3Points, PlaneByApprox
 from afem.geometry.entities import Plane, Point
 from afem.topology.bop import IntersectShapes
-from afem.topology.check import CheckShape
-from afem.topology.explore import ExploreShape
+from afem.topology.entities import (Shape, Vertex, Edge, Wire, Face, Shell,
+                                    Solid, Compound)
 
-__all__ = ["VertexByPoint", "EdgeByPoints", "EdgeByVertices", "EdgeByCurve",
-           "EdgeByDrag", "EdgeByWireConcat", "WireByEdges",
-           "WiresByConnectedEdges",
-           "WireByPlanarOffset", "WiresByShape", "WireByPoints", "WireBySplit",
-           "WireByConcat", "FaceBySurface",
-           "FaceByPlane", "FaceByPlanarWire", "FaceByDrag", "ShellBySurface",
-           "ShellByFaces", "ShellBySewing",
-           "SolidByShell", "ShellByDrag", "SolidByPlane", "SolidByDrag",
-           "CompoundByShapes", "HalfspaceByShape", "HalfspaceBySurface",
+__all__ = ["VertexByPoint",
+           "EdgeByPoints", "EdgeByVertices", "EdgeByCurve", "EdgeByDrag",
+           "EdgeByWireConcat",
+           "WireByEdges", "WiresByConnectedEdges", "WireByPlanarOffset",
+           "WiresByShape", "WireByPoints", "WireBySplit", "WireByConcat",
+           "FaceBySurface", "FaceByPlane", "FaceByPlanarWire", "FaceByDrag",
+           "ShellBySurface", "ShellByFaces", "ShellBySewing", "ShellByDrag",
+           "SolidByShell", "SolidByPlane", "SolidByDrag",
+           "CompoundByShapes",
+           "HalfspaceByShape", "HalfspaceBySurface",
            "ShapeByFaces", "ShapeByDrag",
            "BoxBuilder", "BoxBySize", "BoxBy2Points",
            "CylinderByAxis",
            "SphereBy3Points",
-           "PointAlongShape",
-           "PointsAlongShapeByNumber", "PointsAlongShapeByDistance",
+           "PointAlongShape", "PointsAlongShapeByNumber",
+           "PointsAlongShapeByDistance",
            "PlaneByEdges", "PlaneByIntersectingShapes"]
 
 _occ_join = {'a': GeomAbs_Arc,
@@ -98,14 +96,14 @@ class VertexByPoint(object):
         # Build
         pnt = CheckGeom.to_point(pnt)
         builder = BRepBuilderAPI_MakeVertex(pnt)
-        v = builder.Vertex()
+        v = Vertex(builder.Vertex())
         self._v = v
 
     @property
     def vertex(self):
         """
         :return: The vertex.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
         return self._v
 
@@ -133,15 +131,15 @@ class EdgeByPoints(object):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
         builder = BRepBuilderAPI_MakeEdge(p1, p2)
-        self._e = builder.Edge()
-        self._v1 = builder.Vertex1()
-        self._v2 = builder.Vertex2()
+        self._e = Edge(builder.Edge())
+        self._v1 = Vertex(builder.Vertex1())
+        self._v2 = Vertex(builder.Vertex2())
 
     @property
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
         return self._e
 
@@ -149,7 +147,7 @@ class EdgeByPoints(object):
     def vertex1(self):
         """
         :return: The first vertex.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
         return self._v1
 
@@ -157,7 +155,7 @@ class EdgeByPoints(object):
     def vertex2(self):
         """
         :return: The second vertex.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
         return self._v2
 
@@ -166,26 +164,19 @@ class EdgeByVertices(object):
     """
     Create an edge between two vertices.
 
-    :param OCCT.TopoDS.TopoDS_Vertex v1: The first vertex.
-    :param OCCT.TopoDS.TopoDS_Vertex v2: The second vertex.
-
-    Usage:
-
-    >>> from afem.topology import EdgeByPoints
-    >>> builder = EdgeByPoints((0., 0., 0.), (10., 0., 0.))
-    >>> e = builder.edge
+    :param afem.topology.entities.Vertex v1: The first vertex.
+    :param afem.topology.entities.Vertex v2: The second vertex.
     """
 
     def __init__(self, v1, v2):
         # Build
-        e = BRepBuilderAPI_MakeEdge(v1, v2).Edge()
-        self._e = e
+        self._e = Edge(BRepBuilderAPI_MakeEdge(v1.object, v2.object).Edge())
 
     @property
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
         return self._e
 
@@ -210,15 +201,15 @@ class EdgeByCurve(object):
     def __init__(self, crv):
         # Build
         builder = BRepBuilderAPI_MakeEdge(crv.object)
-        self._e = builder.Edge()
-        self._v1 = builder.Vertex1()
-        self._v2 = builder.Vertex2()
+        self._e = Edge(builder.Edge())
+        self._v1 = Vertex(builder.Vertex1())
+        self._v2 = Vertex(builder.Vertex2())
 
     @property
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
         return self._e
 
@@ -226,7 +217,7 @@ class EdgeByCurve(object):
     def vertex1(self):
         """
         :return: The first vertex.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
         return self._v1
 
@@ -234,7 +225,7 @@ class EdgeByCurve(object):
     def vertex2(self):
         """
         :return: The second vertex.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
         return self._v2
 
@@ -243,7 +234,7 @@ class EdgeByDrag(object):
     """
     Create an edge by dragging a vertex along a vector.
 
-    :param OCCT.TopoDS.TopoDS_Vertex vertex: The vertex.
+    :param afem.topology.entities.Vertex vertex: The vertex.
     :param vector_like v: The vector to drag the shape.
 
     Usage:
@@ -258,16 +249,16 @@ class EdgeByDrag(object):
 
     def __init__(self, vertex, v):
         v = CheckGeom.to_vector(v)
-        builder = BRepPrimAPI_MakePrism(vertex, v)
-        self._e = TopoDS.Edge_(builder.Shape())
-        self._v1 = TopoDS.Vertex_(builder.FirstShape())
-        self._v2 = TopoDS.Vertex_(builder.LastShape())
+        builder = BRepPrimAPI_MakePrism(vertex.object, v)
+        self._e = Edge(builder.Shape())
+        self._v1 = Vertex(builder.FirstShape())
+        self._v2 = Vertex(builder.LastShape())
 
     @property
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
         return self._e
 
@@ -275,7 +266,7 @@ class EdgeByDrag(object):
     def first_vertex(self):
         """
         :return: The vertex at the bottom of the edge.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Edge
         """
         return self._v1
 
@@ -283,7 +274,7 @@ class EdgeByDrag(object):
     def last_vertex(self):
         """
         :return: The vertex at the top of the edge.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
         return self._v2
 
@@ -293,7 +284,7 @@ class EdgeByWireConcat(object):
     Create an edge by concatenating all the edges of a wire. The edge may
     have C0 continuity.
 
-    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param afem.topology.entities.Wire wire: The wire.
 
     Usage:
 
@@ -308,15 +299,15 @@ class EdgeByWireConcat(object):
     """
 
     def __init__(self, wire):
-        self._edge = BRepAlgo.ConcatenateWireC0_(wire)
+        self._e = Edge(BRepAlgo.ConcatenateWireC0_(wire.object))
 
     @property
     def edge(self):
         """
         :return: The edge.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
-        return self._edge
+        return self._e
 
 
 # WIRE ------------------------------------------------------------------------
@@ -326,8 +317,8 @@ class WireByEdges(object):
     """
     Create a wire using topologically connected edges.
 
-    :param OCCT.TopoDS.TopoDS_Edge edges: The edges. They must share a common
-        vertex to be connected
+    :param collections.Sequence(afem.topology.entities.Edge) edges: The edges.
+        They must share a common vertex to be connected
 
     >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve, WireByEdges
@@ -345,18 +336,18 @@ class WireByEdges(object):
         # Build
         builder = BRepBuilderAPI_MakeWire()
         for e in edges:
-            if e is not None and e.ShapeType() == TopAbs_EDGE:
-                builder.Add(e)
+            if e is not None and not e.is_null and e.is_edge:
+                builder.Add(e.object)
 
-        self._w = builder.Wire()
-        self._last_e = builder.Edge()
-        self._last_v = builder.Vertex()
+        self._w = Wire(builder.Wire())
+        self._last_e = Edge(builder.Edge())
+        self._last_v = Vertex(builder.Vertex())
 
     @property
     def wire(self):
         """
         :return: The wire.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._w
 
@@ -364,7 +355,7 @@ class WireByEdges(object):
     def last_edge(self):
         """
         :return: The last edge added to the wire.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
         return self._last_e
 
@@ -372,7 +363,7 @@ class WireByEdges(object):
     def last_vertex(self):
         """
         :return: The last vertex added to the wire.
-        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        :rtype: afem.topology.entities.Vertex
         """
         return self._last_v
 
@@ -381,7 +372,7 @@ class WiresByConnectedEdges(object):
     """
     Create wires from a list of unsorted edges.
 
-    :param list[OCCT.TopoDS.TopoDS_Edge] edges: List of edges.
+    :param collections.Sequence(afem.topology.entities.Edge) edges: The edges.
     :param float tol: Connection tolerance. If *None* if provided then the
         maximum tolerance of all edge will be used.
     :param bool shared: Option to use only shared vertices to connect edges.
@@ -404,17 +395,17 @@ class WiresByConnectedEdges(object):
         # Build
         hedges = TopTools_HSequenceOfShape()
         for e in edges:
-            hedges.Append(e)
+            hedges.Append(e.object)
 
         if tol is None:
-            tol = max([ExploreShape.global_tolerance(e, 1) for e in edges])
+            tol = max([e.tol_max for e in edges])
 
         hwires = ShapeAnalysis_FreeBounds.ConnectEdgesToWires_(hedges, tol,
                                                                shared)
 
         wires = []
         for i in range(1, hwires.Length() + 1):
-            w = TopoDS.Wire_(hwires.Value(i))
+            w = Wire(hwires.Value(i))
             wires.append(w)
 
         self._wires = wires
@@ -431,7 +422,7 @@ class WiresByConnectedEdges(object):
     def wires(self):
         """
         :return: The wires.
-        :rtype: list[OCCT.TopoDS.TopoDS_Wire]
+        :rtype: list[afem.topology.entities.Wire]
         """
         return self._wires
 
@@ -442,7 +433,7 @@ class WireByPlanarOffset(object):
 
     :param spine: The wire to offset. If a face is provided the outer wire
         will be used.
-    :type spine: OCCT.TopoDS.TopoDS_Wire or OCCT.TopoDS.TopoDS_Face
+    :type spine: afem.topology.entities.Wire or afem.topology.entities.Face
     :param float distance: Offset distance in the plane.
     :param float altitude: Offset altitude normal to the plane.
     :param str join: Join type ('arc', 'tangent', 'intersection').
@@ -456,17 +447,15 @@ class WireByPlanarOffset(object):
         except (KeyError, AttributeError):
             join = GeomAbs_Arc
 
-        offset = BRepOffsetAPI_MakeOffset(spine, join, is_open)
+        offset = BRepOffsetAPI_MakeOffset(spine.object, join, is_open)
         offset.Perform(distance, altitude)
-        shp = offset.Shape()
-        w = CheckShape.to_wire(shp)
-        self._w = w
+        self._w = Wire(offset.Shape())
 
     @property
     def wire(self):
         """
         :return: The wire.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._w
 
@@ -477,16 +466,15 @@ class WiresByShape(WiresByConnectedEdges):
     all the unique edges of a shape and then uses
     :class:`.WiresByConnectedEdges`.
 
-    :param OCCT.TopoDS.TopoDS_Shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
 
     :raise ValueError: If no edges are found in the shape.
     """
 
     def __init__(self, shape):
-        edges = ExploreShape.get_edges(shape)
+        edges = shape.edges
         if not edges:
-            msg = 'There are no edges in the shape to connect.'
-            raise ValueError(msg)
+            raise ValueError('There are no edges in the shape to connect.')
 
         super(WiresByShape, self).__init__(edges)
 
@@ -495,7 +483,7 @@ class WireByPoints(object):
     """
     Create a polygonal wire by connecting points.
 
-    :param list[point_like] pnts: The ordered points.
+    :param collections.Sequence(point_like) pnts: The ordered points.
     :param bool close: Option to close the wire.
 
     Usage:
@@ -507,7 +495,7 @@ class WireByPoints(object):
     >>> p4 = (0., 1., 0.)
     >>> builder = WireByPoints([p1, p2, p3, p4], True)
     >>> wire = builder.wire
-    >>> wire.Closed()
+    >>> wire.closed
     True
     """
 
@@ -518,13 +506,13 @@ class WireByPoints(object):
             builder.Add(p)
         if close:
             builder.Close()
-        self._w = builder.Wire()
+        self._w = Wire(builder.Wire())
 
     @property
     def wire(self):
         """
         :return: The wire.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._w
 
@@ -533,36 +521,36 @@ class WireBySplit(object):
     """
     Split a wire with a shape.
 
-    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
-    :param OCCT.TopoDS.TopoDS_Shape splitter: The splitter shape.
+    :param afem.topology.entities.Wire wire: The wire.
+    :param afem.topology.entities.Shape splitter: The splitter shape.
     """
 
     def __init__(self, wire, splitter):
         # Split algorithm
+        # TODO Use an AFEM tool to split
         bop = BRepAlgoAPI_Splitter()
         args = TopoDS_ListOfShape()
-        args.Append(wire)
+        args.Append(wire.object)
         tools = TopoDS_ListOfShape()
-        tools.Append(splitter)
+        tools.Append(splitter.object)
         bop.SetArguments(args)
         bop.SetTools(tools)
         bop.Build()
         if not bop.IsDone():
-            msg = 'Failed to split wire.'
-            raise RuntimeError(msg)
+            raise RuntimeError('Failed to split wire.')
 
         # Replace edges in wire
         reshape = ShapeBuild_ReShape()
         performed = False
-        for old_edge in ExploreShape.get_edges(wire):
+        for old_edge in wire.edges:
             # Check deleted
-            if bop.IsDeleted(old_edge):
-                reshape.Remove(old_edge)
+            if bop.IsDeleted(old_edge.object):
+                reshape.Remove(old_edge.object)
                 performed = True
                 break
 
             # Check modified
-            modified = bop.Modified(old_edge)
+            modified = bop.Modified(old_edge.object)
             if modified.IsEmpty():
                 continue
 
@@ -577,21 +565,20 @@ class WireBySplit(object):
 
             # Replace old edge with new.
             new_edges = CompoundByShapes(new_edges).compound
-            reshape.Replace(old_edge, new_edges)
+            reshape.Replace(old_edge.object, new_edges.object)
             performed = True
 
         # Apply substitution.
         if not performed:
             self._wire = wire
         else:
-            new_wire = reshape.Apply(wire)
-            self._wire = TopoDS.Wire_(new_wire)
+            self._wire = Wire(reshape.Apply(wire))
 
     @property
     def wire(self):
         """
         :return: The split wire.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._wire
 
@@ -601,7 +588,7 @@ class WireByConcat(object):
     Create a wire by concatenating all the edges of the wire. The wire may
     have C0 continuity.
 
-    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param afem.topology.entities.Wire wire: The wire.
 
     Usage:
 
@@ -616,14 +603,14 @@ class WireByConcat(object):
     """
 
     def __init__(self, wire):
-        edge = BRepAlgo.ConcatenateWireC0_(wire)
-        self._wire = BRepBuilderAPI_MakeWire(edge).Wire()
+        edge = BRepAlgo.ConcatenateWireC0_(wire.object)
+        self._wire = Wire(BRepBuilderAPI_MakeWire(edge).Wire())
 
     @property
     def wire(self):
         """
         :return: The wire.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._wire
 
@@ -646,14 +633,13 @@ class FaceBySurface(object):
     """
 
     def __init__(self, srf, tol=1.0e-7):
-        builder = BRepBuilderAPI_MakeFace(srf.object, tol)
-        self._f = builder.Face()
+        self._f = Face(BRepBuilderAPI_MakeFace(srf.object, tol).Face())
 
     @property
     def face(self):
         """
         :return: The face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
         return self._f
 
@@ -677,15 +663,14 @@ class FaceByPlane(object):
     """
 
     def __init__(self, pln, umin, umax, vmin, vmax):
-        builder = BRepBuilderAPI_MakeFace(pln.object.Pln(), umin, umax, vmin,
-                                          vmax)
-        self._f = builder.Face()
+        builder = BRepBuilderAPI_MakeFace(pln.gp_pln, umin, umax, vmin, vmax)
+        self._f = Face(builder.Face())
 
     @property
     def face(self):
         """
         :return: The face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
         return self._f
 
@@ -695,8 +680,7 @@ class FaceByPlanarWire(object):
     Create a face from a planar wire.
 
     :param wire: The wire.
-    :type wire: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Edge or
-        OCCT.TopoDS.TopoDS_Wire
+    :type wire: afem.topology.entities.Wire
 
     Usage:
 
@@ -711,14 +695,13 @@ class FaceByPlanarWire(object):
     """
 
     def __init__(self, wire):
-        wire = CheckShape.to_wire(wire)
-        self._f = BRepBuilderAPI_MakeFace(wire, True).Face()
+        self._f = Face(BRepBuilderAPI_MakeFace(wire.object, True).Face())
 
     @property
     def face(self):
         """
         :return: The face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
         return self._f
 
@@ -727,7 +710,7 @@ class FaceByDrag(object):
     """
     Create a face by dragging an edge along a vector.
 
-    :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+    :param afem.topology.entities.Edge edge: The edge.
     :param vector_like v: The vector to drag the shape.
 
     Usage:
@@ -743,16 +726,16 @@ class FaceByDrag(object):
 
     def __init__(self, edge, v):
         v = CheckGeom.to_vector(v)
-        builder = BRepPrimAPI_MakePrism(edge, v)
-        self._f = TopoDS.Face_(builder.Shape())
-        self._e1 = TopoDS.Edge_(builder.FirstShape())
-        self._e2 = TopoDS.Edge_(builder.LastShape())
+        builder = BRepPrimAPI_MakePrism(edge.object, v)
+        self._f = Face(builder.Shape())
+        self._e1 = Edge(builder.FirstShape())
+        self._e2 = Edge(builder.LastShape())
 
     @property
     def face(self):
         """
         :return: The face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
         return self._f
 
@@ -760,7 +743,7 @@ class FaceByDrag(object):
     def first_edge(self):
         """
         :return: The edge at the bottom of the face.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
         return self._e1
 
@@ -768,7 +751,7 @@ class FaceByDrag(object):
     def last_edge(self):
         """
         :return: The edge at the top of the face.
-        :rtype: OCCT.TopoDS.TopoDS_Edge
+        :rtype: afem.topology.entities.Edge
         """
         return self._e2
 
@@ -790,14 +773,13 @@ class ShellBySurface(object):
     """
 
     def __init__(self, srf):
-        builder = BRepBuilderAPI_MakeShell(srf.object)
-        self._shell = builder.Shell()
+        self._shell = Shell(BRepBuilderAPI_MakeShell(srf.object).Shell())
 
     @property
     def shell(self):
         """
         :return: The shell.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
         return self._shell
 
@@ -808,7 +790,7 @@ class ShellByFaces(object):
     then simply adds the faces to it. The faces should already have shared
     edges. This is not checked.
 
-    :param list[OCCT.TopoDS.TopoDS_Face] faces: List of faces.
+    :param collections.Sequence(afem.topology.entities.Face) faces: The faces.
 
     Usage:
 
@@ -823,18 +805,18 @@ class ShellByFaces(object):
     """
 
     def __init__(self, faces):
-        shell = TopoDS_Shell()
+        topods_shell = TopoDS_Shell()
         builder = BRep_Builder()
-        builder.MakeShell(shell)
+        builder.MakeShell(topods_shell)
         for face in faces:
-            builder.Add(shell, face)
-        self._shell = shell
+            builder.Add(topods_shell, face.object)
+        self._shell = Shell(topods_shell)
 
     @property
     def shell(self):
         """
         :return: The shell.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
         return self._shell
 
@@ -843,7 +825,7 @@ class ShellByDrag(object):
     """
     Create a shell by dragging a wire along a vector.
 
-    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param afem.topology.entities.Wire wire: The wire.
     :param vector_like v: The vector to drag the shape.
 
     Usage:
@@ -862,16 +844,16 @@ class ShellByDrag(object):
 
     def __init__(self, wire, v):
         v = CheckGeom.to_vector(v)
-        builder = BRepPrimAPI_MakePrism(wire, v)
-        self._shell = TopoDS.Shell_(builder.Shape())
-        self._w1 = TopoDS.Wire_(builder.FirstShape())
-        self._w2 = TopoDS.Wire_(builder.LastShape())
+        builder = BRepPrimAPI_MakePrism(wire.object, v)
+        self._shell = Shell(builder.Shape())
+        self._w1 = Wire(builder.FirstShape())
+        self._w2 = Wire(builder.LastShape())
 
     @property
     def shell(self):
         """
         :return: The shell.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
         return self._shell
 
@@ -879,7 +861,7 @@ class ShellByDrag(object):
     def first_wire(self):
         """
         :return: The wire at the bottom of the shell.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._w1
 
@@ -887,7 +869,7 @@ class ShellByDrag(object):
     def last_wire(self):
         """
         :return: The wire at the top of the shell.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._w2
 
@@ -896,7 +878,7 @@ class ShellBySewing(object):
     """
     Create a shell by sewing faces.
 
-    :param list[OCCT.TopoDS.TopoDS_Face] faces: The faces.
+    :param collections.Sequence(afem.topology.entities.Face) faces: The faces.
     :param float tol: Sewing tolerance. If *None* the maximum tolerance of all
         the faces is used.
     :param bool cut_free_edges: Option for cutting of free edges.
@@ -922,7 +904,7 @@ class ShellBySewing(object):
     >>> builder = ShellBySewing([f1, f2])
     >>> builder.nshells
     1
-    >>> len(ExploreShape.get_faces(builder.shell))
+    >>> len(builder.shell.faces)
     2
     >>>
     >>> # Non-manifold case
@@ -935,37 +917,36 @@ class ShellBySewing(object):
     >>> builder = ShellBySewing([f1, f2, f3], non_manifold=True)
     >>> builder.nshells
     1
-    >>> len(ExploreShape.get_faces(builder.shell))
+    >>> len(builder.shell.faces)
     3
     """
 
     def __init__(self, faces, tol=None, cut_free_edges=False,
                  non_manifold=False):
         if tol is None:
-            tol = max([ExploreShape.global_tolerance(f, 1) for f in faces])
+            tol = max([f.tol_max for f in faces])
 
-        tool = BRepBuilderAPI_Sewing(tol, True, True, cut_free_edges,
-                                     non_manifold)
+        builder = BRepBuilderAPI_Sewing(tol, True, True, cut_free_edges,
+                                        non_manifold)
         for f in faces:
-            tool.Add(f)
-        tool.Perform()
+            builder.Add(f.object)
+        builder.Perform()
 
-        shape = tool.SewedShape()
+        shape = Shape.wrap(builder.SewedShape())
         self._shells = []
         self._shell = None
         self._nshells = 0
-        if shape.ShapeType() == TopAbs_COMPOUND:
-            self._shells = ExploreShape.get_shells(shape)
+        if shape.is_compound:
+            self._shells = shape.shells
             self._nshells = len(self._shells)
-        elif shape.ShapeType() == TopAbs_FACE:
-            self._shell = CheckShape.to_shell(shape)
+        elif shape.is_face:
+            self._shell = shape.to_shell()
             self._nshells = 1
-        elif shape.ShapeType() == TopAbs_SHELL:
-            self._shell = TopoDS.Shell_(shape)
+        elif shape.is_shell:
+            self._shell = shape
             self._nshells = 1
         else:
-            msg = 'Invalid shape type in ShellBySewing.'
-            raise RuntimeError(msg)
+            raise RuntimeError('Invalid shape type in ShellBySewing.')
 
     @property
     def nshells(self):
@@ -979,7 +960,7 @@ class ShellBySewing(object):
     def shell(self):
         """
         :return: The sewn shell.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
         return self._shell
 
@@ -987,7 +968,7 @@ class ShellBySewing(object):
     def shells(self):
         """
         :return: The sewn shells if more than one is found.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shell]
+        :rtype: list(afem.topology.entities.Shell)
         """
         return self._shells
 
@@ -999,17 +980,17 @@ class SolidByShell(object):
     Create a solid using a shell. The shell can either be closed (finite
     solid) or open (infinite solid).
 
-    :param OCCT.TopoDS.TopoDS_Shell shell: The shell.
+    :param afem.topology.entities.Shell shell: The shell.
     """
 
     def __init__(self, shell):
-        self._solid = BRepBuilderAPI_MakeSolid(shell).Solid()
+        self._solid = Solid(BRepBuilderAPI_MakeSolid(shell.object).Solid())
 
     @property
     def solid(self):
         """
         :return: The solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
         """
         return self._solid
 
@@ -1036,19 +1017,18 @@ class SolidByPlane(object):
     def __init__(self, pln, width, height, depth):
         w = width / 2.
         h = height / 2.
-        gp_pln = pln.object.Pln()
-        face = BRepBuilderAPI_MakeFace(gp_pln, -w, w, -h, h).Face()
+        gp_pln = pln.gp_pln
+        topods_face = BRepBuilderAPI_MakeFace(gp_pln, -w, w, -h, h).Face()
         vn = pln.norm(0., 0.)
         vn.Normalize()
         vn.Scale(depth)
-        shape = BRepPrimAPI_MakePrism(face, vn).Shape()
-        self._solid = TopoDS.Solid_(shape)
+        self._solid = Solid(BRepPrimAPI_MakePrism(topods_face, vn).Shape())
 
     @property
     def solid(self):
         """
         :return: The solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
         """
         return self._solid
 
@@ -1057,7 +1037,7 @@ class SolidByDrag(object):
     """
     Create a solid by dragging a face along a vector.
 
-    :param OCCT.TopoDS.TopoDS_Face face: The face.
+    :param afem.topology.entities.Face face: The face.
     :param vector_like v: The vector to drag the shape.
 
     Usage:
@@ -1077,16 +1057,16 @@ class SolidByDrag(object):
 
     def __init__(self, face, v):
         v = CheckGeom.to_vector(v)
-        builder = BRepPrimAPI_MakePrism(face, v)
-        self._solid = TopoDS.Solid_(builder.Shape())
-        self._f1 = TopoDS.Face_(builder.FirstShape())
-        self._f2 = TopoDS.Face_(builder.LastShape())
+        builder = BRepPrimAPI_MakePrism(face.object, v)
+        self._solid = Solid(builder.Shape())
+        self._f1 = Face(builder.FirstShape())
+        self._f2 = Face(builder.LastShape())
 
     @property
     def solid(self):
         """
         :return: The solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
         """
         return self._solid
 
@@ -1094,7 +1074,7 @@ class SolidByDrag(object):
     def first_face(self):
         """
         :return: The face at the bottom of the solid.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
         return self._f1
 
@@ -1102,7 +1082,7 @@ class SolidByDrag(object):
     def last_face(self):
         """
         :return: The face at the top of the solid.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
         return self._f2
 
@@ -1114,23 +1094,23 @@ class CompoundByShapes(object):
     Create a compound from a list of shapes.
 
     :param shapes: List of shapes.
-    :type: collections.Sequence(OCCT.TopoDS.TopoDS_Shape)
+    :type: collections.Sequence(afem.topology.entities.Shape)
     """
 
     def __init__(self, shapes):
-        cp = TopoDS_Compound()
+        topods_compound = TopoDS_Compound()
         builder = BRep_Builder()
-        builder.MakeCompound(cp)
+        builder.MakeCompound(topods_compound)
         for shape in shapes:
-            if isinstance(shape, TopoDS_Shape):
-                builder.Add(cp, shape)
-        self._cp = cp
+            if isinstance(shape, Shape):
+                builder.Add(topods_compound, shape.object)
+        self._cp = Compound(topods_compound)
 
     @property
     def compound(self):
         """
         :return: The compound.
-        :rtype: OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Compound
         """
         return self._cp
 
@@ -1147,7 +1127,7 @@ class HalfspaceByShape(object):
     shape.
 
     :param shape: The face or shell.
-    :type shape: OCCT.TopoDS.TopoDS_Face or OCCT.TopoDS.TopoDS_Shell
+    :type shape: afem.topology.entities.Face or afem.topology.entities.Shell
     :param point_like pnt: The reference point where the matter is located.
 
     :raise RuntimeError: If *shape* is not a face or shell.
@@ -1165,16 +1145,16 @@ class HalfspaceByShape(object):
     def __init__(self, shape, pnt):
         pnt = CheckGeom.to_point(pnt)
 
-        if shape.ShapeType() not in [TopAbs_FACE, TopAbs_SHELL]:
-            msg = 'Invalid shape for creating half-space.'
-            raise RuntimeError(msg)
-        self._solid = BRepPrimAPI_MakeHalfSpace(shape, pnt).Solid()
+        if shape.shape_type not in [Shape.FACE, Shape.SHELL]:
+            raise RuntimeError('Invalid shape for creating half-space.')
+        self._solid = Solid(BRepPrimAPI_MakeHalfSpace(shape.object,
+                                                      pnt).Solid())
 
     @property
     def solid(self):
         """
         :return: The half-space as a solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
         """
         return self._solid
 
@@ -1196,9 +1176,9 @@ class HalfspaceBySurface(HalfspaceByShape):
 
 class ShapeByFaces(object):
     """
-    Create either a face or a shell from a list of faces.
+    Create either a face or a shell from faces.
 
-    :param list[OCCT.TopoDS.TopoDS_Face] faces: The faces.
+    :param collections.Sequence(afem.topology.entities.Face) faces: The faces.
     :param bool sew: Option to sew the faces if more than one face is provided.
     :param float tol: Sewing tolerance. If *None* the maximum tolerance of all
         the faces is used.
@@ -1220,11 +1200,9 @@ class ShapeByFaces(object):
             elif builder.nshells == 1:
                 self._shape = builder.shell
             else:
-                msg = 'Failed to create any shells.'
-                raise RuntimeError(msg)
+                raise RuntimeError('Failed to create any shells.')
         else:
-            msg = 'No faces provided.'
-            raise ValueError(msg)
+            raise ValueError('No faces provided.')
 
     @property
     def shape(self):
@@ -1233,8 +1211,8 @@ class ShapeByFaces(object):
             list, it will be a shell if only one shell was formed, or it will
             be a compound of shells if more than one shell was found after
             sewing.
-        :rtype: OCCT.TopoDS.TopoDS_Face or OCCT.TopoDS.TopoDS_Shell or
-            OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Face or afem.topology.entities.Shell or
+            afem.topology.entities.Compound
         """
         return self._shape
 
@@ -1244,7 +1222,7 @@ class ShapeByFaces(object):
         :return: *True* if the shape is a face, *False* if not.
         :rtype: bool
         """
-        return isinstance(self.shape, TopoDS_Face)
+        return self._shape.is_face
 
     @property
     def is_shell(self):
@@ -1252,7 +1230,7 @@ class ShapeByFaces(object):
         :return: *True* if the shape is a shell, *False* if not.
         :rtype: bool
         """
-        return isinstance(self.shape, TopoDS_Shell)
+        return self._shape.is_shell
 
     @property
     def is_compound(self):
@@ -1260,29 +1238,29 @@ class ShapeByFaces(object):
         :return: *True* if the shape is a compound, *False* if not.
         :rtype: bool
         """
-        return isinstance(self.shape, TopoDS_Compound)
+        return self._shape.is_compound
 
 
 class ShapeByDrag(object):
     """
     Create a shape by dragging another shape along a vector.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param vector_like v: The vector to drag the shape.
     """
 
     def __init__(self, shape, v):
         v = CheckGeom.to_vector(v)
-        builder = BRepPrimAPI_MakePrism(shape, v)
-        self._shape = builder.Shape()
-        self._s1 = builder.FirstShape()
-        self._s2 = builder.LastShape()
+        builder = BRepPrimAPI_MakePrism(shape.object, v)
+        self._shape = Shape.wrap(builder.Shape())
+        self._s1 = Shape.wrap(builder.FirstShape())
+        self._s2 = Shape.wrap(builder.LastShape())
 
     @property
     def shape(self):
         """
         :return: The shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shape
 
@@ -1290,7 +1268,7 @@ class ShapeByDrag(object):
     def first_shape(self):
         """
         :return: The shape at the bottom.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._s1
 
@@ -1298,7 +1276,7 @@ class ShapeByDrag(object):
     def last_shape(self):
         """
         :return: The shape at the top.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._s2
 
@@ -1308,7 +1286,7 @@ class ShapeByDrag(object):
         :return: *True* if shape is an edge, *False* if not.
         :rtype: bool
         """
-        return self.shape.ShapeType() == TopAbs_EDGE
+        return self._shape.is_edge
 
     @property
     def is_face(self):
@@ -1316,7 +1294,7 @@ class ShapeByDrag(object):
         :return: *True* if shape is a face, *False* if not.
         :rtype: bool
         """
-        return self.shape.ShapeType() == TopAbs_FACE
+        return self._shape.is_face
 
     @property
     def is_shell(self):
@@ -1324,7 +1302,7 @@ class ShapeByDrag(object):
         :return: *True* if shape is a shell, *False* if not.
         :rtype: bool
         """
-        return self.shape.ShapeType() == TopAbs_SHELL
+        return self._shape.is_shell
 
     @property
     def is_solid(self):
@@ -1332,7 +1310,7 @@ class ShapeByDrag(object):
         :return: *True* if shape is a solid, *False* if not.
         :rtype: bool
         """
-        return self.shape.ShapeType() == TopAbs_SOLID
+        return self._shape.is_solid
 
     @property
     def is_compsolid(self):
@@ -1340,7 +1318,7 @@ class ShapeByDrag(object):
         :return: *True* if shape is a compsolid, *False* if not.
         :rtype: bool
         """
-        return self.shape.ShapeType() == TopAbs_COMPSOLID
+        return self._shape.is_compsolid
 
     @property
     def is_compound(self):
@@ -1348,7 +1326,7 @@ class ShapeByDrag(object):
         :return: *True* if shape is a compound, *False* if not.
         :rtype: bool
         """
-        return self.shape.ShapeType() == TopAbs_COMPOUND
+        return self._shape.is_compound
 
 
 # BOX -------------------------------------------------------------------------
@@ -1365,65 +1343,65 @@ class BoxBuilder(object):
     def shell(self):
         """
         :return: The box as a shell.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
-        return self._builder.Shell()
+        return Shell(self._builder.Shell())
 
     @property
     def solid(self):
         """
         :return: The box as a solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
         """
-        return self._builder.Solid()
+        return Solid(self._builder.Solid())
 
     @property
     def bottom_face(self):
         """
         :return: The bottom face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.BottomFace()
+        return Face(self._builder.BottomFace())
 
     @property
     def back_face(self):
         """
         :return: The back face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.BackFace()
+        return Face(self._builder.BackFace())
 
     @property
     def front_face(self):
         """
         :return: The front face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.FrontFace()
+        return Face(self._builder.FrontFace())
 
     @property
     def left_face(self):
         """
         :return: The left face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.LeftFace()
+        return Face(self._builder.LeftFace())
 
     @property
     def right_face(self):
         """
         :return: The right face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.RightFace()
+        return Face(self._builder.RightFace())
 
     @property
     def top_face(self):
         """
         :return: The top face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.TopFace()
+        return Face(self._builder.TopFace())
 
 
 class BoxBySize(BoxBuilder):
@@ -1476,25 +1454,25 @@ class CylinderByAxis(object):
     def face(self):
         """
         :return: The lateral face of the cylinder
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.Face()
+        return Face(self._builder.Face())
 
     @property
     def shell(self):
         """
         :return: The cylinder as a shell.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
-        return self._builder.Shell()
+        return Shell(self._builder.Shell())
 
     @property
     def solid(self):
         """
         :return: The cylinder as a solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
         """
-        return self._builder.Solid()
+        return Solid(self._builder.Solid())
 
 
 # SPHERE ----------------------------------------------------------------------
@@ -1521,25 +1499,25 @@ class SphereBy3Points(object):
     def face(self):
         """
         :return: The sphere as a face.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.Face()
+        return Face(self._builder.Face())
 
     @property
     def shell(self):
         """
         :return: The sphere as a shell.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
-        return self._builder.Shell()
+        return Shell(self._builder.Shell())
 
     @property
     def solid(self):
         """
         :return: The sphere as a solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Face
         """
-        return self._builder.Solid()
+        return Solid(self._builder.Solid())
 
     @property
     def sphere(self):
@@ -1558,7 +1536,7 @@ class PointAlongShape(object):
     parameter.
 
     :param shape: The shape.
-    :type shape: OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire
+    :type shape: afem.topology.entities.Edge or afem.topology.entities.Wire
     :param float ds: The distance along the curve from the given parameter.
     :param float tol: Tolerance.
 
@@ -1577,16 +1555,13 @@ class PointAlongShape(object):
     """
 
     def __init__(self, shape, ds, tol=1.0e-7):
-        if shape.ShapeType() not in [TopAbs_EDGE, TopAbs_WIRE]:
-            msg = 'Invalid shape in PointsAlongShapeByNumber.'
-            raise TypeError(msg)
+        if shape.shape_type not in [Shape.EDGE, Shape.WIRE]:
+            raise TypeError('Invalid shape in PointsAlongShapeByNumber.')
 
-        shape = CheckShape.to_shape(shape)
-
-        if shape.ShapeType() == TopAbs_EDGE:
-            adp_crv = BRepAdaptor_Curve(shape)
-        elif shape.ShapeType() == TopAbs_WIRE:
-            adp_crv = BRepAdaptor_CompCurve(shape)
+        if shape.is_edge:
+            adp_crv = BRepAdaptor_Curve(shape.object)
+        elif shape.is_wire:
+            adp_crv = BRepAdaptor_CompCurve(shape.object)
         else:
             msg = 'Could not create adaptor curve in PointAlongShape.'
             raise RuntimeError(msg)
@@ -1594,8 +1569,7 @@ class PointAlongShape(object):
         u0 = adp_crv.FirstParameter()
         ap = GCPnts_AbscissaPoint(tol, adp_crv, ds, u0)
         if not ap.IsDone():
-            msg = "GCPnts_AbscissaPoint failed."
-            raise RuntimeError(msg)
+            raise RuntimeError('GCPnts_AbscissaPoint failed.')
 
         u = ap.Parameter()
         self._u = u
@@ -1624,19 +1598,19 @@ class PointsAlongShapeByNumber(object):
     Create a specified number of points along an edge or wire.
 
     :param shape: The shape.
-    :type shape: OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire
+    :type shape: afem.topology.entities.Edge or afem.topology.entities.Wire
     :param int n: Number of points to create (*n* > 0).
     :param float d1: An offset distance for the first point. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last point. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param OCCT.TopoDS.TopoDS_Shape shape1: A shape to define the first point.
-        This shape is intersected with the edge or wire.
-    :param OCCT.TopoDS.TopoDS_Shape shape2: A shape to define the last point.
-        This shape is intersected with the edge or wire.
+    :param afem.topology.entities.Shape shape1: A shape to define the first
+        point. This shape is intersected with the edge or wire.
+    :param afem.topology.entities.Shape shape2: A shape to define the last
+        point. This shape is intersected with the edge or wire.
     :param float tol: Tolerance.
 
-    :raise TypeError: If *shape* if not a curve or wire.
+    :raise TypeError: If *shape* if not an edge or wire.
     :raise RuntimeError: If OCC method fails.
 
     Usage:
@@ -1654,17 +1628,13 @@ class PointsAlongShapeByNumber(object):
 
     def __init__(self, shape, n, d1=None, d2=None, shape1=None, shape2=None,
                  tol=1.0e-7):
-        if shape.ShapeType() not in [TopAbs_EDGE, TopAbs_WIRE]:
-            msg = 'Invalid shape in PointsAlongShapeByNumber.'
-            raise TypeError(msg)
+        if shape.shape_type not in [Shape.EDGE, Shape.WIRE]:
+            raise TypeError('Invalid shape in PointsAlongShapeByNumber.')
 
-        shape1 = CheckShape.to_shape(shape1)
-        shape2 = CheckShape.to_shape(shape2)
-
-        if shape.ShapeType() == TopAbs_EDGE:
-            adp_crv = BRepAdaptor_Curve(shape)
-        elif shape.ShapeType() == TopAbs_WIRE:
-            adp_crv = BRepAdaptor_CompCurve(shape)
+        if shape.is_edge:
+            adp_crv = BRepAdaptor_Curve(shape.object)
+        elif shape.is_wire:
+            adp_crv = BRepAdaptor_CompCurve(shape.object)
         else:
             msg = 'Could not create adaptor curve in PointsAlongShapeByNumber.'
             raise RuntimeError(msg)
@@ -1673,26 +1643,28 @@ class PointsAlongShapeByNumber(object):
         u2 = adp_crv.LastParameter()
 
         # Adjust parameters of start/end shapes are provided
-        if isinstance(shape1, TopoDS_Shape):
-            shape = BRepAlgoAPI_Section(shape, shape1).Shape()
-            verts = ExploreShape.get_vertices(shape)
+        if isinstance(shape1, Shape):
+            bop = BRepAlgoAPI_Section(shape.object, shape1.object)
+            shape = Shape.wrap(bop.Shape())
+            verts = shape.vertices
             prms = []
             for v in verts:
-                gp_pnt = BRep_Tool.Pnt(v)
-                proj = GeomAPI_ProjectPointOnCurve(gp_pnt, adp_crv.Curve())
+                pnt = v.point
+                proj = GeomAPI_ProjectPointOnCurve(pnt, adp_crv.Curve())
                 if proj.NbPoints() < 1:
                     continue
                 umin = proj.LowerDistanceParameter()
                 prms.append(umin)
             u1 = min(prms)
 
-        if isinstance(shape2, TopoDS_Shape):
-            shape = BRepAlgoAPI_Section(shape, shape2).Shape()
-            verts = ExploreShape.get_vertices(shape)
+        if isinstance(shape2, Shape):
+            bop = BRepAlgoAPI_Section(shape.object, shape2.object)
+            shape = Shape.wrap(bop.Shape())
+            verts = shape.vertices
             prms = []
             for v in verts:
-                gp_pnt = BRep_Tool.Pnt(v)
-                proj = GeomAPI_ProjectPointOnCurve(gp_pnt, adp_crv.Curve())
+                pnt = v.point
+                proj = GeomAPI_ProjectPointOnCurve(pnt, adp_crv.Curve())
                 if proj.NbPoints() < 1:
                     continue
                 umin = proj.LowerDistanceParameter()
@@ -1712,8 +1684,7 @@ class PointsAlongShapeByNumber(object):
         # Create uniform abscissa
         ua = GCPnts_UniformAbscissa(adp_crv, int(n), u1, u2, tol)
         if not ua.IsDone():
-            msg = "GCPnts_UniformAbscissa failed."
-            raise RuntimeError(msg)
+            raise RuntimeError('GCPnts_UniformAbscissa failed.')
 
         self._npts = ua.NbPoints()
         self._pnts = []
@@ -1740,7 +1711,7 @@ class PointsAlongShapeByNumber(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts
 
@@ -1759,17 +1730,17 @@ class PointsAlongShapeByDistance(object):
     Create a specified number of points along an edge or wire.
 
     :param shape: The shape.
-    :type shape: OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Wire
+    :type shape: afem.topology.entities.Edge or afem.topology.entities.Wire
     :param float maxd: The maximum allowed spacing between points. The
         actual spacing will be adjusted to not to exceed this value.
     :param float d1: An offset distance for the first point. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last point. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param OCCT.TopoDS.TopoDS_Shape shape1: A shape to define the first point.
-        This shape is intersected with the edge or wire.
-    :param OCCT.TopoDS.TopoDS_Shape shape2: A shape to define the last point.
-        This shape is intersected with the edge or wire.
+    :param afem.topology.entities.Shape shape1: A shape to define the first
+        point. This shape is intersected with the edge or wire.
+    :param afem.topology.entities.Shape shape2: A shape to define the last
+        point. This shape is intersected with the edge or wire.
     :param int nmin: Minimum number of points to create.
     :param float tol: Tolerance.
 
@@ -1791,17 +1762,13 @@ class PointsAlongShapeByDistance(object):
 
     def __init__(self, shape, maxd, d1=None, d2=None, shape1=None, shape2=None,
                  nmin=0, tol=1.0e-7):
-        if shape.ShapeType() not in [TopAbs_EDGE, TopAbs_WIRE]:
-            msg = 'Invalid shape in PointsAlongShapeByNumber.'
-            raise TypeError(msg)
+        if shape.shape_type not in [Shape.EDGE, Shape.WIRE]:
+            raise TypeError('Invalid shape in PointsAlongShapeByNumber.')
 
-        shape1 = CheckShape.to_shape(shape1)
-        shape2 = CheckShape.to_shape(shape2)
-
-        if shape.ShapeType() == TopAbs_EDGE:
-            adp_crv = BRepAdaptor_Curve(shape)
-        elif shape.ShapeType() == TopAbs_WIRE:
-            adp_crv = BRepAdaptor_CompCurve(shape)
+        if shape.is_edge:
+            adp_crv = BRepAdaptor_Curve(shape.object)
+        elif shape.is_wire:
+            adp_crv = BRepAdaptor_CompCurve(shape.object)
         else:
             msg = 'Could not create adaptor curve in PointsAlongShapeByNumber.'
             raise RuntimeError(msg)
@@ -1810,26 +1777,28 @@ class PointsAlongShapeByDistance(object):
         u2 = adp_crv.LastParameter()
 
         # Adjust parameters of start/end shapes are provided
-        if isinstance(shape1, TopoDS_Shape):
-            shape = BRepAlgoAPI_Section(shape, shape1).Shape()
-            verts = ExploreShape.get_vertices(shape)
+        if isinstance(shape1, Shape):
+            bop = BRepAlgoAPI_Section(shape.object, shape1.object)
+            shape = Shape.wrap(bop.Shape())
+            verts = shape.vertices
             prms = []
             for v in verts:
-                gp_pnt = BRep_Tool.Pnt(v)
-                proj = GeomAPI_ProjectPointOnCurve(gp_pnt, adp_crv.Curve())
+                pnt = v.point
+                proj = GeomAPI_ProjectPointOnCurve(pnt, adp_crv.Curve())
                 if proj.NbPoints() < 1:
                     continue
                 umin = proj.LowerDistanceParameter()
                 prms.append(umin)
             u1 = min(prms)
 
-        if isinstance(shape2, TopoDS_Shape):
-            shape = BRepAlgoAPI_Section(shape, shape2).Shape()
-            verts = ExploreShape.get_vertices(shape)
+        if isinstance(shape2, Shape):
+            bop = BRepAlgoAPI_Section(shape.object, shape2.object)
+            shape = Shape.wrap(bop.Shape())
+            verts = shape.vertices
             prms = []
             for v in verts:
-                gp_pnt = BRep_Tool.Pnt(v)
-                proj = GeomAPI_ProjectPointOnCurve(gp_pnt, adp_crv.Curve())
+                pnt = v.point
+                proj = GeomAPI_ProjectPointOnCurve(pnt, adp_crv.Curve())
                 if proj.NbPoints() < 1:
                     continue
                 umin = proj.LowerDistanceParameter()
@@ -1855,8 +1824,7 @@ class PointsAlongShapeByDistance(object):
         # Create uniform abscissa
         ua = GCPnts_UniformAbscissa(adp_crv, int(n), u1, u2, tol)
         if not ua.IsDone():
-            msg = "GCPnts_UniformAbscissa failed."
-            raise RuntimeError(msg)
+            raise RuntimeError('GCPnts_UniformAbscissa failed.')
 
         self._npts = ua.NbPoints()
         self._pnts = []
@@ -1883,7 +1851,7 @@ class PointsAlongShapeByDistance(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts
 
@@ -1901,7 +1869,7 @@ class PlaneByEdges(object):
     """
     Create a plane by fitting it to all the edges of a shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape containing the edges.
+    :param afem.topology.entities.Shape shape: The shape containing the edges.
     :param float tol: Edges must be within this planar tolerance. The
         tolerance is the largest value between the value provided or the
         largest tolerance of any one of the edges in the shape.
@@ -1921,7 +1889,7 @@ class PlaneByEdges(object):
     """
 
     def __init__(self, shape, tol=-1.):
-        builder = BRepBuilderAPI_FindPlane(shape, tol)
+        builder = BRepBuilderAPI_FindPlane(shape.object, tol)
         self._found = builder.Found()
         self._pln = None
         if self._found:
@@ -1951,8 +1919,8 @@ class PlaneByIntersectingShapes(object):
     then the edges are tessellated and the point is added to this list. Then
     the tool :class:`.PlaneByApprox` is used.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape1: The first shape.
-    :param OCCT.TopoDS.TopoDS_Shape shape2: The second shape.
+    :param afem.topology.entities.Shape shape1: The first shape.
+    :param afem.topology.entities.Shape shape2: The second shape.
     :param afem.geometry.entities.Point pnt: Additional point to add to the
         edges since they might be collinear.
     :param float tol: Edges must be within this planar tolerance. The
@@ -1975,12 +1943,12 @@ class PlaneByIntersectingShapes(object):
             self._found = tool.found
             self._pln = tool.plane
         elif CheckGeom.is_point(pnt):
-            edges = ExploreShape.get_edges(shape)
+            edges = shape.edges
             pnts = [pnt]
             for edge in edges:
-                BRepMesh_IncrementalMesh(edge, 0.001)
+                BRepMesh_IncrementalMesh(edge.object, 0.001)
                 loc = TopLoc_Location()
-                poly3d = BRep_Tool.Polygon3D_(edge, loc)
+                poly3d = BRep_Tool.Polygon3D_(edge.object, loc)
                 if poly3d.NbNodes == 0:
                     continue
                 tcol_pnts = poly3d.Nodes()
@@ -1989,16 +1957,14 @@ class PlaneByIntersectingShapes(object):
                     pnt = CheckGeom.to_point(gp_pnt)
                     pnts.append(pnt)
             if len(pnts) < 3:
-                msg = 'Less than three points to fit a plane.'
-                raise ValueError(msg)
+                raise ValueError('Less than three points to fit a plane.')
             if tol < 0.:
                 tol = 1.0e-7
             tool = PlaneByApprox(pnts, tol)
             self._found = True
             self._pln = tool.plane
         else:
-            msg = 'Invalid input.'
-            raise TypeError(msg)
+            raise TypeError('Invalid input.')
 
     @property
     def found(self):

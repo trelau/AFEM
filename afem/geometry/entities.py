@@ -23,7 +23,8 @@ from OCCT.BRepGProp import BRepGProp
 from OCCT.GCPnts import GCPnts_AbscissaPoint
 from OCCT.GProp import GProp_GProps
 from OCCT.Geom import (Geom_Line, Geom_Circle, Geom_Ellipse, Geom_BSplineCurve,
-                       Geom_TrimmedCurve, Geom_Plane, Geom_BSplineSurface)
+                       Geom_TrimmedCurve, Geom_Plane, Geom_BSplineSurface,
+                       Geom_Curve, Geom_Surface)
 from OCCT.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCCT.GeomAPI import GeomAPI
 from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
@@ -1337,6 +1338,33 @@ class Curve(Geometry):
             u1, u2 = u2, u1
         return GCPnts_AbscissaPoint.Length_(self.adaptor, u1, u2, tol)
 
+    @staticmethod
+    def wrap(curve):
+        """
+        Wrap the OpenCASCADE curve based on its type.
+
+        :param OCCT.Geom.Geom_Curve curve: The curve.
+
+        :return: The wrapped curve.
+        :rtype: afem.geometry.entities.Curve
+        """
+        if isinstance(curve, Geom_Line):
+            return Line(curve)
+        if isinstance(curve, Geom_Circle):
+            return Circle(curve)
+        if isinstance(curve, Geom_Ellipse):
+            return Ellipse(curve)
+        if isinstance(curve, Geom_BSplineCurve):
+            return NurbsCurve(curve)
+        if isinstance(curve, Geom_TrimmedCurve):
+            return TrimmedCurve(curve)
+
+        # Catch for unsupported type
+        if isinstance(curve, Geom_Curve):
+            return Curve(curve)
+
+        raise TypeError('Curve type not supported.')
+
 
 class Line(Curve):
     """
@@ -1950,6 +1978,27 @@ class Surface(Geometry):
         """
         h_crv = self.object.VIso(v)
         return Curve(h_crv)
+
+    @staticmethod
+    def wrap(surface):
+        """
+        Wrap the OpenCASCADE surface based on its type.
+
+        :param OCCT.Geom.Geom_Surface surface: The curve.
+
+        :return: The wrapped surface.
+        :rtype: afem.geometry.entities.Surface
+        """
+        if isinstance(surface, Geom_Plane):
+            return Plane(surface)
+        if isinstance(surface, Geom_BSplineSurface):
+            return NurbsSurface(surface)
+
+        # Catch for unsupported type
+        if isinstance(surface, Geom_Surface):
+            return Surface(surface)
+
+        raise TypeError('Surface type not supported.')
 
 
 class Plane(Surface):

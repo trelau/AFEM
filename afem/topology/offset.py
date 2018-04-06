@@ -26,10 +26,10 @@ from OCCT.BRepOffsetAPI import (BRepOffsetAPI_MakeOffsetShape,
                                 BRepOffsetAPI_NormalProjection,
                                 BRepOffsetAPI_ThruSections)
 from OCCT.GeomAbs import GeomAbs_C2, GeomAbs_Arc
-from OCCT.TopAbs import TopAbs_EDGE, TopAbs_VERTEX, TopAbs_WIRE
 
+from afem.geometry.check import CheckGeom
 from afem.topology.check import CheckShape
-from afem.topology.explore import ExploreShape
+from afem.topology.entities import Shape, Wire
 
 __all__ = ["ProjectShape", "OffsetShape", "LoftShape", "SweepShape",
            "SweepShapeWithNormal"]
@@ -39,10 +39,10 @@ class ProjectShape(object):
     """
     Project edges and wires onto a basis shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape to project to.
+    :param afem.topology.entities.Shape shape: The shape to project to.
     :param to_project: List of edges or wires to project.
-    :type to_project: collections.Sequence(OCCT.TopoDS.TopoDS_Edge or
-        OCCT.TopoDS.TopoDS_Wire)
+    :type to_project: collections.Sequence(afem.topology.entities.Edge or
+        afem.topology.entities.Wire)
     :param float tol3d: The 3-D tolerance.
     :param float tol2d: The 2-D tolerance. If not provided then
         *sqrt(tol3d)* is used.
@@ -73,9 +73,9 @@ class ProjectShape(object):
     """
 
     def __init__(self, shape, to_project, tol3d=1.0e-4, tol2d=None,
-                 continuity=GeomAbs_C2, max_degree=14, max_seg=16, max_dist=None,
-                 limit=True):
-        tool = BRepOffsetAPI_NormalProjection(shape)
+                 continuity=GeomAbs_C2, max_degree=14, max_seg=16,
+                 max_dist=None, limit=True):
+        tool = BRepOffsetAPI_NormalProjection(shape.object)
 
         if tol2d is None:
             tol2d = sqrt(tol3d)
@@ -89,10 +89,13 @@ class ProjectShape(object):
             tool.SetLimit(True)
 
         for item in to_project:
-            tool.Add(item)
+            tool.Add(item.object)
 
         tool.Build()
         self._tool = tool
+        self._projection = Shape.wrap(self._tool.Projection())
+        self._wires = self._projection.wires
+        self._edges = self._projection.edges
 
     @property
     def is_done(self):
@@ -107,9 +110,9 @@ class ProjectShape(object):
         """
         :return: The projected shape. Tries to build the result as a
             compound of wires.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.Projection()
+        return self._projection
 
     @property
     def nwires(self):
@@ -123,9 +126,9 @@ class ProjectShape(object):
     def wires(self):
         """
         :return: A list of wires in the projected shape.
-        :rtype: list[OCCT.TopoDS.TopoDS_Wire]
+        :rtype: list(afem.topology.entities.Wire)
         """
-        return ExploreShape.get_wires(self.projection)
+        return self._wires
 
     @property
     def nedges(self):
@@ -139,16 +142,16 @@ class ProjectShape(object):
     def edges(self):
         """
         :return: A list of edges in the projected shape.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list(afem.topology.entities.Edge)
         """
-        return ExploreShape.get_edges(self.projection)
+        return self._edges
 
 
 class OffsetShape(object):
     """
     Offset a shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape. It may be a face,
+    :param afem.topology.entities.Shape shape: The shape. It may be a face,
         shell, a solid, or a compound of these kinds.
     :param float offset: The offset value. The offset will be outside the
         shape if positive and inside if negative.
@@ -178,14 +181,17 @@ class OffsetShape(object):
     def __init__(self, shape, offset, tol=None, join_mode=GeomAbs_Arc,
                  remove_internal_edges=False, perform_simple=False):
         if tol is None:
-            tol = ExploreShape.global_tolerance(shape)
+            tol = shape.tol_avg
 
         self._tool = BRepOffsetAPI_MakeOffsetShape()
         if perform_simple:
-            self._tool.PerformBySimple(shape, offset)
+            self._tool.PerformBySimple(shape.object, offset)
         else:
-            self._tool.PerformByJoin(shape, offset, tol, BRepOffset_Skin, False,
-                                     False, join_mode, remove_internal_edges)
+            self._tool.PerformByJoin(shape.object, offset, tol,
+                                     BRepOffset_Skin, False, False, join_mode,
+                                     remove_internal_edges)
+
+        self._shape = Shape.wrap(self._tool.Shape())
 
     @property
     def is_done(self):
@@ -199,9 +205,9 @@ class OffsetShape(object):
     def shape(self):
         """
         :return: The offset shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.Shape()
+        return self._shape
 
 
 class LoftShape(object):
@@ -211,8 +217,8 @@ class LoftShape(object):
     :param sections: The sections of the loft. These
         are usually wires but the first and last section can be vertices.
         Edges are converted to wires before adding to the loft tool.
-    :type sections: list[OCCT.TopoDS.TopoDS_Vertex or OCCT.TopoDS.TopoDS_Edge or
-        OCCT.TopoDS.TopoDS_Wire]
+    :type sections: collections.Sequence(afem.topology.entities.Vertex or
+        afem.topology.entities.Edge or afem.topology.entities.Wire)
     :param bool is_solid: If *True* the tool will build a solid, otherwise
         it will build a shell.
     :param bool make_ruled: If *True* the faces between sections will be ruled
@@ -270,16 +276,15 @@ class LoftShape(object):
             self._tool.SetMaxDegree(max_degree)
 
         for section in sections:
-            if section.ShapeType() == TopAbs_VERTEX:
-                self._tool.AddVertex(section)
-            elif section.ShapeType() == TopAbs_EDGE:
-                wire = CheckShape.to_wire(section)
-                self._tool.AddWire(wire)
-            elif section.ShapeType() == TopAbs_WIRE:
-                self._tool.AddWire(section)
+            if section.is_vertex:
+                self._tool.AddVertex(section.object)
+            elif section.is_edge:
+                wire = Wire.by_edge(section)
+                self._tool.AddWire(wire.object)
+            elif section.is_wire:
+                self._tool.AddWire(section.object)
             else:
-                msg = 'Invalid shape type in loft.'
-                raise TypeError(msg)
+                raise TypeError('Invalid shape type in loft.')
 
         self._tool.Build()
 
@@ -295,26 +300,26 @@ class LoftShape(object):
     def shape(self):
         """
         :return: The lofted shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.Shape()
+        return Shape.wrap(self._tool.Shape())
 
     @property
     def first_shape(self):
         """
         :return: The first/bottom shape of the loft if a solid was
             constructed.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.FirstShape()
+        return Shape.wrap(self._tool.FirstShape())
 
     @property
     def last_shape(self):
         """
         :return: The last/top shape of the loft if a solid was constructed.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.LastShape()
+        return Shape.wrap(self._tool.LastShape())
 
     @property
     def max_degree(self):
@@ -330,12 +335,12 @@ class LoftShape(object):
         then this returns each face generated by the edge. If the smoothing
         option was used, then this returns the face generated by the edge.
 
-        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+        :param afem.topology.entities.Edge edge: The edge.
 
         :return: The face(s) generated by the edge.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.GeneratedFace(edge)
+        return Shape.wrap(self._tool.GeneratedFace(edge.object))
 
 
 class SweepShape(object):
@@ -343,10 +348,13 @@ class SweepShape(object):
     Sweep a profile along a spine.
 
     :param spine: The path for the sweep. This must be at least G1 continuous.
-    :type spine: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Edge or
-        OCCT.TopoDS.TopoDS_Wire
+    :type spine: afem.geometry.entities.Curve or afem.topology.entities.Edge or
+        afem.topology.entities.Wire
     :param profile: The profile.
-    :type profile: afem.geometry.entities.Geometry or OCCT.TopoDS.TopoDS_Shape
+    :type profile: afem.geometry.entities.Geometry or
+        afem.topology.entities.Shape
+
+    :raise TypeError: If ``spin`` is not or cannot be converted to a wire.
 
     For more information see BRepOffsetAPI_MakePipe_.
 
@@ -354,9 +362,16 @@ class SweepShape(object):
     """
 
     def __init__(self, spine, profile):
-        spine = CheckShape.to_wire(spine)
+        if CheckGeom.is_curve(spine):
+            spine = Wire.by_curve(spine)
+        elif spine.is_edge:
+            spine = Wire.by_edge(spine)
+
+        if not spine.is_wire:
+            raise TypeError('Spine is not a wire.')
+
         profile = CheckShape.to_shape(profile)
-        self._tool = BRepOffsetAPI_MakePipe(spine, profile)
+        self._tool = BRepOffsetAPI_MakePipe(spine.object, profile.object)
 
         self._tool.Build()
 
@@ -372,25 +387,25 @@ class SweepShape(object):
     def shape(self):
         """
         :return: The swept shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.Shape()
+        return Shape.wrap(self._tool.Shape())
 
     @property
     def first_shape(self):
         """
         :return: The first/bottom shape of the sweep.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.FirstShape()
+        return Shape.wrap(self._tool.FirstShape())
 
     @property
     def last_shape(self):
         """
         :return: The last/top shape of the sweep.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.LastShape()
+        return Shape.wrap(self._tool.LastShape())
 
 
 class SweepShapeWithNormal(object):
@@ -398,10 +413,11 @@ class SweepShapeWithNormal(object):
     Sweep sections along a spine using a support shape to define the
     local orientation.
 
-    :param OCCT.TopoDS.TopoDS_Wire spine: The spine.
-    :param OCCT.TopoDS.TopoDS_Shape spine_support: The shape that will define
-        the normal during the sweeping algorithm. To be effective, each edge of
-        the spine must have a representation on one face of the spine support.
+    :param afem.topology.entities.Wire spine: The spine.
+    :param afem.topology.entities.Shape spine_support: The shape that will
+        define the normal during the sweeping algorithm. To be effective, each
+        edge of the spine must have a representation on one face of the spine
+        support.
     :param float tol3d: The 3-D tolerance.
     :param float tol_bound: The boundary tolerance.
     :param float tol_angular: The angular tolerance.
@@ -424,8 +440,8 @@ class SweepShapeWithNormal(object):
                  transition_mode=BRepBuilderAPI_Transformed):
         self._tool = BRepOffsetAPI_MakePipeShell(spine)
 
-        if CheckShape.is_shape(spine_support):
-            self._tool.SetMode(spine_support)
+        if isinstance(spine_support, Shape):
+            self._tool.SetMode(spine_support.object)
 
         self._tool.SetTolerance(tol3d, tol_bound, tol_angular)
 
@@ -446,8 +462,8 @@ class SweepShapeWithNormal(object):
         Add the profile to the tool.
 
         :param profile: The profile to add.
-        :type profile: OCCT.TopoDS.TopoDS_Vertex or OCCT.TopoDS.TopoDS_Edge or
-            OCCT.TopoDS.TopoDS_Wire
+        :type profile: afem.topology.entities.Vertex or
+            afem.topology.entities.Edge or afem.topology.entities.Wire
         :param bool with_contact: If *True*, then the profile is translated
             to be in contact with the spine.
         :param bool with_correction: If *True*, then the profile is rotated
@@ -457,14 +473,13 @@ class SweepShapeWithNormal(object):
 
         :raise TypeError: If the profile is not a vertex, edge, or wire.
         """
-        if profile.ShapeType() == TopAbs_EDGE:
-            profile = CheckShape.to_wire(profile)
+        if profile.is_edge:
+            profile = Wire.by_edge(profile)
 
-        if profile.ShapeType() not in [TopAbs_VERTEX, TopAbs_WIRE]:
-            msg = 'Invalid profile type.'
-            raise TypeError(msg)
+        if profile.shape_type not in [Shape.VERTEX, Shape.WIRE]:
+            raise TypeError('Invalid profile type.')
 
-        self._tool.Add(profile, with_contact, with_correction)
+        self._tool.Add(profile.object, with_contact, with_correction)
 
     @property
     def is_ready(self):
@@ -503,22 +518,22 @@ class SweepShapeWithNormal(object):
     def shape(self):
         """
         :return: The resulting shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.Shape()
+        return Shape.wrap(self._tool.Shape())
 
     @property
     def first_shape(self):
         """
         :return: The first/bottom shape of the sweep.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.FirstShape()
+        return Shape.wrap(self._tool.FirstShape())
 
     @property
     def last_shape(self):
         """
         :return: The last/top shape of the sweep.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.LastShape()
+        return Shape.wrap(self._tool.LastShape())

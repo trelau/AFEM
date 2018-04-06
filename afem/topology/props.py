@@ -93,7 +93,7 @@ class LinearProps(ShapeProps):
     """
     Calculate linear properties of a shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param bool skip_shared: If *True*, edges shared by two or more faces are
         taken into calculation only once.
 
@@ -110,7 +110,7 @@ class LinearProps(ShapeProps):
 
     def __init__(self, shape, skip_shared=False):
         super(LinearProps, self).__init__()
-        BRepGProp.LinearProperties_(shape, self._props, skip_shared)
+        BRepGProp.LinearProperties_(shape.object, self._props, skip_shared)
 
     @property
     def length(self):
@@ -125,7 +125,7 @@ class SurfaceProps(ShapeProps):
     """
     Calculate surface properties of a shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param float tol: Maximum relative error of computed area for each face.
     :param bool skip_shared: If *True*, faces shared by two or more shells are
         taken into calculation only once.
@@ -144,7 +144,8 @@ class SurfaceProps(ShapeProps):
 
     def __init__(self, shape, tol=1.0e-7, skip_shared=False):
         super(SurfaceProps, self).__init__()
-        BRepGProp.SurfaceProperties_(shape, self._props, tol, skip_shared)
+        BRepGProp.SurfaceProperties_(shape.object, self._props, tol,
+                                     skip_shared)
 
     @property
     def area(self):
@@ -159,12 +160,13 @@ class VolumeProps(ShapeProps):
     """
     Calculate volume properties of a shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param float tol: Maximum relative error of computed volume for each solid.
-    :param bool only_closed: If *True*, then faces must belong to closed shells.
-    :param bool skip_shared: If *True*, volumes formed by equal faces (i.e., the
-        same TShape, location, and orientation) are taken into calculation only
-        once.
+    :param bool only_closed: If *True*, then faces must belong to closed
+        shells.
+    :param bool skip_shared: If *True*, volumes formed by equal faces (i.e.,
+        the same TShape, location, and orientation) are taken into calculation
+        only once.
 
     Usage:
 
@@ -174,15 +176,16 @@ class VolumeProps(ShapeProps):
     >>> solid = SolidByDrag(f, (0., 0., 1.)).solid
     >>> props = VolumeProps(solid)
     >>> props.volume
-    0.9999999999999998
+    0.9999999999999999
     >>> props.cg
     Point(0.500, 0.500, 0.500)
     """
 
-    def __init__(self, shape, tol=1.0e-7, only_closed=False, skip_shared=False):
+    def __init__(self, shape, tol=1.0e-7, only_closed=False,
+                 skip_shared=False):
         super(VolumeProps, self).__init__()
-        BRepGProp.VolumeProperties_(shape, self._props, tol, only_closed,
-                                    skip_shared)
+        BRepGProp.VolumeProperties_(shape.object, self._props, tol,
+                                    only_closed, skip_shared)
 
     @property
     def volume(self):
@@ -197,7 +200,8 @@ class LengthOfShapes(object):
     """
     Calculate the total length of all edges of each shape and sort the results.
 
-    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The shapes.
+    :param collections.Sequence(afem.topology.entities.Shape) shapes: The
+        shapes.
     """
 
     def __init__(self, shapes):
@@ -231,7 +235,7 @@ class LengthOfShapes(object):
     def sorted_lengths(self):
         """
         :return: List of sorted lengths.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._lengths
 
@@ -239,7 +243,7 @@ class LengthOfShapes(object):
     def shortest_shape(self):
         """
         :return: The shortest shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shapes[0]
 
@@ -247,7 +251,7 @@ class LengthOfShapes(object):
     def longest_shape(self):
         """
         :return: The longest shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shapes[-1]
 
@@ -255,7 +259,7 @@ class LengthOfShapes(object):
     def sorted_shapes(self):
         """
         :return: List of shapes sorted by length.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
         return self._shapes
 
@@ -264,7 +268,8 @@ class AreaOfShapes(object):
     """
     Calculate the total area of each face for each shape and sort the results.
 
-    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The shapes.
+    :param collections.Sequence(afem.topology.entities.Shape) shapes: The
+        shapes.
     """
 
     def __init__(self, shapes):
@@ -298,7 +303,7 @@ class AreaOfShapes(object):
     def sorted_areas(self):
         """
         :return: List of sorted areas.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._areas
 
@@ -306,7 +311,7 @@ class AreaOfShapes(object):
     def smallest_shape(self):
         """
         :return: The smallest shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shapes[0]
 
@@ -314,7 +319,7 @@ class AreaOfShapes(object):
     def largest_shape(self):
         """
         :return: The largest shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shapes[-1]
 
@@ -322,7 +327,7 @@ class AreaOfShapes(object):
     def sorted_shape(self):
         """
         :return: List of shapes sorted by area.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
         return self._shapes
 

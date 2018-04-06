@@ -26,6 +26,7 @@ from OCCT.Extrema import Extrema_ExtFlag_MIN
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Point, Vector, Direction
 from afem.topology.check import CheckShape
+from afem.topology.entities import Shape, Vertex
 
 __all__ = ["DistanceShapeToShape", "DistanceShapeToShapes",
            "DistancePointToShapes"]
@@ -37,9 +38,11 @@ class DistanceShapeToShape(object):
     it will be converted to a shape.
 
     :param shape1: The first shape or geometry.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Geometry
+    :type shape1: afem.topology.entities.Shape or
+        afem.geometry.entities.Geometry
     :param shape2: The second or geometry.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Geometry
+    :type shape2: afem.topology.entities.Shape or
+        afem.geometry.entities.Geometry
 
     Usage:
 
@@ -56,7 +59,8 @@ class DistanceShapeToShape(object):
     def __init__(self, shape1, shape2, deflection=1.0e-7):
         shape1 = CheckShape.to_shape(shape1)
         shape2 = CheckShape.to_shape(shape2)
-        self._tool = BRepExtrema_DistShapeShape(shape1, shape2, deflection,
+        self._tool = BRepExtrema_DistShapeShape(shape1.object, shape2.object,
+                                                deflection,
                                                 Extrema_ExtFlag_MIN)
 
     @property
@@ -211,9 +215,9 @@ class DistanceShapeToShape(object):
         :param int n: The index.
 
         :return: The support shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.SupportOnShape1(n)
+        return Shape.wrap(self._tool.SupportOnShape1(n))
 
     def support_on_shape2(self, n=1):
         """
@@ -222,9 +226,9 @@ class DistanceShapeToShape(object):
         :param int n: The index.
 
         :return: The support shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.SupportOnShape2(n)
+        return Shape.wrap(self._tool.SupportOnShape2(n))
 
     def par_on_edge_shape1(self, n=1):
         """
@@ -289,11 +293,10 @@ class DistanceShapeToShape(object):
         if not self.is_in_face_shape1(n):
             raise ValueError('The solution is not in a face.')
 
-        shape = self.support_on_shape1(n)
-        face = CheckShape.to_face(shape)
+        face = self.support_on_shape1(n)
         u, v = self.par_on_face_shape1(n)
 
-        adp_srf = BRepAdaptor_Surface(face)
+        adp_srf = BRepAdaptor_Surface(face.object)
         p = Point()
         du, dv = Vector(), Vector()
         adp_srf.D1(u, v, p, du, dv)
@@ -315,11 +318,10 @@ class DistanceShapeToShape(object):
         if not self.is_in_face_shape2(n):
             raise ValueError('The solution is not in a face.')
 
-        shape = self.support_on_shape2(n)
-        face = CheckShape.to_face(shape)
+        face = self.support_on_shape2(n)
         u, v = self.par_on_face_shape2(n)
 
-        adp_srf = BRepAdaptor_Surface(face)
+        adp_srf = BRepAdaptor_Surface(face.object)
         p = Point()
         du, dv = Vector(), Vector()
         adp_srf.D1(u, v, p, du, dv)
@@ -332,8 +334,8 @@ class DistanceShapeToShapes(object):
     Calculate the minimum distance between a shape and other shapes. Sort the
     results by distance.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The main shape.
-    :param list[OCCT.TopoDS.TopoDS_Shape] other_shapes: The other shapes.
+    :param afem.topology.entities.Shape shape: The main shape.
+    :param list(afem.topology.entities.Shape) other_shapes: The other shapes.
 
     :raises RuntimeWarning: If the distance between two shapes cannot be
         found. This shape will be ignored and process will continue.
@@ -387,7 +389,7 @@ class DistanceShapeToShapes(object):
     def sorted_distances(self):
         """
         :return: List of sorted distances.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._distances
 
@@ -395,7 +397,7 @@ class DistanceShapeToShapes(object):
     def nearest_shape(self):
         """
         :return: The nearest shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shapes[0]
 
@@ -403,7 +405,7 @@ class DistanceShapeToShapes(object):
     def farthest_shape(self):
         """
         :return: The farthest shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shapes[-1]
 
@@ -411,7 +413,7 @@ class DistanceShapeToShapes(object):
     def sorted_shapes(self):
         """
         :return: List of shapes sorted by distance.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
         return self._shapes
 
@@ -423,7 +425,7 @@ class DistancePointToShapes(DistanceShapeToShapes):
     uses :class:`.DistanceShapeToShapes`.
 
     :param point_like pnt: The point.
-    :param list[OCCT.TopoDS.TopoDS_Shape] other_shapes: The other shapes.
+    :param list(afem.topology.entities.Shape) other_shapes: The other shapes.
 
     :raise TypeError: If *pnt* cannot be converted to a point.
     """
@@ -431,8 +433,7 @@ class DistancePointToShapes(DistanceShapeToShapes):
     def __init__(self, pnt, other_shapes):
         pnt = CheckGeom.to_point(pnt)
         if not pnt:
-            msg = 'Invalid point type provided.'
-            raise TypeError(msg)
+            raise TypeError('Invalid point type provided.')
 
-        v = CheckShape.to_vertex(pnt)
+        v = Vertex.by_point(pnt)
         super(DistancePointToShapes, self).__init__(v, other_shapes)

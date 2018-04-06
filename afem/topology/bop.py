@@ -26,13 +26,13 @@ from OCCT.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
 from OCCT.BRepFeat import BRepFeat_MakeCylindricalHole, BRepFeat_SplitShape
 from OCCT.Message import Message_Gravity
 from OCCT.TopTools import TopTools_SequenceOfShape
-from OCCT.TopoDS import TopoDS_Face, TopoDS, TopoDS_Wire
+from OCCT.TopoDS import TopoDS_Face
 
-from afem.geometry.check import CheckGeom
-from afem.occ.utils import (to_lst_from_toptools_listofshape,
-                            to_toptools_listofshape)
+from afem.geometry.entities import Geometry, Point, Curve, Surface
+from afem.occ.utils import list_from_topods_list, to_topods_list
 from afem.topology.check import CheckShape
-from afem.topology.explore import ExploreShape, ExploreWire
+from afem.topology.entities import Shape, Vertex, Edge, Face, Solid
+from afem.topology.explore import ExploreWire
 
 __all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes", "VolumesFromShapes",
@@ -83,42 +83,42 @@ class BopCore(object):
     def shape(self):
         """
         :return: The resulting shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._bop.Shape()
+        return Shape.wrap(self._bop.Shape())
 
     def modified(self, shape):
         """
         Return a list of shapes modified from the given shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: List of modified shapes.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
-        return to_lst_from_toptools_listofshape(self._bop.Modified(shape))
+        return list_from_topods_list(self._bop.Modified(shape.object))
 
     def generated(self, shape):
         """
         Return a list of shapes generated from the given shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: List of generated shapes.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
-        return to_lst_from_toptools_listofshape(self._bop.Generated(shape))
+        return list_from_topods_list(self._bop.Generated(shape.object))
 
     def is_deleted(self, shape):
         """
         Check to see if shape is deleted.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: *True* if deleted, *False* if not.
         :rtype: bool
         """
-        return self._bop.IsDeleted(shape)
+        return self._bop.IsDeleted(shape.object)
 
 
 class BopAlgo(BopCore):
@@ -126,9 +126,9 @@ class BopAlgo(BopCore):
     Base class for Boolean operations.
 
     :param shape1: The first shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape1: afem.topology.entities.Shape or None
     :param shape2: The second shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape2: afem.topology.entities.Shape or None
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool nondestructive: Option to not modify the input shapes.
     :param bop: The OpenCASCADE class for the Boolean operation.
@@ -152,7 +152,7 @@ class BopAlgo(BopCore):
         else:
             self._bop.SetNonDestructive(False)
 
-        if CheckShape.is_shape(shape1) and CheckShape.is_shape(shape2):
+        if isinstance(shape1, Shape) and isinstance(shape2, Shape):
             self.set_args([shape1])
             self.set_tools([shape2])
             self.build()
@@ -226,38 +226,38 @@ class BopAlgo(BopCore):
     def arguments(self):
         """
         :return: The arguments.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
-        return to_lst_from_toptools_listofshape(self._bop.Arguments())
+        return list_from_topods_list(self._bop.Arguments())
 
     @property
     def tools(self):
         """
         :return: The tools.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
-        return to_lst_from_toptools_listofshape(self._bop.Tools())
+        return list_from_topods_list(self._bop.Tools())
 
     def set_args(self, shapes):
         """
         Set the arguments.
 
-        :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The arguments.
+        :param list(afem.topology.entities.Shape) shapes: The arguments.
 
         :return: None.
         """
         if isinstance(self._bop, BOPAlgo_MakerVolume):
             for shape in shapes:
-                self._bop.AddArgument(shape)
+                self._bop.AddArgument(shape.object)
             return None
-        args = to_toptools_listofshape(shapes)
+        args = to_topods_list(shapes)
         self._bop.SetArguments(args)
 
     def set_tools(self, shapes):
         """
         Set the tools.
 
-        :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The tools.
+        :param list(afem.topology.entities.Shape) shapes: The tools.
 
         :return: None.
         """
@@ -265,24 +265,24 @@ class BopAlgo(BopCore):
             warn('Setting tools not available. Doing nothing.', RuntimeWarning)
             return None
 
-        tools = to_toptools_listofshape(shapes)
+        tools = to_topods_list(shapes)
         self._bop.SetTools(tools)
 
     @property
     def vertices(self):
         """
         :return: The vertices of the resulting shape.
-        :rtype: list[OCCT.TopoDS.TopoDS_Vertex]
+        :rtype: list(afem.topology.entities.Vertex)
         """
-        return ExploreShape.get_vertices(self.shape)
+        return self.shape.vertices
 
     @property
     def edges(self):
         """
         :return: The edges of the resulting shape.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list(afem.topology.entities.Edge)
         """
-        return ExploreShape.get_edges(self.shape)
+        return self.shape.edges
 
     def refine_edges(self):
         """
@@ -314,7 +314,7 @@ class BopAlgo(BopCore):
         """
         :return: A list of section edges as a result of intersection between
             the shapes.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list(afem.topology.entities.Edge)
         """
         if isinstance(self._bop, (BRepAlgoAPI_Splitter, BOPAlgo_MakerVolume,
                                   BRepFeat_MakeCylindricalHole)):
@@ -322,7 +322,7 @@ class BopAlgo(BopCore):
                  'list.', RuntimeWarning)
             return []
         else:
-            return to_lst_from_toptools_listofshape(self._bop.SectionEdges())
+            return list_from_topods_list(self._bop.SectionEdges())
 
     @property
     def has_modified(self):
@@ -354,9 +354,9 @@ class FuseShapes(BopAlgo):
     Boolean fuse operation.
 
     :param shape1: The first shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape1: afem.topology.entities.Shape or None
     :param shape2: The second shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape2: afem.topology.entities.Shape or None
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool nondestructive: Option to not modify the input shapes.
 
@@ -396,9 +396,9 @@ class CutShapes(BopAlgo):
     Boolean cut operation.
 
     :param shape1: The first shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape1: afem.topology.entities.Shape or None
     :param shape2: The second shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape2: afem.topology.entities.Shape or None
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool nondestructive: Option to not modify the input shapes.
 
@@ -438,9 +438,9 @@ class CommonShapes(BopAlgo):
     Boolean common operation.
 
     :param shape1: The first shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape1: afem.topology.entities.Shape or None
     :param shape2: The second shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape2: afem.topology.entities.Shape or None
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool nondestructive: Option to not modify the input shapes.
 
@@ -480,9 +480,11 @@ class IntersectShapes(BopAlgo):
     Boolean intersect operation.
 
     :param shape1: The first shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :type shape1: afem.topology.entities.Shape or
+        afem.geometry.entities.Surface
     :param shape2: The second shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :type shape2: afem.topology.entities.Shape or
+        afem.geometry.entities.Surface
     :param bool compute_pcurve1: Option to compute p-curves on shape 1.
     :param bool compute_pcurve2: Option to compute p-curves on shape 2.
     :param bool approximate: Option to approximate intersection curves.
@@ -526,17 +528,11 @@ class IntersectShapes(BopAlgo):
         self._bop.Approximation(approximate)
 
         build1, build2 = False, False
-        if CheckShape.is_shape(shape1):
-            self._bop.Init1(shape1)
-            build1 = True
-        elif CheckGeom.is_surface(shape1):
+        if isinstance(shape1, (Shape, Surface)):
             self._bop.Init1(shape1.object)
             build1 = True
 
-        if CheckShape.is_shape(shape2):
-            self._bop.Init2(shape2)
-            build2 = True
-        elif CheckGeom.is_surface(shape2):
+        if isinstance(shape2, (Shape, Surface)):
             self._bop.Init2(shape2.object)
             build2 = True
 
@@ -548,14 +544,14 @@ class IntersectShapes(BopAlgo):
         Get the ancestor face on the intersection edge on the first shape
         if available.
 
-        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+        :param afem.topology.entities.Edge edge: The edge.
 
         :return: *True* and the face if available, *False* and *None* if not.
-        :rtype: tuple(bool, OCCT.TopoDS.TopoDS_Face or None)
+        :rtype: tuple(bool, afem.topology.entities.Face or None)
         """
         f = TopoDS_Face()
-        if self._bop.HasAncestorFaceOn1(edge, f):
-            return True, f
+        if self._bop.HasAncestorFaceOn1(edge.object, f):
+            return True, Face(f)
         return False, None
 
     def has_ancestor_face2(self, edge):
@@ -563,14 +559,14 @@ class IntersectShapes(BopAlgo):
         Get the ancestor face on the intersection edge on the second shape
         if available.
 
-        :param OCCT.TopoDS.TopoDS_Edge edge: The edge.
+        :param afem.topology.entities.Edge edge: The edge.
 
         :return: *True* and the face if available, *False* and *None* if not.
-        :rtype: tuple(bool, OCCT.TopoDS.TopoDS_Face or None)
+        :rtype: tuple(bool, afem.topology.entities.Face or None)
         """
         f = TopoDS_Face()
-        if self._bop.HasAncestorFaceOn2(edge, f):
-            return True, f
+        if self._bop.HasAncestorFaceOn2(edge.object, f):
+            return True, Face(f)
         return False, None
 
 
@@ -580,9 +576,9 @@ class SplitShapes(BopAlgo):
     GEOMAlgo_Splitter tool.
 
     :param shape1: The first shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape1: afem.topology.entities.Shape or None
     :param shape2: The second shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or None
+    :type shape2: afem.topology.entities.Shape or None
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool nondestructive: Option to not modify the input shapes.
 
@@ -617,7 +613,7 @@ class VolumesFromShapes(BopAlgo):
     """
     Build solids from a list of shapes.
 
-    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: The shapes.
+    :param list(afem.topology.entities.Shape) shapes: The shapes.
     :param bool intersect: Option to intersect the shapes before building
         solids.
     :param float fuzzy_val: Fuzzy tolerance value.
@@ -638,18 +634,15 @@ class VolumesFromShapes(BopAlgo):
             self._bop.SetIntersect(False)
 
         self.build()
-
-        self._solids = []
-        for solid in ExploreShape.get_solids(self.shape):
-            self._solids.append(TopoDS.Solid_(solid))
+        self._solids = self.shape.solids
 
     @property
     def box(self):
         """
         :return: The bounding box of all provided shapes.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
         """
-        return self._bop.Box()
+        return Solid(self._bop.Box())
 
     @property
     def nsolids(self):
@@ -663,7 +656,7 @@ class VolumesFromShapes(BopAlgo):
     def solids(self):
         """
         :return: The list of solids.
-        :rtype: list[OCCT.TopoDS.TopoDS_Solid]
+        :rtype: list(afem.topology.entities.Solid)
         """
         return self._solids
 
@@ -672,8 +665,7 @@ class CutCylindricalHole(BopAlgo):
     """
     Cut a cylindrical hole on a shape.
 
-    :param shape: The shape.
-    :type shape: OCCT.TopoDS.TopoDS_Shape
+    :param afem.topology.entities.Shape shape: The shape.
     :param float radius: The radius of the hole.
     :param afem.geometry.entities.Axis1: The axis for the hole.
     :param float fuzzy_val: Fuzzy tolerance value.
@@ -699,7 +691,7 @@ class CutCylindricalHole(BopAlgo):
                                                  nondestructive,
                                                  BRepFeat_MakeCylindricalHole)
 
-        self._bop.Init(shape, ax1)
+        self._bop.Init(shape.object, ax1)
         self._bop.Perform(radius)
 
 
@@ -708,11 +700,11 @@ class LocalSplit(BopCore):
     Perform a local split of a shape in the context of a basis shape. This tool
     only splits faces.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The local shape.
+    :param afem.topology.entities.Shape shape: The local shape.
     :param tool: The tool to split with.
-    :type tool: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
-    :param OCCT.TopoDS.TopoDS_Shape basis_shape: The basis shape that the local
-        shape is part of.
+    :type tool: afem.topology.entities.Shape or afem.geometry.entities.Surface
+    :param afem.topology.entities.Shape basis_shape: The basis shape that the
+        local shape is part of.
     :param bool approximate: Option to approximate intersection curves.
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool nondestructive: Option to not modify the input shapes.
@@ -725,7 +717,7 @@ class LocalSplit(BopCore):
     >>> builder = SolidByPlane(pln, 5., 5., 5.)
     >>> box = builder.solid
     >>> tool = PlaneByAxes(axes='xy').plane
-    >>> face = ExploreShape.get_faces(box)[0]
+    >>> face = box.faces[0]
     >>> split = LocalSplit(face, tool, box)
     >>> assert split.is_done
     """
@@ -740,11 +732,11 @@ class LocalSplit(BopCore):
         sec_edges = section.edges
 
         # Split
-        self._bop = BRepFeat_SplitShape(basis_shape)
+        self._bop = BRepFeat_SplitShape(basis_shape.object)
         for e in sec_edges:
             status, f = section.has_ancestor_face1(e)
             if status:
-                self._bop.Add(e, f)
+                self._bop.Add(e.object, f.object)
         self.build()
 
 
@@ -752,19 +744,18 @@ class SplitShapeByEdges(BopCore):
     """
     Split a shape using edges.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The basis shape.
+    :param afem.topology.entities.Shape shape: The basis shape.
     :param edges: The edges to split the shape with. If provided, then the
         results will be built during initialization. If none are provided then
         the user is expected to add edges and build manually.
-    :type edges: collections.Sequence(OCCT.TopoDS.TopoDS_Edge) or None
+    :type edges: collections.Sequence(afem.topology.entities.Edge) or None
     :param bool check_interior: Option to check internal intersections.
-
     """
 
     def __init__(self, shape, edges=None, check_interior=True):
         super(SplitShapeByEdges, self).__init__()
 
-        self._bop = BRepFeat_SplitShape(shape)
+        self._bop = BRepFeat_SplitShape(shape.object)
 
         if not check_interior:
             self._bop.SetCheckInterior(False)
@@ -772,7 +763,7 @@ class SplitShapeByEdges(BopCore):
         if edges is not None:
             edge_seq = TopTools_SequenceOfShape()
             for e in edges:
-                edge_seq.Append(e)
+                edge_seq.Append(e.object)
             self._bop.Add(edge_seq)
             self.build()
 
@@ -780,7 +771,7 @@ class SplitShapeByEdges(BopCore):
         """
         Add splittings edges or wires for the initial shape.
 
-        :param collections.Sequence(OCCT.TopoDS.TopoDS_Shape) shapes: The
+        :param collections.Sequence(afem.topology.entities.Shape) shapes: The
             splitting edges or wires.
 
         :return: *True* if added, *False* if not.
@@ -788,36 +779,36 @@ class SplitShapeByEdges(BopCore):
         """
         seq = TopTools_SequenceOfShape()
         for s in shapes:
-            seq.Append(s)
+            seq.Append(s.object)
         return self._bop.Add(seq)
 
     def add_wire_on_face(self, w, f):
         """
         Add the wire on the face.
 
-        :param OCCT.TopoDS.TopoDS_Wire w: The wire.
-        :param OCCT.TopoDS.TopoDS_Face f: The face.
+        :param afem.topology.entities.Wire w: The wire.
+        :param afem.topology.entities.Face f: The face.
 
         :return: None.
         """
-        self._bop.Add(w, f)
+        self._bop.Add(w.object, f.object)
 
     def add_edge_on_face(self, e, f):
         """
         Add the edge on the face.
 
-        :param OCCT.TopoDS.TopoDS_Edge e: The edge.
-        :param OCCT.TopoDS.TopoDS_Face f: The face.
+        :param afem.topology.entities.Edge e: The edge.
+        :param afem.topology.entities.Face f: The face.
 
         :return: None
         """
-        self._bop.Add(e, f)
+        self._bop.Add(e.object, f.object)
 
     def add_edges_on_face(self, e, f):
         """
 
-        :param collections.Sequence(OCCT.TopoDS.TopoDS_Edge) e: The edges.
-        :param OCCT.TopoDS.TopoDS_Face f: The face.
+        :param collections.Sequence(afem.topology.entities.Edge) e: The edges.
+        :param afem.topology.entities.Face f: The face.
 
         :return: None
         """
@@ -825,45 +816,41 @@ class SplitShapeByEdges(BopCore):
         from afem.topology.create import CompoundByShapes
 
         cmp = CompoundByShapes(e).compound
-        self._bop.Add(cmp, f)
+        self._bop.Add(cmp.object, f.object)
 
     def add_edge_on_edge(self, e1, e2):
         """
         Add the edge on an existing edge.
 
-        :param OCCT.TopoDS.TopoDS_Edge e1: The edge.
-        :param OCCT.TopoDS.TopoDS_Edge e2: The existing edge.
+        :param afem.topology.entities.Edge e1: The edge.
+        :param afem.topology.entities.Edge e2: The existing edge.
 
         :return: None.
         """
-        self._bop.Add(e1, e2)
+        self._bop.Add(e1.object, e2.object)
 
 
 class TrimOpenWire(object):
     """
     Trim an open wire between one or two shapes.
 
-    :param OCCT.TopoDS.TopoDS_Wire wire: The wire.
+    :param afem.topology.entities.Wire wire: The wire.
     :param shape1: The first shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Geometry
+    :type shape1: afem.topology.entities.Shape or
+        afem.geometry.entities.Geometry
     :param shape2: The second shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Geometry
+    :type shape2: afem.topology.entities.Shape or
+        afem.geometry.entities.Geometry
 
     :raise TypeError: If a wire is not provided or it is closed.
-    :raise RuntimeError: If zero or more than two split locations are found. The
-        split shapes must result in one or two split locations. That is, they
-        should intersect the wire at only one location.
+    :raise RuntimeError: If zero or more than two split locations are found.
+        The split shapes must result in one or two split locations. That is,
+        they should intersect the wire at only one location.
     """
 
     def __init__(self, wire, shape1, shape2=None):
-        wire = CheckShape.to_wire(wire)
-        if not isinstance(wire, TopoDS_Wire):
-            msg = 'Invalid type for wire.'
-            raise TypeError(msg)
-
-        if wire.Closed():
-            msg = 'Closed wires are not supported.'
-            raise TypeError(msg)
+        if wire.closed:
+            raise TypeError('Closed wires are not supported.')
 
         shape1 = CheckShape.to_shape(shape1)
         shape2 = CheckShape.to_shape(shape2)
@@ -873,9 +860,10 @@ class TrimOpenWire(object):
 
         other_shape = CompoundByShapes([shape1, shape2]).compound
         split = SplitShapes(wire, other_shape)
-        split_wire = ExploreShape.get_wires(split.shape)[0]
+        split_wire = split.shape.wires[0]
 
         # Get new vertices
+        # TODO Update ExploreWire tool
         old_verts = ExploreWire(wire).ordered_vertices
         wire_exp = ExploreWire(split_wire)
         all_verts = wire_exp.ordered_vertices
@@ -922,7 +910,7 @@ class TrimOpenWire(object):
     def split_wire(self):
         """
         :return: The wire after splitting.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._split_wire
 
@@ -930,7 +918,7 @@ class TrimOpenWire(object):
     def first_wire(self):
         """
         :return: The first trimmed segment.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._first_wire
 
@@ -938,7 +926,7 @@ class TrimOpenWire(object):
     def last_wire(self):
         """
         :return: The last trimmed segment.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._last_wire
 
@@ -946,7 +934,7 @@ class TrimOpenWire(object):
     def trimmed_wire(self):
         """
         :return: The interior trimmed segment.
-        :rtype: OCCT.TopoDS.TopoDS_Wire
+        :rtype: afem.topology.entities.Wire
         """
         return self._trimmed_wire
 
@@ -954,7 +942,7 @@ class TrimOpenWire(object):
     def new_vertices(self):
         """
         :return: New vertices after splitting.
-        :rtype: list(OCCT.TopoDS.TopoDS_Vertex)
+        :rtype: list(afem.topology.entities.Vertex)
         """
         return self._new_verts
 
@@ -963,7 +951,7 @@ class TrimOpenWire(object):
         """
         :return: All ordered vertices after splitting the original wire but
             before trimming.
-        :rtype: list(OCCT.TopoDS.TopoDS_Vertex)
+        :rtype: list(afem.topology.entities.Vertex)
         """
         return self._verts
 

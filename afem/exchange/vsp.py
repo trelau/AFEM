@@ -50,7 +50,6 @@ from afem.oml.entities import Body
 from afem.topology.check import CheckShape
 from afem.topology.create import (CompoundByShapes, FaceBySurface, EdgeByCurve,
                                   WireByEdges)
-from afem.topology.explore import ExploreShape
 from afem.topology.fix import FixShape
 from afem.topology.modify import ShapeBSplineRestriction
 from afem.topology.props import LinearProps

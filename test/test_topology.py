@@ -18,8 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 import unittest
 
-from OCCT.TopoDS import TopoDS_Face, TopoDS_Shell, TopoDS_Solid
-
 from afem.exchange import brep
 from afem.geometry import Point
 from afem.graphics import Viewer
@@ -39,40 +37,40 @@ class TestTopologyCreate(unittest.TestCase):
 
     def test_box_by_size(self):
         builder = BoxBySize(10., 10., 10.)
-        self.assertIsInstance(builder.shell, TopoDS_Shell)
-        self.assertIsInstance(builder.solid, TopoDS_Solid)
-        self.assertIsInstance(builder.bottom_face, TopoDS_Face)
-        self.assertIsInstance(builder.back_face, TopoDS_Face)
-        self.assertIsInstance(builder.front_face, TopoDS_Face)
-        self.assertIsInstance(builder.left_face, TopoDS_Face)
-        self.assertIsInstance(builder.right_face, TopoDS_Face)
-        self.assertIsInstance(builder.top_face, TopoDS_Face)
+        self.assertIsInstance(builder.shell, Shell)
+        self.assertIsInstance(builder.solid, Solid)
+        self.assertIsInstance(builder.bottom_face, Face)
+        self.assertIsInstance(builder.back_face, Face)
+        self.assertIsInstance(builder.front_face, Face)
+        self.assertIsInstance(builder.left_face, Face)
+        self.assertIsInstance(builder.right_face, Face)
+        self.assertIsInstance(builder.top_face, Face)
 
     def test_box_by_2_points(self):
         builder = BoxBy2Points((0, 0, 0), (10, 10, 10))
-        self.assertIsInstance(builder.shell, TopoDS_Shell)
-        self.assertIsInstance(builder.solid, TopoDS_Solid)
-        self.assertIsInstance(builder.bottom_face, TopoDS_Face)
-        self.assertIsInstance(builder.back_face, TopoDS_Face)
-        self.assertIsInstance(builder.front_face, TopoDS_Face)
-        self.assertIsInstance(builder.left_face, TopoDS_Face)
-        self.assertIsInstance(builder.right_face, TopoDS_Face)
-        self.assertIsInstance(builder.top_face, TopoDS_Face)
+        self.assertIsInstance(builder.shell, Shell)
+        self.assertIsInstance(builder.solid, Solid)
+        self.assertIsInstance(builder.bottom_face, Face)
+        self.assertIsInstance(builder.back_face, Face)
+        self.assertIsInstance(builder.front_face, Face)
+        self.assertIsInstance(builder.left_face, Face)
+        self.assertIsInstance(builder.right_face, Face)
+        self.assertIsInstance(builder.top_face, Face)
 
     def test_cylinder_by_axis(self):
         builder = CylinderByAxis(1, 10)
-        self.assertIsInstance(builder.face, TopoDS_Face)
-        self.assertIsInstance(builder.shell, TopoDS_Shell)
-        self.assertIsInstance(builder.solid, TopoDS_Solid)
+        self.assertIsInstance(builder.face, Face)
+        self.assertIsInstance(builder.shell, Shell)
+        self.assertIsInstance(builder.solid, Solid)
 
     def test_sphere_by_3_points(self):
         p1 = Point(0, 0, 0)
         p2 = Point(1, 0, 0)
         p3 = Point(0.5, 0.5, 0)
         builder = SphereBy3Points(p1, p2, p3)
-        self.assertIsInstance(builder.face, TopoDS_Face)
-        self.assertIsInstance(builder.shell, TopoDS_Shell)
-        self.assertIsInstance(builder.solid, TopoDS_Solid)
+        self.assertIsInstance(builder.face, Face)
+        self.assertIsInstance(builder.shell, Shell)
+        self.assertIsInstance(builder.solid, Solid)
 
 
 class TestTopologyBop(unittest.TestCase):
@@ -115,7 +113,7 @@ class TestTopologyBop(unittest.TestCase):
         builder = WiresByShape(shape)
         self.assertEqual(builder.nwires, 1)
         wire = builder.wires[0]
-        self.assertTrue(wire.Closed())
+        self.assertTrue(wire.closed)
 
     def test_fuse_fail_09142017(self):
         """
@@ -130,7 +128,7 @@ class TestTopologyBop(unittest.TestCase):
 
         shape = fuse.shape
         self.assertTrue(CheckShape(shape).is_valid)
-        faces = ExploreShape.get_faces(shape)
+        faces = shape.faces
         self.assertEqual(len(faces), 4)
 
         section_edges = fuse.section_edges
@@ -161,7 +159,7 @@ class TestTopologyBop(unittest.TestCase):
         shape = common.shape
         self.assertTrue(CheckShape(shape).is_valid)
 
-        faces = ExploreShape.get_faces(shape)
+        faces = shape.faces
         self.assertGreater(len(faces), 0)
 
     @unittest.expectedFailure

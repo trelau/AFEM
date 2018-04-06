@@ -21,7 +21,6 @@ from afem.geometry.entities import Surface
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
 from afem.graphics.display import ViewableItem
-from afem.topology import ExploreShape
 from afem.topology.bop import IntersectShapes
 from afem.topology.check import CheckShape
 from afem.topology.create import FaceBySurface, WiresByConnectedEdges

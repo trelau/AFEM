@@ -226,10 +226,6 @@ Explore
 -------
 .. py:currentmodule:: afem.topology.explore
 
-ExploreShape
-~~~~~~~~~~~~
-.. autoclass:: ExploreShape
-
 ExploreWire
 ~~~~~~~~~~~
 .. autoclass:: ExploreWire

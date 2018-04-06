@@ -19,12 +19,18 @@
 from itertools import product
 from math import sqrt
 
-from OCCT.BRep import BRep_Tool
+from OCCT.BRep import BRep_Tool, BRep_Builder
+from OCCT.BRepAdaptor import BRepAdaptor_Curve
 from OCCT.BRepBndLib import BRepBndLib
-from OCCT.BRepBuilderAPI import BRepBuilderAPI_Copy
+from OCCT.BRepBuilderAPI import (BRepBuilderAPI_Copy,
+                                 BRepBuilderAPI_MakeVertex,
+                                 BRepBuilderAPI_MakeEdge,
+                                 BRepBuilderAPI_MakeWire,
+                                 BRepBuilderAPI_MakeFace)
 from OCCT.BRepClass3d import BRepClass3d
-from OCCT.BRepTools import BRepTools
+from OCCT.BRepTools import BRepTools, BRepTools_WireExplorer
 from OCCT.Bnd import Bnd_Box
+from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCCT.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_ShapeTolerance
 from OCCT.TopAbs import TopAbs_ShapeEnum
 from OCCT.TopExp import TopExp_Explorer
@@ -33,7 +39,7 @@ from OCCT.TopoDS import (TopoDS, TopoDS_Vertex, TopoDS_Edge, TopoDS_Wire,
                          TopoDS_Compound, TopoDS_CompSolid, TopoDS_Shape)
 
 from afem.geometry.check import CheckGeom
-from afem.geometry.entities import Point
+from afem.geometry.entities import Point, Curve, Surface
 from afem.graphics.display import ViewableItem
 
 __all__ = ["Shape", "Vertex", "Edge", "Wire", "Face", "Shell", "Solid",
@@ -269,7 +275,7 @@ class Shape(ViewableItem):
         return self._get_shapes(self.COMPSOLID)
 
     @property
-    def tol(self):
+    def tol_avg(self):
         """
         :return: The average global tolerance.
         :rtype: float
@@ -433,7 +439,11 @@ class Shape(ViewableItem):
         :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
 
         :return: The wrapped shape.
-        :rtype: afem.topology.entities.Shape
+        :rtype: afem.topology.entities.Shape or afem.topology.entities.Vertex
+            or afem.topology.entities.Edge or afem.topology.entities.Wire or
+            afem.topology.entities.Face or afem.topology.entities.Shell or
+            afem.topology.entities.Solid or afem.topology.entities.CompSolid or
+            afem.topology.entities.Compound
 
         .. warning::
 
@@ -484,7 +494,7 @@ class Vertex(Shape):
     @property
     def point(self):
         """
-        :return: The vertex point.
+        :return: A point at vertex location.
         :rtype: afem.geometry.entities.Point
         """
         gp_pnt = BRep_Tool.Pnt_(self.object)
@@ -492,6 +502,19 @@ class Vertex(Shape):
 
     def parameter(self, edge, face=None):
         pass
+
+    @staticmethod
+    def by_point(pnt):
+        """
+        Create a vertex by a point.
+
+        :param point_like pnt: The point.
+
+        :return: The vertex.
+        :rtype: afem.topology.entities.Vertex
+        """
+        pnt = CheckGeom.to_point(pnt)
+        return Vertex(BRepBuilderAPI_MakeVertex(pnt).Vertex())
 
 
 class Edge(Shape):
@@ -515,7 +538,12 @@ class Edge(Shape):
 
     @property
     def curve(self):
-        pass
+        """
+        :return: The underlying curve of the edge.
+        :rtype: afem.geometry.entities.Curve
+        """
+        geom_curve, _, _ = BRep_Tool.Curve_(self.object, 0., 0.)
+        return Curve.wrap(geom_curve)
 
     @property
     def first_vertex(self):
@@ -532,6 +560,34 @@ class Edge(Shape):
         :rtype: afem.topology.entities.Vertex
         """
         return Vertex(ShapeAnalysis_Edge().LastVertex(self.object))
+
+    @property
+    def same_parameter(self):
+        """
+        :return: The same parameter flag for the edge.
+        :rtype: bool
+        """
+        return BRep_Tool.SameParameter_(self.object)
+
+    @property
+    def same_range(self):
+        """
+        :return: The same range flag for the edge.
+        :rtype: bool
+        """
+        return BRep_Tool.SameRange_(self.object)
+
+    @staticmethod
+    def by_curve(curve):
+        """
+        Create an edge by a curve.
+
+        :param afem.geometry.entities.Curve curve: The curve.
+
+        :return: The edge.
+        :rtype: afem.topology.entities.Edge
+        """
+        return Edge(BRepBuilderAPI_MakeEdge(curve.object).Edge())
 
 
 class Wire(Shape):
@@ -552,6 +608,49 @@ class Wire(Shape):
         if not isinstance(shape, TopoDS_Wire):
             shape = TopoDS.Wire_(shape)
         super(Wire, self).__init__(shape)
+
+    @property
+    def curve(self):
+        """
+        :return: Attempts to concatenate all the curves of the edges of the
+            wire into a single B-Spline curve.
+        :rtype: afem.geometry.entities.NurbsCurve
+        """
+        geom_convert = GeomConvert_CompCurveToBSplineCurve()
+        exp = BRepTools_WireExplorer(self.object)
+        tol = self.tol_max
+        while exp.More():
+            e = TopoDS.Edge_(exp.Current())
+            exp.Next()
+            adp_crv = BRepAdaptor_Curve(e)
+            geom_convert.Add(adp_crv.BSpline(), tol)
+        geom_curve = geom_convert.BSplineCurve()
+        return Curve.wrap(geom_curve)
+
+    @staticmethod
+    def by_curve(curve):
+        """
+        Create a wire from a curve.
+
+        :param afem.geometry.entities.Curve curve: The curve.
+
+        :return: The wire.
+        :rtype: afem.topology.entities.Wire
+        """
+        edge = Edge.by_curve(curve)
+        return Wire.by_edge(edge)
+
+    @staticmethod
+    def by_edge(edge):
+        """
+        Create a wire from an edge.
+
+        :param afem.topology.entities.Edge edge: The edge.
+
+        :return: The wire.
+        :rtype: afem.topology.entities.Wire
+        """
+        return Wire(BRepBuilderAPI_MakeWire(edge.object).Wire())
 
 
 class Face(Shape):
@@ -575,7 +674,12 @@ class Face(Shape):
 
     @property
     def surface(self):
-        pass
+        """
+        :return: The underlying surface of the face.
+        :rtype: afem.geometry.entities.Surface
+        """
+        geom_surface = BRep_Tool.Surface_(self.object)
+        return Surface.wrap(geom_surface)
 
     @property
     def outer_wire(self):
@@ -584,6 +688,31 @@ class Face(Shape):
         :rtype: afem.topology.entities.Wire
         """
         return Wire(BRepTools.OuterWire_(self.object))
+
+    def to_shell(self):
+        """
+        Create a shell from the face.
+
+        :return: The shell.
+        :rtype: afem.topology.entities.Shell
+        """
+        topods_shell = TopoDS_Shell()
+        builder = BRep_Builder()
+        builder.MakeShell(topods_shell)
+        builder.Add(topods_shell, self.object)
+        return Shell(topods_shell)
+
+    @staticmethod
+    def by_surface(surface):
+        """
+        Create a face by a surface.
+
+        :param afem.geometry.entities.Surface surface: The surface.
+
+        :return: The face.
+        :rtype: afem.topology.entities.Face
+        """
+        return Face(BRepBuilderAPI_MakeFace(surface.object).Face())
 
 
 class Shell(Shape):
@@ -604,6 +733,35 @@ class Shell(Shape):
         if not isinstance(shape, TopoDS_Shell):
             shape = TopoDS.Shell_(shape)
         super(Shell, self).__init__(shape)
+
+    @staticmethod
+    def by_surface(surface):
+        """
+        Create a shell from a surface.
+
+        :param afem.geometry.entities.Surface surface: The surface.
+
+        :return: The shell.
+        :rtype: afem.topology.entities.Shell
+        """
+        face = Face.by_surface(surface)
+        return Shell.by_face(face)
+
+    @staticmethod
+    def by_face(face):
+        """
+        Create a shell from a face.
+
+        :param afem.topology.entities.Face face: The face.
+
+        :return: The shell.
+        :rtype: afem.topology.entities.Shell
+        """
+        topods_shell = TopoDS_Shell()
+        builder = BRep_Builder()
+        builder.MakeShell(topods_shell)
+        builder.Add(topods_shell, face.object)
+        return Shell(topods_shell)
 
 
 class Solid(Shape):
@@ -672,6 +830,25 @@ class Compound(Shape):
         if not isinstance(shape, TopoDS_Compound):
             shape = TopoDS.Compound_(shape)
         super(Compound, self).__init__(shape)
+
+    @staticmethod
+    def by_shapes(shapes):
+        """
+        Create a new compound from a collection of shapes.
+
+        :param collections.Sequence(afem.topology.entities.Shape) shapes: The
+            shapes.
+
+        :return: The new compound.
+        :rtype: afem.topology.entities.Compound
+        """
+        topods_compound = TopoDS_Compound()
+        builder = BRep_Builder()
+        builder.MakeCompound(topods_compound)
+        for shape in shapes:
+            if isinstance(shape, Shape):
+                builder.Add(topods_compound, shape.object)
+        return Compound(topods_compound)
 
 
 class BBox(Bnd_Box):
@@ -826,7 +1003,7 @@ class BBox(Bnd_Box):
         """
         Add the other box to this one.
 
-        :param afem.geometry.entities.BBox bbox: The other box.
+        :param afem.topology.entities.BBox bbox: The other box.
 
         :return: None.
 
@@ -859,11 +1036,11 @@ class BBox(Bnd_Box):
         """
         Add shape to the bounding box.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: None.
         """
-        BRepBndLib.Add_(shape, self, True)
+        BRepBndLib.Add_(shape.object, self, True)
 
     def is_pnt_out(self, pnt):
         """
@@ -899,7 +1076,7 @@ class BBox(Bnd_Box):
             msg = 'Methods requires a Line instance.'
             raise TypeError(msg)
 
-        return self.IsOut(line)
+        return self.IsOut(line.object)
 
     def is_pln_out(self, pln):
         """
@@ -917,7 +1094,7 @@ class BBox(Bnd_Box):
             msg = 'Methods requires a Plane instance.'
             raise TypeError(msg)
 
-        return self.IsOut(pln)
+        return self.IsOut(pln.object)
 
     def is_box_out(self, bbox):
         """

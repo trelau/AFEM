@@ -20,17 +20,19 @@ from OCCT.BRep import BRep_Builder
 from OCCT.BRepTools import BRepTools
 from OCCT.TopoDS import TopoDS_Shape
 
+from afem.topology.entities import Shape
+
 
 def write_brep(shape, fn):
     """
     Write a BREP file using the shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param str fn: The filename.
 
     :return: None.
     """
-    BRepTools.Write_(shape, fn)
+    BRepTools.Write_(shape.object, fn)
 
 
 def read_brep(fn):
@@ -40,10 +42,10 @@ def read_brep(fn):
     :param str fn: The filename.
 
     :return: The shape.
-    :rtype: OCCT.TopoDS.TopoDS_Shape
+    :rtype: afem.topology.entities.Shape
     """
     shape = TopoDS_Shape()
     builder = BRep_Builder()
     BRepTools.Read_(shape, fn, builder)
 
-    return shape
+    return Shape.wrap(shape)

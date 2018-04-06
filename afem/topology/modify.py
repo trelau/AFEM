@@ -26,11 +26,9 @@ from OCCT.ShapeUpgrade import (ShapeUpgrade_ShapeDivideClosed,
                                ShapeUpgrade_UnifySameDomain)
 from OCCT.TopTools import (TopTools_DataMapOfShapeShape,
                            TopTools_IndexedMapOfShape)
-from OCCT.TopoDS import TopoDS
 
-from afem.occ.utils import to_lst_from_toptools_listofshape
-from afem.topology.create import CompoundByShapes
-from afem.topology.explore import ExploreShape
+from afem.occ.utils import list_from_topods_list
+from afem.topology.entities import Shape, Edge, Compound
 
 __all__ = ["DivideClosedShape", "DivideContinuityShape", "DivideC0Shape",
            "UnifyShape", "SewShape", "RebuildShapeWithShapes",
@@ -42,19 +40,19 @@ class DivideClosedShape(object):
     """
     Divide all closed faces in a shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     """
 
     def __init__(self, shape):
-        tool = ShapeUpgrade_ShapeDivideClosed(shape)
+        tool = ShapeUpgrade_ShapeDivideClosed(shape.object)
         tool.Perform()
-        self._shape = tool.Result()
+        self._shape = Shape.wrap(tool.Result())
 
     @property
     def shape(self):
         """
         :return: The divided shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shape
 
@@ -63,25 +61,25 @@ class DivideContinuityShape(object):
     """
     Divide a shape for a given continuity and tolerance.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param float tol: The tolerance.
-    :param OCCT.GeomAbs.GeomAbs_Shape continuity:
+    :param OCCT.GeomAbs.GeomAbs_Shape continuity: The continuity to divide.
     """
 
     def __init__(self, shape, tol=0.001, continuity=GeomAbs_C1):
-        tool = ShapeUpgrade_ShapeDivideContinuity(shape)
+        tool = ShapeUpgrade_ShapeDivideContinuity(shape.object)
         tool.SetTolerance(tol)
         tool.SetBoundaryCriterion(continuity)
         tool.SetPCurveCriterion(continuity)
         tool.SetSurfaceCriterion(continuity)
         tool.Perform()
-        self._shape = tool.Result()
+        self._shape = Shape.wrap(tool.Result())
 
     @property
     def shape(self):
         """
         :return: The divided shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shape
 
@@ -90,7 +88,7 @@ class DivideC0Shape(DivideContinuityShape):
     """
     Divide a shape at all C0 boundaries to form a C1 shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param float tol: The tolerance.
     """
 
@@ -102,7 +100,7 @@ class UnifyShape(object):
     """
     Unify edges and faces of a shape that lie on the same geometry.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param bool edges: Option to unify all possible edges.
     :param bool faces: Option to unify all possible faces.
     :param bool bsplines: Option to concatenate the curves of edges if they
@@ -110,16 +108,17 @@ class UnifyShape(object):
     """
 
     def __init__(self, shape, edges=True, faces=True, bsplines=False):
-        tool = ShapeUpgrade_UnifySameDomain(shape, edges, faces, bsplines)
+        tool = ShapeUpgrade_UnifySameDomain(shape.object, edges, faces,
+                                            bsplines)
         tool.Build()
-        self._shape = tool.Shape()
+        self._shape = Shape.wrap(tool.Shape())
         self._history = tool.History()
 
     @property
     def shape(self):
         """
         :return: The unified shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shape
 
@@ -127,41 +126,41 @@ class UnifyShape(object):
         """
         Return a list of shapes modified from the given shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: List of modified shapes.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
-        return to_lst_from_toptools_listofshape(self._history.Modified(shape))
+        return list_from_topods_list(self._history.Modified(shape.object))
 
     def generated(self, shape):
         """
         Return a list of shapes generated from the given shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: List of generated shapes.
-        :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+        :rtype: list(afem.topology.entities.Shape)
         """
-        return to_lst_from_toptools_listofshape(self._history.Generated(shape))
+        return list_from_topods_list(self._history.Generated(shape.object))
 
     def is_deleted(self, shape):
         """
         Check to see if shape is deleted.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Wire shape: The shape.
 
         :return: *True* if deleted, *False* if not.
         :rtype: bool
         """
-        return self._history.IsRemoved(shape)
+        return self._history.IsRemoved(shape.object)
 
 
 class SewShape(object):
     """
     Sew the shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The context shape to sew.
+    :param afem.topology.entities.Shape shape: The context shape to sew.
     :param float tol: Sewing tolerance. If *None* is provided then the
         average tolerance of the shape will be used. If no shape is
         provided, then a default value of 1.0e-7 is used.
@@ -204,7 +203,7 @@ class SewShape(object):
     >>> shell = ShellByFaces([f1, f2, f3]).shell
     >>> tool = SewShape(shell, non_manifold=True)
     >>> shape = tool.sewed_shape
-    >>> len(ExploreShape.get_faces(shape))
+    >>> len(shape.faces)
     3
     """
 
@@ -214,7 +213,7 @@ class SewShape(object):
             if shape is None:
                 tol = 1.0e-7
             else:
-                tol = ExploreShape.global_tolerance(shape)
+                tol = shape.tol_max
 
         self._tool = BRepBuilderAPI_Sewing(tol, True, True, cut_free_edges,
                                            non_manifold)
@@ -225,28 +224,28 @@ class SewShape(object):
             self._tool.SetMaxTolerance(max_tol)
 
         if shape is not None:
-            self._tool.Load(shape)
+            self._tool.Load(shape.object)
             self._tool.Perform()
 
     def load(self, shape):
         """
         Load the context shape to sew.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: None.
         """
-        self._tool.Load(shape)
+        self._tool.Load(shape.object)
 
     def add(self, shape):
         """
         Add a shape to be sewed or controlled.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: None.
         """
-        self._tool.Add(shape)
+        self._tool.Add(shape.object)
 
     def perform(self):
         """
@@ -261,11 +260,9 @@ class SewShape(object):
         """
         :return: The sewed shape. May be a null shape if nothing is
             constructed.
-        :rtype: OCCT.TopoDS.TopoDS_Shape or OCCT.TopoDS.TopoDS_Face or
-            OCCT.TopoDS.TopoDS_Shell or OCCT.TopoDS.TopoDS_Solid or
-            OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.SewedShape()
+        return Shape.wrap(self._tool.SewedShape())
 
     @property
     def n_free_edges(self):
@@ -279,11 +276,11 @@ class SewShape(object):
     def free_edges(self):
         """
         :return: Free edges.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list(afem.topology.entities.Edge)
         """
         edges = []
         for i in range(1, self.n_free_edges + 1):
-            e = TopoDS.Edge_(self._tool.FreeEdge(i))
+            e = Edge(self._tool.FreeEdge(i))
             edges.append(e)
         return edges
 
@@ -299,11 +296,11 @@ class SewShape(object):
     def multiple_edges(self):
         """
         :return: Multiple edges.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list(afem.topology.entities.Edge)
         """
         edges = []
         for i in range(1, self.n_free_edges + 1):
-            e = TopoDS.Edge_(self._tool.MultipleEdge(i))
+            e = Edge(self._tool.MultipleEdge(i))
             edges.append(e)
         return edges
 
@@ -319,11 +316,11 @@ class SewShape(object):
     def manifold_edges(self):
         """
         :return: Manifold edges.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list(afem.topology.entities.Edge)
         """
         edges = []
         for i in range(1, self.n_free_edges + 1):
-            e = TopoDS.Edge_(self._tool.ContigousEdge(i))
+            e = Edge(self._tool.ContigousEdge(i))
             edges.append(e)
         return edges
 
@@ -331,53 +328,52 @@ class SewShape(object):
         """
         Check to see if input shape has been modified.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: *True* if modified, *False* if not.
         :rtype: bool
         """
-        self._tool.IsModified(shape)
+        self._tool.IsModified(shape.object)
 
     def modified(self, shape):
         """
         Get a modified shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: The modified shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.Modified(shape)
+        return Shape.wrap(self._tool.Modified(shape.object))
 
     def is_modified_subshape(self, subshape):
         """
         Check to see if input sub-shape has been modified.
 
-        :param OCCT.TopoDS.TopoDS_Shape subshape: The shape.
+        :param afem.topology.entities.Shape subshape: The sub-shape.
 
         :return: *True* if modified, *False* if not.
         :rtype: bool
         """
-        self._tool.IsModifiedSubShape(subshape)
+        self._tool.IsModifiedSubShape(subshape.object)
 
     def modified_subshape(self, subshape):
         """
         Get a modified sub-shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape subshape: The shape.
+        :param afem.topology.entities.Shape subshape: The sub-shape.
 
         :return: The modified sub-shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.ModifiedSubShape(subshape)
+        return Shape.wrap(self._tool.ModifiedSubShape(subshape.object))
 
 
 class RebuildShapeWithShapes(object):
     """
     Rebuild a shape by requesting substitutions on a shape.
 
-    :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape that will be
-        rebuilt.
+    :param afem.topology.entities.Shape old_shape: The old shape.
     """
 
     def __init__(self, old_shape):
@@ -388,25 +384,26 @@ class RebuildShapeWithShapes(object):
         """
         Request to remove the old shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape. This is
+        :param afem.topology.entities.Shape old_shape: The old shape. This is
             usually a sub-shape of the original old shape.
 
         :return: None.
         """
-        self._tool.Remove(old_shape)
+        self._tool.Remove(old_shape.object)
 
     def replace(self, old_shape, new_shapes):
         """
         Request to replace the old shape with a list of new shapes.
 
-        :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape. This is
+        :param afem.topology.entities.Shape old_shape: The old shape. This is
             usually a sub-shape of the original old shape.
-        :param list[OCCT.TopoDS.TopoDS_Shape] new_shapes: The new shapes.
+        :param list(afem.topology.entities.Shape) new_shapes: The new shapes.
 
         :return: None.
         """
-        cmp = CompoundByShapes(new_shapes).compound
-        self._tool.Replace(old_shape, cmp)
+
+        compound = Compound.by_shapes(new_shapes)
+        self._tool.Replace(old_shape.object, compound.object)
 
     def apply(self):
         """
@@ -414,9 +411,9 @@ class RebuildShapeWithShapes(object):
         shape.
 
         :return: The new shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._tool.Apply(self._old_shape)
+        return Shape.wrap(self._tool.Apply(self._old_shape.object))
 
 
 class RebuildShapeByTool(object):
@@ -425,7 +422,7 @@ class RebuildShapeByTool(object):
     substitutions on the faces of the shape. If not faces exist it will try
     the edges. If no edges exist it will try the vertices.
 
-    :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape.
+    :param afem.topology.entities.Shape old_shape: The old shape.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopCore
 
@@ -447,22 +444,23 @@ class RebuildShapeByTool(object):
     >>> assert cut.is_done
     >>> rebuild = RebuildShapeByTool(box1, cut)
     >>> new_shape = rebuild.new_shape
-    >>> CheckShape.is_solid(box1)
+    >>> box1.is_solid
     True
     >>> shape = FixShape(new_shape).shape
-    >>> CheckShape.is_shell(shape)
+    >>> shape.is_shell
     True
     """
 
     def __init__(self, old_shape, tool):
+        # TODO Use wrapped tool
         reshape = ShapeBuild_ReShape()
 
         # Old shapes
-        old_shapes = ExploreShape.get_faces(old_shape)
+        old_shapes = old_shape.faces
         if not old_shapes:
-            old_shapes = ExploreShape.get_edges(old_shape)
+            old_shapes = old_shape.edges
         if not old_shapes:
-            old_shapes = ExploreShape.get_vertices(old_shape)
+            old_shapes = old_shape.vertices
         if not old_shapes:
             raise ValueError('No sub-shapes to substitute.')
 
@@ -470,24 +468,24 @@ class RebuildShapeByTool(object):
         for shape in old_shapes:
             # Deleted
             if tool.is_deleted(shape):
-                reshape.Remove(shape)
+                reshape.Remove(shape.object)
                 continue
 
             # Modified
             mod_shapes = [s for s in tool.modified(shape)
-                          if not s.IsSame(shape)]
+                          if not s.is_same(shape)]
 
             if mod_shapes:
-                new_shape = CompoundByShapes(mod_shapes).compound
-                reshape.Replace(shape, new_shape)
+                new_shape = Compound.by_shapes(mod_shapes)
+                reshape.Replace(shape.object, new_shape.object)
 
-        self._new_shape = reshape.Apply(old_shape)
+        self._new_shape = Shape.wrap(reshape.Apply(old_shape.object))
 
     @property
     def new_shape(self):
         """
         :return: The new shape after substitutions.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._new_shape
 
@@ -503,7 +501,8 @@ class RebuildShapesByTool(object):
     make substitutions on the faces of the shape. If not faces exist it will
     try the edges. If no edges exist it will try the vertices.
 
-    :param list[OCCT.TopoDS.TopoDS_Shape] old_shapes: The old shapes.
+    :param collections.Sequence(afem.topology.entities.Shape) old_shapes: The
+        old shapes.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopCore
     """
@@ -516,11 +515,11 @@ class RebuildShapesByTool(object):
 
         for old_shape in old_shapes:
             # Old shapes
-            shapes = ExploreShape.get_faces(old_shape)
+            shapes = old_shape.faces
             if not shapes:
-                shapes = ExploreShape.get_edges(old_shape)
+                shapes = old_shape.edges
             if not shapes:
-                shapes = ExploreShape.get_vertices(old_shape)
+                shapes = old_shape.vertices
             if not shapes:
                 continue
 
@@ -528,46 +527,46 @@ class RebuildShapesByTool(object):
             for shape in shapes:
                 # Deleted
                 if tool.is_deleted(shape):
-                    reshape.Remove(shape)
+                    reshape.Remove(shape.object)
                     continue
 
                 # Modified considering shapes already used
                 mod_shapes = tool.modified(shape)
                 replace_shapes = []
                 for mod_shape in mod_shapes:
-                    if index_map.Contains(mod_shape):
+                    if index_map.Contains(mod_shape.object):
                         continue
                     replace_shapes.append(mod_shape)
-                    index_map.Add(mod_shape)
+                    index_map.Add(mod_shape.object)
 
                 if replace_shapes:
-                    new_shape = CompoundByShapes(replace_shapes).compound
-                    reshape.Replace(shape, new_shape)
+                    new_shape = Compound.by_shapes(replace_shapes)
+                    reshape.Replace(shape.object, new_shape.object)
 
-            new_shape = reshape.Apply(old_shape)
-            self._new_shapes.Bind(old_shape, new_shape)
+            new_shape = Shape.wrap(reshape.Apply(old_shape.object))
+            self._new_shapes.Bind(old_shape.object, new_shape.object)
 
     def new_shape(self, old_shape):
         """
         Get the new shape from the old shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape old_shape: The old shape provided in
-            the initial inputs.
+        :param afem.topology.entities.Shape old_shape: The old shape provided
+            in the initial inputs.
 
         :return: The new shape after substitutions.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
 
         :raises RuntimeError: If the old shape is not a key in the final
             results.
         """
-        return self._new_shapes.Find(old_shape)
+        return Shape.wrap(self._new_shapes.Find(old_shape.object))
 
 
 class ShapeBSplineRestriction(object):
     """
     Re-approximate shape surfaces with B-splines.
 
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param bool is_mutable: Flag for mutable input.
     :param bool approx_srf: Flag to approximate surface.
     :param bool approx_crv3d: Flag to approximate 3-d curves.
@@ -592,7 +591,8 @@ class ShapeBSplineRestriction(object):
                  approx_crv3d=True, approx_crv2d=True, tol3d=0.01,
                  tol2d=1.0e-6, dmax=9, nmax=10000, degree=True, rational=False,
                  continuity3d=GeomAbs_C1, continuity2d=GeomAbs_C2):
-        self._the_mod = ShapeCustom_BSplineRestriction(approx_srf, approx_crv3d,
+        self._the_mod = ShapeCustom_BSplineRestriction(approx_srf,
+                                                       approx_crv3d,
                                                        approx_crv2d, tol3d,
                                                        tol2d, continuity3d,
                                                        continuity2d,
@@ -600,7 +600,7 @@ class ShapeBSplineRestriction(object):
                                                        rational)
 
         self._modifier = BRepTools_Modifier(is_mutable)
-        self._modifier.Init(shape)
+        self._modifier.Init(shape.object)
         self._modifier.Perform(self._the_mod)
 
     @property
@@ -647,12 +647,12 @@ class ShapeBSplineRestriction(object):
         """
         Return the modified shape corresponding to the given shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: A shape.
+        :param afem.topology.entities.Shape shape: A shape.
 
         :return: The modified shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
-        return self._modifier.ModifiedShape(shape)
+        return Shape.wrap(self._modifier.ModifiedShape(shape))
 
 
 if __name__ == "__main__":

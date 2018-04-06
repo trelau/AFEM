@@ -25,8 +25,7 @@ from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
                          TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID,
                          TopAbs_VERTEX,
                          TopAbs_WIRE)
-from OCCT.TopTools import TopTools_ListOfShape
-from OCCT.TopoDS import TopoDS
+from OCCT.TopoDS import TopoDS, TopoDS_ListOfShape
 from OCCT.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
@@ -326,38 +325,38 @@ def to_np_from_tcolstd_array2_real(tcol_array):
     return array
 
 
-def to_toptools_listofshape(shapes):
+def to_topods_list(shapes):
     """
-    Create TopTools_ListOfShape from shapes.
+    Create TopoDS_ListOfShape from shapes.
 
-    :param list[OCCT.TopoDS.TopoDS_Shape] shapes: List of shapes.
+    :param list(afem.topology.entities.Shape) shapes: The list.
 
-    :return: TopTools_ListOfShape
-    :rtype: OCCT.TopTools.TopTools_ListOfShape
+    :return: The list.
+    :rtype: OCCT.TopoDS.TopoDS_ListOfShape
     """
-    lst = TopTools_ListOfShape()
+    topods_list = TopoDS_ListOfShape()
     for s in shapes:
-        lst.Append(s)
-    return lst
+        topods_list.Append(s.object)
+    return topods_list
 
 
-def to_lst_from_toptools_listofshape(toptools_list):
+def list_from_topods_list(topods_list):
     """
-    Create a list from a TopTools_ListOfShape.
+    Create a list from a TopoDS_ListOfShape.
 
-    :param OCCT.TopTools.TopTools_ListOfShape toptools_list: The
-        TopTools_ListOfShape.
+    :param OCCT.TopoDS.TopoDS_ListOfShape topods_list: The list.
 
     :return: A list of shapes.
-    :rtype: list[OCCT.TopoDS.TopoDS_Shape]
+    :rtype: list(afem.topology.entities.Shape)
     """
-    if toptools_list.IsEmpty():
+    # TODO Fix circular import
+    from afem.topology.entities import Shape
+
+    if topods_list.IsEmpty():
         return []
     lst = []
-    while not toptools_list.IsEmpty():
-        shp = toptools_list.First()
-        lst.append(shp)
-        toptools_list.RemoveFirst()
+    for topods_shape in topods_list:
+        lst.append(Shape.wrap(topods_shape))
     return lst
 
 
