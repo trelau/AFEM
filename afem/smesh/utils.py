@@ -16,9 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+from OCCT.gp import gp_Trsf
 from OCCT.SMDS import SMDS_ListOfNodes, SMDS_ListOfElements
 from OCCT.SMESH import SMESH_MeshEditor, SMESH_MesherHelper
 
+from afem.geometry.check import CheckGeom
 from afem.smesh.entities import Element, Node
 from afem.topology.entities import Shape
 
@@ -255,6 +257,30 @@ class MeshEditor(object):
                                           target_mesh)
         else:
             return self._editor.Transform(elements, trsf, copy, make_groups)
+
+    def translate(self, vector, elements=(), copy=False, make_groups=False,
+                  target_mesh=None):
+        """
+        Translate the elements.
+
+        :param vector_like: The translation vector.
+        :param collection.Sequence(afem.smesh.entities.Element) elements: The
+            elements to transform. If none are provided then the whole mesh is
+            used.
+        :param bool copy: Option to copy elements.
+        :param bool make_groups: Option to make groups.
+        :param afem.smesh.meshes.Mesh target_mesh: The target mesh to place
+            elements.
+
+        :return: List of element ID's.
+        :rtype: list(int)
+        """
+        vector = CheckGeom.to_vector(vector)
+
+        trsf = gp_Trsf()
+        trsf.SetTranslation(vector)
+
+        return self.transform(trsf, elements, copy, make_groups, target_mesh)
 
     def check_free_border(self, n1, n2, n3=None):
         """

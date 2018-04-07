@@ -1,5 +1,3 @@
-from OCCT.gp import gp_Trsf
-
 from afem.geometry import *
 from afem.graphics import Viewer
 from afem.smesh import *
@@ -25,16 +23,10 @@ the_mesh.add_hypotheses([hyp2d, alg2d], face)
 
 the_gen.compute(the_mesh, face)
 
-editor = MeshEditor(the_mesh)
-
-# TODO Transate a mesh
-pz = Point(0, 0, 10)
-trsf = gp_Trsf()
-trsf.SetTranslation(p1, pz)
-
 new_mesh = the_gen.create_mesh(face)
 
-editor.transform(trsf, copy=True)
+editor = MeshEditor(the_mesh)
+editor.translate((0, 0, 10), copy=True)
 
 gui = Viewer()
 gui.add(the_mesh)
