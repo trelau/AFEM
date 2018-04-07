@@ -69,7 +69,7 @@ p1 = strut.eval(0.5, 1.)
 strut_edge = EdgeByPoints(p0, p1).edge
 bop = IntersectShapes(strut_edge, wing.solid)
 v = bop.vertices[0]
-p = ExploreShape.pnt_of_vertex(v)
+p = v.point
 strut_edge = EdgeByPoints(p0, p).edge
 pln = PlaneByAxes(p, 'xz').plane
 strut_rib = RibBySurface('kink rib', pln, wing).rib
@@ -286,13 +286,4 @@ frame2.cut(other_gear)
 # VIEW ------------------------------------------------------------------------
 master = GroupAPI.get_master()
 gui.add(master)
-gui.fit()
-gui.capture('test.png')
-# gui.start()
-#
-# import time
-#
-# time.sleep(3)
-#
-# gui = Viewer()
-# gui.start()
+gui.start()

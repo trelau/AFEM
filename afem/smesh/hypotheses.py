@@ -421,7 +421,7 @@ class QuadrangleAlgo2D(Algorithm):
         :return: Check whether algorithm is applicable.
         :rtype: bool
         """
-        return StdMeshers_Quadrangle_2D.IsApplicable_(shape, check_all)
+        return StdMeshers_Quadrangle_2D.IsApplicable_(shape.object, check_all)
 
 
 class QuadrangleHypo2D(Hypothesis):

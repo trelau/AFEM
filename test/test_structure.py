@@ -18,8 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 import unittest
 
-from OCCT.TopoDS import TopoDS_Compound, TopoDS_Edge, TopoDS_Face, TopoDS_Shape
-
 from afem.exchange import brep
 from afem.geometry import *
 from afem.oml import *
@@ -33,9 +31,8 @@ class TestStructureEntities(unittest.TestCase):
     def setUpClass(cls):
         shape = brep.read_brep('./test_io/rhs_wing.brep')
         cls.wing = Body(shape, 'wing')
-        shape = brep.read_brep('./test_io/rhs_wing_sref.brep')
-        face = CheckShape.to_face(shape)
-        sref = ExploreShape.surface_of_face(face)
+        face = brep.read_brep('./test_io/rhs_wing_sref.brep')
+        sref = face.surface
         cls.wing.set_sref(sref)
         shape = brep.read_brep('./test_io/fuselage.brep')
         cls.fuselage = Body(shape, 'fuselage')
@@ -44,12 +41,14 @@ class TestStructureEntities(unittest.TestCase):
                                      cls.wing).spar
         cls.rspar = SparByParameters('rspar', 0.65, 0.15, 0.65, 0.5,
                                      cls.wing).spar
-        cls.rib1 = RibByPoints('rib1', cls.fspar.p1, cls.rspar.p1, cls.wing).rib
-        cls.rib2 = RibByPoints('rib2', cls.fspar.p2, cls.rspar.p2, cls.wing).rib
+        cls.rib1 = RibByPoints('rib1', cls.fspar.p1, cls.rspar.p1,
+                               cls.wing).rib
+        cls.rib2 = RibByPoints('rib2', cls.fspar.p2, cls.rspar.p2,
+                               cls.wing).rib
 
         cls.null_rib = RibByParameters('null rib', 0.15, 0.5, 0.65, 0.5,
                                        cls.wing).rib
-        cls.null_rib.nullify()
+        cls.null_rib.shape.nullify()
 
     @classmethod
     def tearDownClass(cls):
@@ -65,7 +64,7 @@ class TestStructureEntities(unittest.TestCase):
         self.assertEqual(4, self.rib2.id)
 
     def test_part_shape(self):
-        self.assertIsInstance(self.fspar.shape, TopoDS_Shape)
+        self.assertIsInstance(self.fspar.shape, Compound)
         p = self.wing.eval(0.5, 0.5)
         pln = PlaneByAxes(p, 'xz').plane
         f = FaceByPlane(pln, -100, 100, -100, 100).face
@@ -107,14 +106,14 @@ class TestStructureEntities(unittest.TestCase):
     def test_part_edges(self):
         self.assertEqual(self.fspar.nedges, 9)
         for e in self.fspar.edges:
-            self.assertIsInstance(e, TopoDS_Edge)
-        self.assertIsInstance(self.fspar.edge_compound, TopoDS_Compound)
+            self.assertIsInstance(e, Edge)
+        self.assertIsInstance(self.fspar.edge_compound, Compound)
 
     def test_part_faces(self):
         self.assertEqual(self.fspar.nfaces, 1)
         for f in self.fspar.faces:
-            self.assertIsInstance(f, TopoDS_Face)
-        self.assertIsInstance(self.fspar.face_compound, TopoDS_Compound)
+            self.assertIsInstance(f, Face)
+        self.assertIsInstance(self.fspar.face_compound, Compound)
 
 
 class TestStructureCreate(unittest.TestCase):
@@ -123,9 +122,8 @@ class TestStructureCreate(unittest.TestCase):
     def setUpClass(cls):
         shape = brep.read_brep('./test_io/rhs_wing.brep')
         cls.wing = Body(shape, 'wing')
-        shape = brep.read_brep('./test_io/rhs_wing_sref.brep')
-        face = CheckShape.to_face(shape)
-        sref = ExploreShape.surface_of_face(face)
+        face = brep.read_brep('./test_io/rhs_wing_sref.brep')
+        sref = face.surface
         cls.wing.set_sref(sref)
         shape = brep.read_brep('./test_io/fuselage.brep')
         cls.fuselage = Body(shape, 'fuselage')
@@ -384,7 +382,8 @@ class TestStructureCreate(unittest.TestCase):
         builder = SparByParameters('rspar', 0.65, 0.15, 0.65, 0.5, self.wing)
         rspar = builder.spar
         builder = RibsAlongCurveAndSurfaceByDistance('rib', rspar.cref,
-                                                     self.wing.sref, 36., fspar,
+                                                     self.wing.sref, 36.,
+                                                     fspar,
                                                      rspar, self.wing)
         self.assertEqual(builder.nribs, 15)
         self.assertEqual(builder.next_index, 16)
@@ -414,7 +413,8 @@ class TestStructureCreate(unittest.TestCase):
         pln1 = PlaneByAxes((600., 0., 0.), 'yz').plane
         pln2 = PlaneByAxes((605., 0., 0.), 'yz').plane
         pln3 = PlaneByAxes((610., 0., 0.), 'yz').plane
-        builder = FramesByPlanes('frame', [pln1, pln2, pln3], self.fuselage, 3.)
+        builder = FramesByPlanes('frame', [pln1, pln2, pln3], self.fuselage,
+                                 3.)
         self.assertEqual(builder.nframes, 3)
         self.assertEqual(builder.next_index, 4)
         for frame in builder.frames:

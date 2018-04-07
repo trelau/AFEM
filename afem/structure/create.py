@@ -26,9 +26,9 @@ from afem.geometry.create import *
 from afem.geometry.entities import *
 from afem.structure.entities import *
 from afem.topology.bop import *
-from afem.topology.check import CheckShape
 from afem.topology.create import *
 from afem.topology.distance import DistanceShapeToShape
+from afem.topology.entities import Shape, Edge, Wire
 from afem.topology.explore import ExploreFreeEdges
 from afem.topology.modify import SewShape
 from afem.topology.offset import SweepShapeWithNormal, SweepShape
@@ -102,7 +102,7 @@ class CurvePartByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Shape
+    :type shape: afem.geometry.entities.Curve or afem.topology.entities.Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
     :param group: The group to add the part to. If not provided the part will
@@ -123,7 +123,7 @@ class CurvePartByShape(object):
             shape = EdgeByCurve(shape).edge
 
         if cref is None:
-            cref = ExploreShape.curve_of_shape(shape)
+            cref = shape.curve
 
         self._curve_part = CurvePart(label, shape, cref, None, group)
 
@@ -144,7 +144,7 @@ class Beam1DByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Shape
+    :type shape: afem.geometry.entities.Curve or afem.topology.entities.Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
         provided then a curve will be extracted from the shape.
     :param group: The group to add the part to. If not provided the part will
@@ -164,7 +164,7 @@ class Beam1DByShape(object):
             shape = EdgeByCurve(shape).edge
 
         if cref is None:
-            cref = ExploreShape.curve_of_shape(shape)
+            cref = shape.curve
 
         self._beam = Beam1D(label, shape, cref, None, group)
 
@@ -234,7 +234,7 @@ class SurfacePartByShape(object):
 
     :param str label: Part label.
     :param shape: The shape.
-    :type shape: afem.geometry.entities.Surface or OCCT.TopoDS.TopoDS_Shape
+    :type shape: afem.geometry.entities.Surface or afem.topology.entities.Shape
     :param afem.geometry.entities.Curve cref: The reference curve.
     :param afem.geometry.entities.Surface sref: The reference surface. If
         not provided then the basis surface of the largest face of the shape
@@ -260,7 +260,7 @@ class SurfacePartByShape(object):
             shape = FaceBySurface(shape).face
 
         if sref is None:
-            sref = ExploreShape.surface_of_shape(shape)
+            sref = shape.surface
 
         self._surface_part = SurfacePart(label, shape, cref, sref, group)
 
@@ -290,7 +290,7 @@ class SparByParameters(object):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCCT.TopoDS.TopoDS_Shape
+        afem.topology.entities.Shape
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -316,7 +316,7 @@ class SparByParameters(object):
             sref = basis_shape
             basis_shape = FaceBySurface(sref).face
         else:
-            sref = ExploreShape.surface_of_shape(basis_shape)
+            sref = basis_shape.surface
 
         # Extract cref
         cref = body.extract_curve(u1, v1, u2, v2, basis_shape)
@@ -354,7 +354,7 @@ class SparByPoints(SparByParameters):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCCT.TopoDS.TopoDS_Shape
+        afem.topology.entities.Shape
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -398,7 +398,7 @@ class SparByEnds(SparByParameters):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCCT.TopoDS.TopoDS_Shape
+        afem.topology.entities.Shape
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -450,21 +450,21 @@ class SparBySurface(object):
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape,
                                   approximate=True)
-        edges = ExploreShape.get_edges(section.shape)
+        edges = section.shape.edges
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
-        w = CheckShape.to_wire(w)
-        cref = ExploreShape.curve_of_shape(w)
-
-        # Orient cref so that p1 is nearest (u1, v1) on the body
-        umin, vmin = body.sref.u1, body.sref.v1
-        p0 = body.eval(umin, vmin)
-        p1 = cref.eval(cref.u1)
-        p2 = cref.eval(cref.u2)
-        d1 = p0.distance(p1)
-        d2 = p0.distance(p2)
-        if d2 < d1:
-            cref.reverse()
+        cref = None
+        if isinstance(w, (Edge, Wire)):
+            cref = w.curve
+            # Orient cref so that p1 is nearest (u1, v1) on the body
+            umin, vmin = body.sref.u1, body.sref.v1
+            p0 = body.eval(umin, vmin)
+            p1 = cref.eval(cref.u1)
+            p2 = cref.eval(cref.u2)
+            d1 = p0.distance(p1)
+            d2 = p0.distance(p2)
+            if d2 < d1:
+                cref.reverse()
 
         # Build part shape
         common = CommonShapes(basis_shape, body.solid)
@@ -490,7 +490,7 @@ class SparByShape(object):
     Create a spar using a basis shape.
 
     :param str label: Part label.
-    :param OCCT.TopoDS.TopoDS_Shape basis_shape: The basis shape.
+    :param afem.topology.entities.Shape basis_shape: The basis shape.
     :param afem.oml.entities.Body body: The body.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
@@ -510,21 +510,21 @@ class SparByShape(object):
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape,
                                   approximate=True)
-        edges = ExploreShape.get_edges(section.shape)
+        edges = section.shape.edges
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
-        w = CheckShape.to_wire(w)
-        cref = ExploreShape.curve_of_shape(w)
-
-        # Orient cref so that p1 is nearest (u1, v1) on the body
-        umin, vmin = body.sref.u1, body.sref.v1
-        p0 = body.eval(umin, vmin)
-        p1 = cref.eval(cref.u1)
-        p2 = cref.eval(cref.u2)
-        d1 = p0.distance(p1)
-        d2 = p0.distance(p2)
-        if d2 < d1:
-            cref.reverse()
+        cref = None
+        if isinstance(w, (Edge, Wire)):
+            cref = w.curve
+            # Orient cref so that p1 is nearest (u1, v1) on the body
+            umin, vmin = body.sref.u1, body.sref.v1
+            p0 = body.eval(umin, vmin)
+            p1 = cref.eval(cref.u1)
+            p2 = cref.eval(cref.u2)
+            d1 = p0.distance(p1)
+            d2 = p0.distance(p2)
+            if d2 < d1:
+                cref.reverse()
 
         # Build part shape
         common = CommonShapes(basis_shape, body.solid)
@@ -534,7 +534,7 @@ class SparByShape(object):
         basis_shape = common.shape
 
         # Get reference surface
-        sref = ExploreShape.surface_of_shape(basis_shape)
+        sref = basis_shape.surface
 
         # Create the part
         self._spar = Spar(label, basis_shape, cref, sref, group)
@@ -556,15 +556,15 @@ class SparBetweenShapes(SparByPoints):
 
     :param str label: Part label.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
-        OCCT.TopoDS.TopoDS_Shape
+        afem.topology.entities.Shape
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -582,10 +582,10 @@ class SparBetweenShapes(SparByPoints):
         wing_basis_edges = IntersectShapes(shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
         p2_shape = IntersectShapes(shape2, wing_basis_edges).shape
-        v1 = ExploreShape.get_vertices(p1_shape)[0]
-        v2 = ExploreShape.get_vertices(p2_shape)[0]
-        p1 = ExploreShape.pnt_of_vertex(v1)
-        p2 = ExploreShape.pnt_of_vertex(v2)
+        v1 = p1_shape.vertices[0]
+        v2 = p2_shape.vertices[0]
+        p1 = v1.point
+        p2 = v2.point
 
         super(SparBetweenShapes, self).__init__(label, p1, p2, body,
                                                 basis_shape, group)
@@ -601,11 +601,11 @@ class SparsBetweenPlanesByNumber(object):
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -685,11 +685,11 @@ class SparsBetweenPlanesByDistance(object):
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -766,11 +766,11 @@ class SparsAlongCurveByNumber(object):
     :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -857,11 +857,11 @@ class SparsAlongCurveByDistance(object):
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -955,7 +955,7 @@ class RibByParameters(object):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCCT.TopoDS.TopoDS_Shape
+        afem.topology.entities.Shape
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -978,7 +978,7 @@ class RibByParameters(object):
             sref = basis_shape
             basis_shape = FaceBySurface(sref).face
         else:
-            sref = ExploreShape.surface_of_shape(basis_shape)
+            sref = basis_shape.surface
 
         # Extract cref
         cref = body.extract_curve(u1, v1, u2, v2, basis_shape)
@@ -1016,7 +1016,7 @@ class RibByPoints(RibByParameters):
         (u2, v2), and a point translated from the reference surface normal at
         (u1, v1).
     :type basis_shape: afem.geometry.entities.Surface or
-        OCCT.TopoDS.TopoDS_Shape
+        afem.topology.entities.Shape
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -1068,21 +1068,21 @@ class RibBySurface(object):
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape,
                                   approximate=True)
-        edges = ExploreShape.get_edges(section.shape)
+        edges = section.shape.edges
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
-        w = CheckShape.to_wire(w)
-        cref = ExploreShape.curve_of_shape(w)
-
-        # Orient cref so that p1 is nearest (u1, v1) on the body
-        umin, vmin = body.sref.u1, body.sref.v1
-        p0 = body.eval(umin, vmin)
-        p1 = cref.eval(cref.u1)
-        p2 = cref.eval(cref.u2)
-        d1 = p0.distance(p1)
-        d2 = p0.distance(p2)
-        if d2 < d1:
-            cref.reverse()
+        cref = None
+        if isinstance(w, (Edge, Wire)):
+            cref = w.curve
+            # Orient cref so that p1 is nearest (u1, v1) on the body
+            umin, vmin = body.sref.u1, body.sref.v1
+            p0 = body.eval(umin, vmin)
+            p1 = cref.eval(cref.u1)
+            p2 = cref.eval(cref.u2)
+            d1 = p0.distance(p1)
+            d2 = p0.distance(p2)
+            if d2 < d1:
+                cref.reverse()
 
         # Build part shape
         common = CommonShapes(basis_shape, body.solid)
@@ -1108,7 +1108,7 @@ class RibByShape(object):
     Create a rib using a basis shape.
 
     :param str label: Part label.
-    :param OCCT.TopoDS.TopoDS_Shape basis_shape: The basis shape.
+    :param afem.topology.entities.Shape basis_shape: The basis shape.
     :param afem.oml.entities.Body body: The body.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
@@ -1128,21 +1128,21 @@ class RibByShape(object):
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape,
                                   approximate=True)
-        edges = ExploreShape.get_edges(section.shape)
+        edges = section.shape.edges
         wires = WiresByConnectedEdges(edges).wires
         w = LengthOfShapes(wires).longest_shape
-        w = CheckShape.to_wire(w)
-        cref = ExploreShape.curve_of_shape(w)
-
-        # Orient cref so that p1 is nearest (u1, v1) on the body
-        umin, vmin = body.sref.u1, body.sref.v1
-        p0 = body.eval(umin, vmin)
-        p1 = cref.eval(cref.u1)
-        p2 = cref.eval(cref.u2)
-        d1 = p0.distance(p1)
-        d2 = p0.distance(p2)
-        if d2 < d1:
-            cref.reverse()
+        cref = None
+        if isinstance(w, (Edge, Wire)):
+            cref = w.curve
+            # Orient cref so that p1 is nearest (u1, v1) on the body
+            umin, vmin = body.sref.u1, body.sref.v1
+            p0 = body.eval(umin, vmin)
+            p1 = cref.eval(cref.u1)
+            p2 = cref.eval(cref.u2)
+            d1 = p0.distance(p1)
+            d2 = p0.distance(p2)
+            if d2 < d1:
+                cref.reverse()
 
         # Build part shape
         common = CommonShapes(basis_shape, body.solid)
@@ -1152,7 +1152,7 @@ class RibByShape(object):
         basis_shape = common.shape
 
         # Get reference surface
-        sref = ExploreShape.surface_of_shape(basis_shape)
+        sref = basis_shape.surface
 
         # Create the part
         self._rib = Rib(label, basis_shape, cref, sref, group)
@@ -1174,15 +1174,15 @@ class RibBetweenShapes(RibByPoints):
 
     :param str label: Part label.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param basis_shape: The basis shape.
     :type basis_shape: afem.geometry.entities.Surface or
-        OCCT.TopoDS.TopoDS_Shape
+        afem.topology.entities.Shape
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -1200,10 +1200,10 @@ class RibBetweenShapes(RibByPoints):
         wing_basis_edges = IntersectShapes(shape, body.sref_shape).shape
         p1_shape = IntersectShapes(shape1, wing_basis_edges).shape
         p2_shape = IntersectShapes(shape2, wing_basis_edges).shape
-        v1 = ExploreShape.get_vertices(p1_shape)[0]
-        v2 = ExploreShape.get_vertices(p2_shape)[0]
-        p1 = ExploreShape.pnt_of_vertex(v1)
-        p2 = ExploreShape.pnt_of_vertex(v2)
+        v1 = p1_shape.vertices[0]
+        v2 = p2_shape.vertices[0]
+        p1 = v1.point
+        p2 = v2.point
 
         super(RibBetweenShapes, self).__init__(label, p1, p2, body,
                                                basis_shape, group)
@@ -1245,11 +1245,11 @@ class RibsBetweenPlanesByNumber(object):
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1329,11 +1329,11 @@ class RibsBetweenPlanesByDistance(object):
     :param float maxd: The maximum allowed spacing. The actual spacing will
         be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float d1: An offset distance for the first plane. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
@@ -1410,11 +1410,11 @@ class RibsAlongCurveByNumber(object):
     :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1501,11 +1501,11 @@ class RibsAlongCurveByDistance(object):
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1594,11 +1594,11 @@ class RibsAlongCurveAndSurfaceByDistance(object):
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param shape1: Starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param shape2: Ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Curve or
-        afem.geometry.entities.Surface or afem.structure.entities.Part
+    :type shape2: afem.topology.entities.Shape or afem.geometry.entities.Curve
+        or afem.geometry.entities.Surface or afem.structure.entities.Part
     :param afem.oml.entities.Body body: The body.
     :param float u1: The parameter of the first plane (default=crv.u1).
     :param float u2: The parameter of the last plane (default=crv.u2).
@@ -2033,7 +2033,7 @@ class SkinBySolid(object):
     Create a skin part from the outer shell of the solid.
 
     :param str label: Part label.
-    :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
+    :param afem.topology.entities.Solid solid: The solid.
     :param bool copy: Option to copy the outer shell.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
@@ -2041,9 +2041,9 @@ class SkinBySolid(object):
     """
 
     def __init__(self, label, solid, copy=False, group=None):
-        shell = ExploreShape.outer_shell(solid)
+        shell = solid.outer_shell
         if copy:
-            shell = ExploreShape.copy_shape(shell, False)
+            shell = shell.copy(False)
 
         self._skin = Skin(label, shell, None, None, group)
 
@@ -2081,18 +2081,20 @@ class StringerByShape(object):
     :param str label: Part label.
     :param basis_shape: The basis shape that will define the path of the
         stringer.
-    :type basis_shape: OCCT.TopoDS.TopoDS_Shape or
+    :type basis_shape: afem.topology.entities.Shape or
         afem.geometry.entities.Surface
     :param support_shape: The shape that will defines the normal direction along
         the path.
-    :type support_shape: OCCT.TopoDS.TopoDS_Shape or
+    :type support_shape: afem.topology.entities.Shape or
         afem.geometry.entities.Surface
     :param float height: The height.
     :param float angle: The runout angle at each end.
     :param shape1: The starting shape.
-    :type shape1: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :type shape1: afem.topology.entities.Shape or
+        afem.geometry.entities.Surface
     :param shape2: The ending shape.
-    :type shape2: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :type shape2: afem.topology.entities.Shape or
+        afem.geometry.entities.Surface
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -2102,9 +2104,9 @@ class StringerByShape(object):
                  shape1=None, shape2=None, group=None):
 
         # Convert to shapes
-        support_shape = CheckShape.to_shape(support_shape)
-        shape1 = CheckShape.to_shape(shape1)
-        shape2 = CheckShape.to_shape(shape2)
+        support_shape = Shape.to_shape(support_shape)
+        shape1 = Shape.to_shape(shape1)
+        shape2 = Shape.to_shape(shape2)
 
         # Intersect to find spine
         spine = IntersectShapes(support_shape, basis_shape, True).shape
@@ -2133,7 +2135,7 @@ class StringerByShape(object):
         dx = height / tan(radians(angle))
 
         # Make the profiles
-        adp_crv = BRepAdaptor_CompCurve(spine, True)
+        adp_crv = BRepAdaptor_CompCurve(spine.object, True)
 
         p0 = CheckGeom.to_point(adp_crv.Value(dx))
         dss = DistanceShapeToShape(support_shape, p0)
@@ -2202,10 +2204,10 @@ class Beam2DBySweep(object):
 
     :param str label: Part label.
     :param spine: The path for the sweep.
-    :type spine: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Edge or
-        OCCT.TopoDS.TopoDS_Wire
+    :type spine: afem.geometry.entities.Curve or afem.topology.entities.Edge or
+        afem.topology.entities.Wire
     :param profile: The profile to sweep.
-    :type profile: afem.geometry.entities.Curve or OCCT.TopoDS.TopoDS_Shape
+    :type profile: afem.geometry.entities.Curve or afem.topology.entities.Shape
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
@@ -2215,14 +2217,15 @@ class Beam2DBySweep(object):
         cref = None
         if CheckGeom.is_curve(spine):
             cref = spine
-        elif CheckShape.is_edge(spine):
-            cref = ExploreShape.curve_of_edge(spine)
+            spine = Wire.by_curve(spine)
+        elif isinstance(spine, Edge):
+            cref = spine.curve
+            spine = Wire.by_edge(spine)
 
-        spine = CheckShape.to_wire(spine)
-        profile = CheckShape.to_shape(profile)
+        profile = Shape.to_shape(profile)
 
         if cref is None:
-            cref = ExploreShape.curve_of_wire(spine)
+            cref = spine.curve
 
         tool = SweepShape(spine, profile)
         self._beam = Beam2D(label, tool.shape, cref, None, group)

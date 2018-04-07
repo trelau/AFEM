@@ -45,6 +45,7 @@ class ViewableItem(object):
         visualization purposes only.
     """
 
+    # TODO Move to different module
     def __init__(self):
         r, g, b = rand(1, 3)[0]
         self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
@@ -170,6 +171,7 @@ class Viewer(BasicViewer):
         :param items: The items.
         :type items: OCCT.TopoDS.TopoDS_Shape or
             afem.geometry.entities.Geometry or
+            afem.topology.entities.Shape or
             afem.oml.entities.Body or
             afem.structure.entities.Part or
             afem.structure.group.Group or

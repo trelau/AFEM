@@ -108,7 +108,7 @@ class LinearProps(ShapeProps):
     Point(0.500, 0.000, 0.000)
     """
 
-    def __init__(self, shape, skip_shared=False):
+    def __init__(self, shape, skip_shared=True):
         super(LinearProps, self).__init__()
         BRepGProp.LinearProperties_(shape.object, self._props, skip_shared)
 

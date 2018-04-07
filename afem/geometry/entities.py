@@ -26,7 +26,7 @@ from OCCT.Geom import (Geom_Line, Geom_Circle, Geom_Ellipse, Geom_BSplineCurve,
                        Geom_TrimmedCurve, Geom_Plane, Geom_BSplineSurface,
                        Geom_Curve, Geom_Surface)
 from OCCT.Geom2dAdaptor import Geom2dAdaptor_Curve
-from OCCT.GeomAPI import GeomAPI
+from OCCT.GeomAPI import (GeomAPI)
 from OCCT.GeomAbs import GeomAbs_Shape, GeomAbs_JoinType
 from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCCT.GeomLib import GeomLib_IsPlanarSurface
@@ -51,7 +51,8 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
 
 __all__ = ["Geometry2D", "Point2D", "NurbsCurve2D", "Geometry", "Point",
            "Direction", "Vector", "Axis1", "Axis3", "Curve", "Line", "Circle",
-           "NurbsCurve", "TrimmedCurve", "Surface", "Plane", "NurbsSurface"]
+           "Ellipse", "NurbsCurve", "TrimmedCurve", "Surface", "Plane",
+           "NurbsSurface"]
 
 
 # 2-D -------------------------------------------------------------------------
@@ -392,7 +393,7 @@ class NurbsCurve2D(Geometry2D):
         :param float args: Local parameter(s).
 
         :return: Global parameter(s).
-        :rtype: float or list[float]
+        :rtype: float or list(float)
         """
         return local_to_global_param(self.u1, self.u2, *args)
 
@@ -404,7 +405,7 @@ class NurbsCurve2D(Geometry2D):
         :param float args: Global parameter(s).
 
         :return: Local parameter(s).
-        :rtype: float or list[float]
+        :rtype: float or list(float)
         """
         return global_to_local_param(self.u1, self.u2, *args)
 
@@ -1082,6 +1083,7 @@ class Vector(gp_Vec, Geometry):
 
         :return: None.
         """
+        # TODO Rename Vector.scale
         self.Scale(scale)
 
 
@@ -1299,7 +1301,7 @@ class Curve(Geometry):
         :param float args: Local parameter(s).
 
         :return: Global parameter(s).
-        :rtype: float or list[float]
+        :rtype: float or list(float)
         """
         return local_to_global_param(self.u1, self.u2, *args)
 
@@ -1311,7 +1313,7 @@ class Curve(Geometry):
         :param float args: Global parameter(s).
 
         :return: Local parameter(s).
-        :rtype: float or list[float]
+        :rtype: float or list(float)
         """
         return global_to_local_param(self.u1, self.u2, *args)
 
@@ -2107,7 +2109,7 @@ class Plane(Surface):
         :return: The main axis (normal) of the plane.
         :rtype: afem.geometry.entities.Axis1
         """
-        ax = self.object.Pln().Axis()
+        ax = self.gp_pln.Axis()
         return Axis1(ax.Location(), ax.Direction())
 
     @property
@@ -2158,7 +2160,7 @@ class Plane(Surface):
         from afem.geometry.check import CheckGeom
 
         pnt = CheckGeom.to_point(pnt)
-        return self.object.Pln().Distance(pnt)
+        return self.gp_pln.Distance(pnt)
 
     def rotate(self, axis, angle):
         """
@@ -2169,7 +2171,7 @@ class Plane(Surface):
 
         :return: None.
         """
-        pln = self.object.Pln()
+        pln = self.gp_pln
         pln.Rotate(axis, radians(angle))
         self.object.SetPln(pln)
 
@@ -2181,7 +2183,7 @@ class Plane(Surface):
 
         :return: None.
         """
-        pln = self.object.Pln()
+        pln = self.gp_pln
         pln.Rotate(pln.XAxis(), radians(angle))
         self.object.SetPln(pln)
 
@@ -2193,7 +2195,7 @@ class Plane(Surface):
 
         :return: None.
         """
-        pln = self.object.Pln()
+        pln = self.gp_pln
         pln.Rotate(pln.YAxis(), radians(angle))
         self.object.SetPln(pln)
 
@@ -2416,7 +2418,7 @@ class NurbsSurface(Surface):
         :param float args: Local parameter(s).
 
         :return: Global parameter(s).
-        :rtype: float or list[float]
+        :rtype: float or list(float)
         """
         if d.lower() in ['u']:
             return local_to_global_param(self.u1, self.u2, *args)
@@ -2432,7 +2434,7 @@ class NurbsSurface(Surface):
         :param float args: Global parameter(s).
 
         :return: Local parameter(s).
-        :rtype: float or list[float]
+        :rtype: float or list(float)
         """
         if d.lower() in ['u']:
             return global_to_local_param(self.u1, self.u2, *args)
@@ -2569,9 +2571,9 @@ class NurbsSurface(Surface):
         and weights.
 
         :param int u_index: The row index (1 <= *u_index* <= *n*).
-        :param list[afem.geometry.entities.Point] cp: The points.
+        :param list(afem.geometry.entities.Point) cp: The points.
         :param weights: The weights.
-        :type weights: list[float] or None
+        :type weights: list(float) or None
 
         :return: None.
         """
@@ -2588,9 +2590,9 @@ class NurbsSurface(Surface):
         and weights.
 
         :param int v_index: The column index (1 <= *v_index* <= *m*).
-        :param list[afem.geometry.entities.Point] cp: The points.
+        :param list(afem.geometry.entities.Point) cp: The points.
         :param weights: The weights.
-        :type weights: list[float] or None
+        :type weights: list(float) or None
 
         :return: None.
         """

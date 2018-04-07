@@ -43,7 +43,7 @@ from numpy import ceil
 
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import CircleBy3Points, PlaneByApprox
-from afem.geometry.entities import Geometry, Plane, Point
+from afem.geometry.entities import Geometry, Curve, Plane, Point
 from afem.topology.bop import IntersectShapes
 from afem.topology.entities import (Shape, Vertex, Edge, Wire, Face, Shell,
                                     Solid, Compound)
@@ -660,7 +660,7 @@ class FaceByPlanarWire(object):
     Create a face from a planar wire.
 
     :param wire: The wire.
-    :type wire: afem.topology.entities.Wire
+    :type wire: afem.topology.entities.Wire or afem.geometry.entities.Curve
 
     Usage:
 
@@ -675,6 +675,8 @@ class FaceByPlanarWire(object):
     """
 
     def __init__(self, wire):
+        if isinstance(wire, Curve):
+            wire = Wire.by_curve(wire)
         self._f = Face(BRepBuilderAPI_MakeFace(wire.object, True).Face())
 
     @property

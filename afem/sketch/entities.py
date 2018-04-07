@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.TopoDS import TopoDS_Face
-
 from afem.geometry import *
 from afem.topology import *
 
@@ -48,7 +46,7 @@ class CrossSection(object):
         :return: The 3-D shape after building. If only one edge was available
             then an edge is returned, otherwise the edges are fused together
             and the resulting shape is returned.
-        :rtype: OCCT.TopoDS.TopoDS_Edge or OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Edge or afem.topology.entities.Shape
         """
         return self._shape
 
@@ -64,7 +62,7 @@ class CrossSection(object):
     def wires(self):
         """
         :return: The wires after building.
-        :rtype: list(OCCT.TopoDS.TopoDS_Wire)
+        :rtype: list(afem.topology.entities.Wire)
         """
         return self._wire_tool.wires
 
@@ -74,13 +72,13 @@ class CrossSection(object):
         :return: Check if face is available.
         :rtype: bool
         """
-        return isinstance(self._face, TopoDS_Face)
+        return isinstance(self._face, Face)
 
     @property
     def face(self):
         """
         :return: The face if available.
-        :rtype: OCCT.TopoDS.TopoDS_Face
+        :rtype: afem.topology.entities.Face
         """
         return self._face
 
@@ -236,12 +234,12 @@ class CrossSection(object):
             self._shape = edges[0]
         else:
             # Fuse the shape
-            bop = FuseShapes()
-            bop.set_args(edges[:-1])
-            bop.set_tools(edges[-1:])
-            bop.build()
-            self._shape = bop.shape
-            edges = bop.edges
+            fuse = FuseShapes()
+            fuse.set_args(edges[:-1])
+            fuse.set_tools(edges[-1:])
+            fuse.build()
+            self._shape = fuse.shape
+            edges = fuse.edges
 
         # Try and make wire(s)
         self._wire_tool = WiresByConnectedEdges(edges)

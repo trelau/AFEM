@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.TopAbs import TopAbs_SHAPE, TopAbs_EDGE, TopAbs_FACE
-from OCCT.TopoDS import TopoDS_Shape
 from numpy import mean
 
 from afem.config import logger
@@ -40,6 +38,7 @@ from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   ShellByFaces, WiresByShape, FaceByPlane,
                                   SolidByDrag)
 from afem.topology.distance import DistanceShapeToShape
+from afem.topology.entities import Shape, Edge
 from afem.topology.fix import FixShape
 from afem.topology.modify import (RebuildShapeByTool,
                                   RebuildShapeWithShapes, RebuildShapesByTool,
@@ -62,17 +61,18 @@ def shape_of_entity(entity):
     :param entity: The entity.
     :type entity: afem.geometry.entities.Geometry or
         afem.structure.entities.Part or afem.oml.entities.Body or
-        OCCT.TopoDS.TopoDS_Shape
+        afem.topology.entities.Shape
 
     :return: The shape.
-    :rtype: OCCT.TopoDS.TopoDS_Shape
+    :rtype: afem.topology.entities.Shape
     """
+    # TODO Update after Body.shape
     if isinstance(entity, Part):
         return entity.shape
     elif isinstance(entity, Body):
         return entity.solid
     else:
-        return CheckShape.to_shape(entity)
+        return Shape.to_shape(entity)
 
 
 class Part(ViewableItem):
@@ -80,7 +80,7 @@ class Part(ViewableItem):
     Base class for all parts.
 
     :param str label: The label.
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+    :param afem.topology.entities.Shape shape: The shape.
     :param cref: The reference curve. If it is not a :class:`.TrimmedCurve`,
         then it will be converted to one.
     :type cref: afem.geometry.entities.Curve or None
@@ -95,7 +95,7 @@ class Part(ViewableItem):
     """
     _indx = 1
     _mesh = None
-    _core_shape = TopAbs_SHAPE
+    _core_shape = Shape.SHAPE
 
     def __init__(self, label, shape, cref=None, sref=None, group=None):
         # TODO Switch back to Part.name instead of label
@@ -152,7 +152,7 @@ class Part(ViewableItem):
     def shape(self):
         """
         :return: The part shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._shape
 
@@ -162,7 +162,7 @@ class Part(ViewableItem):
         :return: *True* if part shape is null, *False* if not.
         :rtype: bool
         """
-        return self._shape.IsNull()
+        return self._shape.is_null
 
     @property
     def tol(self):
@@ -170,7 +170,7 @@ class Part(ViewableItem):
         :return: The average tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.global_tolerance(self._shape, 0)
+        return self._shape.tol_avg
 
     @property
     def max_tol(self):
@@ -178,7 +178,7 @@ class Part(ViewableItem):
         :return: The maximum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.global_tolerance(self._shape, 1)
+        return self._shape.tol_max
 
     @property
     def min_tol(self):
@@ -186,7 +186,7 @@ class Part(ViewableItem):
         :return: The minimum tolerance of the part shape.
         :rtype: float
         """
-        return ExploreShape.global_tolerance(self._shape, -1)
+        return self._shape.tol_min
 
     @property
     def metadata(self):
@@ -200,7 +200,7 @@ class Part(ViewableItem):
     def subparts(self):
         """
         :return: List of sub-parts associated to this part.
-        :rtype: list[afem.structure.entities.Part]
+        :rtype: list(afem.structure.entities.Part)
         """
         return self._subparts.values()
 
@@ -294,15 +294,15 @@ class Part(ViewableItem):
     def edges(self):
         """
         :return: All the edges of the part shape.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge]
+        :rtype: list(afem.topology.entities.Edge)
         """
-        return ExploreShape.get_edges(self._shape)
+        return self._shape.edges
 
     @property
     def edge_compound(self):
         """
         :return: A compound containing the part edges.
-        :rtype: OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Compound
         """
         return CompoundByShapes(self.edges).compound
 
@@ -318,15 +318,15 @@ class Part(ViewableItem):
     def faces(self):
         """
         :return: All the faces of the part shape.
-        :rtype: list[OCCT.TopoDS.TopoDS_Face]
+        :rtype: list(afem.topology.entities.Face)
         """
-        return ExploreShape.get_faces(self._shape)
+        return self._shape.faces
 
     @property
     def face_compound(self):
         """
         :return: A compound containing the part faces.
-        :rtype: OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Compound
         """
         return CompoundByShapes(self.faces).compound
 
@@ -355,7 +355,7 @@ class Part(ViewableItem):
     def elements(self):
         """
         :return: The elements of the part.
-        :rtype: list[afem.mesh.entities.Element]
+        :rtype: list(afem.mesh.entities.Element)
         """
         ds = self.submesh.ds
         return [e for e in ds.elm_iter]
@@ -364,7 +364,7 @@ class Part(ViewableItem):
     def nodes(self):
         """
         :return: The nodes of part.
-        :rtype: list[afem.mesh.entities.Node]
+        :rtype: list(afem.mesh.entities.Node)
         """
         ds = self.submesh.ds
         return [n for n in ds.node_iter]
@@ -466,20 +466,20 @@ class Part(ViewableItem):
 
         :param entity: The entity.
         :type entity: afem.geometry.entities.Geometry or
-            OCCT.TopoDS.TopoDS_Shape
+            afem.topology.entities.Shape
 
         :return: None.
 
         :raise RuntimeError: If an intersection with the reference curve cannot
             be found.
         """
-        shape1 = CheckShape.to_shape(self.cref)
-        shape2 = CheckShape.to_shape(entity)
+        shape1 = Shape.to_shape(self.cref)
+        shape2 = Shape.to_shape(entity)
         bop = IntersectShapes(shape1, shape2)
         if not bop.is_done:
             raise RuntimeError('Failed to intersect reference curve.')
 
-        pnts = [ExploreShape.pnt_of_vertex(v) for v in bop.vertices]
+        pnts = [v.point for v in bop.vertices]
         p = CheckGeom.nearest_point(self.p1, pnts)
         self.set_p1(p)
 
@@ -490,20 +490,20 @@ class Part(ViewableItem):
 
         :param entity: The entity.
         :type entity: afem.geometry.entities.Geometry or
-            OCCT.TopoDS.TopoDS_Shape
+            afem.topology.entities.Shape
 
         :return: None.
 
         :raise RuntimeError: If an intersection with the reference curve cannot
             be found.
         """
-        shape1 = CheckShape.to_shape(self.cref)
-        shape2 = CheckShape.to_shape(entity)
+        shape1 = Shape.to_shape(self.cref)
+        shape2 = Shape.to_shape(entity)
         bop = IntersectShapes(shape1, shape2)
         if not bop.is_done:
             raise RuntimeError('Failed to intersect reference curve.')
 
-        pnts = [ExploreShape.pnt_of_vertex(v) for v in bop.vertices]
+        pnts = [v.point for v in bop.vertices]
         p = CheckGeom.nearest_point(self.p2, pnts)
         self.set_p2(p)
 
@@ -521,14 +521,6 @@ class Part(ViewableItem):
             msg = 'Invalid surface type.'
             raise TypeError(msg)
         self._sref = sref
-
-    def nullify(self):
-        """
-        Destroy reference of the part shape.
-
-        :return: None
-        """
-        self._shape.Nullify()
 
     def add_metadata(self, key, value):
         """
@@ -586,17 +578,16 @@ class Part(ViewableItem):
         """
         Set the shape of the part.
 
-        :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
 
         :return: None.
 
         :raise TypeError: If *shape* is not a valid shape or cannot be
             converted to a shape.
         """
-        shape = CheckShape.to_shape(shape)
+        shape = Shape.to_shape(shape)
         if not shape:
-            msg = 'Invalid shape.'
-            raise TypeError(msg)
+            raise TypeError('Invalid shape for part.')
 
         self._shape = shape
 
@@ -691,9 +682,9 @@ class Part(ViewableItem):
         :param float d2: An offset distance for the last point. This is
             typically a negative number indicating a distance from *u2*
             towards *u1*.
-        :param OCCT.TopoDS.TopoDS_Shape shape1: A shape to define the first
+        :param afem.topology.entities.Shape shape1: A shape to define the first
             point. This shape is intersected with the edge or wire.
-        :param OCCT.TopoDS.TopoDS_Shape shape2: A shape to define the last
+        :param afem.topology.entities.Shape shape2: A shape to define the last
             point. This shape is intersected with the edge or wire.
         :param float tol: Tolerance.
 
@@ -706,7 +697,7 @@ class Part(ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        edge = CheckShape.to_edge(self._cref)
+        edge = Edge.by_curve(self._cref)
         builder = PointsAlongShapeByNumber(edge, n, d1, d2, shape1, shape2,
                                            tol)
         return builder.points
@@ -725,9 +716,9 @@ class Part(ViewableItem):
         :param float d2: An offset distance for the last point. This is
             typically a negative number indicating a distance from *u2*
             towards *u1*.
-        :param OCCT.TopoDS.TopoDS_Shape shape1: A shape to define the first
+        :param afem.topology.entities.Shape shape1: A shape to define the first
             point. This shape is intersected with the edge or wire.
-        :param OCCT.TopoDS.TopoDS_Shape shape2: A shape to define the last
+        :param afem.topology.entities.Shape shape2: A shape to define the last
             point. This shape is intersected with the edge or wire.
         :param float tol: Tolerance.
 
@@ -740,7 +731,7 @@ class Part(ViewableItem):
             msg = 'Part does not have a reference curve.'
             raise AttributeError(msg)
 
-        edge = CheckShape.to_edge(self._cref)
+        edge = Edge.by_curve(self._cref)
         builder = PointsAlongShapeByDistance(edge, maxd, d1, d2, shape1,
                                              shape2, nmin, tol)
         return builder.points
@@ -920,7 +911,8 @@ class Part(ViewableItem):
         Find the minimum distance between the part and other shape.
 
         :param other: Other part or shape.
-        :type other: OCCT.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+        :type other: afem.topology.entities.Shape or
+            afem.structure.entities.Part
 
         :return: The minimum distance.
         :rtype: float
@@ -960,7 +952,7 @@ class Part(ViewableItem):
         :param float min_tol: Minimum tolerance.
         :param float max_tol: Maximum tolerance.
         :param context: The context shape or group.
-        :type context: OCCT.TopoDS.TopoDS_Shape or
+        :type context: afem.topology.entities.Shape or
             afem.structure.entities.Group or str
         :param bool include_subgroup: Option to recursively include parts
             from any subgroups.
@@ -968,7 +960,7 @@ class Part(ViewableItem):
         :return: None.
         """
         if context is not None:
-            if not isinstance(context, TopoDS_Shape):
+            if not isinstance(context, Shape):
                 context = GroupAPI.as_compound(context, include_subgroup)
 
         new_shape = FixShape(self._shape, precision, min_tol, max_tol,
@@ -981,8 +973,8 @@ class Part(ViewableItem):
 
         :param cutter: The cutter. If geometry is provided it will be
             converted to a shape before the Boolean operation.
-        :type cutter: OCCT.TopoDS.TopoDS_Shape or afem.structure.entities.Part
-            or afem.geometry.entities.Geometry
+        :type cutter: afem.topology.entities.Shape or
+            afem.structure.entities.Part or afem.geometry.entities.Geometry
 
         :return: *True* if shape was cut, *False* if not.
         :rtype: bool
@@ -1004,7 +996,8 @@ class Part(ViewableItem):
         edge).
 
         :param splitter: The splitter.
-        :type splitter: OCCT.TopoDS.TopoDS_Shape or afem.structure.entities.Part
+        :type splitter: afem.topology.entities.Shape or
+            afem.structure.entities.Part
         :param bool rebuild_both: Option to rebuild both if *splitter* is a
             part.
 
@@ -1063,7 +1056,7 @@ class Part(ViewableItem):
         have centroids inside the solid will be removed. Edges are checked
         for curve parts and faces are checked for surface parts.
 
-        :param OCCT.TopoDS.TopoDS_Solid solid: The solid.
+        :param afem.topology.entities.Solid solid: The solid.
         :param float tol: The tolerance. If not provided then the part
             tolerance will be used.
 
@@ -1113,7 +1106,7 @@ class Part(ViewableItem):
         for curve parts and faces are checked for surface parts.
 
         :param entity: The shape.
-        :type entity: OCCT.TopoDS.TopoDS_Shape or
+        :type entity: afem.topology.entities.Shape or
             afem.geometry.entities.Geometry
         :param float dmax: The maximum distance.
 
@@ -1122,7 +1115,7 @@ class Part(ViewableItem):
 
         :raise TypeError: If this part is not a curve or surface part.
         """
-        entity = CheckShape.to_shape(entity)
+        entity = Shape.to_shape(entity)
 
         if isinstance(self, CurvePart):
             shapes = self.edges
@@ -1156,7 +1149,7 @@ class Part(ViewableItem):
         for curve parts and faces are checked for surface parts.
 
         :param entity: The shape.
-        :type entity: OCCT.TopoDS.TopoDS_Shape or
+        :type entity: afem.topology.entities.Shape or
             afem.geometry.entities.Geometry
         :param float dmin: The minimum distance.
 
@@ -1165,7 +1158,7 @@ class Part(ViewableItem):
 
         :raise TypeError: If this part is not a curve or surface part.
         """
-        entity = CheckShape.to_shape(entity)
+        entity = Shape.to_shape(entity)
 
         if isinstance(self, CurvePart):
             shapes = self.edges
@@ -1252,15 +1245,17 @@ class Part(ViewableItem):
         Get vertices shared between the two parts.
 
         :param other: The other part or shape.
-        :type other: afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
+        :type other: afem.structure.entities.Part or
+            afem.topology.entities.Shape
         :param bool as_compound: Option to return the shared vertices in a
             compound.
 
         :return: Shared vertices.
-        :rtype: list[OCCT.TopoDS.TopoDS_Vertex] or OCCT.TopoDS.TopoDS_Compound
+        :rtype: list(afem.topology.entities.Vertex) or
+            afem.topology.entities.Compound
         """
         other = shape_of_entity(other)
-        verts = ExploreShape.get_shared_vertices(self._shape, other)
+        verts = self._shape.shared_vertices(other)
         if not as_compound:
             return verts
         return CompoundByShapes(verts).compound
@@ -1270,15 +1265,17 @@ class Part(ViewableItem):
         Get edges shared between the two parts.
 
         :param other: The other part or shape.
-        :type other: afem.structure.entities.Part or OCCT.TopoDS.TopoDS_Shape
+        :type other: afem.structure.entities.Part or
+            afem.topology.entities.Shape
         :param bool as_compound: Option to return the shared edges in a
             compound.
 
         :return: Shared edges.
-        :rtype: list[OCCT.TopoDS.TopoDS_Edge] or OCCT.TopoDS.TopoDS_Compound
+        :rtype: list(afem.topology.entities.Edge) or
+            afem.topology.entities.Compound
         """
         other = shape_of_entity(other)
-        edges = ExploreShape.get_shared_edges(self._shape, other)
+        edges = self._shape.shared_edges(other)
         if not as_compound:
             return edges
         return CompoundByShapes(edges).compound
@@ -1309,7 +1306,7 @@ class CurvePart(Part):
     """
     Base class for curve parts.
     """
-    _core_shape = TopAbs_EDGE
+    _core_shape = Shape.EDGE
 
     @property
     def length(self):
@@ -1331,7 +1328,7 @@ class SurfacePart(Part):
     """
     Base class for surface parts.
     """
-    _core_shape = TopAbs_FACE
+    _core_shape = Shape.FACE
 
     @property
     def length(self):
@@ -1356,7 +1353,7 @@ class SurfacePart(Part):
     def stiffeners(self):
         """
         :return: List of stiffeners associated to the part.
-        :rtype: list[afem.structure.entities.Stiffener1D]
+        :rtype: list(afem.structure.entities.Stiffener1D)
         """
         return [part for part in self.subparts]
 
@@ -1367,7 +1364,7 @@ class SurfacePart(Part):
         shape.
 
         :return: A new shell from the shape of the part.
-        :rtype: OCCT.TopoDS.TopoDS_Shell
+        :rtype: afem.topology.entities.Shell
         """
         return ShellByFaces(self.faces).shell
 
@@ -1413,10 +1410,8 @@ class SurfacePart(Part):
         parts = [self] + list(other_parts)
         shapes = [self._shape] + [part.shape for part in other_parts]
 
-        tol = float(mean([ExploreShape.global_tolerance(shape, 0) for shape in
-                          shapes], dtype=float))
-        max_tol = max(
-            [ExploreShape.global_tolerance(shape, 1) for shape in shapes])
+        tol = float(mean([shape.tol_avg for shape in shapes], dtype=float))
+        max_tol = max([shape.tol_max for shape in shapes])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
                        non_manifold=True)
@@ -1437,7 +1432,7 @@ class SurfacePart(Part):
 
         :param other: The other part or shape.
         :type other: afem.structure.entities.SurfacePart or
-            OCCT.TopoDS.TopoDS_Shape
+            afem.topology.entities.Shape
         :param bool unify: Option to attempt to unify same domains.
 
         :return: *True* if merged, *False* if not.
@@ -1477,9 +1472,10 @@ class SurfacePart(Part):
         Locally split the faces of he sub-shape in the context of the part
         shape.
 
-        :param OCCT.TopoDS.TopoDS_Shape subshape: The sub-shape.
+        :param afem.topology.entities.Shape subshape: The sub-shape.
         :param tool: The tool to split the sub-shape with.
-        :type tool: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+        :type tool: afem.topology.entities.Shape or
+            afem.geometry.entities.Surface
 
         :return: *True* if split, *False* if not.
         :rtype: bool
@@ -1498,7 +1494,7 @@ class SurfacePart(Part):
         :param afem.structure.entities.SurfacePart other: The other part.
 
         :return: Shared nodes.
-        :rtype: list[afem.mesh.entities.Node]
+        :rtype: list(afem.mesh.entities.Node)
         """
         nodes1 = set(self.nodes)
         nodes2 = set(other.nodes)

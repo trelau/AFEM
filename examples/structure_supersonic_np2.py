@@ -347,6 +347,7 @@ def build(wing, fuselage):
     the_mesh.add_hypotheses([netgen_alg, netgen_hyp], the_shape)
 
     # Compute the mesh
+    print('Computing mesh...')
     the_gen.compute(the_mesh, the_shape)
 
     # View the mesh. Adjust these transparencies if you want to see the

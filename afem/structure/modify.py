@@ -27,7 +27,7 @@ class DiscardByCref(object):
     For a curve part edges are discarded, for a SurfacePart faces are
     discarded.
 
-    :param list[afem.structure.entities.Part] parts: The parts.
+    :param list(afem.structure.entities.Part) parts: The parts.
     """
 
     def __init__(self, parts):

@@ -329,7 +329,7 @@ if __name__ == '__main__':
     bodies = Body.load_bodies(fname)
     wing_in = bodies['Wing']
 
-    v = Viewer(1280, 1024)
+    v = Viewer()
     # Build wing box
     inputs = {'build aux': True,
               'mid spar rib': 10,

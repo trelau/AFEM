@@ -483,7 +483,7 @@ class XdeLabel(object):
     def shape(self):
         """
         :return: The label shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape or None
+        :rtype: afem.topology.entities.Shape or None
         """
         shape = TNaming_NamedShape()
         status, shape = self._label.FindAttribute(shape.GetID_(), shape)
@@ -519,7 +519,7 @@ class XdeLabel(object):
     def children_iter(self):
         """
         :return: Yield the children labels.
-        :rtype: afem.exchange.xde.XdeLabel
+        :rtype: collections.Iterable(afem.exchange.xde.XdeLabel)
         """
         iter_ = TDF_ChildIterator(self._label, False)
         while iter_.More():

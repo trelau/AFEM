@@ -29,9 +29,11 @@ from OCCT.BRepBuilderAPI import (BRepBuilderAPI_Copy,
                                  BRepBuilderAPI_MakeFace,
                                  BRepBuilderAPI_MakePolygon)
 from OCCT.BRepClass3d import BRepClass3d
+from OCCT.BRepGProp import BRepGProp
 from OCCT.BRepTools import BRepTools, BRepTools_WireExplorer
 from OCCT.Bnd import Bnd_Box
 from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
+from OCCT.GProp import GProp_GProps
 from OCCT.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_ShapeTolerance
 from OCCT.ShapeFix import ShapeFix_Solid
 from OCCT.TopAbs import TopAbs_ShapeEnum
@@ -98,6 +100,8 @@ class Shape(ViewableItem):
         """
         Check equality using is_same.
         """
+        if not isinstance(other, Shape):
+            return False
         return self.is_same(other)
 
     @property
@@ -318,6 +322,60 @@ class Shape(ViewableItem):
             yield Shape.wrap(it.Value())
             it.Next()
 
+    @property
+    def length(self):
+        """
+        :return: The length of all edges of the shape.
+        :rtype: float
+        """
+        props = GProp_GProps()
+        BRepGProp.LinearProperties_(self.object, props, True)
+        return props.Mass()
+
+    @property
+    def area(self):
+        """
+        :return: The area of all faces of the shape.
+        :rtype: float
+        """
+        props = GProp_GProps()
+        BRepGProp.SurfaceProperties_(self.object, props, True)
+        return props.Mass()
+
+    @property
+    def volume(self):
+        """
+        :return: The voume of all solids of the shape.
+        :rtype: float
+        """
+        props = GProp_GProps()
+        BRepGProp.VolumeProperties_(self.object, props, True)
+        return props.Mass()
+
+    @property
+    def point(self):
+        """
+        :return: *None* unless overridden in derived class.
+        :rtype: None
+        """
+        return None
+
+    @property
+    def curve(self):
+        """
+        :return: *None* unless overridden in derived class.
+        :rtype: None
+        """
+        return None
+
+    @property
+    def surface(self):
+        """
+        :return: *None* unless overridden in derived class.
+        :rtype: None
+        """
+        return None
+
     def _get_shapes(self, type_):
         """
         Get sub-shapes of a specified type from the shape.
@@ -336,6 +394,14 @@ class Shape(ViewableItem):
             explorer.Next()
         return shapes
 
+    def nullify(self):
+        """
+        Destroy reference to underlying shape and make it null.
+
+        :return: None.
+        """
+        self.object.Nullify()
+
     def reverse(self):
         """
         Reverse the orientation of the shape.
@@ -343,6 +409,15 @@ class Shape(ViewableItem):
         :return: None.
         """
         self.object.Reverse()
+
+    def reversed(self):
+        """
+        Create a new shape with reversed orientation.
+
+        :return: The reversed shape.
+        :rtype: afem.topology.entities.Shape
+        """
+        return Shape.wrap(self.object.Reversed())
 
     def is_partner(self, other):
         """
@@ -655,8 +730,8 @@ class Wire(Shape):
     @property
     def curve(self):
         """
-        :return: Attempts to concatenate all the curves of the edges of the
-            wire into a single B-Spline curve.
+        :return: The curve formed by concatenating all the underlying curves
+            of the edges.
         :rtype: afem.geometry.entities.NurbsCurve
         """
         geom_convert = GeomConvert_CompCurveToBSplineCurve()
@@ -808,6 +883,25 @@ class Shell(Shape):
             shape = TopoDS.Shell_(shape)
         super(Shell, self).__init__(shape)
 
+    @property
+    def surface(self):
+        """
+        :return: The underlying surface of the largest face.
+        :rtype: afem.geometry.entities.Surface
+        """
+        areas = []
+        faces = self.faces
+
+        if len(faces) == 1:
+            return faces[0].surface
+
+        for f in faces:
+            areas.append((f.area, f))
+        areas.sort()
+        fmax = areas[-1][1]
+
+        return fmax.surface
+
     @staticmethod
     def by_surface(surface):
         """
@@ -916,6 +1010,29 @@ class Compound(Shape):
         if not isinstance(shape, TopoDS_Compound):
             shape = TopoDS.Compound_(shape)
         super(Compound, self).__init__(shape)
+
+    @property
+    def surface(self):
+        """
+        :return: The underlying surface of the largest face, or *None* if
+            compound has no faces.
+        :rtype: afem.geometry.entities.Surface
+        """
+        areas = []
+        faces = self.faces
+        nfaces = len(faces)
+
+        if nfaces < 0:
+            return None
+        if nfaces == 1:
+            return faces[0].surface
+
+        for f in faces:
+            areas.append((f.area, f))
+        areas.sort()
+        fmax = areas[-1][1]
+
+        return fmax.surface
 
     @staticmethod
     def by_shapes(shapes):

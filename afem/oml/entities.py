@@ -183,8 +183,10 @@ class Body(ViewableItem):
         :raise TypeError: If *solid* is not a solid.
         """
         if not solid.is_solid:
-            msg = 'Invalid shape provided to Body. Requires a TopoDS_Solid.'
-            raise TypeError(msg)
+            msg = (
+                'Invalid shape provided to Body. Requires Solid but '
+                'got {} instead.'.format(solid.__class__.__name__))
+            warn(msg, RuntimeWarning)
         self._solid = solid
 
     def set_sref(self, srf, divide_closed=True, divide_c0=True):
@@ -295,7 +297,7 @@ class Body(ViewableItem):
             between these two shapes. If they are not they will be projected to
             the intersection which could yield unanticipated results.
         :type basis_shape: afem.geometry.entities.Surface or
-            OCCT.TopoDS.TopoDS_Shape
+            afem.topology.entities.Shape
 
         :return: The curve.
         :rtype: afem.geometry.entities.TrimmedCurve

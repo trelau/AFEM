@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from afem.exchange.xde import XdeDocument
 from afem.structure.utils import order_parts_by_id
-from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes, EdgeByCurve, FaceBySurface
 
 __all__ = ["Group", "GroupAPI"]
@@ -184,19 +183,19 @@ class Group(object):
             from any subgroups.
 
         :return: The parts as a compound.
-        :rtype: OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Compound
         """
         return self.as_compound(include_subgroup)
 
     def as_compound(self, include_subgroup=True):
         """
-        Build a TopoDS_Compound from all the parts of the group.
+        Build a Compound from all the parts of the group.
 
         :param bool include_subgroup: Option to recursively include parts
             from any subgroups.
 
         :return: The parts as a compound.
-        :rtype: OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Compound
         """
         parts = self.get_parts(include_subgroup)
         shapes = [part.shape for part in parts]
@@ -405,7 +404,7 @@ class GroupAPI(object):
             from any subgroups.
 
         :return: The parts as a compound.
-        :rtype: OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Compound
         """
         group = cls.get_group(group)
         return group.prepare_shape_to_mesh(include_subgroup)
@@ -413,7 +412,7 @@ class GroupAPI(object):
     @classmethod
     def as_compound(cls, group='_master', include_subgroup=True):
         """
-        Build a TopoDS_Compound from all the parts of the group.
+        Build a Compound from all the parts of the group.
 
         :param group: The group. If ``None`` then the active group is
             used. By default the master model is used.
@@ -422,7 +421,7 @@ class GroupAPI(object):
             from any subgroups.
 
         :return: The parts as a compound.
-        :rtype: OCCT.TopoDS.TopoDS_Compound
+        :rtype: afem.topology.entities.Compound
         """
         group = cls.get_group(group)
         return group.as_compound(include_subgroup)
@@ -546,13 +545,11 @@ class GroupAPI(object):
 
             # Check for reference geometry
             if type_ == 'CREF':
-                edge = CheckShape.to_edge(shape)
-                cref_to_part[name] = ExploreShape.curve_of_edge(edge)
+                cref_to_part[name] = shape.curve
                 continue
 
             if type_ == 'SREF':
-                face = CheckShape.to_face(shape)
-                sref_to_part[name] = ExploreShape.surface_of_face(face)
+                sref_to_part[name] = shape.surface
                 continue
 
             # Add part data

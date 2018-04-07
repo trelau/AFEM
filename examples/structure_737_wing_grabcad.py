@@ -12,7 +12,7 @@ Settings.log_to_console()
 # Import wing solid from STEP file
 step_read = StepRead(r'../models/boeing_737_wing_grabcad.step')
 shape = step_read.shape
-solids = ExploreShape.get_solids(shape)
+solids = shape.solids
 # There should only be one solid that is the wing
 solid = solids[0]
 

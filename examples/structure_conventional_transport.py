@@ -79,7 +79,7 @@ pln = PlaneByAxes((0., 0., -24.), 'xy').plane
 floor = FloorBySurface('floor', pln, fuselage).floor
 floor.set_transparency(0.5)
 floor.cut(rear_pressure_bh)
-floor.discard_by_solid(hs.Reversed())
+floor.discard_by_solid(hs.reversed())
 floor.cut(bh1.plane)
 floor.cut(bh2.plane)
 
@@ -130,7 +130,7 @@ for frame in frames[3:]:
 
     section = IntersectShapes(frame.plane, post_face1).shape
     shape = CutShapes(section, rev_fuselage).shape
-    if not shape.IsNull():
+    if not shape.is_null:
         post = Beam1D('post', shape)
         post.set_color(1, 0, 0)
         post.cut(floor)
@@ -138,7 +138,7 @@ for frame in frames[3:]:
 
     section = IntersectShapes(frame.plane, post_face2).shape
     shape = CommonShapes(section, fuselage.solid).shape
-    if not shape.IsNull():
+    if not shape.is_null:
         post = Beam1D('post', shape)
         post.set_color(1, 0, 0)
         post.cut(floor)

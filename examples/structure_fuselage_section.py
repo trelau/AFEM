@@ -45,7 +45,7 @@ frames = FramesBetweenPlanesByDistance('frame', pln1, pln2, frame_spacing,
                                        fuselage, frame_height).frames
 
 # Floor beams and posts
-rev_cylinder = cylinder.Reversed()
+rev_cylinder = cylinder.reversed()
 above_floor = ShapeByDrag(main_floor.shape, (0., 2. * diameter, 0.)).shape
 below_cargo_floor = ShapeByDrag(cargo_floor.shape, (0., -60., 0.)).shape
 
@@ -111,7 +111,7 @@ the_mesh.add_hypotheses([hy1d, alg1d])
 mapped_hyp = QuadrangleHypo2D(the_gen)
 mapped_algo = QuadrangleAlgo2D(the_gen)
 
-for face in ExploreShape.get_faces(the_shape):
+for face in the_shape.faces:
     if mapped_algo.is_applicable(face, True):
         the_mesh.add_hypotheses([mapped_hyp, mapped_algo], face)
 

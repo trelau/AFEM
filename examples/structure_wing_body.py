@@ -152,13 +152,15 @@ tip_rib = RibByParameters('tip rib', 0.15, v, 0.65, v, wing).rib
 
 # Front and rear spar. Use intersection of root rib and center spars to
 # define planes so the edges all align at the root rib.
-pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape, tip_rib.p1).plane
+pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape,
+                                tip_rib.p1).plane
 
 p1 = root_rib.p1
 p2 = tip_rib.p1
 fspar = SparByPoints('fspar', p1, p2, wing, pln).spar
 
-pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, tip_rib.p2).plane
+pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape,
+                                tip_rib.p2).plane
 p1 = root_rib.p2
 p2 = tip_rib.p2
 rspar = SparByPoints('rspar', p1, p2, wing, pln).spar
@@ -185,16 +187,16 @@ inbd_ribs = RibsBetweenPlanesByDistance('inbd rib', root_pln, kink_rib.plane,
 
 # Outboard ribs
 u1 = rspar.invert_cref(kink_rib.p2)
-outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 30., fspar.shape,
-                                      rspar.shape, wing, u1=u1, d1=30.,
-                                      d2=-30.).ribs
+outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 30.,
+                                      fspar.shape, rspar.shape, wing, u1=u1,
+                                      d1=30., d2=-30.).ribs
 
 # Rib along kink rib to front spar.
 u1 = fspar.invert_cref(kink_rib.p1)
 u2 = fspar.invert_cref(outbd_ribs[0].p1)
 kink_ribs = RibsAlongCurveByDistance('kink rib', fspar.cref, 30., fspar.shape,
-                                     kink_rib.shape, wing, u1=u1, u2=u2, d1=30.,
-                                     d2=-30., nmin=1).ribs
+                                     kink_rib.shape, wing, u1=u1, u2=u2,
+                                     d1=30., d2=-30., nmin=1).ribs
 
 # Center ribs.
 xz_pln = PlaneByAxes(axes='xz').plane

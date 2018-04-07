@@ -393,7 +393,7 @@ class ImportVSP(object):
             *bspline_restrict* or *reloft* is *True*.
 
         :return: The new solid.
-        :rtype: OCCT.TopoDS.TopoDS_Solid
+        :rtype: afem.topology.entities.Solid
 
         :raise ValueError: If no surfaces are provided.
         """
@@ -550,14 +550,15 @@ def _build_solid(compound, divide_closed):
         sewn_shape = sewn_shape.to_shell()
 
     # Attempt to unify planar domains
-    shell = UnifyShape(sewn_shape, False, False, False).shape
+    shell = UnifyShape(sewn_shape).shape
 
     # Make solid
     if not isinstance(shell, Shell):
         logger.info('\tA valid shell was not able to be generated.')
         check = CheckShape(shell)
-        logger.info('\tShape errors:')
-        check.show_errors(logger.info)
+        if not check.is_valid:
+            logger.info('\tShape errors:')
+            check.show_errors(logger.info)
         return shell, check.invalid_shapes
 
     solid = Solid.by_shell(shell)

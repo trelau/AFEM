@@ -52,7 +52,7 @@ def export_bdf(the_mesh, fn):
     for node in the_mesh.ds.node_iter:
         fout.write("%-8s" % "GRID")
         # ID
-        _write_field(node.nid, fout)
+        _write_field(node.id, fout)
         # CP
         _write_field(None, fout)
         # X1
@@ -74,7 +74,7 @@ def export_bdf(the_mesh, fn):
         else:
             continue
         # EID
-        _write_field(elm.eid, fout)
+        _write_field(elm.id, fout)
         # PID
         _write_field(1, fout)
         for nid in elm.nids:

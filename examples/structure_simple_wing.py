@@ -42,7 +42,7 @@ the_mesh.shape_to_mesh(the_shape)
 # 1-d
 hyp1d = LocalLength1D(the_gen, 4.)
 alg1d = Regular1D(the_gen)
-edges = ExploreShape.get_edges(the_shape)
+edges = the_shape.edges
 cmp = CompoundByShapes(edges).compound
 the_mesh.add_hypothesis(hyp1d, cmp)
 the_mesh.add_hypothesis(alg1d, cmp)

@@ -92,8 +92,7 @@ class PointByXYZ(object):
     """
 
     def __init__(self, x=0., y=0., z=0.):
-        p = Point(x, y, z)
-        self._p = p
+        self._p = Point(x, y, z)
 
     @property
     def point(self):
@@ -106,17 +105,16 @@ class PointByXYZ(object):
 
 class PointByArray(PointByXYZ):
     """
-    Create a point from an array-like object.
+    Create a point from an array.
 
-    :param array_like xyz: Array-like object describing point location.
+    :param array_like xyz: Array describing point location.
 
-    :raise ValueError: If `len(xyz) != 3`.
+    :raise ValueError: If the length of the array is not equal to three.
     """
 
     def __init__(self, xyz=(0., 0., 0.)):
         if len(xyz) != 3:
-            msg = 'Invalid array size.'
-            raise ValueError(msg)
+            raise ValueError('Invalid array size.')
         super(PointByArray, self).__init__(*xyz)
 
 
@@ -128,22 +126,30 @@ class PointFromParameter(object):
     :param float u0: The initial parameter.
     :param float ds: The distance along the curve from the given parameter.
     :param float tol: Tolerance.
-
-    :raise RuntimeError: If OCC method fails.
     """
 
     def __init__(self, c, u0, ds, tol=1.0e-7):
         adp_curve = GeomAdaptor_Curve(c.object)
 
-        ap = GCPnts_AbscissaPoint(tol, adp_curve, ds, u0)
-        if not ap.IsDone():
-            msg = "GCPnts_AbscissaPoint failed."
-            raise RuntimeError(msg)
+        tool = GCPnts_AbscissaPoint(tol, adp_curve, ds, u0)
+        if not tool.IsDone():
+            warn('GCPnts_AbscissaPoint failed.', RuntimeWarning)
 
-        u = ap.Parameter()
-        self._u = u
-        p = c.eval(u)
-        self._p = p
+        self._is_done = tool.IsDone()
+        self._u, self._p = None, None
+        if self._is_done:
+            u = tool.Parameter()
+            self._u = u
+            p = c.eval(u)
+            self._p = p
+
+    @property
+    def is_done(self):
+        """
+        :return: *True* if done, *False* otherwise.
+        :rtype: bool
+        """
+        return self._is_done
 
     @property
     def point(self):
@@ -168,20 +174,16 @@ class PointsAlongCurveByNumber(object):
     equidistant.
 
     :param afem.geometry.entities.Curve c: The curve.
-    :param int n: Number of points to create (*n* > 0).
-    :param float u1: The parameter of the first point (default=c.u1).
-    :param float u2: The parameter of the last point (default=c.u2).
+    :param int n: Number of points to create.
+    :param float u1: The parameter of the first point (default=*c.u1*).
+    :param float u2: The parameter of the last point (default=*c.u2*).
     :param float d1: An offset distance for the first point. This is typically
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last point. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
     :param float tol: Tolerance.
 
-    :raise RuntimeError: If OCC method fails.
-
-    For more information see GCPnts_UniformAbscissa_.
-
-    .. _GCPnts_UniformAbscissa: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_g_c_pnts___uniform_abscissa.html
+    :raise RuntimeError: If ``GCPnts_UniformAbscissa`` fails.
     """
 
     def __init__(self, c, n, u1=None, u2=None, d1=None, d2=None, tol=1.0e-7):
@@ -196,43 +198,39 @@ class PointsAlongCurveByNumber(object):
 
         # Adjust u1 and u2 if d1 or d2 != 0
         if d1 is not None:
-            ap = GCPnts_AbscissaPoint(tol, adp_crv, d1, u1)
-            if ap.IsDone():
-                u1 = ap.Parameter()
-            else:
-                msg = "GCPnts_AbscissaPoint failed for u1."
-                warn(msg, RuntimeWarning)
+            tool = PointFromParameter(c, u1, d1, tol)
+            if tool.is_done:
+                u1 = tool.parameter
         if d2 is not None:
-            ap = GCPnts_AbscissaPoint(tol, adp_crv, d2, u2)
-            if ap.IsDone():
-                u2 = ap.Parameter()
-            else:
-                msg = "GCPnts_AbscissaPoint failed for u2."
-                warn(msg, RuntimeWarning)
+            tool = PointFromParameter(c, u2, d2, tol)
+            if tool.is_done:
+                u2 = tool.parameter
 
         # Create uniform abscissa
-        ua = GCPnts_UniformAbscissa(adp_crv, n, u1, u2, tol)
-        if not ua.IsDone():
-            msg = "GCPnts_UniformAbscissa failed."
-            raise RuntimeError(msg)
+        tool = GCPnts_UniformAbscissa(adp_crv, n, u1, u2, tol)
+        if not tool.IsDone():
+            warn('GCPnts_UniformAbscissa failed.', RuntimeWarning)
 
-        npts = ua.NbPoints()
-        pnts = []
-        prms = []
-        for i in range(1, npts + 1):
-            u = ua.Parameter(i)
-            p = Point()
-            adp_crv.D0(u, p)
-            pnts.append(p)
-            prms.append(u)
-        self._npts = npts
-        self._prms = prms
-        self._pnts = pnts
+        # Gather results
+        self._is_done = tool.IsDone()
+        self._npts = 0
+        self._prms = []
+        self._pnts = []
+        self._ds = None
+
+        if self._is_done:
+            self._npts = tool.NbPoints()
+            for i in range(1, self._npts + 1):
+                u = tool.Parameter(i)
+                p = Point()
+                adp_crv.D0(u, p)
+                self._pnts.append(p)
+                self._prms.append(u)
 
         # Point spacing
         self._ds = None
-        if npts > 1:
-            ds = pnts[0].distance(pnts[1])
+        if self._npts > 1:
+            ds = self._pnts[0].distance(self._pnts[1])
             self._ds = ds
 
     @property
@@ -247,7 +245,7 @@ class PointsAlongCurveByNumber(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts
 
@@ -255,7 +253,7 @@ class PointsAlongCurveByNumber(object):
     def parameters(self):
         """
         :return: The parameters.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._prms
 
@@ -272,7 +270,7 @@ class PointsAlongCurveByNumber(object):
     def interior_points(self):
         """
         :return: The points between the first and last points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         if self.npts < 3:
             return []
@@ -373,7 +371,7 @@ class PointsAlongCurveByDistance(object):
     def points(self):
         """
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts
 
@@ -381,7 +379,7 @@ class PointsAlongCurveByDistance(object):
     def parameters(self):
         """
         :return: The parameters.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._prms
 
@@ -398,7 +396,7 @@ class PointsAlongCurveByDistance(object):
     def interior_points(self):
         """
         :return: The points between the first and last points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         if self.npts < 3:
             return []
@@ -1160,7 +1158,7 @@ class PlaneByApprox(object):
     """
     Create a plane by fitting points. The points must not be collinear.
 
-    :param list[point_like] pnts: Points to fit plane. Should not be collinear.
+    :param list(point_like) pnts: Points to fit plane. Should not be collinear.
     :param float tol: Tolerance used to check for collinear points.
 
     :raise ValueError: If the number of points is less than three.
@@ -1417,7 +1415,7 @@ class PlanesAlongCurveByNumber(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         return self._plns
 
@@ -1425,7 +1423,7 @@ class PlanesAlongCurveByNumber(object):
     def parameters(self):
         """
         :return: The parameters.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._prms
 
@@ -1442,7 +1440,7 @@ class PlanesAlongCurveByNumber(object):
     def interior_planes(self):
         """
         :return: The planes between the first and last planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         if self.nplanes < 3:
             return []
@@ -1535,7 +1533,7 @@ class PlanesAlongCurveByDistance(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         return self._plns
 
@@ -1543,7 +1541,7 @@ class PlanesAlongCurveByDistance(object):
     def parameters(self):
         """
         :return: The parameters.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._prms
 
@@ -1560,7 +1558,7 @@ class PlanesAlongCurveByDistance(object):
     def interior_planes(self):
         """
         :return: The planes between the first and last planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         if self.nplanes < 3:
             return []
@@ -1660,7 +1658,7 @@ class PlanesBetweenPlanesByNumber(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         return self._plns
 
@@ -1677,7 +1675,7 @@ class PlanesBetweenPlanesByNumber(object):
     def interior_planes(self):
         """
         :return: The planes between the first and last planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         if self.nplanes < 3:
             return []
@@ -1777,7 +1775,7 @@ class PlanesBetweenPlanesByDistance(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         return self._plns
 
@@ -1794,7 +1792,7 @@ class PlanesBetweenPlanesByDistance(object):
     def interior_planes(self):
         """
         :return: The planes between the first and last planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         if self.nplanes < 3:
             return []
@@ -1861,7 +1859,7 @@ class PlanesAlongCurveAndSurfaceByDistance(object):
     def planes(self):
         """
         :return: The planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         return self._plns
 
@@ -1869,7 +1867,7 @@ class PlanesAlongCurveAndSurfaceByDistance(object):
     def parameters(self):
         """
         :return: The parameters.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._prms
 
@@ -1886,7 +1884,7 @@ class PlanesAlongCurveAndSurfaceByDistance(object):
     def interior_planes(self):
         """
         :return: The planes between the first and last planes.
-        :rtype: list[afem.geometry.entities.Plane]
+        :rtype: list(afem.geometry.entities.Plane)
         """
         if self.nplanes < 3:
             return []
@@ -1921,14 +1919,14 @@ class NurbsSurfaceByData(object):
     """
     Create a NURBS surface by data.
 
-    :param list[list[point_like]] cp: Two-dimensional list of control points.
-    :param list[float] uknots: Knot vector for u-direction.
-    :param list[float] vknots: Knot vector for v-direction.
-    :param list[int] umult: Multiplicities of knot vector in u-direction.
-    :param list[int] vmult: Multiplicities of knot vector in v-direction.
+    :param list(list(point_like)) cp: Two-dimensional list of control points.
+    :param list(float) uknots: Knot vector for u-direction.
+    :param list(float) vknots: Knot vector for v-direction.
+    :param list(int) umult: Multiplicities of knot vector in u-direction.
+    :param list(int) vmult: Multiplicities of knot vector in v-direction.
     :param int p: Degree in u-direction.
     :param int q: Degree in v-direction.
-    :param list[list[float]] weights: Two-dimensional list of control
+    :param list(list(float)) weights: Two-dimensional list of control
         point weights.
     :param bool is_u_periodic: Flag for periodicity in u-direction.
     :param bool is_v_periodic: Flag for periodicity in v-direction.
@@ -1987,7 +1985,7 @@ class NurbsSurfaceByInterp(object):
     scratch using "The NURBS Book" since OpenCASCADE did not support
     interpolating surfaces with *q* = 1.
 
-    :param list[curve_like] crvs: List of curves to interpolate.
+    :param list(curve_like) crvs: List of curves to interpolate.
     :param int q: Degree. The parameter will be adjusted if the number of
         curves provided does not support the desired degree.
     :param OCCT.Approx.Approx_ParametrizationType parm_type: Parametrization
@@ -2120,7 +2118,7 @@ class NurbsSurfaceByApprox(object):
     """
     Create a NURBS surface by approximating curves.
 
-    :param list[curve_like] crvs: List of curves.
+    :param list(curve_like) crvs: List of curves.
     :param int dmin: Minimum degree.
     :param int dmax: Maximum degree.
     :param float tol3d: 3-D tolerance.

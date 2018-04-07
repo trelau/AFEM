@@ -20,8 +20,8 @@ from numpy import mean
 
 from afem.structure.entities import SurfacePart
 from afem.topology.bop import FuseShapes, IntersectShapes, SplitShapes
-from afem.topology.check import CheckShape
 from afem.topology.create import CompoundByShapes, EdgeByCurve
+from afem.topology.entities import Shape
 from afem.topology.modify import RebuildShapesByTool, SewShape
 
 __all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "CutParts",
@@ -70,7 +70,7 @@ class FuseSurfaceParts(object):
     def shape(self):
         """
         :return: The fused shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._fused_shape
 
@@ -110,8 +110,8 @@ class FuseSurfacePartsByCref(object):
                 if not main.has_cref or not other.has_cref:
                     continue
                 if tol is None:
-                    tol1 = ExploreShape.global_tolerance(main.shape, 1)
-                    tol2 = ExploreShape.global_tolerance(other.shape, 1)
+                    tol1 = main.shape.tol_max
+                    tol2 = other.shape.tol_max
                     _tol = max(tol1, tol2)
                 else:
                     _tol = tol
@@ -147,13 +147,13 @@ class CutParts(object):
     :param parts: The parts to cut.
     :type parts: collections.Sequence(afem.structure.entities.Part)
     :param shape: The shape to cut with.
-    :type shape: OCCT.TopoDS.TopoDS_Shape or afem.geometry.entities.Surface
+    :type shape: afem.topology.entities.Shape or afem.geometry.entities.Surface
     """
 
     def __init__(self, parts, shape):
         parts = list(parts)
 
-        shape2 = CheckShape.to_shape(shape)
+        shape2 = Shape.to_shape(shape)
 
         # Loop through each since since that seems to be more robust
         self._status = {}
@@ -189,7 +189,7 @@ class SewSurfaceParts(object):
     Sew edges of the surface parts and rebuild their shapes.
 
     :param parts: The parts to sew.
-    :type parts: collections.Sequence[afem.structure.entities.SurfacePart]
+    :type parts: collections.Sequence(afem.structure.entities.SurfacePart)
     :param float tol: The tolerance. If not provided then the average
         tolerance from all part shapes will be used.
     :param float max_tol: Maximum tolerance. If not provided then the maximum
@@ -201,12 +201,10 @@ class SewSurfaceParts(object):
         shapes = [part.shape for part in parts]
 
         if tol is None:
-            tol = mean([ExploreShape.global_tolerance(shape, 0) for shape in
-                        shapes], dtype=float)
+            tol = mean([shape.tol_avg for shape in shapes], dtype=float)
 
         if max_tol is None:
-            max_tol = max([ExploreShape.global_tolerance(shape, 1) for shape
-                           in shapes])
+            max_tol = max([shape.tol_max for shape in shapes])
 
         sew = SewShape(tol=tol, max_tol=max_tol, cut_free_edges=True,
                        non_manifold=True)
@@ -266,7 +264,7 @@ class SplitParts(object):
     def shape(self):
         """
         :return: The split shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._split_shape
 
@@ -277,7 +275,7 @@ class FuseGroups(object):
     shapes into compounds before the Boolean operation.
 
     :param groups: The groups.
-    :type groups: collections.Sequence[afem.structure.group.Group]
+    :type groups: collections.Sequence(afem.structure.group.Group)
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool include_subgroup: Option to recursively include parts
             from all subgroups.
@@ -331,6 +329,6 @@ class FuseGroups(object):
     def shape(self):
         """
         :return: The fused shape.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
+        :rtype: afem.topology.entities.Shape
         """
         return self._bop.shape
