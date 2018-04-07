@@ -32,8 +32,8 @@ from OCCT.BRepClass3d import BRepClass3d
 from OCCT.BRepGProp import BRepGProp
 from OCCT.BRepTools import BRepTools, BRepTools_WireExplorer
 from OCCT.Bnd import Bnd_Box
-from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCCT.GProp import GProp_GProps
+from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCCT.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_ShapeTolerance
 from OCCT.ShapeFix import ShapeFix_Solid
 from OCCT.TopAbs import TopAbs_ShapeEnum
@@ -43,9 +43,9 @@ from OCCT.TopoDS import (TopoDS, TopoDS_Vertex, TopoDS_Edge, TopoDS_Wire,
                          TopoDS_Compound, TopoDS_CompSolid, TopoDS_Shape,
                          TopoDS_Iterator)
 
+from afem.base.entities import ViewableItem
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Point, Curve, Surface
-from afem.graphics.display import ViewableItem
 
 __all__ = ["Shape", "Vertex", "Edge", "Wire", "Face", "Shell", "Solid",
            "Compound", "CompSolid",
@@ -103,6 +103,14 @@ class Shape(ViewableItem):
         if not isinstance(other, Shape):
             return False
         return self.is_same(other)
+
+    @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return self.object
 
     @property
     def object(self):

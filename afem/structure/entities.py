@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from numpy import mean
 
+from afem.base.entities import ViewableItem
 from afem.config import logger
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
@@ -26,7 +27,6 @@ from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
 from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
-from afem.graphics.display import ViewableItem
 from afem.oml.entities import Body
 from afem.structure.group import GroupAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
@@ -123,6 +123,14 @@ class Part(ViewableItem):
         # Log
         msg = ' '.join(['Creating part:', label])
         logger.info(msg)
+
+    @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return self.shape.object
 
     @property
     def type(self):

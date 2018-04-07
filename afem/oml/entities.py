@@ -18,11 +18,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from warnings import warn
 
+from afem.base.entities import ViewableItem
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import Surface
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
-from afem.graphics.display import ViewableItem
 from afem.topology.bop import IntersectShapes
 from afem.topology.create import FaceBySurface, WiresByConnectedEdges
 from afem.topology.distance import DistancePointToShapes
@@ -57,6 +57,14 @@ class Body(ViewableItem):
         self._label = label
         self._sref = None
         self._sref_shape = None
+
+    @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return self.solid.object
 
     @property
     def label(self):

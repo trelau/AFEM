@@ -20,6 +20,7 @@ developed by Laughlin Research, LLC.
    :maxdepth: 2
 
    settings
+   base
    geometry
    sketch
    topology

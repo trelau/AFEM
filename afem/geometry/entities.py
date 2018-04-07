@@ -18,7 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from math import radians
 
-from OCCT.BRepBuilderAPI import BRepBuilderAPI_MakeFace
+from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
+                                 BRepBuilderAPI_MakeEdge,
+                                 BRepBuilderAPI_MakeVertex)
 from OCCT.BRepGProp import BRepGProp
 from OCCT.GCPnts import GCPnts_AbscissaPoint
 from OCCT.GProp import GProp_GProps
@@ -33,15 +35,16 @@ from OCCT.GeomLib import GeomLib_IsPlanarSurface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
 from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array2OfPnt)
+from OCCT.TopoDS import TopoDS_Shape
 from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec)
 from numpy import add, array, float64, subtract
 
+from afem.base.entities import ViewableItem
 from afem.geometry.utils import (global_to_local_param,
                                  homogenize_array1d,
                                  homogenize_array2d,
                                  local_to_global_param,
                                  reparameterize_knots)
-from afem.graphics.display import ViewableItem
 from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolgp_array2_pnt,
                             to_np_from_tcolstd_array1_integer,
@@ -57,7 +60,7 @@ __all__ = ["Geometry2D", "Point2D", "NurbsCurve2D", "Geometry", "Point",
 
 # 2-D -------------------------------------------------------------------------
 
-class Geometry2D(ViewableItem):
+class Geometry2D(object):
     """
     Base class for 2-D geometry.
 
@@ -526,6 +529,23 @@ class Geometry(ViewableItem):
         super(Geometry, self).__init__()
         self._object = obj
 
+    @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        if isinstance(self, Point):
+            return BRepBuilderAPI_MakeVertex(self).Vertex()
+        if isinstance(self, Curve):
+            return BRepBuilderAPI_MakeEdge(self.object).Edge()
+        if isinstance(self, Surface):
+            return BRepBuilderAPI_MakeFace(self.object, 0.).Face()
+
+        msg = ('Viewing this type is not yet support. '
+               'Implement displayed_shape property.')
+        raise NotImplementedError(msg)
+
     def translate(self, v):
         """
         Translate the geometry along the vector.
@@ -655,6 +675,14 @@ class Point(gp_Pnt, Geometry):
 
     def __sub__(self, other):
         return subtract(self, other)
+
+    @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return BRepBuilderAPI_MakeVertex(self).Vertex()
 
     @property
     def x(self):
