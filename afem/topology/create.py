@@ -408,7 +408,7 @@ class WiresByConnectedEdges(object):
     def wires(self):
         """
         :return: The wires.
-        :rtype: list[afem.topology.entities.Wire]
+        :rtype: list(afem.topology.entities.Wire)
         """
         return self._wires
 

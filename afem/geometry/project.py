@@ -60,7 +60,7 @@ class PointProjector(object):
     def points(self):
         """
         :return: Projected points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         if self.npts <= 0:
             return []
@@ -70,7 +70,7 @@ class PointProjector(object):
     def parameters(self):
         """
         :return: Parameters of projected points.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         if self.npts <= 0:
             return []

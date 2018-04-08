@@ -79,7 +79,7 @@ class CurveIntersector(object):
     def points(self):
         """
         :return: List of intersection points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         if self._npts <= 0:
             return []
@@ -94,7 +94,7 @@ class CurveIntersector(object):
             curve-surface intersection this will be a list of tuples
             containing the parameters for the surface and then the curve
             [(u, v, t), (u, v, t), ...].
-        :rtype: list[tuple(float)]
+        :rtype: list(tuple(float))
         """
         if self._npts <= 0:
             return []
@@ -276,7 +276,7 @@ class SurfaceIntersector(object):
     def curves(self):
         """
         :return: The intersection curves.
-        :rtype: list[afem.geometry.entities.Curve]
+        :rtype: list(afem.geometry.entities.Curve)
         """
         return self._crvs
 

@@ -100,10 +100,10 @@ class CheckGeom(object):
         """
         Convert entities to points if possible.
 
-        :param list[point_like] geoms: List of entities.
+        :param list(point_like) geoms: List of entities.
 
         :return: List of points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return [CheckGeom.to_point(p) for p in geoms if
                 CheckGeom.is_point_like(p)]
@@ -309,7 +309,7 @@ class CheckGeom(object):
         Find the point nearest to a given point.
 
         :param point_like p: The point.
-        :param  list[point_like] pnts: List of points.
+        :param  list(point_like) pnts: List of points.
 
         :return: The nearest point.
         :rtype: afem.geometry.entities.Point

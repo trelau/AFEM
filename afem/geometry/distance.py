@@ -101,7 +101,7 @@ class DistancePointToCurve(object):
     def distances(self):
         """
         :return: Sorted distances.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._dist
 
@@ -109,7 +109,7 @@ class DistancePointToCurve(object):
     def parameters(self):
         """
         :return: Sorted parameters on curve.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._prms
 
@@ -117,7 +117,7 @@ class DistancePointToCurve(object):
     def points(self):
         """
         :return: Sorted points on curve.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts
 
@@ -186,7 +186,7 @@ class DistancePointToSurface(object):
     def distances(self):
         """
         :return: Sorted distances.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._dist
 
@@ -195,7 +195,7 @@ class DistancePointToSurface(object):
         """
         :return: Sorted parameters on surface. This is a list of tuples
          containing the (u, v) locations.
-        :rtype: list[tuple(float)]
+        :rtype: list(tuple(float))
         """
         return self._prms
 
@@ -203,7 +203,7 @@ class DistancePointToSurface(object):
     def points(self):
         """
         :return: Sorted points on surface.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts
 
@@ -280,7 +280,7 @@ class DistanceCurveToCurve(object):
     def distances(self):
         """
         :return: Sorted distances.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._dist
 
@@ -288,7 +288,7 @@ class DistanceCurveToCurve(object):
     def points1(self):
         """
         :return: Sorted points on first curve.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts1
 
@@ -296,7 +296,7 @@ class DistanceCurveToCurve(object):
     def points2(self):
         """
         :return: Sorted points on second curve.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts2
 
@@ -373,7 +373,7 @@ class DistanceCurveToSurface(object):
     def distances(self):
         """
         :return: Sorted distances.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._dist
 
@@ -381,7 +381,7 @@ class DistanceCurveToSurface(object):
     def points1(self):
         """
         :return: Sorted points on the curve.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts1
 
@@ -389,7 +389,7 @@ class DistanceCurveToSurface(object):
     def points2(self):
         """
         :return: Sorted points on the surface.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts2
 
@@ -466,7 +466,7 @@ class DistanceSurfaceToSurface(object):
     def distances(self):
         """
         :return: Sorted distances.
-        :rtype: list[float]
+        :rtype: list(float)
         """
         return self._dist
 
@@ -474,7 +474,7 @@ class DistanceSurfaceToSurface(object):
     def points1(self):
         """
         :return: Sorted points on the first surface.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts1
 
@@ -482,6 +482,6 @@ class DistanceSurfaceToSurface(object):
     def points2(self):
         """
         :return: Sorted points on the second surface.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
         """
         return self._pnts2

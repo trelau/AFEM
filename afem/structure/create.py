@@ -652,7 +652,7 @@ class SparsBetweenPlanesByNumber(object):
     def spars(self):
         """
         :return: The spars.
-        :rtype: list[afem.structure.entities.Spar]
+        :rtype: list(afem.structure.entities.Spar)
         """
         return self._spars
 
@@ -736,7 +736,7 @@ class SparsBetweenPlanesByDistance(object):
     def spars(self):
         """
         :return: The spars.
-        :rtype: list[afem.structure.entities.Spar]
+        :rtype: list(afem.structure.entities.Spar)
         """
         return self._spars
 
@@ -826,7 +826,7 @@ class SparsAlongCurveByNumber(object):
     def spars(self):
         """
         :return: The spars.
-        :rtype: list[afem.structure.entities.Spar]
+        :rtype: list(afem.structure.entities.Spar)
         """
         return self._spars
 
@@ -917,7 +917,7 @@ class SparsAlongCurveByDistance(object):
     def spars(self):
         """
         :return: The spars.
-        :rtype: list[afem.structure.entities.Spar]
+        :rtype: list(afem.structure.entities.Spar)
         """
         return self._spars
 
@@ -1296,7 +1296,7 @@ class RibsBetweenPlanesByNumber(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.entities.Rib]
+        :rtype: list(afem.structure.entities.Rib)
         """
         return self._ribs
 
@@ -1380,7 +1380,7 @@ class RibsBetweenPlanesByDistance(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.entities.Rib]
+        :rtype: list(afem.structure.entities.Rib)
         """
         return self._ribs
 
@@ -1470,7 +1470,7 @@ class RibsAlongCurveByNumber(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.entities.Rib]
+        :rtype: list(afem.structure.entities.Rib)
         """
         return self._ribs
 
@@ -1561,7 +1561,7 @@ class RibsAlongCurveByDistance(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.entities.Rib]
+        :rtype: list(afem.structure.entities.Rib)
         """
         return self._ribs
 
@@ -1658,7 +1658,7 @@ class RibsAlongCurveAndSurfaceByDistance(object):
     def ribs(self):
         """
         :return: The ribs.
-        :rtype: list[afem.structure.entities.Rib]
+        :rtype: list(afem.structure.entities.Rib)
         """
         return self._ribs
 
@@ -1824,7 +1824,7 @@ class FramesByPlanes(object):
     :class:`.FrameByPlane`.
 
     :param str label: Part label.
-    :param list[afem.geometry.entities.Plane] plns: The planes.
+    :param list(afem.geometry.entities.Plane) plns: The planes.
     :param afem.oml.entities.Body body: The body.
     :param float height: The height.
     :param int first_index: The first index appended to the part label as
@@ -1862,7 +1862,7 @@ class FramesByPlanes(object):
     def frames(self):
         """
         :return: The frames.
-        :rtype: list[afem.structure.entities.Frame]
+        :rtype: list(afem.structure.entities.Frame)
         """
         return self._frames
 
@@ -1929,7 +1929,7 @@ class FramesBetweenPlanesByNumber(object):
     def frames(self):
         """
         :return: The frames.
-        :rtype: list[afem.structure.entities.Frame]
+        :rtype: list(afem.structure.entities.Frame)
         """
         return self._frames
 
@@ -2005,7 +2005,7 @@ class FramesBetweenPlanesByDistance(object):
     def frames(self):
         """
         :return: The frames.
-        :rtype: list[afem.structure.entities.Frame]
+        :rtype: list(afem.structure.entities.Frame)
         """
         return self._frames
 

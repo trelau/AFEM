@@ -131,7 +131,7 @@ def chord_parameters(pnts, a=0., b=1.):
     """
     Generate parameters using chord length method.
 
-    :param list[point_like] pnts: List of ordered points.
+    :param list(point_like) pnts: List of ordered points.
     :param float a: Lower bound.
     :param float b: Upper bound.
 
@@ -156,7 +156,7 @@ def centripetal_parameters(pnts, a=0., b=1.):
     """
     Generate parameters using centripetal method.
 
-    :param list[point_like] pnts: List of ordered points.
+    :param list[(point_like) pnts: List of ordered points.
     :param float a: Lower domain.
     :param float b: Upper domain.
 

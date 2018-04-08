@@ -61,7 +61,7 @@ class Group(object):
     def parts(self):
         """
         :return: List of all parts.
-        :rtype: list[afem.structure.entities.Part]
+        :rtype: list(afem.structure.entities.Part)
         """
         return list(self._parts)
 
@@ -144,7 +144,7 @@ class Group(object):
         :param bool order: Option to order parts by their ID.
 
         :return: List of parts.
-        :rtype: list[afem.structure.entities.Part]
+        :rtype: list(afem.structure.entities.Part)
         """
         parts = []
         for part in self.parts:
@@ -370,7 +370,7 @@ class GroupAPI(object):
         :param bool order: Option to order parts by their ID.
 
         :return: The parts.
-        :rtype: list[afem.structure.entities.Part]
+        :rtype: list(afem.structure.entities.Part)
         """
         group = cls.get_group(group)
         return group.get_parts(include_subgroup, rtype, order)

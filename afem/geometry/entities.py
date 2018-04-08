@@ -34,8 +34,7 @@ from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCCT.GeomLib import GeomLib_IsPlanarSurface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
-from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array2OfPnt)
-from OCCT.TopoDS import TopoDS_Shape
+from OCCT.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
 from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec)
 from numpy import add, array, float64, subtract
 
@@ -675,14 +674,6 @@ class Point(gp_Pnt, Geometry):
 
     def __sub__(self, other):
         return subtract(self, other)
-
-    @property
-    def displayed_shape(self):
-        """
-        :return: The shape to be displayed.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
-        """
-        return BRepBuilderAPI_MakeVertex(self).Vertex()
 
     @property
     def x(self):

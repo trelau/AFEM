@@ -697,7 +697,7 @@ class Part(ViewableItem):
         :param float tol: Tolerance.
 
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -731,7 +731,7 @@ class Part(ViewableItem):
         :param float tol: Tolerance.
 
         :return: The points.
-        :rtype: list[afem.geometry.entities.Point]
+        :rtype: list(afem.geometry.entities.Point)
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -770,12 +770,12 @@ class Part(ViewableItem):
         """
         Project points to the reference curve.
 
-        :param list[afem.geometry.entities.Point] pnts: The points. Position
+        :param list(afem.geometry.entities.Point) pnts: The points. Position
             will be updated.
         :param vector_like direction: Projection direction.
 
         :return: List of status for each point.
-        :rtype: list[bool]
+        :rtype: list(bool)
 
         :raise AttributeError: If part does not have a reference curve.
         """
@@ -818,12 +818,12 @@ class Part(ViewableItem):
         """
         Project points to reference surface.
 
-        :param list[afem.geometry.entities.Point] pnts: The points. Position
+        :param list(afem.geometry.entities.Point) pnts: The points. Position
             will be updated.
         :param vector_like direction: Projection direction.
 
         :return: List of status for each point.
-        :rtype: list[bool]
+        :rtype: list(bool)
 
         :raise AttributeError: If part does not have a reference surface.
         """
