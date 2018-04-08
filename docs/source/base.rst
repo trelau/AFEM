@@ -9,3 +9,7 @@ Entities
 ViewableItem
 ~~~~~~~~~~~~
 .. autoclass:: ViewableItem
+
+ShapeHolder
+~~~~~~~~~~~
+.. autoclass:: ShapeHolder

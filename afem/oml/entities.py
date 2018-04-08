@@ -16,55 +16,38 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from warnings import warn
-
-from afem.base.entities import ViewableItem
+from afem.base.entities import ShapeHolder
 from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
 from afem.geometry.entities import Surface
-from afem.geometry.project import (ProjectPointToCurve,
-                                   ProjectPointToSurface)
+from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
 from afem.topology.bop import IntersectShapes
 from afem.topology.create import FaceBySurface, WiresByConnectedEdges
 from afem.topology.distance import DistancePointToShapes
-from afem.topology.entities import Shape, BBox
+from afem.topology.entities import Shape, Solid, BBox
 from afem.topology.modify import DivideC0Shape, DivideClosedShape
 from afem.topology.transform import mirror_shape
 
 __all__ = ["Body"]
 
 
-class Body(ViewableItem):
+class Body(ShapeHolder):
     """
     Generic class for solid bodies and encapsulating necessary
     information when creating structural components.
 
     :param shape: The shape which should be a solid.
-    :type shape: afem.topology.entities.Shape or afem.topology.entities.Solid
+    :type shape: afem.topology.entities.Solid
     :param str label: The label.
 
     :raise TypeError: If type of ``shape`` is not a solid.
     """
 
     def __init__(self, shape, label='Body'):
-        super(Body, self).__init__()
-        if not shape.is_solid:
-            msg = (
-                'Invalid shape provided to Body. Requires Solid but '
-                'got {} instead.'.format(shape.__class__.__name__))
-            warn(msg, RuntimeWarning)
-        self._shape = shape
+        super(Body, self).__init__(Solid, shape)
         self._metadata = {}
         self._label = label
         self._sref = None
         self._sref_shape = None
-
-    @property
-    def displayed_shape(self):
-        """
-        :return: The shape to be displayed.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
-        """
-        return self.shape.object
 
     @property
     def label(self):
@@ -73,14 +56,6 @@ class Body(ViewableItem):
         :rtype: str
         """
         return self._label
-
-    @property
-    def shape(self):
-        """
-        :return: The solid shape.
-        :rtype: afem.topology.entities.Solid
-        """
-        return self._shape
 
     @property
     def outer_shell(self):
@@ -179,23 +154,6 @@ class Body(ViewableItem):
         :raise KeyError: If the key is not in the dictionary.
         """
         return self._metadata[key]
-
-    def set_solid(self, solid):
-        """
-        Set the solid for the body.
-
-        :param afem.topology.entities.Solid solid: The solid.
-
-        :return: None.
-
-        :raise TypeError: If *solid* is not a solid.
-        """
-        if not solid.is_solid:
-            msg = (
-                'Invalid shape provided to Body. Requires Solid but '
-                'got {} instead.'.format(solid.__class__.__name__))
-            warn(msg, RuntimeWarning)
-        self._shape = solid
 
     def set_sref(self, srf, divide_closed=True, divide_c0=True):
         """

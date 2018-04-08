@@ -16,15 +16,17 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+from warnings import warn
+
 from OCCT.Quantity import Quantity_TOC_RGB, Quantity_Color
 from numpy.random import rand
 
-__all__ = ["ViewableItem"]
+__all__ = ["ViewableItem", "ShapeHolder"]
 
 
 class ViewableItem(object):
     """
-    Base class for items that can be viewed.
+    Base class for types that can be viewed.
 
     :ivar OCCT.Quantity.Quantity_Color color: The OpenCASCADE color quantity.
     :ivar float transparency: The transparency level.
@@ -76,3 +78,54 @@ class ViewableItem(object):
         elif transparency > 1.:
             transparency = 1.
         self.transparency = transparency
+
+
+class ShapeHolder(ViewableItem):
+    """
+    Base class for types that store a shape.
+
+    :param Type[afem.topology.entities.Shape] expected_type: The expected type.
+    :param afem.topology.entities.Shape shape: The shape.
+    """
+
+    def __init__(self, expected_type, shape=None):
+        super(ShapeHolder, self).__init__()
+        self._type = expected_type
+        self._type_name = expected_type.__class__.__name__
+        self._shape = None
+        if shape is not None:
+            self.set_shape(shape)
+
+    @property
+    def shape(self):
+        """
+        :return: The shape.
+        :rtype: afem.topology.entities.Shape
+        """
+        return self._shape
+
+    @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Shape
+        """
+        return self.shape.object
+
+    def set_shape(self, shape):
+        """
+        Set the shape.
+
+        :param afem.topology.entities.Shape shape: The shape.
+
+        :return: None.
+        """
+        if not isinstance(shape, self._type):
+            this = self.__class__.__name__
+            other = shape.__class__.__name__
+            msg = ('Invalid shape provided for {}. '
+                   'Expected a {} but got a {}'.format(this, self._type_name,
+                                                       other))
+            warn(msg, RuntimeWarning)
+
+        self._shape = shape

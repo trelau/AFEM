@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from numpy import mean
 
-from afem.base.entities import ViewableItem
+from afem.base.entities import ShapeHolder
 from afem.config import logger
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
@@ -27,7 +27,6 @@ from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
 from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
-from afem.oml.entities import Body
 from afem.structure.group import GroupAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)
@@ -60,19 +59,18 @@ def shape_of_entity(entity):
 
     :param entity: The entity.
     :type entity: afem.geometry.entities.Geometry or
-        afem.structure.entities.Part or afem.oml.entities.Body or
-        afem.topology.entities.Shape
+        afem.topology.entities.Shape or afem.base.entities.ShapeHolder
 
     :return: The shape.
     :rtype: afem.topology.entities.Shape
     """
-    if isinstance(entity, (Part, Body)):
+    if isinstance(entity, ShapeHolder):
         return entity.shape
     else:
         return Shape.to_shape(entity)
 
 
-class Part(ViewableItem):
+class Part(ShapeHolder):
     """
     Base class for all parts.
 
@@ -96,7 +94,7 @@ class Part(ViewableItem):
 
     def __init__(self, label, shape, cref=None, sref=None, group=None):
         # TODO Switch back to Part.name instead of label
-        super(Part, self).__init__()
+        super(Part, self).__init__(Shape, shape)
 
         self._cref, self._sref = None, None
         self._metadata = {}
@@ -106,7 +104,6 @@ class Part(ViewableItem):
         Part._indx += 1
 
         self._label = label
-        self._shape = shape
 
         if cref is not None:
             self.set_cref(cref)
@@ -120,14 +117,6 @@ class Part(ViewableItem):
         # Log
         msg = ' '.join(['Creating part:', label])
         logger.info(msg)
-
-    @property
-    def displayed_shape(self):
-        """
-        :return: The shape to be displayed.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
-        """
-        return self.shape.object
 
     @property
     def type(self):
@@ -154,14 +143,6 @@ class Part(ViewableItem):
         return self._id
 
     @property
-    def shape(self):
-        """
-        :return: The part shape.
-        :rtype: afem.topology.entities.Shape
-        """
-        return self._shape
-
-    @property
     def is_null(self):
         """
         :return: *True* if part shape is null, *False* if not.
@@ -170,7 +151,7 @@ class Part(ViewableItem):
         return self._shape.is_null
 
     @property
-    def tol(self):
+    def tol_avg(self):
         """
         :return: The average tolerance of the part shape.
         :rtype: float
@@ -178,7 +159,7 @@ class Part(ViewableItem):
         return self._shape.tol_avg
 
     @property
-    def max_tol(self):
+    def tol_max(self):
         """
         :return: The maximum tolerance of the part shape.
         :rtype: float
@@ -186,7 +167,7 @@ class Part(ViewableItem):
         return self._shape.tol_max
 
     @property
-    def min_tol(self):
+    def tol_min(self):
         """
         :return: The minimum tolerance of the part shape.
         :rtype: float
@@ -578,23 +559,6 @@ class Part(ViewableItem):
         :raise KeyError: If key not present in the dictionary.
         """
         return self._subparts[key]
-
-    def set_shape(self, shape):
-        """
-        Set the shape of the part.
-
-        :param afem.topology.entities.Shape shape: The shape.
-
-        :return: None.
-
-        :raise TypeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
-        """
-        shape = Shape.to_shape(shape)
-        if not shape:
-            raise TypeError('Invalid shape for part.')
-
-        self._shape = shape
 
     def local_to_global_u(self, u):
         """
@@ -1079,7 +1043,7 @@ class Part(ViewableItem):
             raise TypeError(msg)
 
         if tol is None:
-            tol = self.tol
+            tol = self.tol_avg
 
         rebuild = RebuildShapeWithShapes(self._shape)
         classifer = ClassifyPointInSolid(solid, tol=tol)

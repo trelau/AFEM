@@ -75,8 +75,8 @@ class TestStructureEntities(unittest.TestCase):
         self.assertTrue(self.null_rib.is_null)
 
     def test_part_tol(self):
-        self.assertAlmostEqual(self.fspar.tol, 1.5366868787116302e-5, places=7)
-        self.assertAlmostEqual(self.fspar.max_tol, 5.922308296231664e-5,
+        self.assertAlmostEqual(self.fspar.tol_avg, 1.5366868787116302e-5, places=7)
+        self.assertAlmostEqual(self.fspar.tol_max, 5.922308296231664e-5,
                                places=7)
 
     def test_part_cref(self):
