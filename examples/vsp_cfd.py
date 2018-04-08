@@ -23,7 +23,7 @@ gui = Viewer()
 solids = []
 for body in vsp_import.all_bodies:
     gui.add(body)
-    solids.append(body.solid)
+    solids.append(body.shape)
 gui.start()
 gui.clear()
 

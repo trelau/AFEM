@@ -439,7 +439,7 @@ class TestStructureCreate(unittest.TestCase):
         self.assertAlmostEqual(builder.spacing, 22.222, delta=0.001)
 
     def test_skin_by_solid(self):
-        skin = SkinBySolid('skin', self.wing.solid).skin
+        skin = SkinBySolid('skin', self.wing.shape).skin
         self.assertIsInstance(skin, Skin)
 
     def test_skin_by_body(self):

@@ -38,21 +38,21 @@ class Body(ViewableItem):
     Generic class for solid bodies and encapsulating necessary
     information when creating structural components.
 
-    :param solid: The solid.
-    :type solid: afem.topology.entities.Shape
+    :param shape: The shape which should be a solid.
+    :type shape: afem.topology.entities.Shape or afem.topology.entities.Solid
     :param str label: The label.
 
-    :raise TypeError: If ``solid`` shape type is not a solid.
+    :raise TypeError: If type of ``shape`` is not a solid.
     """
 
-    def __init__(self, solid, label=None):
+    def __init__(self, shape, label='Body'):
         super(Body, self).__init__()
-        if not solid.is_solid:
+        if not shape.is_solid:
             msg = (
                 'Invalid shape provided to Body. Requires Solid but '
-                'got {} instead.'.format(solid.__class__.__name__))
+                'got {} instead.'.format(shape.__class__.__name__))
             warn(msg, RuntimeWarning)
-        self._solid = solid
+        self._shape = shape
         self._metadata = {}
         self._label = label
         self._sref = None
@@ -64,7 +64,7 @@ class Body(ViewableItem):
         :return: The shape to be displayed.
         :rtype: OCCT.TopoDS.TopoDS_Shape
         """
-        return self.solid.object
+        return self.shape.object
 
     @property
     def label(self):
@@ -75,12 +75,12 @@ class Body(ViewableItem):
         return self._label
 
     @property
-    def solid(self):
+    def shape(self):
         """
-        :return: The solid.
+        :return: The solid shape.
         :rtype: afem.topology.entities.Solid
         """
-        return self._solid
+        return self._shape
 
     @property
     def outer_shell(self):
@@ -88,7 +88,7 @@ class Body(ViewableItem):
         :return: The outer shell.
         :rtype: afem.topology.entities.Shell
         """
-        return self._solid.outer_shell
+        return self._shape.outer_shell
 
     @property
     def metadata(self):
@@ -195,7 +195,7 @@ class Body(ViewableItem):
                 'Invalid shape provided to Body. Requires Solid but '
                 'got {} instead.'.format(solid.__class__.__name__))
             warn(msg, RuntimeWarning)
-        self._solid = solid
+        self._shape = solid
 
     def set_sref(self, srf, divide_closed=True, divide_c0=True):
         """
@@ -364,7 +364,7 @@ class Body(ViewableItem):
         :rtype: afem.topology.entities.BBox
         """
         bbox = BBox()
-        bbox.add_shape(self._solid)
+        bbox.add_shape(self._shape)
         if tol is not None:
             bbox.enlarge(tol)
         return bbox
@@ -379,7 +379,7 @@ class Body(ViewableItem):
         :return: Mirrored Body.
         :rtype: afem.oml.entities.Body
         """
-        solid = mirror_shape(self.solid, pln)
+        solid = mirror_shape(self.shape, pln)
         body = Body(solid, label)
         if self.sref is not None:
             sref = self.sref.copy()
@@ -446,7 +446,7 @@ class Body(ViewableItem):
 
         # Add the bodies
         for body in bodies:
-            label = doc.add_shape(body.solid, body.label, False)
+            label = doc.add_shape(body.shape, body.label, False)
             label.set_string('Body')
             label.set_color(body.color)
 

@@ -66,11 +66,8 @@ def shape_of_entity(entity):
     :return: The shape.
     :rtype: afem.topology.entities.Shape
     """
-    # TODO Update after Body.shape
-    if isinstance(entity, Part):
+    if isinstance(entity, (Part, Body)):
         return entity.shape
-    elif isinstance(entity, Body):
-        return entity.solid
     else:
         return Shape.to_shape(entity)
 

@@ -320,7 +320,7 @@ class ImportVSP(object):
         solids = []
         names = []
         for body in bodies:
-            solids.append(body.solid)
+            solids.append(body.shape)
             names.append(body.label)
         cmp = Compound.by_shapes(solids)
 

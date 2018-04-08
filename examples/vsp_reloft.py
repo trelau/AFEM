@@ -52,7 +52,7 @@ v.add(wing)
 v.start()
 v.clear()
 
-split_shape = DivideC0Shape(wing.solid).shape
+split_shape = DivideC0Shape(wing.shape).shape
 v.add(split_shape)
 v.start()
 v.clear()

@@ -322,7 +322,7 @@ class SparByParameters(object):
         cref = body.extract_curve(u1, v1, u2, v2, basis_shape)
 
         # Build part shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -467,7 +467,7 @@ class SparBySurface(object):
                 cref.reverse()
 
         # Build part shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -527,7 +527,7 @@ class SparByShape(object):
                 cref.reverse()
 
         # Build part shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -984,7 +984,7 @@ class RibByParameters(object):
         cref = body.extract_curve(u1, v1, u2, v2, basis_shape)
 
         # Build part shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1085,7 +1085,7 @@ class RibBySurface(object):
                 cref.reverse()
 
         # Build part shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1145,7 +1145,7 @@ class RibByShape(object):
                 cref.reverse()
 
         # Build part shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1700,7 +1700,7 @@ class BulkheadBySurface(object):
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1739,7 +1739,7 @@ class FloorBySurface(object):
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -1780,7 +1780,7 @@ class FrameByPlane(object):
         basis_shape = FaceBySurface(pln).face
 
         # Find initial shape
-        common = CommonShapes(basis_shape, body.solid)
+        common = CommonShapes(basis_shape, body.shape)
         if not common.is_done:
             msg = 'Boolean operation failed.'
             raise RuntimeError(msg)
@@ -2069,7 +2069,7 @@ class SkinByBody(SkinBySolid):
     """
 
     def __init__(self, label, body, copy=False, group=None):
-        super(SkinByBody, self).__init__(label, body.solid, copy, group)
+        super(SkinByBody, self).__init__(label, body.shape, copy, group)
 
 
 # STRINGER --------------------------------------------------------------------

@@ -46,16 +46,16 @@ bh2.cut(face)
 # Rear pressure bulkhead
 p = vtail.eval(0, 0)
 pln = PlaneByAxes(p, 'yz').plane
-section = IntersectShapes(fuselage.solid, pln).shape
+section = IntersectShapes(fuselage.shape, pln).shape
 cg = LinearProps(section).cg
 sphere = BRepPrimAPI_MakeSphere(cg, 120).Shell()
-rev_fuselage = fuselage.solid.Reversed()
+rev_fuselage = fuselage.shape.Reversed()
 sphere = CutShapes(sphere, rev_fuselage).shape
 rear_pressure_bh = Bulkhead('rear pressure bh', sphere)
 hs = HalfspaceBySurface(pln, (0, 0, 0)).solid
 rear_pressure_bh.discard_by_solid(hs)
 rear_pressure_bh.fix()
-section = IntersectShapes(rear_pressure_bh.shape, fuselage.solid).shape
+section = IntersectShapes(rear_pressure_bh.shape, fuselage.shape).shape
 cg = LinearProps(section).cg
 rear_pressure_bh_pln = PlaneByAxes(cg, 'yz').plane
 
@@ -137,7 +137,7 @@ for frame in frames[3:]:
         post.cut(above_floor2)
 
     section = IntersectShapes(frame.plane, post_face2).shape
-    shape = CommonShapes(section, fuselage.solid).shape
+    shape = CommonShapes(section, fuselage.shape).shape
     if not shape.is_null:
         post = Beam1D('post', shape)
         post.set_color(1, 0, 0)
@@ -160,7 +160,7 @@ CutParts([fwd_bh, rear_bh, aft_bh], above_floor)
 # Cut a piece of the wing to cut fuselage faces inside it
 cut1 = SolidByPlane(fwd_bh.plane, 1.e6, 1.e6, -1.e6).solid
 cut2 = SolidByPlane(aft_bh.plane, 1.e6, 1.e6, 1.e6).solid
-joined_wing = FuseShapes(wing.solid, other_wing.solid).shape
+joined_wing = FuseShapes(wing.shape, other_wing.shape).shape
 bop = CutShapes()
 bop.set_args([joined_wing])
 bop.set_tools([cut1, cut2])
@@ -170,7 +170,7 @@ CutParts([fskin, fwd_bh, rear_bh, aft_bh, floor] + frames, cutter)
 
 # Tail bulkhead
 bbox = BBox()
-bbox.add_shape(fuselage.solid)
+bbox.add_shape(fuselage.shape)
 xmax = bbox.xmax
 pln = PlaneByAxes((xmax - 36, 0, 0), 'yz').plane
 tail_bh = BulkheadBySurface('tail bh', pln, fuselage).bulkhead

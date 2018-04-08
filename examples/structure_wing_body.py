@@ -97,7 +97,7 @@ CutParts([fwd_bh, rear_bh, aft_bh], above_floor)
 # Cut a piece of the wing to cut fuselage faces inside it
 cut1 = SolidByPlane(fwd_bh.plane, 1.e6, 1.e6, -1.e6).solid
 cut2 = SolidByPlane(aft_bh.plane, 1.e6, 1.e6, 1.e6).solid
-joined_wing = FuseShapes(wing.solid, other_wing.solid).shape
+joined_wing = FuseShapes(wing.shape, other_wing.shape).shape
 bop = CutShapes()
 bop.set_args([joined_wing])
 bop.set_tools([cut1, cut2])
@@ -114,7 +114,7 @@ wing_group = GroupAPI.create_group('wing group')
 # Root rib
 
 # Find the intersection between the fuselage and wing
-shape = IntersectShapes(fuselage.solid, wing.solid).shape
+shape = IntersectShapes(fuselage.shape, wing.shape).shape
 
 # Discard parts of the intersection curve fwd/aft of bulkheads and keep only
 # the upper skin intersection.

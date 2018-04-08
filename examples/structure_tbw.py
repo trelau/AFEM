@@ -39,7 +39,7 @@ GroupAPI.create_group('wing group')
 
 # Center wing structure will be based on the intersection between the wings
 # and fuselage.
-shape = IntersectShapes(fuselage.solid, wing.solid).shape
+shape = IntersectShapes(fuselage.shape, wing.shape).shape
 
 # Use the y-dimensions of the bounding box of the intersection curve.
 bbox = BBox()
@@ -67,7 +67,7 @@ root_rib = RibByPoints('root rib', fc_spar.p2, rc_spar.p2, wing).rib
 p0 = strut.eval(0.5, 0.)
 p1 = strut.eval(0.5, 1.)
 strut_edge = EdgeByPoints(p0, p1).edge
-bop = IntersectShapes(strut_edge, wing.solid)
+bop = IntersectShapes(strut_edge, wing.shape)
 v = bop.vertices[0]
 p = v.point
 strut_edge = EdgeByPoints(p0, p).edge
