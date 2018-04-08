@@ -21,16 +21,11 @@ from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
 from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
                          TColgp_Array2OfPnt, TColgp_HArray1OfPnt,
                          TColgp_HArray1OfPnt2d)
-from OCCT.TopAbs import (TopAbs_COMPOUND, TopAbs_COMPSOLID, TopAbs_EDGE,
-                         TopAbs_FACE, TopAbs_SHELL, TopAbs_SOLID,
-                         TopAbs_VERTEX,
-                         TopAbs_WIRE)
-from OCCT.TopoDS import TopoDS, TopoDS_ListOfShape
+from OCCT.TopoDS import TopoDS_ListOfShape
 from OCCT.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
 from afem.misc.check import is_array_like
-# from afem.topology.entities import Shape
 
 
 def to_gp_pnt(p):
@@ -339,54 +334,3 @@ def to_topods_list(shapes):
     for s in shapes:
         topods_list.Append(s.object)
     return topods_list
-
-
-def from_topods_list(topods_list):
-    """
-    Create a list from a TopoDS_ListOfShape.
-
-    :param OCCT.TopoDS.TopoDS_ListOfShape topods_list: The list.
-
-    :return: A list of shapes.
-    :rtype: list(afem.topology.entities.Shape)
-    """
-    # TODO Fix circular import
-    from afem.topology.entities import Shape
-
-    if topods_list.IsEmpty():
-        return []
-    lst = []
-    for topods_shape in topods_list:
-        lst.append(Shape.wrap(topods_shape))
-    return lst
-
-
-def downcast_shape(shape):
-    """
-    Downcast a shape to its specific type.
-
-    :param OCCT.TopoDS.TopoDS_Shape shape: The shape.
-
-    :return: The downcasted shape.
-    :rtype: OCCT.TopoDS.TopoDS_Vertex or OCCT.TopoDS.TopoDS_Edge or
-        OCCT.TopoDS.TopoDS_Wire or OCCT.TopoDS.TopoDS_Face or
-        OCCT.TopoDS.TopoDS_Shell or OCCT.TopoDS.TopoDS_CompSolid or
-        OCCT.TopoDS.TopoDS_Compound
-    """
-    if shape.ShapeType() == TopAbs_VERTEX:
-        return TopoDS.Vertex_(shape)
-    if shape.ShapeType() == TopAbs_EDGE:
-        return TopoDS.Edge_(shape)
-    if shape.ShapeType() == TopAbs_WIRE:
-        return TopoDS.Wire_(shape)
-    if shape.ShapeType() == TopAbs_FACE:
-        return TopoDS.Face_(shape)
-    if shape.ShapeType() == TopAbs_SHELL:
-        return TopoDS.Shell_(shape)
-    if shape.ShapeType() == TopAbs_SOLID:
-        return TopoDS.Solid_(shape)
-    if shape.ShapeType() == TopAbs_COMPSOLID:
-        return TopoDS.CompSolid_(shape)
-    if shape.ShapeType() == TopAbs_COMPOUND:
-        return TopoDS.Compound_(shape)
-    raise ValueError('Could not downcast shape.')

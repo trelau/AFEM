@@ -597,6 +597,18 @@ class Shape(ViewableItem):
         else:
             raise TypeError('Cannot convert entity to a shape.')
 
+    @staticmethod
+    def from_topods_list(topods_list):
+        """
+        Create a Python list of shapes from a TopoDS_ListOfShape.
+
+        :param OCCT.TopoDS.TopoDS_ListOfShape topods_list: The list.
+
+        :return: The list of shapes.
+        :rtype: list(afem.topology.entities.Shape)
+        """
+        return [Shape.wrap(s) for s in topods_list]
+
 
 class Vertex(Shape):
     """
