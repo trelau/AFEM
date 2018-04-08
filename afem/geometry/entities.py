@@ -1094,7 +1094,7 @@ class Vector(gp_Vec, Geometry):
         """
         self.Normalize()
 
-    def scale(self, scale):
+    def vscale(self, scale):
         """
         Scale the vector.
 
@@ -1102,7 +1102,6 @@ class Vector(gp_Vec, Geometry):
 
         :return: None.
         """
-        # TODO Rename Vector.scale
         self.Scale(scale)
 
 
