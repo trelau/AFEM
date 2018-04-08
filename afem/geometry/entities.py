@@ -1444,22 +1444,6 @@ class Line(Curve):
         """
         return self._object
 
-    @staticmethod
-    def downcast(crv):
-        """
-        Downcast the curve to this type.
-
-        :param afem.geometry.entities.Curve crv: The curve.
-
-        :return: A line.
-        :rtype: afem.geometry.entities.Line
-
-        :raise ValueError: If the curve cannot be downcast to this type.
-        """
-        if not isinstance(crv.object, Geom_Line):
-            raise ValueError('Could not downcast curve.')
-        return Line(crv.object)
-
     def copy(self):
         """
         Return a new copy of the curve.
@@ -1504,22 +1488,6 @@ class Circle(Curve):
         :rtype: afem.geometry.entities.Point
         """
         return Point(self.object.Location().XYZ())
-
-    @staticmethod
-    def downcast(crv):
-        """
-        Downcast the curve to this type.
-
-        :param afem.geometry.entities.Curve crv: The curve.
-
-        :return: A circle.
-        :rtype: afem.geometry.entities.Circle
-
-        :raise ValueError: If the curve cannot be downcast to this type.
-        """
-        if not isinstance(crv.object, Geom_Circle):
-            raise ValueError('Could not downcast curve.')
-        return Circle(crv.object)
 
     def copy(self):
         """
@@ -1575,22 +1543,6 @@ class Ellipse(Curve):
         :rtype: float
         """
         return self.object.MinorRadius()
-
-    @staticmethod
-    def downcast(crv):
-        """
-        Downcast the curve to this type.
-
-        :param afem.geometry.entities.Curve crv: The curve.
-
-        :return: An ellipse.
-        :rtype: afem.geometry.entities.Ellipse
-
-        :raise ValueError: If the curve cannot be downcast to this type.
-        """
-        if not isinstance(crv.object, Geom_Ellipse):
-            raise ValueError('Could not downcast curve.')
-        return Ellipse(crv.object)
 
     def copy(self):
         """
@@ -1720,22 +1672,6 @@ class NurbsCurve(Curve):
         """
         return homogenize_array1d(self.cp, self.w)
 
-    @staticmethod
-    def downcast(crv):
-        """
-        Downcast the curve to this type.
-
-        :param afem.geometry.entities.Curve crv: The curve.
-
-        :return: A NURBS curve.
-        :rtype: afem.geometry.entities.NurbsCurve
-
-        :raise ValueError: If the curve cannot be downcast to this type.
-        """
-        if not isinstance(crv.object, Geom_BSplineCurve):
-            raise ValueError('Could not downcast curve.')
-        return NurbsCurve(crv.object)
-
     def copy(self):
         """
         Return a new copy of the curve.
@@ -1820,23 +1756,7 @@ class TrimmedCurve(Curve):
         :return: The basis curve.
         :rtype: afem.geometry.entities.Curve
         """
-        return Curve(self.object.BasisCurve())
-
-    @staticmethod
-    def downcast(crv):
-        """
-        Downcast the curve to this type.
-
-        :param afem.geometry.entities.Curve crv: The curve.
-
-        :return: A trimmed curve.
-        :rtype: afem.geometry.entities.TrimmedCurve
-
-        :raise ValueError: If the curve cannot be downcast to this type.
-        """
-        if not isinstance(crv.object, Geom_TrimmedCurve):
-            raise ValueError('Could not downcast curve.')
-        return TrimmedCurve(crv.object)
+        return Curve.wrap(self.object.BasisCurve())
 
     def copy(self):
         """
@@ -2052,8 +1972,7 @@ class Surface(Geometry):
         :return: The curve.
         :rtype: afem.geometry.entities.Curve
         """
-        h_crv = self.object.UIso(u)
-        return Curve(h_crv)
+        return Curve.wrap(self.object.UIso(u))
 
     def v_iso(self, v):
         """
@@ -2064,8 +1983,7 @@ class Surface(Geometry):
         :return: The curve.
         :rtype: afem.geometry.entities.Curve
         """
-        h_crv = self.object.VIso(v)
-        return Curve(h_crv)
+        return Curve.wrap(self.object.VIso(v))
 
     @staticmethod
     def wrap(surface):
@@ -2137,22 +2055,6 @@ class Plane(Surface):
         :rtype: OCCT.gp.gp_Pln
         """
         return self.object.Pln()
-
-    @staticmethod
-    def downcast(srf):
-        """
-        Downcast the surface to this type.
-
-        :param afem.geometry.entities.Surface srf: The surface.
-
-        :return: A plane.
-        :rtype: afem.geometry.entities.Plane
-
-        :raise ValueError: If the surface cannot be downcast to this type.
-        """
-        if not isinstance(srf.object, Geom_Plane):
-            raise ValueError('Could not downcast surface.')
-        return Plane(srf.object)
 
     def copy(self):
         """
@@ -2364,22 +2266,6 @@ class NurbsSurface(Surface):
         :rtype: numpy.ndarray
         """
         return homogenize_array2d(self.cp, self.w)
-
-    @staticmethod
-    def downcast(srf):
-        """
-        Downcast the surface to this type.
-
-        :param afem.geometry.entities.Surface srf: The surface.
-
-        :return: A surface.
-        :rtype: afem.geometry.entities.NurbsSurface
-
-        :raise ValueError: If the surface cannot be downcast to this type.
-        """
-        if not isinstance(srf.object, Geom_BSplineSurface):
-            raise ValueError('Could not downcast surface.')
-        return NurbsSurface(srf.object)
 
     def copy(self):
         """

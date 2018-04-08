@@ -208,9 +208,7 @@ class ImportVSP(object):
             elif key in metadata and metadata[key] == 100:
                 # Fuselage horizontal sref
                 f = compound.faces[0]
-                srf = f.surface
-                # TODO Don't use downcast
-                sref = NurbsSurface.downcast(srf)
+                sref = f.surface
                 sref.set_udomain(-1., 1.)
                 sref.set_vdomain(0., 1.)
                 sref.object.ExchangeUV()
@@ -220,8 +218,7 @@ class ImportVSP(object):
                 continue
             elif key in metadata and metadata[key] == 101:
                 f = compound.faces[0]
-                srf = f.surface
-                sref = NurbsSurface.downcast(srf)
+                sref = f.surface
                 sref.set_udomain(-1., 1.)
                 sref.set_vdomain(0., 1.)
                 sref.object.ExchangeUV()
@@ -688,11 +685,10 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
         # Reparamterize knots in spanwise direction to be chord length instead
         # of uniform. Use isocurve at quarter-chord to determine knot values.
         # This only works as long as surfaces are linear.
-        # TODO Check downcast method
-        c0 = NurbsCurve.downcast(s1.u_iso(s1.u1))
+        c0 = s1.u_iso(s1.u1)
         c0.segment(vsplit, c0.u2)
         qc_u = PointFromParameter(c0, vsplit, 0.25 * c0.length).parameter
-        c = NurbsCurve.downcast(s1.v_iso(qc_u))
+        c = s1.v_iso(qc_u)
         pnts = [c.eval(u) for u in c.knots]
         new_uknots = chord_parameters(pnts, 0., 1.)
         s1.set_uknots(new_uknots)
