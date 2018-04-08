@@ -74,7 +74,7 @@ class Part(ShapeHolder):
     """
     Base class for all parts.
 
-    :param str label: The label.
+    :param str name: The name.
     :param afem.topology.entities.Shape shape: The shape.
     :param cref: The reference curve. If it is not a :class:`.TrimmedCurve`,
         then it will be converted to one.
@@ -84,16 +84,12 @@ class Part(ShapeHolder):
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
-
-    :raise RuntimeError: If *shape* is not a valid shape or cannot be
-            converted to a shape.
     """
     _indx = 1
     _mesh = None
     _core_shape = Shape.SHAPE
 
-    def __init__(self, label, shape, cref=None, sref=None, group=None):
-        # TODO Switch back to Part.name instead of label
+    def __init__(self, name, shape, cref=None, sref=None, group=None):
         super(Part, self).__init__(Shape, shape)
 
         self._cref, self._sref = None, None
@@ -103,7 +99,7 @@ class Part(ShapeHolder):
         self._id = Part._indx
         Part._indx += 1
 
-        self._label = label
+        self._name = name
 
         if cref is not None:
             self.set_cref(cref)
@@ -115,7 +111,7 @@ class Part(ShapeHolder):
         GroupAPI.add_parts(group, self)
 
         # Log
-        msg = ' '.join(['Creating part:', label])
+        msg = ' '.join(['Creating part:', name])
         logger.info(msg)
 
     @property
@@ -127,12 +123,12 @@ class Part(ShapeHolder):
         return self.__class__.__name__
 
     @property
-    def label(self):
+    def name(self):
         """
-        :return: The part label.
+        :return: The part name.
         :rtype: str
         """
-        return self._label
+        return self._name
 
     @property
     def id(self):
@@ -908,8 +904,8 @@ class Part(ShapeHolder):
 
         if check:
             return True
-        msg = ' '.join(['The shape of the part is not valid. Label:',
-                        self.label])
+        msg = ' '.join(['The shape of the part is not valid. Name:',
+                        self.name])
         raise RuntimeError(msg)
 
     def fix(self, precision=None, min_tol=None, max_tol=None, context=None,

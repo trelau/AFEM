@@ -27,13 +27,13 @@ class Group(object):
     """
     Group of parts.
 
-    :param str label: The label.
+    :param str name: The name.
     :param parent: The parent group, if any.
     :type parent: afem.structure.group.Group or None
     """
 
-    def __init__(self, label, parent=None):
-        self._label = label
+    def __init__(self, name, parent=None):
+        self._name = name
         self._parent = parent
         self._children = set()
         self._parts = set()
@@ -42,12 +42,12 @@ class Group(object):
         self._metadata = {}
 
     @property
-    def label(self):
+    def name(self):
         """
-        :return: The label.
+        :return: The name.
         :rtype: str
         """
-        return self._label
+        return self._name
 
     @property
     def parent(self):
@@ -115,11 +115,11 @@ class Group(object):
         part_set = set(parts)
         self._parts.update(part_set)
 
-    def get_part(self, label):
+    def get_part(self, name):
         """
-        Get a part in the group by label.
+        Get a part in the group by name.
 
-        :param str label: Part label.
+        :param str name: Part name.
 
         :return: The part.
         :rtype: afem.structure.entities.Part
@@ -127,9 +127,9 @@ class Group(object):
         :raise KeyError: If the part is not found.
         """
         for part in self.parts:
-            if part.label == label:
+            if part.name == name:
                 return part
-        raise KeyError('Part with given label could not be found in the '
+        raise KeyError('Part with given name could not be found in the '
                        'group.')
 
     def get_parts(self, include_subgroup=True, rtype=None, order=False):
@@ -162,15 +162,15 @@ class Group(object):
             return parts
         return order_parts_by_id(parts)
 
-    def remove_part(self, label):
+    def remove_part(self, name):
         """
         Remove a part from the group if present.
 
-        :param str label: Part label.
+        :param str name: Part name.
 
         :return: None.
         """
-        part = self.get_part(label)
+        part = self.get_part(name)
         self._parts.discard(part)
 
     def prepare_shape_to_mesh(self, include_subgroup=True):
@@ -257,7 +257,7 @@ class GroupAPI(object):
     @classmethod
     def get_group(cls, group=None):
         """
-        Get an group. If a string is provided then the group label
+        Get an group. If a string is provided then the group name
         will be used to get the group. If a group instance is
         provided then it is simply returned. If ``None`` is provided then
         the active group is returned.
@@ -291,11 +291,11 @@ class GroupAPI(object):
         group.activate()
 
     @classmethod
-    def create_group(cls, label, parent=None, active=True, *parts):
+    def create_group(cls, name, parent=None, active=True, *parts):
         """
         Create an group.
 
-        :param str label: The label.
+        :param str name: The name.
         :param parent: The parent group. If ``None`` then the master
             group is used.
         :type parent: str or afem.structure.group.Group or None
@@ -307,17 +307,17 @@ class GroupAPI(object):
         :return: New group.
         :rtype: afem.structure.group.Group
         """
-        if label in cls._all:
+        if name in cls._all:
             return None
         if parent is None:
             parent = cls._master
         else:
             parent = cls.get_group(parent)
-        group = Group(label, parent)
+        group = Group(name, parent)
         if active:
             cls._active = group
         group.add_parts(*parts)
-        cls._all[label] = group
+        cls._all[name] = group
         return group
 
     @classmethod
@@ -336,11 +336,11 @@ class GroupAPI(object):
         group.add_parts(*parts)
 
     @classmethod
-    def get_part(cls, label, group=None):
+    def get_part(cls, name, group=None):
         """
-        Get a part from the group using its label.
+        Get a part from the group using its name.
         
-        :param str label: The part label.
+        :param str name: The part name.
         :param group: The group. If ``None`` then the active group is
             used.
         :type group: str or afem.structure.group.Group or None
@@ -351,7 +351,7 @@ class GroupAPI(object):
         :raise KeyError: If the part is not found.
         """
         group = cls.get_group(group)
-        return group.get_part(label)
+        return group.get_part(name)
 
     @classmethod
     def get_parts(cls, group=None, include_subgroup=True, rtype=None,
@@ -376,11 +376,11 @@ class GroupAPI(object):
         return group.get_parts(include_subgroup, rtype, order)
 
     @classmethod
-    def remove_part(cls, label, group=None):
+    def remove_part(cls, name, group=None):
         """
         Remove a part from the group if present.
 
-        :param str label: Part label.
+        :param str name: Part name.
         :param group: The group. If ``None`` then the active group is
             used.
         :type group: str or afem.structure.group.Group or None
@@ -388,7 +388,7 @@ class GroupAPI(object):
         :return: None.
         """
         group = cls.get_group(group)
-        group.remove_part(label)
+        group.remove_part(name)
 
     @classmethod
     def prepare_shape_to_mesh(cls, group='_master', include_subgroup=True):
@@ -480,21 +480,21 @@ class GroupAPI(object):
         # TODO Support group hierarchy
         parts = group.get_parts()
         for part in parts:
-            label = doc.add_shape(part.shape, part.label, False)
-            label.set_string(part.type)
-            label.set_color(part.color)
+            name = doc.add_shape(part.shape, part.name, False)
+            name.set_string(part.type)
+            name.set_color(part.color)
 
             # Reference curve
             if part.has_cref:
                 edge = EdgeByCurve(part.cref).edge
-                label = doc.add_shape(edge, part.label, False)
-                label.set_string('CREF')
+                name = doc.add_shape(edge, part.name, False)
+                name.set_string('CREF')
 
             # Reference surface
             if part.has_sref:
                 face = FaceBySurface(part.sref).face
-                label = doc.add_shape(face, part.label, False)
-                label.set_string('SREF')
+                name = doc.add_shape(face, part.name, False)
+                name.set_string('SREF')
 
         return doc.save_as(fn)
 
@@ -528,13 +528,13 @@ class GroupAPI(object):
         doc = XdeDocument(binary)
         doc.open(fn)
 
-        # Get the main label and iterate on top-level children which
+        # Get the main name and iterate on top-level children which
         # should be parts
-        label = doc.shapes_label
+        name = doc.shapes_label
         part_data = []
         cref_to_part = {}
         sref_to_part = {}
-        for current in label.children_iter:
+        for current in name.children_iter:
             name = current.name
             shape = current.shape
             type_ = current.string
@@ -557,14 +557,14 @@ class GroupAPI(object):
 
         # Create parts
         # TODO Support group hierarchy
-        for type_, label, shape, color in part_data:
+        for type_, name, shape, color in part_data:
             cref, sref = None, None
-            if label in cref_to_part:
-                cref = cref_to_part[label]
-            if label in sref_to_part:
-                sref = sref_to_part[label]
+            if name in cref_to_part:
+                cref = cref_to_part[name]
+            if name in sref_to_part:
+                sref = sref_to_part[name]
 
-            part = CreatePartByName(type_, label=label, shape=shape,
+            part = CreatePartByName(type_, name=name, shape=shape,
                                     group=group, cref=cref, sref=sref).part
             if color is not None:
                 part.color = color

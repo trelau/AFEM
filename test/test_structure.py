@@ -54,8 +54,8 @@ class TestStructureEntities(unittest.TestCase):
     def tearDownClass(cls):
         GroupAPI.reset()
 
-    def test_part_label(self):
-        self.assertEqual('fspar', self.fspar.label)
+    def test_part_name(self):
+        self.assertEqual('fspar', self.fspar.name)
 
     def test_part_id(self):
         self.assertEqual(1, self.fspar.id)

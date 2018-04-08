@@ -100,7 +100,7 @@ class CurvePartByShape(object):
     """
     Create a curve part using a shape.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param shape: The shape.
     :type shape: afem.geometry.entities.Curve or afem.topology.entities.Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
@@ -117,7 +117,7 @@ class CurvePartByShape(object):
     >>> part = CurvePartByShape('part', e).curve_part
     """
 
-    def __init__(self, label, shape, cref=None, group=None):
+    def __init__(self, name, shape, cref=None, group=None):
         if isinstance(shape, Curve):
             cref = shape
             shape = EdgeByCurve(shape).edge
@@ -125,7 +125,7 @@ class CurvePartByShape(object):
         if cref is None:
             cref = shape.curve
 
-        self._curve_part = CurvePart(label, shape, cref, None, group)
+        self._curve_part = CurvePart(name, shape, cref, None, group)
 
     @property
     def curve_part(self):
@@ -142,7 +142,7 @@ class Beam1DByShape(object):
     """
     Create a beam using a shape.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param shape: The shape.
     :type shape: afem.geometry.entities.Curve or afem.topology.entities.Shape
     :param afem.geometry.entities.Curve cref: The reference curve. If not
@@ -159,14 +159,14 @@ class Beam1DByShape(object):
     >>> beam = Beam1DByShape('part', e).beam
     """
 
-    def __init__(self, label, shape, cref=None, group=None):
+    def __init__(self, name, shape, cref=None, group=None):
         if isinstance(shape, Curve):
             shape = EdgeByCurve(shape).edge
 
         if cref is None:
             cref = shape.curve
 
-        self._beam = Beam1D(label, shape, cref, None, group)
+        self._beam = Beam1D(name, shape, cref, None, group)
 
     @property
     def beam(self):
@@ -181,7 +181,7 @@ class Beam1DByCurve(Beam1DByShape):
     """
     Create a beam using a curve.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Curve crv: The curve.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
@@ -195,16 +195,16 @@ class Beam1DByCurve(Beam1DByShape):
     >>> part = Beam1DByCurve('part', c).beam
     """
 
-    def __init__(self, label, crv, group=None):
+    def __init__(self, name, crv, group=None):
         e = EdgeByCurve(crv).edge
-        super(Beam1DByCurve, self).__init__(label, e, crv, group)
+        super(Beam1DByCurve, self).__init__(name, e, crv, group)
 
 
 class Beam1DByPoints(Beam1DByCurve):
     """
     Create a beam between two points.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param point_like p1: First point.
     :param point_like p2: Second point.
     :param group: The group to add the part to. If not provided the part will
@@ -219,11 +219,11 @@ class Beam1DByPoints(Beam1DByCurve):
     10.0
     """
 
-    def __init__(self, label, p1, p2, group=None):
+    def __init__(self, name, p1, p2, group=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
         c = NurbsCurveByPoints([p1, p2]).curve
-        super(Beam1DByPoints, self).__init__(label, c, group)
+        super(Beam1DByPoints, self).__init__(name, c, group)
 
 
 # SURFACE PART ----------------------------------------------------------------
@@ -232,7 +232,7 @@ class SurfacePartByShape(object):
     """
     Create a surface part using a shape.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param shape: The shape.
     :type shape: afem.geometry.entities.Surface or afem.topology.entities.Shape
     :param afem.geometry.entities.Curve cref: The reference curve.
@@ -254,7 +254,7 @@ class SurfacePartByShape(object):
     99.99999999999997
     """
 
-    def __init__(self, label, shape, cref=None, sref=None, group=None):
+    def __init__(self, name, shape, cref=None, sref=None, group=None):
         if isinstance(shape, Surface):
             sref = shape
             shape = FaceBySurface(shape).face
@@ -262,7 +262,7 @@ class SurfacePartByShape(object):
         if sref is None:
             sref = shape.surface
 
-        self._surface_part = SurfacePart(label, shape, cref, sref, group)
+        self._surface_part = SurfacePart(name, shape, cref, sref, group)
 
     @property
     def surface_part(self):
@@ -279,7 +279,7 @@ class SparByParameters(object):
     """
     Create a spar between wing parameters.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param float u1: Starting point u-parameter.
     :param float v1: Starting point v-parameter.
     :param float u2: Ending point u-parameter.
@@ -305,7 +305,7 @@ class SparByParameters(object):
           reference shape.
     """
 
-    def __init__(self, label, u1, v1, u2, v2, body, basis_shape=None,
+    def __init__(self, name, u1, v1, u2, v2, body, basis_shape=None,
                  group=None):
         # Determine reference surface and basis shape
         if basis_shape is None:
@@ -329,7 +329,7 @@ class SparByParameters(object):
         shape = common.shape
 
         # Create the part
-        self._spar = Spar(label, shape, cref, sref, group)
+        self._spar = Spar(name, shape, cref, sref, group)
 
     @property
     def spar(self):
@@ -345,7 +345,7 @@ class SparByPoints(SparByParameters):
     Create a spar between two points. This method inverts the starting and
     ending points and then uses :class:`.SparByParameters`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param point_like p1: Starting point.
     :param point_like p2: End point.
     :param afem.oml.entities.Body body: The body.
@@ -369,7 +369,7 @@ class SparByPoints(SparByParameters):
           reference shape.
     """
 
-    def __init__(self, label, p1, p2, body, basis_shape=None, group=None):
+    def __init__(self, name, p1, p2, body, basis_shape=None, group=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
 
@@ -378,7 +378,7 @@ class SparByPoints(SparByParameters):
         u2, v2 = body.invert(p2)
 
         # Use SparByParameters
-        super(SparByPoints, self).__init__(label, u1, v1, u2, v2, body,
+        super(SparByPoints, self).__init__(name, u1, v1, u2, v2, body,
                                            basis_shape, group)
 
 
@@ -387,7 +387,7 @@ class SparByEnds(SparByParameters):
     Create a spar by defining its endpoints which can be either points or
     parameters on a reference surface.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param e1: Start point as a point or surface parameters (u1, v1).
     :type e1: point_like or collections.Sequence[float]
     :param e2: End point as a point or surface parameters (u2, v2).
@@ -407,7 +407,7 @@ class SparByEnds(SparByParameters):
         two surface parameters.
     """
 
-    def __init__(self, label, e1, e2, body, basis_shape=None, group=None):
+    def __init__(self, name, e1, e2, body, basis_shape=None, group=None):
         if len(e1) == 2:
             u1, v1 = e1
         elif CheckGeom.is_point_like(e1):
@@ -422,7 +422,7 @@ class SparByEnds(SparByParameters):
         else:
             raise TypeError('Invalid type for e2.')
 
-        super(SparByEnds, self).__init__(label, u1, v1, u2, v2, body,
+        super(SparByEnds, self).__init__(name, u1, v1, u2, v2, body,
                                          basis_shape, group)
 
 
@@ -430,7 +430,7 @@ class SparBySurface(object):
     """
     Create a spar using a surface.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Surface srf: The surface.
     :param afem.oml.entities.Body body: The body.
     :param group: The group to add the part to. If not provided the part will
@@ -444,7 +444,7 @@ class SparBySurface(object):
         reference shape.
     """
 
-    def __init__(self, label, srf, body, group=None):
+    def __init__(self, name, srf, body, group=None):
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
@@ -474,7 +474,7 @@ class SparBySurface(object):
         shape = common.shape
 
         # Create the part
-        self._spar = Spar(label, shape, cref, srf, group)
+        self._spar = Spar(name, shape, cref, srf, group)
 
     @property
     def spar(self):
@@ -489,7 +489,7 @@ class SparByShape(object):
     """
     Create a spar using a basis shape.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.topology.entities.Shape basis_shape: The basis shape.
     :param afem.oml.entities.Body body: The body.
     :param group: The group to add the part to. If not provided the part will
@@ -506,7 +506,7 @@ class SparByShape(object):
           surface of the largest face in the basis shape.
     """
 
-    def __init__(self, label, basis_shape, body, group=None):
+    def __init__(self, name, basis_shape, body, group=None):
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape,
                                   approximate=True)
@@ -537,7 +537,7 @@ class SparByShape(object):
         sref = basis_shape.surface
 
         # Create the part
-        self._spar = Spar(label, basis_shape, cref, sref, group)
+        self._spar = Spar(name, basis_shape, cref, sref, group)
 
     @property
     def spar(self):
@@ -554,7 +554,7 @@ class SparBetweenShapes(SparByPoints):
     starting and ending points by intersecting the reference curve and then
     uses :class:`.SparByPoints`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param shape1: Starting shape.
     :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
         or afem.geometry.entities.Surface or afem.structure.entities.Part
@@ -570,7 +570,7 @@ class SparBetweenShapes(SparByPoints):
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, shape1, shape2, body, basis_shape, group=None):
+    def __init__(self, name, shape1, shape2, body, basis_shape, group=None):
         if isinstance(basis_shape, Surface):
             shape = FaceBySurface(basis_shape).face
         else:
@@ -587,7 +587,7 @@ class SparBetweenShapes(SparByPoints):
         p1 = v1.point
         p2 = v2.point
 
-        super(SparBetweenShapes, self).__init__(label, p1, p2, body,
+        super(SparBetweenShapes, self).__init__(name, p1, p2, body,
                                                 basis_shape, group)
 
 
@@ -596,7 +596,7 @@ class SparsBetweenPlanesByNumber(object):
     Create a specified number of planar spars between two planes. This method
     uses :class:`.PlanesBetweenPlanesByNumber` and :class:`.SparBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
@@ -611,17 +611,17 @@ class SparsBetweenPlanesByNumber(object):
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, pln1, pln2, n, shape1, shape2, body, d1=None,
+    def __init__(self, name, pln1, pln2, n, shape1, shape2, body, d1=None,
                  d2=None, first_index=1, delimiter=' ', group=None):
         n = int(n)
         first_index = int(first_index)
@@ -633,7 +633,7 @@ class SparsBetweenPlanesByNumber(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             spar = SparBetweenShapes(label_indx, shape1, shape2, body,
                                      basis_shape, group).spar
             first_index += 1
@@ -679,7 +679,7 @@ class SparsBetweenPlanesByDistance(object):
     uses :class:`.PlanesBetweenPlanesByDistance` and
     :class:`.SparBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param float maxd: The maximum allowed spacing. The actual spacing will
@@ -696,17 +696,17 @@ class SparsBetweenPlanesByDistance(object):
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
     :param int nmin: Minimum number of parts to create.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, pln1, pln2, maxd, shape1, shape2, body, d1=None,
+    def __init__(self, name, pln1, pln2, maxd, shape1, shape2, body, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' ', group=None):
         first_index = int(first_index)
 
@@ -717,7 +717,7 @@ class SparsBetweenPlanesByDistance(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             spar = SparBetweenShapes(label_indx, shape1, shape2, body,
                                      basis_shape, group).spar
             first_index += 1
@@ -762,7 +762,7 @@ class SparsAlongCurveByNumber(object):
     Create a specified number of planar spars along a curve. This method
     uses :class:`.PlanesAlongCurveByNumber` and :class:`.SparBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
     :param shape1: Starting shape.
@@ -782,18 +782,18 @@ class SparsAlongCurveByNumber(object):
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, crv, n, shape1, shape2, body, ref_pln=None,
+    def __init__(self, name, crv, n, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, first_index=1,
                  delimiter=' ', tol=1.0e-7, group=None):
         n = int(n)
@@ -807,7 +807,7 @@ class SparsAlongCurveByNumber(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             spar = SparBetweenShapes(label_indx, shape1, shape2, body,
                                      basis_shape, group).spar
             first_index += 1
@@ -852,7 +852,7 @@ class SparsAlongCurveByDistance(object):
     Create planar spars along a curve using a maximum spacing. This method
     uses :class:`.PlanesAlongCurveByDistance` and :class:`.SparBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Curve crv: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
@@ -874,18 +874,18 @@ class SparsAlongCurveByDistance(object):
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
     :param int nmin: Minimum number of planes to create.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, crv, maxd, shape1, shape2, body, ref_pln=None,
+    def __init__(self, name, crv, maxd, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
                  delimiter=' ', tol=1.0e-7, group=None):
         first_index = int(first_index)
@@ -898,7 +898,7 @@ class SparsAlongCurveByDistance(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             spar = SparBetweenShapes(label_indx, shape1, shape2, body,
                                      basis_shape, group).spar
             first_index += 1
@@ -944,7 +944,7 @@ class RibByParameters(object):
     """
     Create a rib between wing parameters.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param float u1: Starting point u-parameter.
     :param float v1: Starting point v-parameter.
     :param float u2: Ending point u-parameter.
@@ -967,7 +967,7 @@ class RibByParameters(object):
           reference shape.
     """
 
-    def __init__(self, label, u1, v1, u2, v2, body, basis_shape=None,
+    def __init__(self, name, u1, v1, u2, v2, body, basis_shape=None,
                  group=None):
         # Determine reference surface and basis shape
         if basis_shape is None:
@@ -991,7 +991,7 @@ class RibByParameters(object):
         shape = common.shape
 
         # Create the part
-        self._rib = Rib(label, shape, cref, sref, group)
+        self._rib = Rib(name, shape, cref, sref, group)
 
     @property
     def rib(self):
@@ -1007,7 +1007,7 @@ class RibByPoints(RibByParameters):
     Create a rib between two points. This method inverts the starting and
     ending points and then uses :class:`.RibByParameters`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param point_like p1: Starting point.
     :param point_like p2: End point.
     :param afem.oml.entities.Body body: The body.
@@ -1031,7 +1031,7 @@ class RibByPoints(RibByParameters):
           reference shape.
     """
 
-    def __init__(self, label, p1, p2, body, basis_shape=None, group=None):
+    def __init__(self, name, p1, p2, body, basis_shape=None, group=None):
         p1 = CheckGeom.to_point(p1)
         p2 = CheckGeom.to_point(p2)
 
@@ -1040,7 +1040,7 @@ class RibByPoints(RibByParameters):
         u2, v2 = body.invert(p2)
 
         # Use SparByParameters
-        super(RibByPoints, self).__init__(label, u1, v1, u2, v2, body,
+        super(RibByPoints, self).__init__(name, u1, v1, u2, v2, body,
                                           basis_shape, group)
 
 
@@ -1048,7 +1048,7 @@ class RibBySurface(object):
     """
     Create a rib using a surface.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Surface srf: The surface.
     :param afem.oml.entities.Body body: The body.
     :param group: The group to add the part to. If not provided the part will
@@ -1062,7 +1062,7 @@ class RibBySurface(object):
         reference shape.
     """
 
-    def __init__(self, label, srf, body, group=None):
+    def __init__(self, name, srf, body, group=None):
         basis_shape = FaceBySurface(srf).face
 
         # Build reference curve
@@ -1092,7 +1092,7 @@ class RibBySurface(object):
         shape = common.shape
 
         # Create the part
-        self._rib = Rib(label, shape, cref, srf, group)
+        self._rib = Rib(name, shape, cref, srf, group)
 
     @property
     def rib(self):
@@ -1107,7 +1107,7 @@ class RibByShape(object):
     """
     Create a rib using a basis shape.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.topology.entities.Shape basis_shape: The basis shape.
     :param afem.oml.entities.Body body: The body.
     :param group: The group to add the part to. If not provided the part will
@@ -1124,7 +1124,7 @@ class RibByShape(object):
           surface of the largest face in the basis shape.
     """
 
-    def __init__(self, label, basis_shape, body, group=None):
+    def __init__(self, name, basis_shape, body, group=None):
         # Build reference curve
         section = IntersectShapes(basis_shape, body.sref_shape,
                                   approximate=True)
@@ -1155,7 +1155,7 @@ class RibByShape(object):
         sref = basis_shape.surface
 
         # Create the part
-        self._rib = Rib(label, basis_shape, cref, sref, group)
+        self._rib = Rib(name, basis_shape, cref, sref, group)
 
     @property
     def rib(self):
@@ -1172,7 +1172,7 @@ class RibBetweenShapes(RibByPoints):
     starting and ending points by intersecting the reference curve and then
     uses :class:`.RibByPoints`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param shape1: Starting shape.
     :type shape1: afem.topology.entities.Shape or afem.geometry.entities.Curve
         or afem.geometry.entities.Surface or afem.structure.entities.Part
@@ -1188,7 +1188,7 @@ class RibBetweenShapes(RibByPoints):
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, shape1, shape2, body, basis_shape, group=None):
+    def __init__(self, name, shape1, shape2, body, basis_shape, group=None):
         if isinstance(basis_shape, Surface):
             shape = FaceBySurface(basis_shape).face
         else:
@@ -1205,7 +1205,7 @@ class RibBetweenShapes(RibByPoints):
         p1 = v1.point
         p2 = v2.point
 
-        super(RibBetweenShapes, self).__init__(label, p1, p2, body,
+        super(RibBetweenShapes, self).__init__(name, p1, p2, body,
                                                basis_shape, group)
 
 
@@ -1214,7 +1214,7 @@ class RibByOrientation(RibBySurface):
     Create a planar rib using rotation angles. This creates the plane then uses
     :class:`.RibBySurface`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param point_like origin: The origin of the plane after rotating and
         translating from the global origin.
     :param afem.oml.entities.Body body: The body.
@@ -1228,11 +1228,11 @@ class RibByOrientation(RibBySurface):
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, origin, body, alpha=0., beta=0., gamma=0.,
+    def __init__(self, name, origin, body, alpha=0., beta=0., gamma=0.,
                  axes='xz', group=None):
         pln = PlaneByOrientation(origin, axes, alpha, beta, gamma).plane
 
-        super(RibByOrientation, self).__init__(label, pln, body, group)
+        super(RibByOrientation, self).__init__(name, pln, body, group)
 
 
 class RibsBetweenPlanesByNumber(object):
@@ -1240,7 +1240,7 @@ class RibsBetweenPlanesByNumber(object):
     Create a specified number of planar ribs between two planes. This method
     uses :class:`.PlanesBetweenPlanesByNumber` and :class:`.RibBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
@@ -1255,17 +1255,17 @@ class RibsBetweenPlanesByNumber(object):
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, pln1, pln2, n, shape1, shape2, body, d1=None,
+    def __init__(self, name, pln1, pln2, n, shape1, shape2, body, d1=None,
                  d2=None, first_index=1, delimiter=' ', group=None):
         n = int(n)
         first_index = int(first_index)
@@ -1277,7 +1277,7 @@ class RibsBetweenPlanesByNumber(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape, group).rib
             first_index += 1
@@ -1323,7 +1323,7 @@ class RibsBetweenPlanesByDistance(object):
     uses :class:`.PlanesBetweenPlanesByDistance` and
     :class:`.RibBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param float maxd: The maximum allowed spacing. The actual spacing will
@@ -1340,17 +1340,17 @@ class RibsBetweenPlanesByDistance(object):
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
     :param int nmin: Minimum number of parts to create.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, pln1, pln2, maxd, shape1, shape2, body, d1=None,
+    def __init__(self, name, pln1, pln2, maxd, shape1, shape2, body, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' ', group=None):
         first_index = int(first_index)
 
@@ -1361,7 +1361,7 @@ class RibsBetweenPlanesByDistance(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape, group).rib
             first_index += 1
@@ -1406,7 +1406,7 @@ class RibsAlongCurveByNumber(object):
     Create a specified number of planar ribs along a curve. This method
     uses :class:`.PlanesAlongCurveByNumber` and :class:`.RibBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Curve crv: The curve.
     :param int n: The number of parts.
     :param shape1: Starting shape.
@@ -1426,18 +1426,18 @@ class RibsAlongCurveByNumber(object):
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, crv, n, shape1, shape2, body, ref_pln=None,
+    def __init__(self, name, crv, n, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, first_index=1,
                  delimiter=' ', tol=1.0e-7, group=None):
         n = int(n)
@@ -1451,7 +1451,7 @@ class RibsAlongCurveByNumber(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape, group).rib
             first_index += 1
@@ -1496,7 +1496,7 @@ class RibsAlongCurveByDistance(object):
     Create planar ribs along a curve using a maximum spacing. This method
     uses :class:`.PlanesAlongCurveByDistance` and :class:`.RibBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Curve crv: The curve.
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
@@ -1518,18 +1518,18 @@ class RibsAlongCurveByDistance(object):
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
     :param int nmin: Minimum number of planes to create.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, crv, maxd, shape1, shape2, body, ref_pln=None,
+    def __init__(self, name, crv, maxd, shape1, shape2, body, ref_pln=None,
                  u1=None, u2=None, d1=None, d2=None, nmin=0, first_index=1,
                  delimiter=' ', tol=1.0e-7, group=None):
         first_index = int(first_index)
@@ -1542,7 +1542,7 @@ class RibsAlongCurveByDistance(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape, group).rib
             first_index += 1
@@ -1588,7 +1588,7 @@ class RibsAlongCurveAndSurfaceByDistance(object):
     method uses :class:`.PlanesAlongCurveAndSurfaceByDistance` and
     :class:`.RibBetweenShapes`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Curve crv: The curve.
     :param afem.geometry.entities.Surface srf: The surface.
     :param float maxd: The maximum allowed spacing between planes. The
@@ -1611,18 +1611,18 @@ class RibsAlongCurveAndSurfaceByDistance(object):
     :param float rot_y: The rotation angles of each plane along their local
         y-axis in degrees.
     :param int nmin: Minimum number of planes to create.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param float tol: Tolerance.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, crv, srf, maxd, shape1, shape2, body,
+    def __init__(self, name, crv, srf, maxd, shape1, shape2, body,
                  u1=None, u2=None, d1=None, d2=None, rot_x=None, rot_y=None,
                  nmin=0, first_index=1, delimiter=' ', tol=1.0e-7, group=None):
         first_index = int(first_index)
@@ -1639,7 +1639,7 @@ class RibsAlongCurveAndSurfaceByDistance(object):
         self._ds = builder.spacing
         for pln in builder.planes:
             basis_shape = FaceBySurface(pln).face
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             rib = RibBetweenShapes(label_indx, shape1, shape2, body,
                                    basis_shape, group).rib
             first_index += 1
@@ -1685,7 +1685,7 @@ class BulkheadBySurface(object):
     """
     Create a bulkhead using a surface.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Surface srf: The surface.
     :param afem.oml.entities.Body body: The body.
     :param group: The group to add the part to. If not provided the part will
@@ -1696,7 +1696,7 @@ class BulkheadBySurface(object):
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, srf, body, group=None):
+    def __init__(self, name, srf, body, group=None):
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
@@ -1707,7 +1707,7 @@ class BulkheadBySurface(object):
         shape = common.shape
 
         # Create the part
-        self._bh = Bulkhead(label, shape, None, srf, group)
+        self._bh = Bulkhead(name, shape, None, srf, group)
 
     @property
     def bulkhead(self):
@@ -1724,7 +1724,7 @@ class FloorBySurface(object):
     """
     Create a floor using a surface.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Surface srf: The surface.
     :param afem.oml.entities.Body body: The body.
     :param group: The group to add the part to. If not provided the part will
@@ -1735,7 +1735,7 @@ class FloorBySurface(object):
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, srf, body, group=None):
+    def __init__(self, name, srf, body, group=None):
         basis_shape = FaceBySurface(srf).face
 
         # Build part shape
@@ -1746,7 +1746,7 @@ class FloorBySurface(object):
         shape = common.shape
 
         # Create the part
-        self._floor = Floor(label, shape, None, srf, group)
+        self._floor = Floor(name, shape, None, srf, group)
 
     @property
     def floor(self):
@@ -1764,7 +1764,7 @@ class FrameByPlane(object):
     Create a frame using a plane. A plane is required since the shape of
     frame is formed using an offset algorithm that requires planar shapes.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Plane pln: The plane.
     :param afem.oml.entities.Body body: The body.
     :param float height: The height. The absolute value is used.
@@ -1776,7 +1776,7 @@ class FrameByPlane(object):
     :raise RuntimeError: If Boolean operation failed.
     """
 
-    def __init__(self, label, pln, body, height, group=None):
+    def __init__(self, name, pln, body, height, group=None):
         basis_shape = FaceBySurface(pln).face
 
         # Find initial shape
@@ -1807,7 +1807,7 @@ class FrameByPlane(object):
         shape = cut.shape
 
         # Create the part
-        self._frame = Frame(label, shape, None, pln, group)
+        self._frame = Frame(name, shape, None, pln, group)
 
     @property
     def frame(self):
@@ -1823,28 +1823,28 @@ class FramesByPlanes(object):
     Create frames using a list of planes. This method uses
     :class:`.FrameByPlane`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param list(afem.geometry.entities.Plane) plns: The planes.
     :param afem.oml.entities.Body body: The body.
     :param float height: The height.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, plns, body, height, first_index=1,
+    def __init__(self, name, plns, body, height, first_index=1,
                  delimiter=' ', group=None):
         first_index = int(first_index)
 
         self._frames = []
         self._nframes = len(plns)
         for pln in plns:
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             frame = FrameByPlane(label_indx, pln, body, height, group).frame
             first_index += 1
             self._frames.append(frame)
@@ -1880,7 +1880,7 @@ class FramesBetweenPlanesByNumber(object):
     Create a specified number of frames between two planes. This method uses
     :class:`.PlanesBetweenPlanesByNumber` and :class:`.FrameByPlane`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param int n: The number of parts.
@@ -1890,17 +1890,17 @@ class FramesBetweenPlanesByNumber(object):
         a positive number indicating a distance from *u1* towards *u2*.
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, pln1, pln2, n, body, height, d1=None,
+    def __init__(self, name, pln1, pln2, n, body, height, d1=None,
                  d2=None, first_index=1, delimiter=' ', group=None):
         n = int(n)
         first_index = int(first_index)
@@ -1911,7 +1911,7 @@ class FramesBetweenPlanesByNumber(object):
         self._nframes = builder.nplanes
         self._ds = builder.spacing
         for pln in builder.planes:
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             frame = FrameByPlane(label_indx, pln, body, height, group).frame
             first_index += 1
             self._frames.append(frame)
@@ -1955,7 +1955,7 @@ class FramesBetweenPlanesByDistance(object):
     Create frames between two planes using a maximum spacing. This method uses
     :class:`.PlanesBetweenPlanesByDistance` and :class:`.FrameByPlane`.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.geometry.entities.Plane pln1: The first plane.
     :param afem.geometry.entities.Plane pln2: The second plane.
     :param float maxd: The maximum allowed spacing. The actual spacing will
@@ -1967,17 +1967,17 @@ class FramesBetweenPlanesByDistance(object):
     :param float d2: An offset distance for the last plane. This is typically
         a negative number indicating a distance from *u2* towards *u1*.
     :param int nmin: Minimum number of parts to create.
-    :param int first_index: The first index appended to the part label as
+    :param int first_index: The first index appended to the part name as
         parts are created successively.
-    :param str delimiter: The delimiter to use when joining the part label
-        with the index. The final part label will be
-        'label' + 'delimiter' + 'index'.
+    :param str delimiter: The delimiter to use when joining the part name
+        with the index. The final part name will be
+        'name' + 'delimiter' + 'index'.
     :param group: The group to add the part to. If not provided the part will
         be added to the active group.
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, pln1, pln2, maxd, body, height, d1=None,
+    def __init__(self, name, pln1, pln2, maxd, body, height, d1=None,
                  d2=None, nmin=0, first_index=1, delimiter=' ', group=None):
         first_index = int(first_index)
 
@@ -1987,7 +1987,7 @@ class FramesBetweenPlanesByDistance(object):
         self._nframes = builder.nplanes
         self._ds = builder.spacing
         for pln in builder.planes:
-            label_indx = delimiter.join([label, str(first_index)])
+            label_indx = delimiter.join([name, str(first_index)])
             frame = FrameByPlane(label_indx, pln, body, height, group).frame
             first_index += 1
             self._frames.append(frame)
@@ -2032,7 +2032,7 @@ class SkinBySolid(object):
     """
     Create a skin part from the outer shell of the solid.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.topology.entities.Solid solid: The solid.
     :param bool copy: Option to copy the outer shell.
     :param group: The group to add the part to. If not provided the part will
@@ -2040,12 +2040,12 @@ class SkinBySolid(object):
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, solid, copy=False, group=None):
+    def __init__(self, name, solid, copy=False, group=None):
         shell = solid.outer_shell
         if copy:
             shell = shell.copy(False)
 
-        self._skin = Skin(label, shell, None, None, group)
+        self._skin = Skin(name, shell, None, None, group)
 
     @property
     def skin(self):
@@ -2060,7 +2060,7 @@ class SkinByBody(SkinBySolid):
     """
     Create a skin part from the outer shell of a body.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param afem.oml.entities.Body body: The body.
     :param bool copy: Option to copy the outer shell.
     :param group: The group to add the part to. If not provided the part will
@@ -2068,8 +2068,8 @@ class SkinByBody(SkinBySolid):
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, body, copy=False, group=None):
-        super(SkinByBody, self).__init__(label, body.shape, copy, group)
+    def __init__(self, name, body, copy=False, group=None):
+        super(SkinByBody, self).__init__(name, body.shape, copy, group)
 
 
 # STRINGER --------------------------------------------------------------------
@@ -2078,7 +2078,7 @@ class StringerByShape(object):
     """
     Create a Stringer using a basis shape.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param basis_shape: The basis shape that will define the path of the
         stringer.
     :type basis_shape: afem.topology.entities.Shape or
@@ -2100,7 +2100,7 @@ class StringerByShape(object):
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, basis_shape, support_shape, height, angle=30.,
+    def __init__(self, name, basis_shape, support_shape, height, angle=30.,
                  shape1=None, shape2=None, group=None):
 
         # Convert to shapes
@@ -2185,7 +2185,7 @@ class StringerByShape(object):
             [first_shape, middle_shape, last_shape]).compound
         shape = SewShape(cmp).sewed_shape
 
-        self._stringer = Stringer(label, shape, group=group)
+        self._stringer = Stringer(name, shape, group=group)
 
     @property
     def stringer(self):
@@ -2202,7 +2202,7 @@ class Beam2DBySweep(object):
     """
     Create a Beam2D by sweeping a profile along a path.
 
-    :param str label: Part label.
+    :param str name: Part name.
     :param spine: The path for the sweep.
     :type spine: afem.geometry.entities.Curve or afem.topology.entities.Edge or
         afem.topology.entities.Wire
@@ -2213,7 +2213,7 @@ class Beam2DBySweep(object):
     :type group: str or afem.structure.group.Group or None
     """
 
-    def __init__(self, label, spine, profile, group=None):
+    def __init__(self, name, spine, profile, group=None):
         cref = None
         if CheckGeom.is_curve(spine):
             cref = spine
@@ -2228,7 +2228,7 @@ class Beam2DBySweep(object):
             cref = spine.curve
 
         tool = SweepShape(spine, profile)
-        self._beam = Beam2D(label, tool.shape, cref, None, group)
+        self._beam = Beam2D(name, tool.shape, cref, None, group)
 
     @property
     def beam2d(self):

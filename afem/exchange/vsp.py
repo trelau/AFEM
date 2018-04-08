@@ -243,7 +243,7 @@ class ImportVSP(object):
                                               self._reloft)
                 self._invalid += invalid
                 if wing is not None:
-                    wing.set_label(comp_name)
+                    wing.set_name(comp_name)
                     bodies[comp_name] = wing
                     sref_id = metadata['Sref ID']
                     wing_bodies[sref_id] = wing
@@ -253,7 +253,7 @@ class ImportVSP(object):
                 fuse, invalid = _process_fuse(compound, self._divide)
                 self._invalid += invalid
                 if fuse is not None:
-                    fuse.set_label(comp_name)
+                    fuse.set_name(comp_name)
                     bodies[comp_name] = fuse
                     sref_id = metadata['Sref ID']
                     fuselage_bodies[sref_id] = fuse
@@ -321,7 +321,7 @@ class ImportVSP(object):
         names = []
         for body in bodies:
             solids.append(body.shape)
-            names.append(body.label)
+            names.append(body.name)
         cmp = Compound.by_shapes(solids)
 
         # Add main shape and top-level assembly

@@ -91,7 +91,7 @@ class ShapeHolder(ViewableItem):
     def __init__(self, expected_type, shape=None):
         super(ShapeHolder, self).__init__()
         self._type = expected_type
-        self._type_name = expected_type.__class__.__name__
+        self._type_name = expected_type.__name__
         self._shape = None
         if shape is not None:
             self.set_shape(shape)
@@ -99,10 +99,15 @@ class ShapeHolder(ViewableItem):
     @property
     def shape(self):
         """
-        :return: The shape.
-        :rtype: afem.topology.entities.Shape
+        :Getter: The shape.
+        :Setter: Set the shape.
+        :type: afem.topology.entities.Shape
         """
         return self._shape
+
+    @shape.setter
+    def shape(self, shape):
+        self.set_shape(shape)
 
     @property
     def displayed_shape(self):
@@ -123,9 +128,9 @@ class ShapeHolder(ViewableItem):
         if not isinstance(shape, self._type):
             this = self.__class__.__name__
             other = shape.__class__.__name__
-            msg = ('Invalid shape provided for {}. '
-                   'Expected a {} but got a {}'.format(this, self._type_name,
-                                                       other))
+            msg = ('Invalid shape provided for a {} object. '
+                   'Expected a {} but got a {}.'.format(this, self._type_name,
+                                                        other))
             warn(msg, RuntimeWarning)
 
         self._shape = shape

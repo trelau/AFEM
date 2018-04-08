@@ -37,25 +37,25 @@ class Body(ShapeHolder):
 
     :param shape: The shape which should be a solid.
     :type shape: afem.topology.entities.Solid
-    :param str label: The label.
+    :param str name: The name.
 
     :raise TypeError: If type of ``shape`` is not a solid.
     """
 
-    def __init__(self, shape, label='Body'):
+    def __init__(self, shape, name='Body'):
         super(Body, self).__init__(Solid, shape)
         self._metadata = {}
-        self._label = label
+        self._name = name
         self._sref = None
         self._sref_shape = None
 
     @property
-    def label(self):
+    def name(self):
         """
-        :return: The label.
+        :return: The name.
         :rtype: str
         """
-        return self._label
+        return self._name
 
     @property
     def outer_shell(self):
@@ -121,15 +121,15 @@ class Body(ShapeHolder):
         """
         return self._sref.v2
 
-    def set_label(self, label):
+    def set_name(self, name):
         """
         Set name of body.
 
-        :param str label: The name.
+        :param str name: The name.
 
         :return: None.
         """
-        self._label = label
+        self._name = name
 
     def add_metadata(self, key, value):
         """
@@ -327,18 +327,18 @@ class Body(ShapeHolder):
             bbox.enlarge(tol)
         return bbox
 
-    def mirrored(self, pln, label=None):
+    def mirrored(self, pln, name=None):
         """
         Mirror this Body using the plane.
 
         :param afem.geometry.entities.Plane pln: The plane.
-        :param str label: The label of the new Body.
+        :param str name: The name of the new Body.
 
         :return: Mirrored Body.
         :rtype: afem.oml.entities.Body
         """
         solid = mirror_shape(self.shape, pln)
-        body = Body(solid, label)
+        body = Body(solid, name)
         if self.sref is not None:
             sref = self.sref.copy()
             sref.mirror(pln)
@@ -358,7 +358,7 @@ class Body(ShapeHolder):
 
         .. note::
 
-            This method only saves the label, shape, reference surface, and
+            This method only saves the name, shape, reference surface, and
             color of the Body. Other user-defined metadata is currently not
             saved.
         """
@@ -393,7 +393,7 @@ class Body(ShapeHolder):
 
         .. note::
 
-            This method only saves the label, shape, reference surface, and
+            This method only saves the name, shape, reference surface, and
             color of the Body. Other user-defined metadata is currently not
             saved.
         """
@@ -404,14 +404,14 @@ class Body(ShapeHolder):
 
         # Add the bodies
         for body in bodies:
-            label = doc.add_shape(body.shape, body.label, False)
+            label = doc.add_shape(body.shape, body.name, False)
             label.set_string('Body')
             label.set_color(body.color)
 
             # Sref
             if body.sref is not None:
                 face = FaceBySurface(body.sref).face
-                label = doc.add_shape(face, body.label, False)
+                label = doc.add_shape(face, body.name, False)
                 label.set_string('SREF')
 
         return doc.save_as(fn)
