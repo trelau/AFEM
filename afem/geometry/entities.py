@@ -26,8 +26,8 @@ from OCCT.GCPnts import GCPnts_AbscissaPoint
 from OCCT.GProp import GProp_GProps
 from OCCT.Geom import (Geom_Line, Geom_Circle, Geom_Ellipse, Geom_BSplineCurve,
                        Geom_TrimmedCurve, Geom_Plane, Geom_BSplineSurface,
-                       Geom_Curve, Geom_Surface)
-from OCCT.Geom2d import Geom2d_BSplineCurve
+                       Geom_Curve, Geom_Surface, Geom_Geometry)
+from OCCT.Geom2d import Geom2d_BSplineCurve, Geom2d_Curve
 from OCCT.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCCT.GeomAPI import GeomAPI
 from OCCT.GeomAbs import GeomAbs_Shape, GeomAbs_JoinType
@@ -625,9 +625,18 @@ class Geometry2D(object):
     Base class for 2-D geometry.
 
     :param OCCT.Geom2d.Geom2d_Geometry obj: The geometry object.
+
+    :raise TypeError: If the wrapped type of ``obj`` does not match the
+        expected type.
     """
 
-    def __init__(self, obj=None):
+    def __init__(self, obj):
+        if not isinstance(obj, self._OCC_TYPE):
+            n1 = self._OCC_TYPE.__name__
+            n2 = obj.__class__.__name__
+            msg = ('Error wrapping an OpenCASCADE 2-D geometry type. '
+                   'Expected a {} but got a {}.'.format(n1, n2))
+            raise TypeError(msg)
         super(Geometry2D, self).__init__()
         self._object = obj
 
@@ -675,6 +684,7 @@ class Curve2D(Geometry2D):
 
     :param OCCT.Geom2d.Geom2d_Curve obj: The 2-D curve object.
     """
+    _OCC_TYPE = Geom2d_Curve
 
     def __init__(self, obj):
         super(Curve2D, self).__init__(obj)
@@ -878,6 +888,7 @@ class NurbsCurve2D(Curve2D):
 
     .. _Geom2d_BSplineCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d___b_spline_curve.html
     """
+    _OCC_TYPE = Geom2d_BSplineCurve
 
     def __init__(self, obj):
         super(NurbsCurve2D, self).__init__(obj)
@@ -1902,7 +1913,12 @@ class Geometry(ViewableItem):
         type.
     :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Intersection INTERSECT:
         Intersection join type.
+
+    :raise TypeError: If the wrapped type of ``obj`` does not match the
+        expected type.
     """
+    # Expected type
+    _OCC_TYPE = Geom_Geometry
 
     # Continuities
     C0 = GeomAbs_Shape.GeomAbs_C0
@@ -1918,7 +1934,13 @@ class Geometry(ViewableItem):
     TANGENT = GeomAbs_JoinType.GeomAbs_Tangent
     INTERSECT = GeomAbs_JoinType.GeomAbs_Intersection
 
-    def __init__(self, obj=None):
+    def __init__(self, obj):
+        if not isinstance(obj, self._OCC_TYPE):
+            n1 = self._OCC_TYPE.__name__
+            n2 = obj.__class__.__name__
+            msg = ('Error wrapping an OpenCASCADE geometry type. '
+                   'Expected a {} but got a {}.'.format(n1, n2))
+            raise TypeError(msg)
         super(Geometry, self).__init__()
         self._object = obj
 
@@ -1999,6 +2021,7 @@ class Curve(Geometry):
 
     .. _Geom_Curve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___curve.html
     """
+    _OCC_TYPE = Geom_Curve
 
     def __init__(self, obj):
         super(Curve, self).__init__(obj)
@@ -2206,6 +2229,7 @@ class Line(Curve):
 
     .. _Geom_Line: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___line.html
     """
+    _OCC_TYPE = Geom_Line
 
     def __init__(self, obj):
         super(Line, self).__init__(obj)
@@ -2242,6 +2266,7 @@ class Circle(Curve):
 
     :param OCCT.Geom.Geom_Circle obj: The circle object.
     """
+    _OCC_TYPE = Geom_Circle
 
     def __init__(self, obj):
         super(Circle, self).__init__(obj)
@@ -2279,6 +2304,7 @@ class Ellipse(Curve):
 
     :param OCCT.Geom.Geom_Ellipse obj: The ellipse object.
     """
+    _OCC_TYPE = Geom_Ellipse
 
     def __init__(self, obj):
         super(Ellipse, self).__init__(obj)
@@ -2330,6 +2356,7 @@ class NurbsCurve(Curve):
 
     .. _Geom_BSplineCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___b_spline_curve.html
     """
+    _OCC_TYPE = Geom_BSplineCurve
 
     def __init__(self, obj):
         super(NurbsCurve, self).__init__(obj)
@@ -2489,6 +2516,7 @@ class TrimmedCurve(Curve):
 
     :param OCCT.Geom.Geom_TrimmedCurve obj: The object.
     """
+    _OCC_TYPE = Geom_TrimmedCurve
 
     def __init__(self, obj):
         super(TrimmedCurve, self).__init__(obj)
@@ -2569,6 +2597,7 @@ class Surface(Geometry):
 
     .. _Geom_Surface: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___surface.html
     """
+    _OCC_TYPE = Geom_Surface
 
     def __init__(self, obj):
         super(Surface, self).__init__(obj)
@@ -2780,12 +2809,8 @@ class Plane(Surface):
     Infinite plane around ``Geom_Plane``.
 
     :param OCCT.Geom.Geom_Plane obj: The plane object.
-
-    For more information see Geom_Plane_.
-
-    .. _Geom_Plane: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___plane.html
-
     """
+    _OCC_TYPE = Geom_Plane
 
     def __init__(self, obj):
         super(Plane, self).__init__(obj)
@@ -2885,12 +2910,8 @@ class NurbsSurface(Surface):
     NURBS surface around ``Geom_BSplineSurface``.
 
     :param OCCT.Geom.Geom_BSplineSurface obj: The surface object.
-
-    For more information see Geom_BSplineSurface_.
-
-    .. _Geom_BSplineSurface: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___b_spline_surface.html
-
     """
+    _OCC_TYPE = Geom_BSplineSurface
 
     def __init__(self, obj):
         super(NurbsSurface, self).__init__(obj)
