@@ -20,7 +20,7 @@ from setuptools import setup
 
 setup(
     name='afem',
-    version='0.2.0',
+    version='0.3.0',
     packages=['afem', 'afem.base', 'afem.exchange', 'afem.geometry',
               'afem.graphics', 'afem.misc', 'afem.occ', 'afem.oml',
               'afem.sketch', 'afem.smesh', 'afem.structure', 'afem.topology'],
