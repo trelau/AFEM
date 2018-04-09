@@ -96,10 +96,12 @@ class XdeDocument(object):
 
     def open(self, fn):
         """
+        Open a document.
 
-        :param fn:
+        :param str fn: The filename.
 
-        :return:
+        :return: *True* if opened, *False* if not.
+        :rtype: bool
         """
         if not fn.endswith(self._ext):
             fn += self._ext
@@ -113,10 +115,12 @@ class XdeDocument(object):
 
     def save_as(self, fn):
         """
+        Save the document.
 
-        :param str fn:
+        :param str fn: The filename.
 
-        :return:
+        :return: *True* if sucessfully saved, *False* if not.
+        :rtype: bool
         """
         if not fn.endswith(self._ext):
             fn += self._ext
@@ -139,12 +143,11 @@ class XdeDocument(object):
 
         :param str fn: The filename.
 
-        :return:
-        :rtype:
+        :return: The shapes label.
+        :rtype: afem.exchange.xde.Label.
 
         :raise RuntimeError: If the file cannot be read.
         """
-        # TODO Finish docstrings
         reader = STEPCAFControl_Reader()
         reader.SetNameMode(True)
         reader.SetColorMode(True)
@@ -158,13 +161,15 @@ class XdeDocument(object):
 
     def transfer_step(self, schema='AP203', units=None):
         """
+        Transfer the document in preparation for STEP export.
 
-        :param schema:
-        :param units:
+        :param str schema: Schema for STEP file ('AP203', or 'AP214').
+        :param units: Units to convert STEP file to.
+        :type units: str or None
 
-        :return:
+        :return: *True* if transferred, *False* otherwise.
+        :rtype: bool
         """
-        # TODO Finish docstrings
         self._step_writer = STEPCAFControl_Writer()
         self._step_writer.SetNameMode(True)
         self._step_writer.SetColorMode(True)
@@ -206,14 +211,15 @@ class XdeDocument(object):
 
     def write_step(self, fn, schema='AP203', units=None):
         """
+        Write the document to a STEP file.
 
-        :param fn:
-        :param schema:
-        :param units:
+        :param str fn: The filename.
+        :param str schema: Schema for STEP file ('AP203', or 'AP214').
+        :param units: Units to convert STEP file to.
+        :type units: str or None
 
-        :return:
+        :return: *True* if written successfully, *False* otherwise.
         """
-        # TODO Finish docstrings
         if self._step_writer is None:
             self.transfer_step(schema, units)
 

@@ -34,12 +34,15 @@ class StepWrite(object):
     """
     Write shape to a STEP file.
     
-    :param str schema: Define schema for STEP file ('AP203', or 'AP214').
-    :param str units: Units to convert STEP file to.
-    :param str product_name: The name of the STEP product entry. If more than
+    :param str schema: Schema for STEP file ('AP203', or 'AP214').
+    :param units: Units to convert STEP file to.
+    :type units: str or None
+    :param product_name: The name of the STEP product entry. If more than
         one product is generated during translation, then OpenCASCADE will
         automatically append a unique integer.
-    :param int assembly_mode: Mode for writing assemblies (0, 1, or 2).
+    :type product_name: str or None
+    :param assembly_mode: Mode for writing assemblies (0, 1, or 2).
+    :type assembly_mode: int or None
 
     .. note::
         The assembly modes are as follows:
