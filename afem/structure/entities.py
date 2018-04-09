@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from numpy import mean
 
-from afem.base.entities import ShapeHolder
+from afem.base.entities import ShapeHolder, NamedItem
 from afem.config import logger
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
@@ -70,7 +70,7 @@ def shape_of_entity(entity):
         return Shape.to_shape(entity)
 
 
-class Part(ShapeHolder):
+class Part(ShapeHolder, NamedItem):
     """
     Base class for all parts.
 
@@ -91,15 +91,13 @@ class Part(ShapeHolder):
 
     def __init__(self, name, shape, cref=None, sref=None, group=None):
         super(Part, self).__init__(Shape, shape)
+        NamedItem.__init__(self, name)
 
         self._cref, self._sref = None, None
-        self._metadata = {}
         self._subparts = {}
 
         self._id = Part._indx
         Part._indx += 1
-
-        self._name = name
 
         if cref is not None:
             self.set_cref(cref)
@@ -121,14 +119,6 @@ class Part(ShapeHolder):
         :rtype: str
         """
         return self.__class__.__name__
-
-    @property
-    def name(self):
-        """
-        :return: The part name.
-        :rtype: str
-        """
-        return self._name
 
     @property
     def id(self):
@@ -169,14 +159,6 @@ class Part(ShapeHolder):
         :rtype: float
         """
         return self._shape.tol_min
-
-    @property
-    def metadata(self):
-        """
-        :return: The part metadata.
-        :rtype: dict
-        """
-        return self._metadata
 
     @property
     def subparts(self):
@@ -503,29 +485,6 @@ class Part(ShapeHolder):
             msg = 'Invalid surface type.'
             raise TypeError(msg)
         self._sref = sref
-
-    def add_metadata(self, key, value):
-        """
-        Add metadata to the part.
-
-        :param key: The key.
-        :param value: The value.
-
-        :return: None.
-        """
-        self._metadata[key] = value
-
-    def get_metadata(self, key):
-        """
-        Get metadata.
-
-        :param key: The key.
-
-        :return: The metadata.
-
-        :raise KeyError: If key not present in the dictionary.
-        """
-        return self._metadata[key]
 
     def add_subpart(self, key, subpart):
         """

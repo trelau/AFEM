@@ -16,12 +16,54 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+from collections import Sequence
 from warnings import warn
 
 from OCCT.Quantity import Quantity_TOC_RGB, Quantity_Color
 from numpy.random import rand
 
-__all__ = ["ViewableItem", "ShapeHolder"]
+__all__ = ["NamedItem", "ViewableItem", "ShapeHolder"]
+
+
+class NamedItem(object):
+    """
+    Base class for types that can be give a name.
+    """
+
+    def __init__(self, name='Item'):
+        self._name = name
+        self._metadata = {}
+
+    @property
+    def name(self):
+        """
+        :Getter: The name.
+        :Setter: Set name.
+        :type: str
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name):
+        self.set_name(name)
+
+    @property
+    def metadata(self):
+        """
+        :return: The metadata dictionary.
+        :rtype: dict
+        """
+        return self._metadata
+
+    def set_name(self, name):
+        """
+        Set name.
+
+        :param str name: The name.
+
+        :return: None.
+        """
+        self._name = name
 
 
 class ViewableItem(object):
@@ -84,14 +126,18 @@ class ShapeHolder(ViewableItem):
     """
     Base class for types that store a shape.
 
-    :param Type[afem.topology.entities.Shape] expected_type: The expected type.
+    :param expected_type: The expected type(s).
+    :type expected_type: Type[afem.topology.entities.Shape] or
+        tuple(Type[afem.topology.entities.Shape])
     :param afem.topology.entities.Shape shape: The shape.
     """
 
     def __init__(self, expected_type, shape=None):
         super(ShapeHolder, self).__init__()
-        self._type = expected_type
-        self._type_name = expected_type.__name__
+        if isinstance(expected_type, Sequence):
+            self._types = expected_type
+        else:
+            self._types = (expected_type,)
         self._shape = None
         if shape is not None:
             self.set_shape(shape)
@@ -125,12 +171,19 @@ class ShapeHolder(ViewableItem):
 
         :return: None.
         """
-        if not isinstance(shape, self._type):
+        if not isinstance(shape, self._types):
             this = self.__class__.__name__
             other = shape.__class__.__name__
+
+            expected = []
+            for type_ in self._types:
+                expected.append(type_.__name__)
+            if len(expected) == 1:
+                expected = 'a ' + expected[0]
+            else:
+                expected = 'one of (' + ', '.join(expected) + ')'
             msg = ('Invalid shape provided for a {} object. '
-                   'Expected a {} but got a {}.'.format(this, self._type_name,
-                                                        other))
+                   'Got a {} but expected {}.'.format(this, other, expected))
             warn(msg, RuntimeWarning)
 
         self._shape = shape

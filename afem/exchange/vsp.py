@@ -279,11 +279,11 @@ class ImportVSP(object):
             if sref_id in href_surfs:
                 fuselage = fuselage_bodies[sref_id]
                 sref = href_surfs[sref_id]
-                fuselage.add_metadata('hsref', sref)
+                fuselage.metadata.set('hsref', sref)
             if sref_id in vref_surfs:
                 fuselage = fuselage_bodies[sref_id]
                 sref = vref_surfs[sref_id]
-                fuselage.add_metadata('vsref', sref)
+                fuselage.metadata.set('vsref', sref)
 
         # Update
         self._bodies.update(bodies)
@@ -609,14 +609,14 @@ def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
     wing = Body(solid)
 
     if vsp_surf:
-        wing.add_metadata('vsp surface', vsp_surf)
+        wing.metadata.set('vsp surface', vsp_surf)
         upr_srf = vsp_surf.copy()
         v_le = vsp_surf.local_to_global_param('v', 0.5)
         upr_srf.segment(vsp_surf.u1, vsp_surf.u2, v_le, vsp_surf.v2)
-        wing.add_metadata('upper surface', upr_srf)
+        wing.metadata.set('upper surface', upr_srf)
         lwr_srf = vsp_surf.copy()
         lwr_srf.segment(vsp_surf.u1, vsp_surf.u2, vsp_surf.v1, v_le)
-        wing.add_metadata('lower surface', lwr_srf)
+        wing.metadata.set('lower surface', lwr_srf)
 
     return wing, invalid
 
@@ -634,7 +634,7 @@ def _process_fuse(compound, divide_closed):
     faces = compound.faces
     if len(faces) == 1:
         vsp_surf = faces[0].surface
-        fuselage.add_metadata('vsp surface', vsp_surf)
+        fuselage.metadata.set('vsp surface', vsp_surf)
 
     return fuselage, invalid
 

@@ -6,6 +6,10 @@ Entities
 --------
 .. py:currentmodule:: afem.base.entities
 
+NamedItem
+~~~~~~~~~
+.. autoclass:: NamedItem
+
 ViewableItem
 ~~~~~~~~~~~~
 .. autoclass:: ViewableItem
