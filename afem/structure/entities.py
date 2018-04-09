@@ -37,7 +37,7 @@ from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
                                   ShellByFaces, WiresByShape, FaceByPlane,
                                   SolidByDrag)
 from afem.topology.distance import DistanceShapeToShape
-from afem.topology.entities import Shape, Edge
+from afem.topology.entities import *
 from afem.topology.fix import FixShape
 from afem.topology.modify import (RebuildShapeByTool,
                                   RebuildShapeWithShapes, RebuildShapesByTool,
@@ -90,7 +90,12 @@ class Part(ShapeHolder, NamedItem):
     _core_shape = Shape.SHAPE
 
     def __init__(self, name, shape, cref=None, sref=None, group=None):
-        super(Part, self).__init__(Shape, shape)
+        type_ = (Shape,)
+        if isinstance(self, CurvePart):
+            type_ = (Edge, Wire, Compound)
+        elif isinstance(self, SurfacePart):
+            type_ = (Face, Shell, Compound)
+        super(Part, self).__init__(type_, shape)
         NamedItem.__init__(self, name)
 
         self._cref, self._sref = None, None
