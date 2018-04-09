@@ -1944,6 +1944,12 @@ class Geometry(ViewableItem):
         super(Geometry, self).__init__()
         self._object = obj
 
+        # Set default color
+        if isinstance(self, Curve):
+            self.set_color(1., 0., 0.)
+        elif isinstance(self, Surface):
+            self.set_color(0.5, 0.5, 0.5)
+
     @property
     def object(self):
         """
@@ -2022,10 +2028,6 @@ class Curve(Geometry):
     .. _Geom_Curve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___curve.html
     """
     _OCC_TYPE = Geom_Curve
-
-    def __init__(self, obj):
-        super(Curve, self).__init__(obj)
-        self.set_color(1, 0, 0)
 
     @property
     def displayed_shape(self):
@@ -2231,9 +2233,6 @@ class Line(Curve):
     """
     _OCC_TYPE = Geom_Line
 
-    def __init__(self, obj):
-        super(Line, self).__init__(obj)
-
     @classmethod
     def by_axis(cls, ax1):
         """
@@ -2267,9 +2266,6 @@ class Circle(Curve):
     :param OCCT.Geom.Geom_Circle obj: The circle object.
     """
     _OCC_TYPE = Geom_Circle
-
-    def __init__(self, obj):
-        super(Circle, self).__init__(obj)
 
     @property
     def radius(self):
@@ -2305,9 +2301,6 @@ class Ellipse(Curve):
     :param OCCT.Geom.Geom_Ellipse obj: The ellipse object.
     """
     _OCC_TYPE = Geom_Ellipse
-
-    def __init__(self, obj):
-        super(Ellipse, self).__init__(obj)
 
     @property
     def major_radius(self):
@@ -2357,9 +2350,6 @@ class NurbsCurve(Curve):
     .. _Geom_BSplineCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___b_spline_curve.html
     """
     _OCC_TYPE = Geom_BSplineCurve
-
-    def __init__(self, obj):
-        super(NurbsCurve, self).__init__(obj)
 
     @property
     def p(self):
@@ -2518,9 +2508,6 @@ class TrimmedCurve(Curve):
     """
     _OCC_TYPE = Geom_TrimmedCurve
 
-    def __init__(self, obj):
-        super(TrimmedCurve, self).__init__(obj)
-
     @property
     def basis_curve(self):
         """
@@ -2598,10 +2585,6 @@ class Surface(Geometry):
     .. _Geom_Surface: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___surface.html
     """
     _OCC_TYPE = Geom_Surface
-
-    def __init__(self, obj):
-        super(Surface, self).__init__(obj)
-        self.set_color(0.5, 0.5, 0.5)
 
     @property
     def displayed_shape(self):
@@ -2812,9 +2795,6 @@ class Plane(Surface):
     """
     _OCC_TYPE = Geom_Plane
 
-    def __init__(self, obj):
-        super(Plane, self).__init__(obj)
-
     @property
     def origin(self):
         """
@@ -2912,9 +2892,6 @@ class NurbsSurface(Surface):
     :param OCCT.Geom.Geom_BSplineSurface obj: The surface object.
     """
     _OCC_TYPE = Geom_BSplineSurface
-
-    def __init__(self, obj):
-        super(NurbsSurface, self).__init__(obj)
 
     @property
     def p(self):
