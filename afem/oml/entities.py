@@ -36,16 +36,15 @@ class Body(ShapeHolder, NamedItem):
     information when creating structural components.
 
     :param shape: The shape which should be a solid.
-    :type shape: afem.topology.entities.Solid
+    :type shape: afem.topology.entities.Solid or afem.topology.entities.Shape
     :param str name: The name.
-
-    :raise TypeError: If type of ``shape`` is not a solid.
     """
 
     def __init__(self, shape, name='Body'):
         super(Body, self).__init__(Solid, shape)
         NamedItem.__init__(self, name)
 
+        # Geometry data
         self._sref = None
         self._sref_shape = None
 

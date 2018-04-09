@@ -364,7 +364,7 @@ class Shape(ViewableItem):
     def point(self):
         """
         :return: *None* unless overridden in derived class.
-        :rtype: None
+        :rtype: afem.geometry.entites.Point or None
         """
         return None
 
@@ -372,7 +372,7 @@ class Shape(ViewableItem):
     def curve(self):
         """
         :return: *None* unless overridden in derived class.
-        :rtype: None
+        :rtype: afem.geometry.entities.Curve or None
         """
         return None
 
@@ -380,7 +380,7 @@ class Shape(ViewableItem):
     def surface(self):
         """
         :return: *None* unless overridden in derived class.
-        :rtype: None
+        :rtype: afem.geometry.entities.Surface or None
         """
         return None
 

@@ -87,9 +87,9 @@ class Part(ShapeHolder, NamedItem):
     """
     _indx = 1
     _mesh = None
-    _core_shape = Shape.SHAPE
 
     def __init__(self, name, shape, cref=None, sref=None, group=None):
+        # Shape holder
         type_ = (Shape,)
         if isinstance(self, CurvePart):
             type_ = (Edge, Wire, Compound)
@@ -98,17 +98,19 @@ class Part(ShapeHolder, NamedItem):
         super(Part, self).__init__(type_, shape)
         NamedItem.__init__(self, name)
 
-        self._cref, self._sref = None, None
-        self._subparts = {}
-
+        # Unique ID
         self._id = Part._indx
         Part._indx += 1
 
+        # Geometry data
+        self._cref, self._sref = None, None
         if cref is not None:
             self.set_cref(cref)
-
         if sref is not None:
             self.set_sref(sref)
+
+        # Other data
+        self._subparts = {}
 
         # Add to group
         GroupAPI.add_parts(group, self)
@@ -1235,7 +1237,6 @@ class CurvePart(Part):
     """
     Base class for curve parts.
     """
-    _core_shape = Shape.EDGE
 
     @property
     def length(self):
@@ -1257,7 +1258,6 @@ class SurfacePart(Part):
     """
     Base class for surface parts.
     """
-    _core_shape = Shape.FACE
 
     @property
     def length(self):
@@ -1463,6 +1463,8 @@ class SurfacePart(Part):
         los = LengthOfShapes(wires)
         max_length = los.max_length
         wire = los.longest_shape
+        if not isinstance(wire, Wire):
+            return False
         mid_length = max_length / 2.
         p = PointAlongShape(wire, mid_length).point
         u, v = self.invert_sref(p)
