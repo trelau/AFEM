@@ -915,23 +915,6 @@ class Geometry(ViewableItem):
         """
         return self._object
 
-    @property
-    def displayed_shape(self):
-        """
-        :return: The shape to be displayed.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
-        """
-        if isinstance(self, Point):
-            return BRepBuilderAPI_MakeVertex(self).Vertex()
-        if isinstance(self, Curve):
-            return BRepBuilderAPI_MakeEdge(self.object).Edge()
-        if isinstance(self, Surface):
-            return BRepBuilderAPI_MakeFace(self.object, 0.).Face()
-
-        msg = ('Viewing this type is not yet support. '
-               'Implement displayed_shape property.')
-        raise NotImplementedError(msg)
-
     def translate(self, v):
         """
         Translate the geometry along the vector.
@@ -1061,6 +1044,14 @@ class Point(gp_Pnt, Geometry):
 
     def __sub__(self, other):
         return subtract(self, other)
+
+    @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Vertex
+        """
+        return BRepBuilderAPI_MakeVertex(self).Vertex()
 
     @property
     def x(self):
@@ -1727,6 +1718,14 @@ class Curve(Geometry):
         self.set_color(1, 0, 0)
 
     @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Edge
+        """
+        return BRepBuilderAPI_MakeEdge(self.object).Edge()
+
+    @property
     def adaptor(self):
         """
         :return: A curve adaptor.
@@ -2287,6 +2286,14 @@ class Surface(Geometry):
     def __init__(self, obj):
         super(Surface, self).__init__(obj)
         self.set_color(0.5, 0.5, 0.5)
+
+    @property
+    def displayed_shape(self):
+        """
+        :return: The shape to be displayed.
+        :rtype: OCCT.TopoDS.TopoDS_Face
+        """
+        return BRepBuilderAPI_MakeFace(self.object, 0.).Face()
 
     @property
     def adaptor(self):
