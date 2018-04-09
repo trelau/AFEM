@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+from afem.base.entities import NamedItem
 from afem.exchange.xde import XdeDocument
 from afem.structure.utils import order_parts_by_id
 from afem.topology.create import CompoundByShapes, EdgeByCurve, FaceBySurface
@@ -23,7 +24,7 @@ from afem.topology.create import CompoundByShapes, EdgeByCurve, FaceBySurface
 __all__ = ["Group", "GroupAPI"]
 
 
-class Group(object):
+class Group(NamedItem):
     """
     Group of parts.
 
@@ -33,21 +34,12 @@ class Group(object):
     """
 
     def __init__(self, name, parent=None):
-        self._name = name
+        super(Group, self).__init__(name)
         self._parent = parent
         self._children = set()
         self._parts = set()
         if isinstance(self._parent, Group):
             self._parent._children.add(self)
-        self._metadata = {}
-
-    @property
-    def name(self):
-        """
-        :return: The name.
-        :rtype: str
-        """
-        return self._name
 
     @property
     def parent(self):
@@ -64,37 +56,6 @@ class Group(object):
         :rtype: list(afem.structure.entities.Part)
         """
         return list(self._parts)
-
-    @property
-    def metadata(self):
-        """
-        :return: The metadata dictionary.
-        :rtype: dict
-        """
-        return self._metadata
-
-    def add_metadata(self, key, value):
-        """
-        Add metadata to the group.
-
-        :param key: The key.
-        :param value: The value.
-
-        :return: None.
-        """
-        self._metadata[key] = value
-
-    def get_metadata(self, key):
-        """
-        Get metadata.
-
-        :param key: The key.
-
-        :return: The value.
-
-        :raise KeyError: If the key is not in the dictionary.
-        """
-        return self._metadata[key]
 
     def activate(self):
         """
@@ -208,7 +169,7 @@ class GroupAPI(object):
     from one place. There is always a master model named '_master' that is
     created at initialization. This will be the parent of all groups
     that are not provided a parent when created. No groups should be
-    labeled '_master'.
+    named '_master'.
     """
     _master = Group('_master', None)
     _all = {'_master': _master}
@@ -425,39 +386,6 @@ class GroupAPI(object):
         """
         group = cls.get_group(group)
         return group.as_compound(include_subgroup)
-
-    @classmethod
-    def add_metadata(cls, key, value, group=None):
-        """
-        Add metadata to the group.
-
-        :param key: The key.
-        :param value: The value.
-        :param group: The group. If ``None`` then the active group is
-            used.
-        :type group: str or afem.structure.group.Group or None
-
-        :return: None.
-        """
-        group = cls.get_group(group)
-        return group.add_metadata(key, value)
-
-    @classmethod
-    def get_metadata(cls, key, group=None):
-        """
-        Get metadata.
-
-        :param key: They key.
-        :param group: The group. If ``None`` then the active group is
-            used.
-        :type group: str or afem.structure.group.Group or None
-
-        :return: The value.
-
-        :raise KeyError: If the key is not in the dictionary.
-        """
-        group = cls.get_group(group)
-        return group.get_metadata(key)
 
     @classmethod
     def save_model(cls, fn, binary=True):

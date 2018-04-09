@@ -25,7 +25,7 @@ from OCCT.TopoDS import TopoDS_ListOfShape
 from OCCT.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
-from afem.misc.check import is_array_like
+from afem.misc.util import is_array_like
 
 
 def to_gp_pnt(p):

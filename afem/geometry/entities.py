@@ -38,22 +38,12 @@ from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
 from OCCT.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
 from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d,
                      gp_Vec2d, gp_Dir2d, gp_Vec)
-from numpy import add, array, float64, subtract, ones, ndarray
+from numpy import add, array, float64, subtract, ones
 
 from afem.base.entities import ViewableItem
-from afem.geometry.utils import (global_to_local_param,
-                                 homogenize_array1d,
-                                 homogenize_array2d,
-                                 local_to_global_param,
-                                 reparameterize_knots)
-from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
-                            to_np_from_tcolgp_array2_pnt,
-                            to_np_from_tcolstd_array1_integer,
-                            to_np_from_tcolstd_array1_real,
-                            to_np_from_tcolstd_array2_real,
-                            to_tcolgp_array1_pnt, to_tcolstd_array1_real,
-                            to_tcolstd_array1_integer, to_tcolgp_array2_pnt,
-                            to_tcolstd_array2_real)
+from afem.geometry import utils as geom_utils
+from afem.misc import util as misc_utils
+from afem.occ import utils as occ_utils
 
 __all__ = ["Geometry2D", "Point2D", "Vector2D", "Direction2D",
            "Curve2D", "NurbsCurve2D",
@@ -249,7 +239,7 @@ class Point2D(gp_Pnt2d):
         """
         if isinstance(entity, gp_Pnt2d):
             return True
-        if isinstance(entity, (tuple, list, ndarray)):
+        if misc_utils.is_array_like(entity):
             return len(entity) == 2
         return False
 
@@ -571,7 +561,7 @@ class Vector2D(gp_Vec2d):
 
         if isinstance(entity, cls):
             return entity
-        elif isinstance(entity, (tuple, list, ndarray)):
+        elif misc_utils.is_array_like(entity):
             return cls(entity[0], entity[1])
         elif isinstance(entity, Direction2D):
             return cls(entity)
@@ -773,7 +763,7 @@ class Curve2D(Geometry2D):
         :return: Global parameter(s).
         :rtype: float or list(float)
         """
-        return local_to_global_param(self.u1, self.u2, *args)
+        return geom_utils.local_to_global_param(self.u1, self.u2, *args)
 
     def global_to_local_param(self, *args):
         """
@@ -785,7 +775,7 @@ class Curve2D(Geometry2D):
         :return: Local parameter(s).
         :rtype: float or list(float)
         """
-        return global_to_local_param(self.u1, self.u2, *args)
+        return geom_utils.global_to_local_param(self.u1, self.u2, *args)
 
     def eval(self, u):
         """
@@ -925,7 +915,7 @@ class NurbsCurve2D(Curve2D):
         """
         tcol_array = TColStd_Array1OfReal(1, self.object.NbKnots())
         self.object.Knots(tcol_array)
-        return to_np_from_tcolstd_array1_real(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def mult(self):
@@ -935,7 +925,7 @@ class NurbsCurve2D(Curve2D):
         """
         tcol_array = TColStd_Array1OfInteger(1, self.object.NbKnots())
         self.object.Multiplicities(tcol_array)
-        return to_np_from_tcolstd_array1_integer(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
     def uk(self):
@@ -946,7 +936,7 @@ class NurbsCurve2D(Curve2D):
         tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbPoles() +
                                              self.object.Degree() + 1)
         self.object.KnotSequence(tcol_knot_seq)
-        return to_np_from_tcolstd_array1_real(tcol_knot_seq)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     def set_domain(self, u1=0., u2=1.):
         """
@@ -962,7 +952,7 @@ class NurbsCurve2D(Curve2D):
             return False
         tcol_knots = TColStd_Array1OfReal(1, self.object.NbKnots())
         self.object.Knots(tcol_knots)
-        reparameterize_knots(u1, u2, tcol_knots)
+        geom_utils.reparameterize_knots(u1, u2, tcol_knots)
         self.object.SetKnots(tcol_knots)
         return True
 
@@ -1281,7 +1271,7 @@ class Point(gp_Pnt, ViewableItem):
         """
         if isinstance(entity, gp_Pnt):
             return True
-        if isinstance(entity, (tuple, list, ndarray)):
+        if misc_utils.is_array_like(entity):
             return len(entity) == 3
         return False
 
@@ -1455,11 +1445,11 @@ class Direction(gp_Dir):
         return True
 
     @classmethod
-    def to_direction(cls, geom):
+    def to_direction(cls, entity):
         """
         Convert entity to a Direction if possible.
 
-        :param vector_like geom: An entity.
+        :param vector_like entity: An entity.
 
         :return: The entity if already a Direction, or a new Direction if it is
             vector_like.
@@ -1467,15 +1457,15 @@ class Direction(gp_Dir):
 
         :raise TypeError: If entity cannot be converted to a Direction.
         """
-        if geom is None:
+        if entity is None:
             return None
 
-        if isinstance(geom, cls):
-            return geom
-        elif isinstance(geom, (tuple, list, ndarray)):
-            return cls(geom[0], geom[1], geom[2])
-        elif isinstance(geom, Vector):
-            return cls(geom)
+        if isinstance(entity, cls):
+            return entity
+        elif misc_utils.is_array_like(entity):
+            return cls(entity[0], entity[1], entity[2])
+        elif isinstance(entity, Vector):
+            return cls(entity)
         else:
             raise TypeError('Cannot convert to Direction.')
 
@@ -1696,7 +1686,7 @@ class Vector(gp_Vec):
 
         if isinstance(entity, cls):
             return entity
-        elif isinstance(entity, (tuple, list, ndarray)):
+        elif misc_utils.is_array_like(entity):
             return cls(entity[0], entity[1], entity[2])
         elif isinstance(entity, Direction):
             return cls(entity)
@@ -2120,7 +2110,7 @@ class Curve(Geometry):
         :return: Global parameter(s).
         :rtype: float or list(float)
         """
-        return local_to_global_param(self.u1, self.u2, *args)
+        return geom_utils.local_to_global_param(self.u1, self.u2, *args)
 
     def global_to_local_param(self, *args):
         """
@@ -2132,7 +2122,7 @@ class Curve(Geometry):
         :return: Local parameter(s).
         :rtype: float or list(float)
         """
-        return global_to_local_param(self.u1, self.u2, *args)
+        return geom_utils.global_to_local_param(self.u1, self.u2, *args)
 
     def eval(self, u):
         """
@@ -2375,7 +2365,7 @@ class NurbsCurve(Curve):
         """
         tcol_array = TColStd_Array1OfReal(1, self.object.NbKnots())
         self.object.Knots(tcol_array)
-        return to_np_from_tcolstd_array1_real(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def mult(self):
@@ -2385,7 +2375,7 @@ class NurbsCurve(Curve):
         """
         tcol_array = TColStd_Array1OfInteger(1, self.object.NbKnots())
         self.object.Multiplicities(tcol_array)
-        return to_np_from_tcolstd_array1_integer(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
     def uk(self):
@@ -2396,7 +2386,7 @@ class NurbsCurve(Curve):
         tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbPoles() +
                                              self.object.Degree() + 1)
         self.object.KnotSequence(tcol_knot_seq)
-        return to_np_from_tcolstd_array1_real(tcol_knot_seq)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
     def cp(self):
@@ -2406,7 +2396,7 @@ class NurbsCurve(Curve):
         """
         tcol_array = TColgp_Array1OfPnt(1, self.object.NbPoles())
         self.object.Poles(tcol_array)
-        return to_np_from_tcolgp_array1_pnt(tcol_array)
+        return occ_utils.to_np_from_tcolgp_array1_pnt(tcol_array)
 
     @property
     def w(self):
@@ -2416,7 +2406,7 @@ class NurbsCurve(Curve):
         """
         tcol_array = TColStd_Array1OfReal(1, self.object.NbPoles())
         self.object.Weights(tcol_array)
-        return to_np_from_tcolstd_array1_real(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def cpw(self):
@@ -2424,7 +2414,7 @@ class NurbsCurve(Curve):
         :return: Homogeneous control points.
         :rtype: numpy.ndarray
         """
-        return homogenize_array1d(self.cp, self.w)
+        return geom_utils.homogenize_array1d(self.cp, self.w)
 
     def set_domain(self, u1=0., u2=1.):
         """
@@ -2440,7 +2430,7 @@ class NurbsCurve(Curve):
             return False
         tcol_knots = TColStd_Array1OfReal(1, self.object.NbKnots())
         self.object.Knots(tcol_knots)
-        reparameterize_knots(u1, u2, tcol_knots)
+        geom_utils.reparameterize_knots(u1, u2, tcol_knots)
         self.object.SetKnots(tcol_knots)
         return True
 
@@ -2487,12 +2477,12 @@ class NurbsCurve(Curve):
         :param collections.Sequence(float) weights: Weights of control points.
         :param bool is_periodic: Flag for periodicity.
         """
-        tcol_cp = to_tcolgp_array1_pnt(cp)
-        tcol_knots = to_tcolstd_array1_real(knots)
-        tcol_mult = to_tcolstd_array1_integer(mult)
+        tcol_cp = occ_utils.to_tcolgp_array1_pnt(cp)
+        tcol_knots = occ_utils.to_tcolstd_array1_real(knots)
+        tcol_mult = occ_utils.to_tcolstd_array1_integer(mult)
         if weights is None:
             weights = [1.] * tcol_cp.Length()
-        tcol_weights = to_tcolstd_array1_real(weights)
+        tcol_weights = occ_utils.to_tcolstd_array1_real(weights)
 
         geom_crv = Geom_BSplineCurve(tcol_cp, tcol_weights, tcol_knots,
                                      tcol_mult, p, is_periodic)
@@ -2933,7 +2923,7 @@ class NurbsSurface(Surface):
         """
         tcol_array = TColStd_Array1OfReal(1, self.object.NbUKnots())
         self.object.UKnots(tcol_array)
-        return to_np_from_tcolstd_array1_real(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def umult(self):
@@ -2943,7 +2933,7 @@ class NurbsSurface(Surface):
         """
         tcol_array = TColStd_Array1OfInteger(1, self.object.NbUKnots())
         self.object.UMultiplicities(tcol_array)
-        return to_np_from_tcolstd_array1_integer(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
     def uk(self):
@@ -2954,7 +2944,7 @@ class NurbsSurface(Surface):
         tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbUPoles() +
                                              self.object.UDegree() + 1)
         self.object.UKnotSequence(tcol_knot_seq)
-        return to_np_from_tcolstd_array1_real(tcol_knot_seq)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
     def vknots(self):
@@ -2964,7 +2954,7 @@ class NurbsSurface(Surface):
         """
         tcol_array = TColStd_Array1OfReal(1, self.object.NbVKnots())
         self.object.VKnots(tcol_array)
-        return to_np_from_tcolstd_array1_real(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_array)
 
     @property
     def vmult(self):
@@ -2974,7 +2964,7 @@ class NurbsSurface(Surface):
         """
         tcol_array = TColStd_Array1OfInteger(1, self.object.NbVKnots())
         self.object.VMultiplicities(tcol_array)
-        return to_np_from_tcolstd_array1_integer(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array1_integer(tcol_array)
 
     @property
     def vk(self):
@@ -2985,7 +2975,7 @@ class NurbsSurface(Surface):
         tcol_knot_seq = TColStd_Array1OfReal(1, self.object.NbVPoles() +
                                              self.object.VDegree() + 1)
         self.object.VKnotSequence(tcol_knot_seq)
-        return to_np_from_tcolstd_array1_real(tcol_knot_seq)
+        return occ_utils.to_np_from_tcolstd_array1_real(tcol_knot_seq)
 
     @property
     def cp(self):
@@ -2996,7 +2986,7 @@ class NurbsSurface(Surface):
         tcol_array = TColgp_Array2OfPnt(1, self.object.NbUPoles(),
                                         1, self.object.NbVPoles())
         self.object.Poles(tcol_array)
-        return to_np_from_tcolgp_array2_pnt(tcol_array)
+        return occ_utils.to_np_from_tcolgp_array2_pnt(tcol_array)
 
     @property
     def w(self):
@@ -3007,7 +2997,7 @@ class NurbsSurface(Surface):
         tcol_array = TColStd_Array2OfReal(1, self.object.NbUPoles(),
                                           1, self.object.NbVPoles())
         self.object.Weights(tcol_array)
-        return to_np_from_tcolstd_array2_real(tcol_array)
+        return occ_utils.to_np_from_tcolstd_array2_real(tcol_array)
 
     @property
     def cpw(self):
@@ -3015,7 +3005,7 @@ class NurbsSurface(Surface):
         :return: Homogeneous control points.
         :rtype: numpy.ndarray
         """
-        return homogenize_array2d(self.cp, self.w)
+        return geom_utils.homogenize_array2d(self.cp, self.w)
 
     def set_udomain(self, u1=0., u2=1.):
         """
@@ -3031,7 +3021,7 @@ class NurbsSurface(Surface):
             return False
         tcol_knots = TColStd_Array1OfReal(1, self.object.NbUKnots())
         self.object.UKnots(tcol_knots)
-        reparameterize_knots(u1, u2, tcol_knots)
+        geom_utils.reparameterize_knots(u1, u2, tcol_knots)
         self.object.SetUKnots(tcol_knots)
         return True
 
@@ -3049,7 +3039,7 @@ class NurbsSurface(Surface):
             return False
         tcol_knots = TColStd_Array1OfReal(1, self.object.NbVKnots())
         self.object.VKnots(tcol_knots)
-        reparameterize_knots(v1, v2, tcol_knots)
+        geom_utils.reparameterize_knots(v1, v2, tcol_knots)
         self.object.SetVKnots(tcol_knots)
         return True
 
@@ -3065,9 +3055,9 @@ class NurbsSurface(Surface):
         :rtype: float or list(float)
         """
         if d.lower() in ['u']:
-            return local_to_global_param(self.u1, self.u2, *args)
+            return geom_utils.local_to_global_param(self.u1, self.u2, *args)
         else:
-            return local_to_global_param(self.v1, self.v2, *args)
+            return geom_utils.local_to_global_param(self.v1, self.v2, *args)
 
     def global_to_local_param(self, d, *args):
         """
@@ -3081,9 +3071,9 @@ class NurbsSurface(Surface):
         :rtype: float or list(float)
         """
         if d.lower() in ['u']:
-            return global_to_local_param(self.u1, self.u2, *args)
+            return geom_utils.global_to_local_param(self.u1, self.u2, *args)
         else:
-            return global_to_local_param(self.v1, self.v2, *args)
+            return geom_utils.global_to_local_param(self.v1, self.v2, *args)
 
     def segment(self, u1, u2, v1, v2):
         """
@@ -3171,7 +3161,7 @@ class NurbsSurface(Surface):
         :raise ValueError: If the number of the given knots does not equal the
             number of the existing knots.
         """
-        uk = to_tcolstd_array1_real(uknots)
+        uk = occ_utils.to_tcolstd_array1_real(uknots)
         if uk.Size() != self.object.NbUKnots():
             raise ValueError('Incorrect number of knot values.')
         self.object.SetUKnots(uk)
@@ -3187,7 +3177,7 @@ class NurbsSurface(Surface):
         :raise ValueError: If the number of the given knots does not equal the
             number of the existing knots.
         """
-        vk = to_tcolstd_array1_real(vknots)
+        vk = occ_utils.to_tcolstd_array1_real(vknots)
         if vk.Size() != self.object.NbVKnots():
             raise ValueError('Incorrect number of knot values.')
         self.object.SetVKnots(vk)
@@ -3221,11 +3211,11 @@ class NurbsSurface(Surface):
 
         :return: None.
         """
-        tcol_gp = to_tcolgp_array1_pnt(cp)
+        tcol_gp = occ_utils.to_tcolgp_array1_pnt(cp)
         if weights is None:
             self.object.SetPoleRow(u_index, tcol_gp)
         else:
-            tcol_w = to_tcolstd_array1_real(weights)
+            tcol_w = occ_utils.to_tcolstd_array1_real(weights)
             self.object.SetPoleRow(u_index, tcol_gp, tcol_w)
 
     def set_cp_col(self, v_index, cp, weights=None):
@@ -3240,11 +3230,11 @@ class NurbsSurface(Surface):
 
         :return: None.
         """
-        tcol_gp = to_tcolgp_array1_pnt(cp)
+        tcol_gp = occ_utils.to_tcolgp_array1_pnt(cp)
         if weights is None:
             self.object.SetPoleCol(v_index, tcol_gp)
         else:
-            tcol_w = to_tcolstd_array1_real(weights)
+            tcol_w = occ_utils.to_tcolstd_array1_real(weights)
             self.object.SetPoleCol(v_index, tcol_gp, tcol_w)
 
     @classmethod
@@ -3279,14 +3269,14 @@ class NurbsSurface(Surface):
         >>> s.eval(0.5, 0.5)
         Point(5.000, 5.000, 0.000)
         """
-        tcol_cp = to_tcolgp_array2_pnt(cp)
-        tcol_uknots = to_tcolstd_array1_real(uknots)
-        tcol_umult = to_tcolstd_array1_integer(umult)
-        tcol_vknots = to_tcolstd_array1_real(vknots)
-        tcol_vmult = to_tcolstd_array1_integer(vmult)
+        tcol_cp = occ_utils.to_tcolgp_array2_pnt(cp)
+        tcol_uknots = occ_utils.to_tcolstd_array1_real(uknots)
+        tcol_umult = occ_utils.to_tcolstd_array1_integer(umult)
+        tcol_vknots = occ_utils.to_tcolstd_array1_real(vknots)
+        tcol_vmult = occ_utils.to_tcolstd_array1_integer(vmult)
         if weights is None:
             weights = ones((tcol_cp.ColLength(), tcol_cp.RowLength()))
-        tcol_weights = to_tcolstd_array2_real(weights)
+        tcol_weights = occ_utils.to_tcolstd_array2_real(weights)
 
         geom_srf = Geom_BSplineSurface(tcol_cp, tcol_uknots, tcol_vknots,
                                        tcol_umult, tcol_vmult, p, q,

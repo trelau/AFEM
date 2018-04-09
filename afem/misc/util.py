@@ -16,21 +16,33 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+try:
+    from itertools import izip as _zip
+except ImportError:
+    _zip = zip
+
+from collections import Sequence
+from itertools import tee
+
+from numpy import ndarray
 
 
-class CachedProperty(object):
+def is_array_like(obj):
     """
-    Cached property.
+    Test to see if an object is array_like (Sequence or ndarray).
+
+    :param obj: Object to test.
+
+    :return: *True* if array_like, *False* if not.
+    :rtype: bool
     """
-
-    def __init__(self, func):
-        self.func = func
-
-    def __get__(self, obj, cls):
-        if obj is None:
-            return self
-        value = obj.__dict__[self.func.__name__] = self.func(obj)
-        return value
+    return isinstance(obj, (Sequence, ndarray))
 
 
-cached_property = CachedProperty
+def pairwise(iterable):
+    """
+    s -> (s0,s1), (s1,s2), (s2, s3), ...
+    """
+    a, b = tee(iterable)
+    next(b, None)
+    return _zip(a, b)

@@ -37,26 +37,15 @@ from OCCT.TColgp import TColgp_Array1OfPnt
 from OCCT.gce import gce_MakeCirc
 from OCCT.gp import gp_Ax3, gp_Pln, gp_Quaternion, gp_Trsf
 from OCCT.gp import gp_Extrinsic_XYZ
-from numpy import array, cross, mean, ones, zeros
+from numpy import array, cross, mean, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
 
+from afem.geometry import utils as geom_utils
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
-from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
-from afem.geometry.utils import (basis_funs, centripetal_parameters,
-                                 chord_parameters, dehomogenize_array2d,
-                                 find_span, homogenize_array1d,
-                                 uniform_parameters)
-from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
-                            to_np_from_tcolstd_array1_real,
-                            to_tcolgp_array1_pnt, to_tcolgp_array2_pnt,
-                            to_tcolgp_harray1_pnt,
-                            to_tcolstd_array1_integer,
-                            to_tcolstd_array1_real,
-                            to_tcolstd_array2_real,
-                            to_tcolgp_array1_pnt2d,
-                            to_tcolgp_harray1_pnt2d)
+from afem.geometry.project import *
+from afem.occ import utils as occ_utils
 
 __all__ = ["PointByXYZ", "PointByArray",
            "PointFromParameter", "PointsAlongCurveByNumber",
@@ -701,7 +690,7 @@ class NurbsCurve2DByInterp(object):
     """
 
     def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
-        tcol_hpnts = to_tcolgp_harray1_pnt2d(qp)
+        tcol_hpnts = occ_utils.to_tcolgp_harray1_pnt2d(qp)
         interp = Geom2dAPI_Interpolate(tcol_hpnts,
                                        is_periodic, tol)
 
@@ -752,7 +741,7 @@ class NurbsCurve2DByApprox(object):
                  parm_type=Approx_ChordLength, tol=1.0e-6):
         dmin = int(dmin)
         dmax = int(dmax)
-        tcol_pnts = to_tcolgp_array1_pnt2d(qp)
+        tcol_pnts = occ_utils.to_tcolgp_array1_pnt2d(qp)
 
         fit = Geom2dAPI_PointsToBSpline(tcol_pnts, parm_type, dmin,
                                         dmax, continuity, tol)
@@ -803,7 +792,7 @@ class NurbsCurveByInterp(object):
     """
 
     def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
-        tcol_hpnts = to_tcolgp_harray1_pnt(qp)
+        tcol_hpnts = occ_utils.to_tcolgp_harray1_pnt(qp)
         interp = GeomAPI_Interpolate(tcol_hpnts,
                                      is_periodic, tol)
 
@@ -854,7 +843,7 @@ class NurbsCurveByApprox(object):
                  parm_type=Approx_ChordLength, tol=1.0e-3):
         dmin = int(dmin)
         dmax = int(dmax)
-        tcol_pnts = to_tcolgp_array1_pnt(qp)
+        tcol_pnts = occ_utils.to_tcolgp_array1_pnt(qp)
 
         fit = GeomAPI_PointsToBSpline(tcol_pnts, parm_type, dmin,
                                       dmax, continuity, tol)
@@ -1080,7 +1069,7 @@ class PlaneByApprox(object):
             msg = "Need at least three points to fit a plane."
             raise ValueError(msg)
 
-        tcol_pnts = to_tcolgp_harray1_pnt(pnts)
+        tcol_pnts = occ_utils.to_tcolgp_harray1_pnt(pnts)
         avg_pln = GeomPlate_BuildAveragePlane(tcol_pnts,
                                               tcol_pnts.Length(),
                                               tol, 1, 1)
@@ -1872,9 +1861,9 @@ class NurbsSurfaceByInterp(object):
             sec_gen.Poles(i, tcol_poles)
             tcol_weights = TColStd_Array1OfReal(1, sec_gen.NbPoles())
             sec_gen.Weights(i, tcol_weights)
-            cp = to_np_from_tcolgp_array1_pnt(tcol_poles)
-            w = to_np_from_tcolstd_array1_real(tcol_weights)
-            cpw = homogenize_array1d(cp, w)
+            cp = occ_utils.to_np_from_tcolgp_array1_pnt(tcol_poles)
+            w = occ_utils.to_np_from_tcolstd_array1_real(tcol_weights)
+            cpw = geom_utils.homogenize_array1d(cp, w)
             temp.append(cpw)
 
         # Compute v-direction parameters between [0, 1].
@@ -1886,11 +1875,13 @@ class NurbsSurfaceByInterp(object):
         v_matrix = zeros((n + 1, m + 1), dtype=float)
         for i in range(0, n + 1):
             if parm_type == Approx_IsoParametric:
-                vknots = uniform_parameters(pnts_matrix[i, :], 0., 1.)
+                vknots = geom_utils.uniform_parameters(pnts_matrix[i, :], 0.,
+                                                       1.)
             elif parm_type == Approx_ChordLength:
-                vknots = chord_parameters(pnts_matrix[i, :], 0., 1.)
+                vknots = geom_utils.chord_parameters(pnts_matrix[i, :], 0., 1.)
             else:
-                vknots = centripetal_parameters(pnts_matrix[i, :], 0., 1.)
+                vknots = geom_utils.centripetal_parameters(pnts_matrix[i, :],
+                                                           0., 1.)
             v_matrix[i] = vknots
         # Average each column.
         vknots = mean(v_matrix, axis=0, dtype=float)
@@ -1906,7 +1897,7 @@ class NurbsSurfaceByInterp(object):
                 temp += vknots[i]
             vk[j + q] = 1.0 / q * temp
         # Compute OCC vknots and vmult.
-        tcol_vknot_seq = to_tcolstd_array1_real(vk)
+        tcol_vknot_seq = occ_utils.to_tcolstd_array1_real(vk)
 
         nv = BSplCLib.KnotsLength_(tcol_vknot_seq, False)
         tcol_vknots = TColStd_Array1OfReal(1, nv)
@@ -1929,17 +1920,19 @@ class NurbsSurfaceByInterp(object):
                 # mat = occ_math.math_Matrix(1, q, 1, q)
                 # CLib.bsplclib_EvalBsplineBasis(span, q, q, tcol_vknot_seq,
                 #                                vknots[j], mat)
-                span = find_span(m, q, vknots[j], vk)
-                a[j, span - q: span + 1] = basis_funs(span, vknots[j], q, vk)
+                span = geom_utils.find_span(m, q, vknots[j], vk)
+                a[j, span - q: span + 1] = geom_utils.basis_funs(span,
+                                                                 vknots[j], q,
+                                                                 vk)
             # Solve for [a][cp] = [qp] using LU decomposition.
             lu, piv = lu_factor(a, overwrite_a=True, check_finite=False)
             cpw[i, :] = lu_solve((lu, piv), qp, trans=0, overwrite_b=True,
                                  check_finite=True)
 
         # Create surface.
-        cp, w = dehomogenize_array2d(cpw)
-        tcol_poles = to_tcolgp_array2_pnt(cp)
-        tcol_weights = to_tcolstd_array2_real(w)
+        cp, w = geom_utils.dehomogenize_array2d(cpw)
+        tcol_poles = occ_utils.to_tcolgp_array2_pnt(cp)
+        tcol_weights = occ_utils.to_tcolstd_array2_real(w)
         s = Geom_BSplineSurface(tcol_poles, tcol_weights, tcol_uknots,
                                 tcol_vknots, tcol_umult, tcol_vmult, p, q,
                                 is_u_periodic, False)

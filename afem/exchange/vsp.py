@@ -31,8 +31,8 @@ from afem.exchange.step import StepRead
 from afem.exchange.xde import XdeDocument
 from afem.geometry.create import (PointFromParameter, NurbsSurfaceByInterp,
                                   NurbsCurveByPoints, NurbsCurveByApprox)
-from afem.geometry.entities import Geometry, NurbsCurve, NurbsSurface
-from afem.geometry.utils import chord_parameters
+from afem.geometry.entities import Geometry
+from afem.geometry import utils as geom_utils
 from afem.oml.entities import Body
 from afem.topology.check import CheckShape
 from afem.topology.entities import *
@@ -690,7 +690,7 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
         qc_u = PointFromParameter(c0, vsplit, 0.25 * c0.length).parameter
         c = s1.v_iso(qc_u)
         pnts = [c.eval(u) for u in c.knots]
-        new_uknots = chord_parameters(pnts, 0., 1.)
+        new_uknots = geom_utils.chord_parameters(pnts, 0., 1.)
         s1.set_uknots(new_uknots)
 
         # Segment off end caps

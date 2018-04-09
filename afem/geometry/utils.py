@@ -22,8 +22,6 @@ from OCCT.BSplCLib import BSplCLib
 from numpy import array, diff, float64, floor, hstack, sqrt, sum, zeros
 from numpy.linalg import norm
 
-__all__ = ["uniform_parameters", "chord_parameters", "centripetal_parameters"]
-
 
 def local_to_global_param(a, b, *args):
     if args[0] is None:

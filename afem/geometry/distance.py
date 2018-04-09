@@ -36,7 +36,7 @@ class DistancePointToCurve(object):
     :param afem.geometry.entities.Curve crv: The curve.
     :param float tol: The tolerance.
 
-    :raise RuntimeError: If the extrema algorithm fails.
+    :raise RuntimeError: If ``Extrema_ExtPC`` fails.
 
     Usage:
 
@@ -130,7 +130,7 @@ class DistancePointToSurface(object):
     :param afem.geometry.entities.Surface srf: The surface.
     :param float tol: The tolerance.
 
-    :raise RuntimeError: If the extrema algorithm fails.
+    :raise RuntimeError: If ``Extrema_ExtPS`` fails.
     """
 
     def __init__(self, pnt, srf, tol=1.0e-10):
@@ -216,7 +216,7 @@ class DistanceCurveToCurve(object):
     :param afem.geometry.entities.Curve crv2: The second curve.
     :param float tol: The tolerance.
 
-    :raise RuntimeError: If the extrema algorithm fails.
+    :raise RuntimeError: If ``Extrema_ExtCC`` fails.
     """
 
     def __init__(self, crv1, crv2, tol=1.0e-10):
@@ -402,7 +402,7 @@ class DistanceSurfaceToSurface(object):
     :param afem.geometry.entities.Surface srf2: The second surface.
     :param float tol: The tolerance.
 
-    :raise RuntimeError: If the extrema algorithm fails.
+    :raise RuntimeError: If ``Extrema_ExtSS`` fails.
     """
 
     def __init__(self, srf1, srf2, tol=1.0e-10):

@@ -22,7 +22,24 @@ from warnings import warn
 from OCCT.Quantity import Quantity_TOC_RGB, Quantity_Color
 from numpy.random import rand
 
-__all__ = ["NamedItem", "ViewableItem", "ShapeHolder"]
+__all__ = ["Metadata", "NamedItem", "ViewableItem", "ShapeHolder"]
+
+
+class Metadata(dict):
+    """
+    Simple class for storing data as (key, value) pairs.
+    """
+
+    def set(self, key, value):
+        """
+        Set data.
+
+        :param key: The key.
+        :param value: The value.
+
+        :return: None.
+        """
+        self[key] = value
 
 
 class NamedItem(object):
@@ -32,7 +49,7 @@ class NamedItem(object):
 
     def __init__(self, name='Item'):
         self._name = name
-        self._metadata = {}
+        self._metadata = Metadata()
 
     @property
     def name(self):
@@ -51,7 +68,7 @@ class NamedItem(object):
     def metadata(self):
         """
         :return: The metadata dictionary.
-        :rtype: dict
+        :rtype: afem.base.entities.Metadata
         """
         return self._metadata
 

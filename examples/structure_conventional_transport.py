@@ -5,7 +5,7 @@ from OCCT.BRepPrimAPI import BRepPrimAPI_MakeSphere
 from afem.config import Settings
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.misc.check import pairwise
+from afem.misc import util as misc_utils
 from afem.oml import Body
 from afem.structure import *
 from afem.topology import *
@@ -109,7 +109,7 @@ plns = [bh1.plane, bh2.plane, fwd_bh.sref, rear_bh.sref, aft_bh.sref,
         rear_pressure_bh_pln]
 frames = []
 next_index = 1
-for pln1, pln2 in pairwise(plns):
+for pln1, pln2 in misc_utils.pairwise(plns):
     builder = FramesBetweenPlanesByDistance('frame', pln1, pln2, 24.,
                                             fuselage, 4., 24., -24.,
                                             first_index=next_index)
@@ -178,7 +178,7 @@ tail_bh = BulkheadBySurface('tail bh', pln, fuselage).bulkhead
 # Aft frames
 plns = [rear_pressure_bh_pln, tail_bh.plane]
 frames = []
-for pln1, pln2 in pairwise(plns):
+for pln1, pln2 in misc_utils.pairwise(plns):
     builder = FramesBetweenPlanesByDistance('frame', pln1, pln2, 24.,
                                             fuselage, 8, 36., -36.,
                                             first_index=next_index)
