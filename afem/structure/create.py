@@ -2140,7 +2140,7 @@ class StringerByShape(object):
         p0 = CheckGeom.to_point(adp_crv.Value(dx))
         dss = DistanceShapeToShape(support_shape, p0)
         vn = CheckGeom.to_vector(dss.normal_on_shape1(1))
-        vn.vscale(height)
+        vn.scale(height)
         p1 = p0.copy()
         p1.translate(vn)
         profile1 = EdgeByPoints(p0, p1).edge
@@ -2148,7 +2148,7 @@ class StringerByShape(object):
         p0 = CheckGeom.to_point(adp_crv.Value(adp_crv.LastParameter() - dx))
         dss = DistanceShapeToShape(support_shape, p0)
         vn = CheckGeom.to_vector(dss.normal_on_shape1(1))
-        vn.vscale(height)
+        vn.scale(height)
         p1 = p0.copy()
         p1.translate(vn)
         profile2 = EdgeByPoints(p0, p1).edge

@@ -30,33 +30,21 @@ class CheckGeom(object):
     """
 
     @staticmethod
-    def is_geom(geom):
-        """
-        Check if the entity is geometry.
-
-        :param geom: An entity.
-
-        :return: *True* if entity is geometry, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(geom, Geometry)
-
-    @staticmethod
-    def is_point_like(geom):
+    def is_point_like(entity):
         """
         Check if the entity is point_like.
 
-        :param geom: An entity.
+        :param entity: An entity.
 
         :return: *True* if the entity is point_like, *False* if not.
         :rtype: bool
         """
-        if isinstance(geom, Point):
+        if isinstance(entity, Point):
             return True
-        if isinstance(geom, gp_Pnt):
+        if isinstance(entity, gp_Pnt):
             return True
-        if isinstance(geom, (tuple, list, ndarray)):
-            return len(geom) == 3
+        if isinstance(entity, (tuple, list, ndarray)):
+            return len(entity) == 3
         return False
 
     @staticmethod
@@ -83,17 +71,7 @@ class CheckGeom(object):
 
         :raise TypeError: If entity cannot be converted to a Point.
         """
-        if geom is None:
-            return None
-
-        if isinstance(geom, Point):
-            return geom
-        elif isinstance(geom, gp_Pnt):
-            return Point(geom.XYZ())
-        elif CheckGeom.is_point_like(geom):
-            return Point(geom[0], geom[1], geom[2])
-        else:
-            raise TypeError('Cannot convert to Point.')
+        return Point.to_point(geom)
 
     @staticmethod
     def to_points(geoms):
@@ -118,8 +96,6 @@ class CheckGeom(object):
         :return: *True* if the entity is point2d_like, *False* if not.
         :rtype: bool
         """
-        if isinstance(geom, Point2D):
-            return True
         if isinstance(geom, gp_Pnt2d):
             return True
         if isinstance(geom, (tuple, list, ndarray)):

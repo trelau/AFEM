@@ -36,9 +36,9 @@ from OCCT.GeomLib import GeomLib_IsPlanarSurface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
 from OCCT.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
-from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec,
-                     gp_Vec2d, gp_Dir2d)
-from numpy import add, array, float64, subtract, ones
+from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d,
+                     gp_Vec2d, gp_Dir2d, gp_Vec)
+from numpy import add, array, float64, subtract, ones, ndarray
 
 from afem.base.entities import ViewableItem
 from afem.geometry.utils import (global_to_local_param,
@@ -63,67 +63,10 @@ __all__ = ["Geometry2D", "Point2D", "Vector2D", "Direction2D",
 
 
 # 2-D -------------------------------------------------------------------------
-
-class Geometry2D(object):
-    """
-    Base class for 2-D geometry.
-
-    :param OCCT.Geom2d.Geom2d_Geometry obj: The geometry object.
-    """
-
-    def __init__(self, obj=None):
-        super(Geometry2D, self).__init__()
-        self._object = obj
-
-    @property
-    def object(self):
-        """
-        :return: The underlying OpenCASCADE object.
-        :rtype: OCCT.Geom2d.Geom2d_Geometry
-        """
-        return self._object
-
-    def scale(self, pnt, scale):
-        """
-        Scale the geometry.
-
-        :param point2d_like pnt: The reference point.
-        :param float scale: The scaling value.
-
-        :return: *True* if scaled.
-        :rtype: bool
-        """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point2d(pnt)
-        self.object.Scale(pnt, scale)
-        return True
-
-    def rotate(self, pnt, angle):
-        """
-        Rotate the geometry about a point.
-
-        :param point2d_like pnt: The reference point.
-        :param float angle: The angle in degrees.
-
-        :return: *True* if rotated.
-        :rtype: bool
-        """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point2d(pnt)
-        angle = radians(angle)
-        self.object.Rotate(pnt, angle)
-        return True
-
-
-class Point2D(gp_Pnt2d, Geometry2D):
+# Types derived from OpenCASCADE geometric processor (gp) package.
+class Point2D(gp_Pnt2d):
     """
     A 2-D Cartesian point derived from ``gp_Pnt2d``.
-
-    For more information see gp_Pnt2d_.
-
-    .. _gp_Pnt2d: https://www.opencascade.com/doc/occt-7.2.0/refman/htmlclassgp___pnt2d.html
 
     Usage:
 
@@ -152,7 +95,6 @@ class Point2D(gp_Pnt2d, Geometry2D):
 
     def __init__(self, *args):
         super(Point2D, self).__init__(*args)
-        Geometry2D.__init__(self, self)
 
     def __str__(self):
         return 'Point2D({0}, {1})'.format(*self.xy)
@@ -263,6 +205,39 @@ class Point2D(gp_Pnt2d, Geometry2D):
         other = CheckGeom.to_point2d(other)
         return self.IsEqual(other, tol)
 
+    def scale(self, pnt, scale):
+        """
+        Scale the point.
+
+        :param point2d_like pnt: The reference point.
+        :param float scale: The scaling value.
+
+        :return: *True* if scaled.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point2d(pnt)
+        self.Scale(pnt, scale)
+        return True
+
+    def rotate(self, pnt, angle):
+        """
+        Rotate the point about a point.
+
+        :param point2d_like pnt: The reference point.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point2d(pnt)
+        angle = radians(angle)
+        self.Rotate(pnt, angle)
+        return True
+
     def copy(self):
         """
         Return a new copy of the point.
@@ -286,14 +261,13 @@ class Point2D(gp_Pnt2d, Geometry2D):
         return cls(x, y)
 
 
-class Direction2D(gp_Dir2d, Geometry2D):
+class Direction2D(gp_Dir2d):
     """
     Unit vector in 2-D space derived from ``gp_Dir2d``.
     """
 
     def __init__(self, *args):
         super(Direction2D, self).__init__(*args)
-        Geometry2D.__init__(self, self)
 
     def __str__(self):
         return 'Direction2D({0}, {1})'.format(*self.xy)
@@ -377,6 +351,23 @@ class Direction2D(gp_Dir2d, Geometry2D):
         """
         return 1.
 
+    def rotate(self, pnt, angle):
+        """
+        Rotate the direction about a point.
+
+        :param point2d_like pnt: The reference point.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point2d(pnt)
+        angle = radians(angle)
+        self.Rotate(pnt, angle)
+        return True
+
     @classmethod
     def by_xy(cls, x, y):
         """
@@ -403,14 +394,13 @@ class Direction2D(gp_Dir2d, Geometry2D):
         return cls(v)
 
 
-class Vector2D(gp_Vec2d, Geometry2D):
+class Vector2D(gp_Vec2d):
     """
     Vector in 2-D space derived from ``gp_Vec2d``.
     """
 
     def __init__(self, *args):
         super(Vector2D, self).__init__(*args)
-        Geometry2D.__init__(self, self)
 
     def __str__(self):
         return 'Vector2D({0}, {1})'.format(*self.xy)
@@ -509,7 +499,7 @@ class Vector2D(gp_Vec2d, Geometry2D):
         """
         self.Normalize()
 
-    def vscale(self, scale):
+    def scale(self, scale):
         """
         Scale the vector.
 
@@ -518,6 +508,23 @@ class Vector2D(gp_Vec2d, Geometry2D):
         :return: None.
         """
         self.Scale(scale)
+
+    def rotate(self, pnt, angle):
+        """
+        Rotate the vector about a point.
+
+        :param point2d_like pnt: The reference point.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point2d(pnt)
+        angle = radians(angle)
+        self.Rotate(pnt, angle)
+        return True
 
     @classmethod
     def by_xy(cls, x, y):
@@ -556,6 +563,60 @@ class Vector2D(gp_Vec2d, Geometry2D):
         :rtype: afem.geometry.entities.Vector2D
         """
         return cls(p1, p2)
+
+
+# Transient types that are wrapped.
+class Geometry2D(object):
+    """
+    Base class for 2-D geometry.
+
+    :param OCCT.Geom2d.Geom2d_Geometry obj: The geometry object.
+    """
+
+    def __init__(self, obj=None):
+        super(Geometry2D, self).__init__()
+        self._object = obj
+
+    @property
+    def object(self):
+        """
+        :return: The underlying OpenCASCADE object.
+        :rtype: OCCT.Geom2d.Geom2d_Geometry
+        """
+        return self._object
+
+    def scale(self, pnt, scale):
+        """
+        Scale the geometry.
+
+        :param point2d_like pnt: The reference point.
+        :param float scale: The scaling value.
+
+        :return: *True* if scaled.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point2d(pnt)
+        self.object.Scale(pnt, scale)
+        return True
+
+    def rotate(self, pnt, angle):
+        """
+        Rotate the geometry about a point.
+
+        :param point2d_like pnt: The reference point.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point2d(pnt)
+        angle = radians(angle)
+        self.object.Rotate(pnt, angle)
+        return True
 
 
 class Curve2D(Geometry2D):
@@ -735,7 +796,7 @@ class Curve2D(Geometry2D):
         :rtype: afem.geometry.entities.Curve2D
         """
         geom_crv = GeomAPI.To3d_(self.object, pln.gp_pln)
-        return Curve2D.wrap(geom_crv)
+        return Curve.wrap(geom_crv)
 
     @staticmethod
     def wrap(curve):
@@ -861,130 +922,10 @@ class NurbsCurve2D(Curve2D):
 
 
 # 3-D -------------------------------------------------------------------------
-
-class Geometry(ViewableItem):
-    """
-    Base class for geometry.
-
-    :param obj: The geometry object.
-
-    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C0 C0: Only geometric continuity.
-    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C1 C1: Continuity of the first
-        derivative.
-    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C2 C2: Continuity of the second
-        derivative.
-    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C3 C3: Continuity of the third
-        derivative.
-    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_CN CN: Continuity of the n-th
-        derivative.
-    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_G1 G1: Tangent vectors on either
-        side of a point on a curve are collinear with the same orientation.
-    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_G2 G2: Normalized vectors on
-        either side of a point on a curve are equal.
-
-    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Arc ARC: Arc join type.
-    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Tangent TANGENT: Tangent join
-        type.
-    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Intersection INTERSECT:
-        Intersection join type.
-    """
-
-    # Continuities
-    C0 = GeomAbs_Shape.GeomAbs_C0
-    C1 = GeomAbs_Shape.GeomAbs_C1
-    C2 = GeomAbs_Shape.GeomAbs_C2
-    C3 = GeomAbs_Shape.GeomAbs_C3
-    CN = GeomAbs_Shape.GeomAbs_CN
-    G1 = GeomAbs_Shape.GeomAbs_G1
-    G2 = GeomAbs_Shape.GeomAbs_G2
-
-    # Join types
-    ARC = GeomAbs_JoinType.GeomAbs_Arc
-    TANGENT = GeomAbs_JoinType.GeomAbs_Tangent
-    INTERSECT = GeomAbs_JoinType.GeomAbs_Intersection
-
-    def __init__(self, obj=None):
-        super(Geometry, self).__init__()
-        self._object = obj
-
-    @property
-    def object(self):
-        """
-        :return: The underlying OpenCASCADE object.
-        :rtype: OCCT.Geom.Geom_Geometry
-        """
-        return self._object
-
-    def translate(self, v):
-        """
-        Translate the geometry along the vector.
-
-        :param vector_like v: The translation vector.
-
-        :return: *True* if translated, *False* if not.
-        :rtype: bool
-
-        :raise TypeError: If *v* cannot be converted to a vector.
-        """
-        from afem.geometry.check import CheckGeom
-
-        v = CheckGeom.to_vector(v)
-        self.object.Translate(v)
-        return True
-
-    def mirror(self, pln):
-        """
-        Mirror the geometry using a plane.
-
-        :param afem.geometry.entities.Plane pln: The plane.
-
-        :return: *True* if mirrored.
-        :rtype: bool
-        """
-        gp_pln = pln.object.Pln()
-        gp_ax2 = gp_Ax2()
-        gp_ax2.SetAxis(gp_pln.Axis())
-        self.object.Mirror(gp_ax2)
-        return True
-
-    def scale(self, pnt, s):
-        """
-        Scale the geometry.
-
-        :param point_like pnt: The reference point.
-        :param float s: The scaling value.
-
-        :return: *True* if scaled.
-        :rtype: bool
-        """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point(pnt)
-        self.object.Scale(pnt, s)
-        return True
-
-    def rotate(self, ax1, angle):
-        """
-        Rotate the geometry about an axis.
-
-        :param afem.geometry.entities.Axis1 ax1: The axis of rotation.
-        :param float angle: The angle in degrees.
-
-        :return: *True* if rotated.
-        :rtype: bool
-        """
-        angle = radians(angle)
-        self.object.Rotate(ax1, angle)
-        return True
-
-
-class Point(gp_Pnt, Geometry):
+# Types derived from OpenCASCADE geometric processor (gp) package.
+class Point(gp_Pnt, ViewableItem):
     """
     A 3-D Cartesian point derived from ``gp_Pnt``.
-
-    For more information see gp_Pnt_.
-
-    .. _gp_Pnt: https://www.opencascade.com/doc/occt-7.2.0/refman/html/classgp___pnt.html
 
     Usage:
 
@@ -1015,7 +956,7 @@ class Point(gp_Pnt, Geometry):
 
     def __init__(self, *args):
         super(Point, self).__init__(*args)
-        Geometry.__init__(self, self)
+        ViewableItem.__init__(self)
         self.set_color(1, 1, 0)
 
     def __str__(self):
@@ -1150,6 +1091,68 @@ class Point(gp_Pnt, Geometry):
         other = CheckGeom.to_point(other)
         return self.IsEqual(other, tol)
 
+    def translate(self, v):
+        """
+        Translate the geometry along the vector.
+
+        :param vector_like v: The translation vector.
+
+        :return: *True* if translated, *False* if not.
+        :rtype: bool
+
+        :raise TypeError: If *v* cannot be converted to a vector.
+        """
+        from afem.geometry.check import CheckGeom
+
+        v = CheckGeom.to_vector(v)
+        self.Translate(v)
+        return True
+
+    def mirror(self, pln):
+        """
+        Mirror the geometry using a plane.
+
+        :param afem.geometry.entities.Plane pln: The plane.
+
+        :return: *True* if mirrored.
+        :rtype: bool
+        """
+        gp_pln = pln.gp_pln
+        gp_ax2 = gp_Ax2()
+        gp_ax2.SetAxis(gp_pln.Axis())
+        self.Mirror(gp_ax2)
+        return True
+
+    def scale(self, pnt, s):
+        """
+        Scale the geometry.
+
+        :param point_like pnt: The reference point.
+        :param float s: The scaling value.
+
+        :return: *True* if scaled.
+        :rtype: bool
+        """
+        from afem.geometry.check import CheckGeom
+
+        pnt = CheckGeom.to_point(pnt)
+        self.Scale(pnt, s)
+        return True
+
+    def rotate(self, ax1, angle):
+        """
+        Rotate the geometry about an axis.
+
+        :param afem.geometry.entities.Axis1 ax1: The axis of rotation.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        angle = radians(angle)
+        self.Rotate(ax1, angle)
+        return True
+
     def rotate_xyz(self, origin, x, y, z):
         """
         Rotate the point about the global x-, y-, and z-axes using
@@ -1217,14 +1220,53 @@ class Point(gp_Pnt, Geometry):
         """
         return cls(x, y, z)
 
+    @classmethod
+    def is_point_like(cls, entity):
+        """
+        Check if the entity is point_like.
 
-class Direction(gp_Dir, Geometry):
+        :param entity: An entity.
+
+        :return: *True* if the entity is point_like, *False* if not.
+        :rtype: bool
+        """
+        if isinstance(entity, cls):
+            return True
+        if isinstance(entity, gp_Pnt):
+            return True
+        if isinstance(entity, (tuple, list, ndarray)):
+            return len(entity) == 3
+        return False
+
+    @classmethod
+    def to_point(cls, entity):
+        """
+        Convert entity to a point` if possible.
+
+        :param entity: An entity.
+
+        :return: The entity if already a point, or a new point if it is
+            "point like".
+        :rtype: afem.geometry.entities.Point
+
+        :raise TypeError: If entity cannot be converted to a Point.
+        """
+        if entity is None:
+            return None
+
+        if isinstance(entity, cls):
+            return entity
+        elif isinstance(entity, gp_Pnt):
+            return cls(entity.XYZ())
+        elif cls.is_point_like(entity):
+            return cls(entity[0], entity[1], entity[2])
+        else:
+            raise TypeError('Cannot convert to Point.')
+
+
+class Direction(gp_Dir):
     """
     Unit vector in 3-D space derived from ``gp_Dir``.
-
-    For more information see gp_Dir_.
-
-    .. _gp_Dir: https://www.opencascade.com/doc/occt-7.2.0/refman/html/classgp___dir.html
 
     Usage:
 
@@ -1238,7 +1280,6 @@ class Direction(gp_Dir, Geometry):
 
     def __init__(self, *args):
         super(Direction, self).__init__(*args)
-        Geometry.__init__(self, self)
 
     def __str__(self):
         return 'Direction({0}, {1}, {2})'.format(*self.xyz)
@@ -1337,6 +1378,35 @@ class Direction(gp_Dir, Geometry):
         """
         return 1.
 
+    def mirror(self, pln):
+        """
+        Mirror the geometry using a plane.
+
+        :param afem.geometry.entities.Plane pln: The plane.
+
+        :return: *True* if mirrored.
+        :rtype: bool
+        """
+        gp_pln = pln.gp_pln
+        gp_ax2 = gp_Ax2()
+        gp_ax2.SetAxis(gp_pln.Axis())
+        self.Mirror(gp_ax2)
+        return True
+
+    def rotate(self, ax1, angle):
+        """
+        Rotate the geometry about an axis.
+
+        :param afem.geometry.entities.Axis1 ax1: The axis of rotation.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        angle = radians(angle)
+        self.Rotate(ax1, angle)
+        return True
+
     @classmethod
     def by_xyz(cls, x, y, z):
         """
@@ -1364,13 +1434,9 @@ class Direction(gp_Dir, Geometry):
         return cls(v)
 
 
-class Vector(gp_Vec, Geometry):
+class Vector(gp_Vec):
     """
     Vector in 3-D space derived from ``gp_Vec``.
-
-    For more information see gp_Vec_.
-
-    .. _gp_Vec: https://www.opencascade.com/doc/occt-7.2.0/refman/htmlclassgp___vec.html
 
     Usage:
 
@@ -1388,7 +1454,6 @@ class Vector(gp_Vec, Geometry):
 
     def __init__(self, *args):
         super(Vector, self).__init__(*args)
-        Geometry.__init__(self, self)
 
     def __str__(self):
         return 'Vector({0}, {1}, {2})'.format(*self.xyz)
@@ -1502,7 +1567,7 @@ class Vector(gp_Vec, Geometry):
         """
         self.Normalize()
 
-    def vscale(self, scale):
+    def scale(self, scale):
         """
         Scale the vector.
 
@@ -1511,6 +1576,35 @@ class Vector(gp_Vec, Geometry):
         :return: None.
         """
         self.Scale(scale)
+
+    def mirror(self, pln):
+        """
+        Mirror the geometry using a plane.
+
+        :param afem.geometry.entities.Plane pln: The plane.
+
+        :return: *True* if mirrored.
+        :rtype: bool
+        """
+        gp_pln = pln.gp_pln
+        gp_ax2 = gp_Ax2()
+        gp_ax2.SetAxis(gp_pln.Axis())
+        self.Mirror(gp_ax2)
+        return True
+
+    def rotate(self, ax1, angle):
+        """
+        Rotate the geometry about an axis.
+
+        :param afem.geometry.entities.Axis1 ax1: The axis of rotation.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        angle = radians(angle)
+        self.Rotate(ax1, angle)
+        return True
 
     @classmethod
     def by_xyz(cls, x, y, z):
@@ -1556,10 +1650,6 @@ class Axis1(gp_Ax1):
     """
     Axis in 3-D space derived from ``gp_Ax1``.
 
-    For more information see gp_Ax1_.
-
-    .. _gp_Ax1: https://www.opencascade.com/doc/occt-7.2.0/refman/html/classgp___ax1.html
-
     Usage:
 
     >>> from afem.geometry import Axis1, Direction, Point
@@ -1598,10 +1688,6 @@ class Axis1(gp_Ax1):
 class Axis3(gp_Ax3):
     """
     Coordinate system in 3-D space derived from ``gp_Ax3``.
-
-    For more information see gp_Ax3_.
-
-    .. _gp_Ax3: https://www.opencascade.com/doc/occt-7.2.0/refman/html/classgp___ax3.html
 
     Usage:
 
@@ -1700,6 +1786,121 @@ class Axis3(gp_Ax3):
         :rtype: afem.geometry.entities.Axis3
         """
         return cls(p, n, x)
+
+
+# Transient types that are wrapped.
+class Geometry(ViewableItem):
+    """
+    Base class for geometry.
+
+    :param obj: The geometry object.
+
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C0 C0: Only geometric continuity.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C1 C1: Continuity of the first
+        derivative.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C2 C2: Continuity of the second
+        derivative.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_C3 C3: Continuity of the third
+        derivative.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_CN CN: Continuity of the n-th
+        derivative.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_G1 G1: Tangent vectors on either
+        side of a point on a curve are collinear with the same orientation.
+    :cvar OCCT.GeomAbs.GeomAbs_Shape.GeomAbs_G2 G2: Normalized vectors on
+        either side of a point on a curve are equal.
+
+    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Arc ARC: Arc join type.
+    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Tangent TANGENT: Tangent join
+        type.
+    :cvar OCCT.GeomAbs.GeomAbs_JoinType.GeomAbs_Intersection INTERSECT:
+        Intersection join type.
+    """
+
+    # Continuities
+    C0 = GeomAbs_Shape.GeomAbs_C0
+    C1 = GeomAbs_Shape.GeomAbs_C1
+    C2 = GeomAbs_Shape.GeomAbs_C2
+    C3 = GeomAbs_Shape.GeomAbs_C3
+    CN = GeomAbs_Shape.GeomAbs_CN
+    G1 = GeomAbs_Shape.GeomAbs_G1
+    G2 = GeomAbs_Shape.GeomAbs_G2
+
+    # Join types
+    ARC = GeomAbs_JoinType.GeomAbs_Arc
+    TANGENT = GeomAbs_JoinType.GeomAbs_Tangent
+    INTERSECT = GeomAbs_JoinType.GeomAbs_Intersection
+
+    def __init__(self, obj=None):
+        super(Geometry, self).__init__()
+        self._object = obj
+
+    @property
+    def object(self):
+        """
+        :return: The underlying OpenCASCADE object.
+        :rtype: OCCT.Geom.Geom_Geometry
+        """
+        return self._object
+
+    def translate(self, v):
+        """
+        Translate the geometry along the vector.
+
+        :param vector_like v: The translation vector.
+
+        :return: *True* if translated, *False* if not.
+        :rtype: bool
+
+        :raise TypeError: If *v* cannot be converted to a vector.
+        """
+        from afem.geometry.check import CheckGeom
+
+        v = CheckGeom.to_vector(v)
+        self.object.Translate(v)
+        return True
+
+    def mirror(self, pln):
+        """
+        Mirror the geometry using a plane.
+
+        :param afem.geometry.entities.Plane pln: The plane.
+
+        :return: *True* if mirrored.
+        :rtype: bool
+        """
+        gp_pln = pln.object.Pln()
+        gp_ax2 = gp_Ax2()
+        gp_ax2.SetAxis(gp_pln.Axis())
+        self.object.Mirror(gp_ax2)
+        return True
+
+    def scale(self, pnt, s):
+        """
+        Scale the geometry.
+
+        :param point_like pnt: The reference point.
+        :param float s: The scaling value.
+
+        :return: *True* if scaled.
+        :rtype: bool
+        """
+        pnt = Point.to_point(pnt)
+        self.object.Scale(pnt, s)
+        return True
+
+    def rotate(self, ax1, angle):
+        """
+        Rotate the geometry about an axis.
+
+        :param afem.geometry.entities.Axis1 ax1: The axis of rotation.
+        :param float angle: The angle in degrees.
+
+        :return: *True* if rotated.
+        :rtype: bool
+        """
+        angle = radians(angle)
+        self.object.Rotate(ax1, angle)
+        return True
 
 
 class Curve(Geometry):
@@ -2540,9 +2741,7 @@ class Plane(Surface):
 
         :raises TypeError: If *pnt* cannot be converted to a point.
         """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point(pnt)
+        pnt = Point.to_point(pnt)
         return self.gp_pln.Distance(pnt)
 
     def rotate_x(self, angle):

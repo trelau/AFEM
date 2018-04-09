@@ -1160,8 +1160,8 @@ class Part(ShapeHolder, NamedItem):
             f2 = FaceByPlane(pln2, -w, w, -h, h).face
             v1.normalize()
             v2.normalize()
-            v1.vscale(size)
-            v2.vscale(size)
+            v1.scale(size)
+            v2.scale(size)
             hs1 = SolidByDrag(f1, v1).solid
             hs2 = SolidByDrag(f2, v2).solid
 
