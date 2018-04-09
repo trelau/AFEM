@@ -35,7 +35,8 @@ from OCCT.GeomLib import GeomLib_IsPlanarSurface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
                           TColStd_Array2OfReal)
 from OCCT.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
-from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec)
+from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec,
+                     gp_Vec2d, gp_Dir2d)
 from numpy import add, array, float64, subtract
 
 from afem.base.entities import ViewableItem
@@ -51,10 +52,10 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolstd_array2_real,
                             to_tcolgp_array1_pnt, to_tcolstd_array1_real)
 
-__all__ = ["Geometry2D", "Point2D", "NurbsCurve2D", "Geometry", "Point",
-           "Direction", "Vector", "Axis1", "Axis3", "Curve", "Line", "Circle",
-           "Ellipse", "NurbsCurve", "TrimmedCurve", "Surface", "Plane",
-           "NurbsSurface"]
+__all__ = ["Geometry2D", "Point2D", "Vector2D", "Direction2D", "NurbsCurve2D",
+           "Geometry", "Point", "Direction", "Vector", "Axis1", "Axis3",
+           "Curve", "Line", "Circle", "Ellipse", "NurbsCurve", "TrimmedCurve",
+           "Surface", "Plane", "NurbsSurface"]
 
 
 # 2-D -------------------------------------------------------------------------
@@ -258,6 +259,215 @@ class Point2D(gp_Pnt2d, Geometry2D):
         :rtype: afem.geometry.entities.Point2D
         """
         return Point2D(*self.xy)
+
+
+class Direction2D(gp_Dir2d, Geometry2D):
+    """
+    Unit vector in 2-D space. Supports NumPy array methods.
+    """
+
+    def __init__(self, *args):
+        super(Direction2D, self).__init__(*args)
+        Geometry2D.__init__(self, self)
+
+    def __str__(self):
+        return 'Direction2D({0}, {1})'.format(*self.xy)
+
+    def __repr__(self):
+        return 'Direction2D({0}, {1})'.format(*self.xy)
+
+    def __array__(self, dtype=float64, copy=True, order=None, subok=False,
+                  ndmin=0):
+        return array(self.ij, dtype=dtype, copy=copy, order=order,
+                     subok=subok, ndmin=ndmin)
+
+    def __iter__(self):
+        for elm in self.ijk:
+            yield elm
+
+    def __len__(self):
+        return 2
+
+    def __getitem__(self, item):
+        return self.ij[item]
+
+    def __add__(self, other):
+        return add(self, other)
+
+    def __sub__(self, other):
+        return subtract(self, other)
+
+    @property
+    def i(self):
+        """
+        The direction i-component.
+
+        :getter: Returns the i-component.
+        :setter: Sets the i-component.
+        :type: float
+        """
+        return self.X()
+
+    @i.setter
+    def i(self, i):
+        self.SetX(i)
+
+    @property
+    def j(self):
+        """
+        The direction j-component.
+
+        :getter: Returns the j-component.
+        :setter: Sets the j-component.
+        :type: float
+        """
+        return self.Y()
+
+    @j.setter
+    def j(self, j):
+        self.SetY(j)
+
+    @property
+    def ij(self):
+        """
+        :return: The direction ij-components.
+        :rtype: numpy.ndarray
+        """
+        return array([self.i, self.j], dtype=float64)
+
+    @property
+    def xy(self):
+        """
+        :return: The direction ij-components (Same as ij property,
+            for compatibility only).
+        :rtype: numpy.ndarray
+        """
+        return self.ij
+
+    @property
+    def mag(self):
+        """
+        :return: Direction magnitude is always 1.
+        :rtype: float
+        """
+        return 1.
+
+
+class Vector2D(gp_Vec2d, Geometry2D):
+    """
+    Vector in 2-D space. Supports NumPy array methods.
+    """
+
+    def __init__(self, *args):
+        super(Vector2D, self).__init__(*args)
+        Geometry2D.__init__(self, self)
+
+    def __str__(self):
+        return 'Vector2D({0}, {1})'.format(*self.xy)
+
+    def __repr__(self):
+        return 'Vector2D({0}, {1})'.format(*self.xy)
+
+    def __array__(self, dtype=float64, copy=True, order=None, subok=False,
+                  ndmin=0):
+        return array(self.xy, dtype=dtype, copy=copy, order=order,
+                     subok=subok, ndmin=ndmin)
+
+    def __iter__(self):
+        for elm in self.xy:
+            yield elm
+
+    def __len__(self):
+        return 2
+
+    def __getitem__(self, item):
+        return self.xy[item]
+
+    def __add__(self, other):
+        return add(self, other)
+
+    def __sub__(self, other):
+        return subtract(self, other)
+
+    @property
+    def x(self):
+        """
+        The vector x-component.
+
+        :getter: Returns the x-component.
+        :setter: Sets the x-component.
+        :type: float
+        """
+        return self.X()
+
+    @x.setter
+    def x(self, x):
+        self.SetX(x)
+
+    @property
+    def y(self):
+        """
+        The vector y-component.
+
+        :getter: Returns the y-component.
+        :setter: Sets the y-component.
+        :type: float
+        """
+        return self.Y()
+
+    @y.setter
+    def y(self, y):
+        self.SetY(y)
+
+    @property
+    def xy(self):
+        """
+        :return: The vector xy-components.
+        :rtype: numpy.ndarray
+        """
+        return array([self.x, self.y], dtype=float64)
+
+    @property
+    def mag(self):
+        """
+        :return: Vector magnitude.
+        :rtype: float
+        """
+        return self.Magnitude()
+
+    @property
+    def ij(self):
+        """
+        :return: Normalized vector xy-components.
+        :rtype: numpy.ndarray
+        """
+        return self.xy / self.mag
+
+    def reverse(self):
+        """
+        Reverse the direction of the vector.
+
+        :return: None.
+        """
+        self.Reverse()
+
+    def normalize(self):
+        """
+        Normalize the vector.
+
+        :return: None.
+        """
+        self.Normalize()
+
+    def vscale(self, scale):
+        """
+        Scale the vector.
+
+        :param float scale: Scaling value.
+
+        :return: None.
+        """
+        self.Scale(scale)
 
 
 class NurbsCurve2D(Geometry2D):
@@ -1075,6 +1285,7 @@ class Vector(gp_Vec, Geometry):
     def ijk(self):
         """
         :return: Normalized vector xyz-components.
+        :rtype: numpy.ndarray
         """
         return self.xyz / self.mag
 

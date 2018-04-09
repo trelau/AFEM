@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.gp import gp_Pnt, gp_Vec, gp_Pnt2d
+from OCCT.gp import gp_Pnt, gp_Vec, gp_Pnt2d, gp_Vec2d
 from numpy import ndarray
 
 from afem.geometry.entities import *
@@ -199,6 +199,33 @@ class CheckGeom(object):
             return Vector(geom.XYZ())
         else:
             raise TypeError('Cannot convert to Vector.')
+
+    @staticmethod
+    def to_vector2d(geom):
+        """
+        Convert entity to a Vector2D if possible.
+
+        :param vector2d_like geom: An entity.
+
+        :return: The entity if already a Vector2D, or a new Vector2D if it is
+            vector2d_like.
+        :rtype: afem.geometry.entities.Vector2D
+
+        :raise TypeError: If entity cannot be converted to a Vector2D.
+        """
+        if geom is None:
+            return None
+
+        if isinstance(geom, Vector2D):
+            return geom
+        elif isinstance(geom, (tuple, list, ndarray)):
+            return Vector2D(geom[0], geom[1])
+        elif isinstance(geom, Direction2D):
+            return Vector2D(geom)
+        elif isinstance(geom, gp_Vec2d):
+            return Vector2D(geom.XY())
+        else:
+            raise TypeError('Cannot convert to Vector2D.')
 
     @staticmethod
     def is_direction(geom):

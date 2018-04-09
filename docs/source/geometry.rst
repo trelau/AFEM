@@ -212,6 +212,14 @@ Point2D
 ~~~~~~~
 .. autoclass:: Point2D
 
+Direction2D
+~~~~~~~~~~~
+.. autoclass:: Direction2D
+
+Vector2D
+~~~~~~~~
+.. autoclass:: Vector2D
+
 NurbsCurve2D
 ~~~~~~~~~~~~
 .. autoclass:: NurbsCurve2D

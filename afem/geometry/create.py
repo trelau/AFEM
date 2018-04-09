@@ -698,11 +698,7 @@ class NurbsCurve2DByInterp(object):
     :param float tol: Tolerance used to check for coincident points and the
         magnitude of end vectors.
 
-    :raise RuntimeError: If OCC method fails.
-
-    For more information see Geom2dAPI_Interpolate_.
-
-    .. _Geom2dAPI_Interpolate: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d_a_p_i___interpolate.html
+    :raise RuntimeError: If ``Geom2dAPI_Interpolate`` fails.
     """
 
     def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
@@ -710,16 +706,15 @@ class NurbsCurve2DByInterp(object):
         interp = Geom2dAPI_Interpolate(tcol_hpnts,
                                        is_periodic, tol)
 
-        # TODO Support Vector2D
-        # if None not in [v1, v2]:
-        #     v1 = CheckGeom.to_vector(v1)
-        #     v2 = CheckGeom.to_vector(v2)
-        #     if v1 and v2:
-        #         interp.Load(v1, v2)
+        if None not in [v1, v2]:
+            v1 = CheckGeom.to_vector2d(v1)
+            v2 = CheckGeom.to_vector2d(v2)
+            if v1 and v2:
+                interp.Load(v1, v2)
 
         interp.Perform()
         if not interp.IsDone():
-            msg = "GeomAPI_Interpolate failed."
+            msg = "Geom2dAPI_Interpolate failed."
             raise RuntimeError(msg)
 
         self._c = NurbsCurve2D(interp.Curve())
