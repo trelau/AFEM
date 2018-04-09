@@ -220,6 +220,10 @@ Vector2D
 ~~~~~~~~
 .. autoclass:: Vector2D
 
+Curve2D
+~~~~~~~
+.. autoclass:: Curve2D
+
 NurbsCurve2D
 ~~~~~~~~~~~~
 .. autoclass:: NurbsCurve2D
@@ -364,10 +368,6 @@ NurbsCurve2DByPoints
 ~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: NurbsCurve2DByPoints
 
-NurbsCurveByData
-~~~~~~~~~~~~~~~~
-.. autoclass:: NurbsCurveByData
-
 NurbsCurveByInterp
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: NurbsCurveByInterp
@@ -379,14 +379,6 @@ NurbsCurveByApprox
 NurbsCurveByPoints
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: NurbsCurveByPoints
-
-TrimmedCurveByParameters
-~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: TrimmedCurveByParameters
-
-TrimmedCurveByCurve
-~~~~~~~~~~~~~~~~~~~
-.. autoclass:: TrimmedCurveByCurve
 
 TrimmedCurveByPoints
 ~~~~~~~~~~~~~~~~~~~~
@@ -439,10 +431,6 @@ PlanesBetweenPlanesByDistance
 PlanesAlongCurveAndSurfaceByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PlanesAlongCurveAndSurfaceByDistance
-
-NurbsSurfaceByData
-~~~~~~~~~~~~~~~~~~
-.. autoclass:: NurbsSurfaceByData
 
 NurbsSurfaceByInterp
 ~~~~~~~~~~~~~~~~~~~~

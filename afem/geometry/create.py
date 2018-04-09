@@ -23,8 +23,8 @@ from OCCT.Approx import (Approx_ChordLength, Approx_IsoParametric)
 from OCCT.BSplCLib import BSplCLib
 from OCCT.GC import GC_MakeCircle
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-from OCCT.Geom import (Geom_BSplineCurve, Geom_BSplineSurface, Geom_Circle,
-                       Geom_Line, Geom_Plane, Geom_TrimmedCurve)
+from OCCT.Geom import (Geom_BSplineSurface, Geom_Circle,
+                       Geom_Line, Geom_Plane)
 from OCCT.Geom2dAPI import Geom2dAPI_Interpolate, Geom2dAPI_PointsToBSpline
 from OCCT.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                           GeomAPI_PointsToBSpline)
@@ -66,9 +66,9 @@ __all__ = ["PointByXYZ", "PointByArray",
            "CircleByPlane", "CircleBy3Points",
            "NurbsCurve2DByInterp", "NurbsCurve2DByApprox",
            "NurbsCurve2DByPoints",
-           "NurbsCurveByData", "NurbsCurveByInterp", "NurbsCurveByApprox",
-           "NurbsCurveByPoints", "TrimmedCurveByParameters",
-           "TrimmedCurveByPoints", "TrimmedCurveByCurve",
+           "NurbsCurveByInterp", "NurbsCurveByApprox",
+           "NurbsCurveByPoints",
+           "TrimmedCurveByPoints",
            "PlaneByNormal", "PlaneByAxes", "PlaneByPoints", "PlaneByApprox",
            "PlaneFromParameter", "PlaneByOrientation",
            "PlaneByCurveAndSurface",
@@ -76,7 +76,6 @@ __all__ = ["PointByXYZ", "PointByArray",
            "PlanesAlongCurveByDistance", "PlanesBetweenPlanesByNumber",
            "PlanesBetweenPlanesByDistance",
            "PlanesAlongCurveAndSurfaceByDistance",
-           "NurbsSurfaceByData",
            "NurbsSurfaceByInterp", "NurbsSurfaceByApprox"]
 
 
@@ -784,40 +783,6 @@ class NurbsCurve2DByPoints(NurbsCurve2DByApprox):
         super(NurbsCurve2DByPoints, self).__init__(qp, 1, 1, Geometry.C0)
 
 
-class NurbsCurveByData(object):
-    """
-    Create a NURBS curve by data.
-
-    :param collections.Sequence(point_like) cp: Control points.
-    :param collections.Sequence(float) knots: Knot vector.
-    :param collections.Sequence(int) mult: Multiplicities of knot vector.
-    :param int p: Degree.
-    :param collections.Sequence(float) weights: Weights of control points.
-    :param bool is_periodic: Flag for periodicity.
-    """
-
-    def __init__(self, cp, knots, mult, p, weights=None, is_periodic=False):
-        p = int(p)
-        tcol_cp = to_tcolgp_array1_pnt(cp)
-        tcol_knots = to_tcolstd_array1_real(knots)
-        tcol_mult = to_tcolstd_array1_integer(mult)
-        if weights is None:
-            weights = [1.] * tcol_cp.Length()
-        tcol_weights = to_tcolstd_array1_real(weights)
-
-        c = Geom_BSplineCurve(tcol_cp, tcol_weights, tcol_knots, tcol_mult, p,
-                              is_periodic)
-        self._c = NurbsCurve(c)
-
-    @property
-    def curve(self):
-        """
-        :return: The NURBS curve.
-        :rtype: afem.geometry.entities.NurbsCurve
-        """
-        return self._c
-
-
 class NurbsCurveByInterp(object):
     """
     Create a cubic curve by interpolating points.
@@ -922,74 +887,10 @@ class NurbsCurveByPoints(NurbsCurveByApprox):
 
 # TRIMMED CURVE ---------------------------------------------------------------
 
-class TrimmedCurveByParameters(object):
-    """
-    Create a trimmed curve using a basis curve and limiting parameters.
-
-    :param afem.geometry.entities.Curve basis_curve: The basis curve.
-    :param float u1: The first parameter.
-    :param float u2: The last parameter.
-    :param bool sense: If the basis curve is periodic, the trimmed curve
-        will have the same orientation as the basis curve if ``True`` or
-        opposite if ``False``.
-    :param bool adjust_periodic: If the basis curve is periodic, the bounds
-        of the trimmed curve may be different from *u1* and *u2* if
-        ``True``.
-
-    :raise TypeError: If the basis curve is not a valid curve type.
-    :raise ValueError: If *u1* >= *u2*.
-    """
-
-    def __init__(self, basis_curve, u1, u2, sense=True, adjust_periodic=True):
-        if not isinstance(basis_curve, Curve):
-            raise TypeError('Invalid type of basis curve.')
-
-        if u1 >= u2:
-            raise ValueError('Parameter values are invalid.')
-
-        crv = Geom_TrimmedCurve(basis_curve.object, u1, u2, sense,
-                                adjust_periodic)
-        self._c = TrimmedCurve(crv)
-
-    @property
-    def curve(self):
-        """
-        :return: The trimmed curve.
-        :rtype: afem.geometry.entities.TrimmedCurve
-        """
-        return self._c
-
-
-class TrimmedCurveByCurve(TrimmedCurveByParameters):
-    """
-    Create a trimmed curve using the existing first and last parameters of
-    the basis curve. This method uses :class:`.TrimmedCurveByParameters`.
-
-    :param afem.geometry.entities.Curve basis_curve: The basis curve.
-    :param bool sense: If the basis curve is periodic, the trimmed curve
-        will have the same orientation as the basis curve if ``True`` or
-        opposite if ``False``.
-    :param bool adjust_periodic: If the basis curve is periodic, the bounds
-        of the trimmed curve may be different from *u1* and *u2* if
-        ``True``.
-
-    :raise TypeError: If the basis curve is not a valid curve type.
-    """
-
-    def __init__(self, basis_curve, sense=True, adjust_periodic=True):
-        if not isinstance(basis_curve, Curve):
-            raise TypeError('Invalid type of basis curve.')
-
-        super(TrimmedCurveByCurve, self).__init__(basis_curve, basis_curve.u1,
-                                                  basis_curve.u2, sense,
-                                                  adjust_periodic)
-
-
-class TrimmedCurveByPoints(TrimmedCurveByParameters):
+class TrimmedCurveByPoints(object):
     """
     Create a trimmed curve using a basis curve and limiting points. The
-    points are projected to the basis curve then
-    :class:`.TrimmedCurveByParameters` is used.
+    points are projected to the basis curve to find the limiting parameters.
 
     :param afem.geometry.entities.Curve basis_curve: The basis curve.
     :param point_like p1: The first point.
@@ -1013,8 +914,16 @@ class TrimmedCurveByPoints(TrimmedCurveByParameters):
         u1 = ProjectPointToCurve(p1, basis_curve).nearest_param
         u2 = ProjectPointToCurve(p2, basis_curve).nearest_param
 
-        super(TrimmedCurveByPoints, self).__init__(basis_curve, u1, u2, sense,
-                                                   adjust_periodic)
+        self._c = TrimmedCurve.by_parameters(basis_curve, u1, u2, sense,
+                                             adjust_periodic)
+
+    @property
+    def curve(self):
+        """
+        :return: The trimmed curve.
+        :rtype: afem.geometry.entities.TrimmedCurve
+        """
+        return self._c
 
 
 # PLANE -----------------------------------------------------------------------
@@ -1909,69 +1818,6 @@ class PlanesAlongCurveAndSurfaceByDistance(object):
 
 
 # NURBSSURFACE ----------------------------------------------------------------
-
-class NurbsSurfaceByData(object):
-    """
-    Create a NURBS surface by data.
-
-    :param list(list(point_like)) cp: Two-dimensional list of control points.
-    :param list(float) uknots: Knot vector for u-direction.
-    :param list(float) vknots: Knot vector for v-direction.
-    :param list(int) umult: Multiplicities of knot vector in u-direction.
-    :param list(int) vmult: Multiplicities of knot vector in v-direction.
-    :param int p: Degree in u-direction.
-    :param int q: Degree in v-direction.
-    :param list(list(float)) weights: Two-dimensional list of control
-        point weights.
-    :param bool is_u_periodic: Flag for periodicity in u-direction.
-    :param bool is_v_periodic: Flag for periodicity in v-direction.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsSurfaceByData, Point
-    >>> cp = [[Point(), Point(10., 0., 0.)], [Point(0., 10., 0.), Point(10., 10., 0.)]]
-    >>> uknots = [0., 1.]
-    >>> vknots = [0., 1.]
-    >>> umult = [2, 2]
-    >>> vmult = [2, 2]
-    >>> p = 1
-    >>> q = 1
-    >>> builder = NurbsSurfaceByData(cp, uknots, vknots, umult, vmult, p, q)
-    >>> s = builder.surface
-    >>> s.eval(0.5, 0.5)
-    Point(5.000, 5.000, 0.000)
-    """
-
-    def __init__(self, cp, uknots, vknots, umult, vmult, p, q, weights=None,
-                 is_u_periodic=False, is_v_periodic=False):
-        tcol_cp = to_tcolgp_array2_pnt(cp)
-        tcol_uknots = to_tcolstd_array1_real(uknots)
-        tcol_umult = to_tcolstd_array1_integer(umult)
-        tcol_vknots = to_tcolstd_array1_real(vknots)
-        tcol_vmult = to_tcolstd_array1_integer(vmult)
-        p, q = int(p), int(q)
-        if weights is None:
-            weights = ones((tcol_cp.ColLength(), tcol_cp.RowLength()))
-        tcol_weights = to_tcolstd_array2_real(weights)
-
-        s = Geom_BSplineSurface(tcol_cp, tcol_uknots, tcol_vknots,
-                                tcol_umult, tcol_vmult, p, q, is_u_periodic,
-                                is_v_periodic)
-
-        # Set the weights since using in construction causes an error.
-        for i in range(1, tcol_weights.ColLength() + 1):
-            for j in range(1, tcol_weights.RowLength() + 1):
-                s.SetWeight(i, j, tcol_weights.Value(i, j))
-
-        self._s = NurbsSurface(s)
-
-    @property
-    def surface(self):
-        """
-        :return: The NURBS surface.
-        :rtype: afem.geometry.entities.NurbsSurface
-        """
-        return self._s
 
 
 class NurbsSurfaceByInterp(object):

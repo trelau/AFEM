@@ -163,7 +163,7 @@ class TestGeometryCreate(unittest.TestCase):
         cp = [(0, 0, 0), (10, 0, 0)]
         uk = [0, 1]
         m = [2, 2]
-        c = NurbsCurveByData(cp, uk, m, 1).curve
+        c = NurbsCurve.by_data(cp, uk, m, 1)
         p = c.eval(0.5)
         self.assertIsInstance(c, NurbsCurve)
         self.assertAlmostEqual(p.x, 5.)
@@ -201,7 +201,7 @@ class TestGeometryCreate(unittest.TestCase):
     def test_trimmed_curve_by_parameters(self):
         qp = [(0, 0, 0), (5, 5, 0), (10, 0, 0)]
         basis_curve = NurbsCurveByInterp(qp).curve
-        c = TrimmedCurveByParameters(basis_curve, 1., 9.).curve
+        c = TrimmedCurve.by_parameters(basis_curve, 1., 9.)
         self.assertIsInstance(c, TrimmedCurve)
         self.assertAlmostEqual(c.u1, 1.)
         self.assertAlmostEqual(c.u2, 9.)
@@ -209,7 +209,7 @@ class TestGeometryCreate(unittest.TestCase):
     def test_trimmed_curve_by_curve(self):
         qp = [(0, 0, 0), (5, 5, 0), (10, 0, 0)]
         basis_curve = NurbsCurveByInterp(qp).curve
-        c = TrimmedCurveByCurve(basis_curve).curve
+        c = TrimmedCurve.by_parameters(basis_curve)
         self.assertIsInstance(c, TrimmedCurve)
         self.assertAlmostEqual(c.u1, 0.)
         self.assertAlmostEqual(c.u2, 14.142136, places=6)

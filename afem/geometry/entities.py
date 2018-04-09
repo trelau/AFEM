@@ -38,7 +38,7 @@ from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
 from OCCT.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
 from OCCT.gp import (gp_Ax1, gp_Ax2, gp_Ax3, gp_Dir, gp_Pnt, gp_Pnt2d, gp_Vec,
                      gp_Vec2d, gp_Dir2d)
-from numpy import add, array, float64, subtract
+from numpy import add, array, float64, subtract, ones
 
 from afem.base.entities import ViewableItem
 from afem.geometry.utils import (global_to_local_param,
@@ -51,9 +51,12 @@ from afem.occ.utils import (to_np_from_tcolgp_array1_pnt,
                             to_np_from_tcolstd_array1_integer,
                             to_np_from_tcolstd_array1_real,
                             to_np_from_tcolstd_array2_real,
-                            to_tcolgp_array1_pnt, to_tcolstd_array1_real)
+                            to_tcolgp_array1_pnt, to_tcolstd_array1_real,
+                            to_tcolstd_array1_integer, to_tcolgp_array2_pnt,
+                            to_tcolstd_array2_real)
 
-__all__ = ["Geometry2D", "Point2D", "Vector2D", "Direction2D", "NurbsCurve2D",
+__all__ = ["Geometry2D", "Point2D", "Vector2D", "Direction2D",
+           "Curve2D", "NurbsCurve2D",
            "Geometry", "Point", "Direction", "Vector", "Axis1", "Axis3",
            "Curve", "Line", "Circle", "Ellipse", "NurbsCurve", "TrimmedCurve",
            "Surface", "Plane", "NurbsSurface"]
@@ -269,6 +272,19 @@ class Point2D(gp_Pnt2d, Geometry2D):
         """
         return Point2D(*self.xy)
 
+    @classmethod
+    def by_xy(cls, x, y):
+        """
+        Create a 2-D point by *x* and *y* locations.
+
+        :param float x: The x-location.
+        :param float y: The y-location.
+
+        :return: The new 2-D point.
+        :rtype: afem.geometry.entities.Point2D
+        """
+        return cls(x, y)
+
 
 class Direction2D(gp_Dir2d, Geometry2D):
     """
@@ -360,6 +376,31 @@ class Direction2D(gp_Dir2d, Geometry2D):
         :rtype: float
         """
         return 1.
+
+    @classmethod
+    def by_xy(cls, x, y):
+        """
+        Create a 2-D direction by *x* and *y* components.
+
+        :param float x: The x-component.
+        :param float y: The y-component.
+
+        :return: The new 2-D direction.
+        :rtype: afem.geometry.entities.Direction2D
+        """
+        return cls(x, y)
+
+    @classmethod
+    def by_vector(cls, v):
+        """
+        Create a 2-D direction from a 2-D vector.
+
+        :param afem.geometry.entities.Vector2D v: The 2-D vector.
+
+        :return: The new 2-D direction.
+        :rtype: afem.geometry.entities.Direction2D
+        """
+        return cls(v)
 
 
 class Vector2D(gp_Vec2d, Geometry2D):
@@ -477,6 +518,44 @@ class Vector2D(gp_Vec2d, Geometry2D):
         :return: None.
         """
         self.Scale(scale)
+
+    @classmethod
+    def by_xy(cls, x, y):
+        """
+        Create a 2-D vector by *x* and *y* components.
+
+        :param float x: The x-component.
+        :param float y: The y-component.
+
+        :return: The new 2-D vector.
+        :rtype: afem.geometry.entities.Vector2D
+        """
+        return cls(x, y)
+
+    @classmethod
+    def by_direction(cls, d):
+        """
+        Create a 2-D vector from a 2-D direction.
+
+        :param afem.geometry.entities.Direction2D d: The 2-D direction.
+
+        :return: The new 2-D vector.
+        :rtype: afem.geometry.entities.Vector2D
+        """
+        return cls(d)
+
+    @classmethod
+    def by_points(cls, p1, p2):
+        """
+        Create a 2-D vector by two 2-D points.
+
+        :param afem.geometry.entities.Point2D p1: The first point.
+        :param afem.geometry.entities.Point2D p2: The second point.
+
+        :return: The new 2-D vector.
+        :rtype: afem.geometry.entities.Vector2D
+        """
+        return cls(p1, p2)
 
 
 class Curve2D(Geometry2D):
@@ -1080,17 +1159,6 @@ class Point(gp_Pnt, Geometry):
         other = CheckGeom.to_point(other)
         return self.IsEqual(other, tol)
 
-    def rotate(self, axis, angle):
-        """
-        Rotate the point about an axis.
-
-        :param afem.geometry.entities.Axis1 axis: The rotation axis.
-        :param float angle: The rotation angle in degrees.
-
-        :return: None.
-        """
-        self.Rotate(axis, radians(angle))
-
     def rotate_xyz(self, origin, x, y, z):
         """
         Rotate the point about the global x-, y-, and z-axes using
@@ -1143,6 +1211,20 @@ class Point(gp_Pnt, Geometry):
         :rtype: afem.geometry.entities.Point
         """
         return Point(*self.xyz)
+
+    @classmethod
+    def by_xyz(cls, x, y, z):
+        """
+        Create a point by *x*, *y*, and *z* locations.
+
+        :param float x: The x-location.
+        :param float y: The y-location.
+        :param float z: The z-location.
+
+        :return: The new point.
+        :rtype: afem.geometry.entities.Point
+        """
+        return cls(x, y, z)
 
 
 class Direction(gp_Dir, Geometry):
@@ -1263,6 +1345,32 @@ class Direction(gp_Dir, Geometry):
         :rtype: float
         """
         return 1.
+
+    @classmethod
+    def by_xyz(cls, x, y, z):
+        """
+        Create a direction by *x*, *y*, and *z* components.
+
+        :param float x: The x-component.
+        :param float y: The y-component.
+        :param float z: The z-component.
+
+        :return: The new direction.
+        :rtype: afem.geometry.entities.Direction
+        """
+        return cls(x, y, z)
+
+    @classmethod
+    def by_vector(cls, v):
+        """
+        Create a direction from a vector.
+
+        :param afem.geometry.entities.Vector v: The vector.
+
+        :return: The new direction.
+        :rtype: afem.geometry.entities.Direction
+        """
+        return cls(v)
 
 
 class Vector(gp_Vec, Geometry):
@@ -1413,6 +1521,45 @@ class Vector(gp_Vec, Geometry):
         """
         self.Scale(scale)
 
+    @classmethod
+    def by_xyz(cls, x, y, z):
+        """
+        Create a vector by *x*, *y*, and *z* components.
+
+        :param float x: The x-component.
+        :param float y: The y-component.
+        :param float z: The yzcomponent.
+
+        :return: The new vector.
+        :rtype: afem.geometry.entities.Vector
+        """
+        return cls(x, y, z)
+
+    @classmethod
+    def by_direction(cls, d):
+        """
+        Create a vector from a direction.
+
+        :param afem.geometry.entities.Direction d: The direction.
+
+        :return: The new vector.
+        :rtype: afem.geometry.entities.Vector
+        """
+        return cls(d)
+
+    @classmethod
+    def by_points(cls, p1, p2):
+        """
+        Create a vector by two points.
+
+        :param afem.geometry.entities.Point p1: The first point.
+        :param afem.geometry.entities.Point p2: The second point.
+
+        :return: The new vector.
+        :rtype: afem.geometry.entities.Vector
+        """
+        return cls(p1, p2)
+
 
 class Axis1(gp_Ax1):
     """
@@ -1442,6 +1589,19 @@ class Axis1(gp_Ax1):
         """
         p = self.Location()
         return Point(p.X(), p.Y(), p.Z())
+
+    @classmethod
+    def by_direction(cls, p, d):
+        """
+        Create an axis by an origin point and direction.
+
+        :param afem.geometry.entities.Point p: The origin.
+        :param afem.geometry.entities.Direction d: The direction.
+
+        :return: The new axis.
+        :rtype: afem.geometry.entities.Axis
+        """
+        return cls(p, d)
 
 
 class Axis3(gp_Ax3):
@@ -1521,6 +1681,34 @@ class Axis3(gp_Ax3):
         :rtype: afem.geometry.entities.Axis1
         """
         return Axis1(self.origin, self.z_dir)
+
+    @classmethod
+    def by_normal(cls, p, n):
+        """
+        Create a coordinate system by an origin point and normal direction.
+
+        :param afem.geometry.entities.Point p: The origin.
+        :param afem.geometry.entities.Direction n: The normal direction.
+
+        :return: The new coordinate system.
+        :rtype: afem.geometry.entities.Axis3
+        """
+        return cls(p, n)
+
+    @classmethod
+    def by_xdirection(cls, p, n, x):
+        """
+        Create a coordinate system by an origin, a normal direction, and its
+        x-direction.
+
+        :param afem.geometry.entities.Point p: The origin.
+        :param afem.geometry.entities.Direction n: The normal direction.
+        :param afem.geometry.entities.Direction x: The direction of the x-axis.
+
+        :return: The new coordinate system.
+        :rtype: afem.geometry.entities.Axis3
+        """
+        return cls(p, n, x)
 
 
 class Curve(Geometry):
@@ -1735,6 +1923,31 @@ class Line(Curve):
 
     def __init__(self, obj):
         super(Line, self).__init__(obj)
+
+    @classmethod
+    def by_axis(cls, ax1):
+        """
+        Create a line from an axis.
+
+        :param afem.geometry.entities.Axis1 ax1: The axis.
+
+        :return: The new line.
+        :rtype: afem.geometry.entities.Line
+        """
+        return cls(Geom_Line(ax1))
+
+    @classmethod
+    def by_direction(cls, p, d):
+        """
+        Create a line passing through a point along a direction.
+
+        :param afem.geometry.entities.Point p: The point.
+        :param afem.geometry.entities.Direction d: The direction.
+
+        :return: The new line.
+        :rtype: afem.geometry.entities.Line
+        """
+        return cls(Geom_Line(p, d))
 
 
 class Circle(Curve):
@@ -1959,6 +2172,29 @@ class NurbsCurve(Curve):
         else:
             self.object.SetPole(i, cp, weight)
 
+    @classmethod
+    def by_data(cls, cp, knots, mult, p, weights=None, is_periodic=False):
+        """
+        Create a NURBS curve by data.
+
+        :param collections.Sequence(point_like) cp: Control points.
+        :param collections.Sequence(float) knots: Knot vector.
+        :param collections.Sequence(int) mult: Multiplicities of knot vector.
+        :param int p: Degree.
+        :param collections.Sequence(float) weights: Weights of control points.
+        :param bool is_periodic: Flag for periodicity.
+        """
+        tcol_cp = to_tcolgp_array1_pnt(cp)
+        tcol_knots = to_tcolstd_array1_real(knots)
+        tcol_mult = to_tcolstd_array1_integer(mult)
+        if weights is None:
+            weights = [1.] * tcol_cp.Length()
+        tcol_weights = to_tcolstd_array1_real(weights)
+
+        geom_crv = Geom_BSplineCurve(tcol_cp, tcol_weights, tcol_knots,
+                                     tcol_mult, p, is_periodic)
+        return cls(geom_crv)
+
 
 class TrimmedCurve(Curve):
     """
@@ -1999,6 +2235,42 @@ class TrimmedCurve(Curve):
             curve.
         """
         self.object.SetTrim(u1, u2, sense, adjust_periodic)
+
+    @classmethod
+    def by_parameters(cls, basis_curve, u1=None, u2=None, sense=True,
+                      adjust_periodic=True):
+        """
+        Create a trimmed curve using a basis curve and limiting parameters.
+
+        :param afem.geometry.entities.Curve basis_curve: The basis curve.
+        :param float u1: The first parameter. If not provided then the first
+            parameter of the basis curve will be used.
+        :param float u2: The last parameter. If not provided then the last
+            parameter of the basis curve will be used.
+        :param bool sense: If the basis curve is periodic, the trimmed curve
+            will have the same orientation as the basis curve if ``True`` or
+            opposite if ``False``.
+        :param bool adjust_periodic: If the basis curve is periodic, the bounds
+            of the trimmed curve may be different from *u1* and *u2* if
+            ``True``.
+
+        :raise TypeError: If the basis curve is not a valid curve type.
+        :raise ValueError: If *u1* >= *u2*.
+        """
+        if not isinstance(basis_curve, Curve):
+            raise TypeError('Invalid type of basis curve.')
+
+        if u1 is None:
+            u1 = basis_curve.u1
+        if u2 is None:
+            u2 = basis_curve.u2
+
+        if u1 >= u2:
+            raise ValueError('Parameter values are invalid.')
+
+        geom_crv = Geom_TrimmedCurve(basis_curve.object, u1, u2, sense,
+                                     adjust_periodic)
+        return cls(geom_crv)
 
 
 class Surface(Geometry):
@@ -2266,19 +2538,6 @@ class Plane(Surface):
         pnt = CheckGeom.to_point(pnt)
         return self.gp_pln.Distance(pnt)
 
-    def rotate(self, axis, angle):
-        """
-        Rotate the plane about an axis.
-
-        :param afem.geometry.entities.Axis1 axis: The rotation axis.
-        :param float angle: The rotation angle in degrees.
-
-        :return: None.
-        """
-        pln = self.gp_pln
-        pln.Rotate(axis, radians(angle))
-        self.object.SetPln(pln)
-
     def rotate_x(self, angle):
         """
         Rotate the plane about its x-axis.
@@ -2302,6 +2561,31 @@ class Plane(Surface):
         pln = self.gp_pln
         pln.Rotate(pln.YAxis(), radians(angle))
         self.object.SetPln(pln)
+
+    @classmethod
+    def by_system(cls, ax3):
+        """
+        Create a plane by a coordinate system.
+
+        :param afem.geometry.entities.Axis3 ax3: The system.
+
+        :return: The new plane.
+        :rtype: afem.geometry.entities.Plane
+        """
+        return cls(Geom_Plane(ax3))
+
+    @classmethod
+    def by_normal(cls, p, n):
+        """
+        Create a plane by an origin and a normal.
+
+        :param afem.geometry.entities.Point p: The origin.
+        :param afem.geometry.entities.Direction n: The normal direction.
+
+        :return: The new plane.
+        :rtype: afem.geometry.entities.Plane
+        """
+        return cls(Geom_Plane(p, n))
 
 
 class NurbsSurface(Surface):
@@ -2672,6 +2956,58 @@ class NurbsSurface(Surface):
         else:
             tcol_w = to_tcolstd_array1_real(weights)
             self.object.SetPoleCol(v_index, tcol_gp, tcol_w)
+
+    @classmethod
+    def by_data(cls, cp, uknots, vknots, umult, vmult, p, q, weights=None,
+                is_u_periodic=False, is_v_periodic=False):
+        """
+        Create a NURBS surface by data.
+
+        :param list(list(point_like)) cp: Two-dimensional list of control points.
+        :param list(float) uknots: Knot vector for u-direction.
+        :param list(float) vknots: Knot vector for v-direction.
+        :param list(int) umult: Multiplicities of knot vector in u-direction.
+        :param list(int) vmult: Multiplicities of knot vector in v-direction.
+        :param int p: Degree in u-direction.
+        :param int q: Degree in v-direction.
+        :param list(list(float)) weights: Two-dimensional list of control
+            point weights.
+        :param bool is_u_periodic: Flag for periodicity in u-direction.
+        :param bool is_v_periodic: Flag for periodicity in v-direction.
+
+        Usage:
+
+        >>> from afem.geometry import NurbsSurface
+        >>> cp = [[Point(), Point(10., 0., 0.)], [Point(0., 10., 0.), Point(10., 10., 0.)]]
+        >>> uknots = [0., 1.]
+        >>> vknots = [0., 1.]
+        >>> umult = [2, 2]
+        >>> vmult = [2, 2]
+        >>> p = 1
+        >>> q = 1
+        >>> s = NurbsSurface.by_data(cp, uknots, vknots, umult, vmult, p, q)
+        >>> s.eval(0.5, 0.5)
+        Point(5.000, 5.000, 0.000)
+        """
+        tcol_cp = to_tcolgp_array2_pnt(cp)
+        tcol_uknots = to_tcolstd_array1_real(uknots)
+        tcol_umult = to_tcolstd_array1_integer(umult)
+        tcol_vknots = to_tcolstd_array1_real(vknots)
+        tcol_vmult = to_tcolstd_array1_integer(vmult)
+        if weights is None:
+            weights = ones((tcol_cp.ColLength(), tcol_cp.RowLength()))
+        tcol_weights = to_tcolstd_array2_real(weights)
+
+        geom_srf = Geom_BSplineSurface(tcol_cp, tcol_uknots, tcol_vknots,
+                                       tcol_umult, tcol_vmult, p, q,
+                                       is_u_periodic, is_v_periodic)
+
+        # Set the weights since using in construction causes an error.
+        for i in range(1, tcol_weights.ColLength() + 1):
+            for j in range(1, tcol_weights.RowLength() + 1):
+                geom_srf.SetWeight(i, j, tcol_weights.Value(i, j))
+
+        return cls(geom_srf)
 
 
 if __name__ == "__main__":

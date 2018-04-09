@@ -22,8 +22,7 @@ from afem.base.entities import ShapeHolder, NamedItem
 from afem.config import logger
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
-                                  PointFromParameter, PointsAlongCurveByNumber,
-                                  TrimmedCurveByCurve)
+                                  PointFromParameter, PointsAlongCurveByNumber)
 from afem.geometry.entities import Axis1, Plane, TrimmedCurve
 from afem.geometry.project import (ProjectPointToCurve,
                                    ProjectPointToSurface)
@@ -360,7 +359,7 @@ class Part(ShapeHolder, NamedItem):
         if isinstance(cref, TrimmedCurve):
             self._cref = cref
         else:
-            self._cref = TrimmedCurveByCurve(cref).curve
+            self._cref = TrimmedCurve.by_parameters(cref)
 
     def set_u1(self, u1):
         """

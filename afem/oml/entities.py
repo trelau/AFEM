@@ -17,8 +17,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from afem.base.entities import ShapeHolder, NamedItem
-from afem.geometry.create import PlaneByPoints, TrimmedCurveByParameters
-from afem.geometry.entities import Surface
+from afem.geometry.create import PlaneByPoints
+from afem.geometry.entities import Surface, TrimmedCurve
 from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
 from afem.topology.bop import IntersectShapes
 from afem.topology.create import FaceBySurface, WiresByConnectedEdges
@@ -258,7 +258,7 @@ class Body(ShapeHolder, NamedItem):
             crv.reverse()
             u1c, u2c = crv.reversed_u(u1c), crv.reversed_u(u2c)
 
-        return TrimmedCurveByParameters(crv, u1c, u2c).curve
+        return TrimmedCurve.by_parameters(crv, u1c, u2c)
 
     def bbox(self, tol=None):
         """
