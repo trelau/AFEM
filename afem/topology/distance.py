@@ -336,9 +336,6 @@ class DistanceShapeToShapes(object):
     :param afem.topology.entities.Shape shape: The main shape.
     :param list(afem.topology.entities.Shape) other_shapes: The other shapes.
 
-    :raises RuntimeWarning: If the distance between two shapes cannot be
-        found. This shape will be ignored and process will continue.
-
     Usage:
 
     >>> from afem.topology import *

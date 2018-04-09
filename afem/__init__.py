@@ -18,5 +18,5 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 import warnings
 
-# TODO Put warnings in log
+# Always show warnings (maybe put them in the log?)
 warnings.simplefilter('always', Warning)

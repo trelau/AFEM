@@ -451,8 +451,7 @@ class RebuildShapeByTool(object):
     """
 
     def __init__(self, old_shape, tool):
-        # TODO Use wrapped tool
-        reshape = ShapeBuild_ReShape()
+        rebuild = RebuildShapeWithShapes(old_shape)
 
         # Old shapes
         old_shapes = old_shape.faces
@@ -467,18 +466,16 @@ class RebuildShapeByTool(object):
         for shape in old_shapes:
             # Deleted
             if tool.is_deleted(shape):
-                reshape.Remove(shape.object)
+                rebuild.remove(shape)
                 continue
 
             # Modified
             mod_shapes = [s for s in tool.modified(shape)
                           if not s.is_same(shape)]
-
             if mod_shapes:
-                new_shape = Compound.by_shapes(mod_shapes)
-                reshape.Replace(shape.object, new_shape.object)
+                rebuild.replace(shape, mod_shapes)
 
-        self._new_shape = Shape.wrap(reshape.Apply(old_shape.object))
+        self._new_shape = rebuild.apply()
 
     @property
     def new_shape(self):

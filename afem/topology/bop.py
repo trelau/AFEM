@@ -32,11 +32,12 @@ from afem.geometry.entities import Surface
 from afem.occ.utils import to_topods_list
 from afem.topology.entities import Shape, Face, Solid
 from afem.topology.explore import ExploreWire
+from afem.topology.modify import RebuildShapeByTool
 
 __all__ = ["BopCore", "BopAlgo", "FuseShapes", "CutShapes", "CommonShapes",
            "IntersectShapes", "SplitShapes", "VolumesFromShapes",
            "CutCylindricalHole", "LocalSplit", "SplitShapeByEdges",
-           "TrimOpenWire"]
+           "SplitWire", "TrimOpenWire"]
 
 # Turn on parallel Boolean execution by default
 BOPAlgo_Options.SetParallelMode_(True)
@@ -261,7 +262,10 @@ class BopAlgo(BopCore):
         :return: None.
         """
         if isinstance(self._bop, BOPAlgo_MakerVolume):
-            warn('Setting tools not available. Doing nothing.', RuntimeWarning)
+            n = self._bop.__class__.__name__
+            msg = ('Setting tools not available for {}. '
+                   'Doing nothing.'.format(n))
+            warn(msg, RuntimeWarning)
             return None
 
         tools = to_topods_list(shapes)
@@ -291,8 +295,10 @@ class BopAlgo(BopCore):
         """
         if isinstance(self._bop, (BRepAlgoAPI_Splitter, BOPAlgo_MakerVolume,
                                   BRepFeat_MakeCylindricalHole)):
-            warn('Refining edges not available. Doing nothing.',
-                 RuntimeWarning)
+            n = self._bop.__class__.__name__
+            msg = ('Refining edges not available for {}. '
+                   'Doing nothing.'.format(n))
+            warn(msg, RuntimeWarning)
         else:
             self._bop.RefineEdges()
 
@@ -317,8 +323,10 @@ class BopAlgo(BopCore):
         """
         if isinstance(self._bop, (BRepAlgoAPI_Splitter, BOPAlgo_MakerVolume,
                                   BRepFeat_MakeCylindricalHole)):
-            warn('Getting section edges not available. Returning an empty '
-                 'list.', RuntimeWarning)
+            n = self._bop.__class__.__name__
+            msg = ('Getting section edges not available for {}. '
+                   'Returning an empty list.'.format(n))
+            warn(msg, RuntimeWarning)
             return []
         else:
             return Shape.from_topods_list(self._bop.SectionEdges())
@@ -827,6 +835,34 @@ class SplitShapeByEdges(BopCore):
         :return: None.
         """
         self._bop.Add(e1.object, e2.object)
+
+
+class SplitWire(object):
+    """
+    Split a wire with a shape.
+
+    :param afem.topology.entities.Wire wire: The wire.
+    :param afem.topology.entities.Shape splitter: The splitter shape.
+
+    :raise RuntimeError: If the splitting algorithm fails.
+    """
+
+    def __init__(self, wire, splitter):
+        bop = SplitShapes(wire, splitter)
+        if not bop.is_done:
+            raise RuntimeError('Failed to split wire.')
+
+        # Replace edges in wire
+        rebuild = RebuildShapeByTool(wire, bop)
+        self._wire = rebuild.new_shape
+
+    @property
+    def wire(self):
+        """
+        :return: The split wire.
+        :rtype: afem.topology.entities.Wire
+        """
+        return self._wire
 
 
 class TrimOpenWire(object):

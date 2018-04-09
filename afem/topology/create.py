@@ -19,7 +19,7 @@
 from OCCT.BRep import BRep_Builder, BRep_Tool
 from OCCT.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve
 from OCCT.BRepAlgo import BRepAlgo
-from OCCT.BRepAlgoAPI import BRepAlgoAPI_Section, BRepAlgoAPI_Splitter
+from OCCT.BRepAlgoAPI import BRepAlgoAPI_Section
 from OCCT.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
                                  BRepBuilderAPI_MakeEdge,
                                  BRepBuilderAPI_MakeFace,
@@ -35,10 +35,9 @@ from OCCT.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
 from OCCT.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCCT.ShapeAnalysis import ShapeAnalysis_FreeBounds
-from OCCT.ShapeBuild import ShapeBuild_ReShape
 from OCCT.TopLoc import TopLoc_Location
 from OCCT.TopTools import TopTools_HSequenceOfShape
-from OCCT.TopoDS import TopoDS_Compound, TopoDS_Shell, TopoDS_ListOfShape
+from OCCT.TopoDS import TopoDS_Compound, TopoDS_Shell
 from numpy import ceil
 
 from afem.geometry.check import CheckGeom
@@ -52,7 +51,7 @@ __all__ = ["VertexByPoint",
            "EdgeByPoints", "EdgeByVertices", "EdgeByCurve", "EdgeByDrag",
            "EdgeByWireConcat",
            "WireByEdges", "WiresByConnectedEdges", "WireByPlanarOffset",
-           "WiresByShape", "WireByPoints", "WireBySplit", "WireByConcat",
+           "WiresByShape", "WireByPoints", "WireByConcat",
            "FaceBySurface", "FaceByPlane", "FaceByPlanarWire", "FaceByDrag",
            "ShellBySurface", "ShellByFaces", "ShellBySewing", "ShellByDrag",
            "SolidByShell", "SolidByPlane", "SolidByDrag",
@@ -495,72 +494,6 @@ class WireByPoints(object):
         :rtype: afem.topology.entities.Wire
         """
         return self._w
-
-
-class WireBySplit(object):
-    """
-    Split a wire with a shape.
-
-    :param afem.topology.entities.Wire wire: The wire.
-    :param afem.topology.entities.Shape splitter: The splitter shape.
-    """
-
-    def __init__(self, wire, splitter):
-        # Split algorithm
-        # TODO Use an AFEM tool to split
-        bop = BRepAlgoAPI_Splitter()
-        args = TopoDS_ListOfShape()
-        args.Append(wire.object)
-        tools = TopoDS_ListOfShape()
-        tools.Append(splitter.object)
-        bop.SetArguments(args)
-        bop.SetTools(tools)
-        bop.Build()
-        if not bop.IsDone():
-            raise RuntimeError('Failed to split wire.')
-
-        # Replace edges in wire
-        reshape = ShapeBuild_ReShape()
-        performed = False
-        for old_edge in wire.edges:
-            # Check deleted
-            if bop.IsDeleted(old_edge.object):
-                reshape.Remove(old_edge.object)
-                performed = True
-                break
-
-            # Check modified
-            modified = bop.Modified(old_edge.object)
-            if modified.IsEmpty():
-                continue
-
-            # Put modified edges into compound
-            new_edges = []
-            while not modified.IsEmpty():
-                shape = modified.First()
-                new_edges.append(shape)
-                modified.RemoveFirst()
-            if not new_edges:
-                continue
-
-            # Replace old edge with new.
-            new_edges = CompoundByShapes(new_edges).compound
-            reshape.Replace(old_edge.object, new_edges.object)
-            performed = True
-
-        # Apply substitution.
-        if not performed:
-            self._wire = wire
-        else:
-            self._wire = Wire(reshape.Apply(wire))
-
-    @property
-    def wire(self):
-        """
-        :return: The split wire.
-        :rtype: afem.topology.entities.Wire
-        """
-        return self._wire
 
 
 class WireByConcat(object):

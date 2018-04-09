@@ -110,10 +110,6 @@ WireByPoints
 ~~~~~~~~~~~~~
 .. autoclass:: WireByPoints
 
-WireBySplit
-~~~~~~~~~~~
-.. autoclass:: WireBySplit
-
 WireByConcat
 ~~~~~~~~~~~~
 .. autoclass:: WireByConcat
@@ -321,6 +317,10 @@ LocalSplit
 SplitShapeByEdges
 ~~~~~~~~~~~~~~~~~
 .. autoclass:: SplitShapeByEdges
+
+SplitWire
+~~~~~~~~~~~
+.. autoclass:: SplitWire
 
 TrimOpenWire
 ~~~~~~~~~~~~
