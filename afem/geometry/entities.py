@@ -170,9 +170,7 @@ class Point2D(gp_Pnt2d):
         :return: *True* if set, *False* if not.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        xy = CheckGeom.to_point2d(xy)
+        xy = Point2D.to_point2d(xy)
         self.SetXY(xy.XY())
         return True
 
@@ -185,9 +183,7 @@ class Point2D(gp_Pnt2d):
         :return: Distance to the other point.
         :rtype: float
         """
-        from afem.geometry.check import CheckGeom
-
-        other = CheckGeom.to_point2d(other)
+        other = Point2D.to_point2d(other)
         return self.Distance(other)
 
     def is_equal(self, other, tol=1.0e-7):
@@ -200,9 +196,7 @@ class Point2D(gp_Pnt2d):
         :return: *True* if coincident, *False* if not.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        other = CheckGeom.to_point2d(other)
+        other = Point2D.to_point2d(other)
         return self.IsEqual(other, tol)
 
     def scale(self, pnt, scale):
@@ -215,9 +209,7 @@ class Point2D(gp_Pnt2d):
         :return: *True* if scaled.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point2d(pnt)
+        pnt = Point2D.to_point2d(pnt)
         self.Scale(pnt, scale)
         return True
 
@@ -231,9 +223,7 @@ class Point2D(gp_Pnt2d):
         :return: *True* if rotated.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point2d(pnt)
+        pnt = Point2D.to_point2d(pnt)
         angle = radians(angle)
         self.Rotate(pnt, angle)
         return True
@@ -246,6 +236,47 @@ class Point2D(gp_Pnt2d):
         :rtype: afem.geometry.entities.Point2D
         """
         return Point2D(*self.xy)
+
+    @classmethod
+    def is_point2d_like(cls, entity):
+        """
+        Check if the entity is point2d_like.
+
+        :param entity: An entity.
+
+        :return: *True* if the entity is point2d_like, *False* if not.
+        :rtype: bool
+        """
+        if isinstance(entity, gp_Pnt2d):
+            return True
+        if isinstance(entity, (tuple, list, ndarray)):
+            return len(entity) == 2
+        return False
+
+    @classmethod
+    def to_point2d(cls, entity):
+        """
+        Convert entity to a point if possible.
+
+        :param entity: An entity.
+
+        :return: The entity if already a point, or a new point if it is
+            "point like".
+        :rtype: afem.geometry.entities.Point2D
+
+        :raise TypeError: If entity cannot be converted to a Point.
+        """
+        if entity is None:
+            return None
+
+        if isinstance(entity, cls):
+            return entity
+        elif isinstance(entity, gp_Pnt2d):
+            return cls(entity.XY())
+        elif cls.is_point2d_like(entity):
+            return cls(entity[0], entity[1])
+        else:
+            raise TypeError('Cannot convert to Point2D.')
 
     @classmethod
     def by_xy(cls, x, y):
@@ -361,9 +392,7 @@ class Direction2D(gp_Dir2d):
         :return: *True* if rotated.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point2d(pnt)
+        pnt = Point2D.to_point2d(pnt)
         angle = radians(angle)
         self.Rotate(pnt, angle)
         return True
@@ -519,12 +548,37 @@ class Vector2D(gp_Vec2d):
         :return: *True* if rotated.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point2d(pnt)
+        pnt = Point2D.to_point2d(pnt)
         angle = radians(angle)
         self.Rotate(pnt, angle)
         return True
+
+    @classmethod
+    def to_vector2d(cls, entity):
+        """
+        Convert entity to a 2-D vector if possible.
+
+        :param vector2d_like entity: An entity.
+
+        :return: The entity if already a Vector2D, or a new Vector2D if it is
+            vector2d_like.
+        :rtype: afem.geometry.entities.Vector2D
+
+        :raise TypeError: If entity cannot be converted to a Vector2D.
+        """
+        if entity is None:
+            return None
+
+        if isinstance(entity, cls):
+            return entity
+        elif isinstance(entity, (tuple, list, ndarray)):
+            return cls(entity[0], entity[1])
+        elif isinstance(entity, Direction2D):
+            return cls(entity)
+        elif isinstance(entity, gp_Vec2d):
+            return cls(entity.XY())
+        else:
+            raise TypeError('Cannot convert to Vector2D.')
 
     @classmethod
     def by_xy(cls, x, y):
@@ -595,9 +649,7 @@ class Geometry2D(object):
         :return: *True* if scaled.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point2d(pnt)
+        pnt = Point2D.to_point2d(pnt)
         self.object.Scale(pnt, scale)
         return True
 
@@ -611,9 +663,7 @@ class Geometry2D(object):
         :return: *True* if rotated.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point2d(pnt)
+        pnt = Point2D.to_point2d(pnt)
         angle = radians(angle)
         self.object.Rotate(pnt, angle)
         return True
@@ -1056,9 +1106,7 @@ class Point(gp_Pnt, ViewableItem):
         :return: *True* if set, *False* if not.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        xyz = CheckGeom.to_point(xyz)
+        xyz = Point.to_point(xyz)
         self.SetXYZ(xyz.XYZ())
         return True
 
@@ -1071,9 +1119,7 @@ class Point(gp_Pnt, ViewableItem):
         :return: Distance to the other point.
         :rtype: float
         """
-        from afem.geometry.check import CheckGeom
-
-        other = CheckGeom.to_point(other)
+        other = Point.to_point(other)
         return self.Distance(other)
 
     def is_equal(self, other, tol=1.0e-7):
@@ -1086,9 +1132,7 @@ class Point(gp_Pnt, ViewableItem):
         :return: *True* if coincident, *False* if not.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        other = CheckGeom.to_point(other)
+        other = Point.to_point(other)
         return self.IsEqual(other, tol)
 
     def translate(self, v):
@@ -1102,9 +1146,7 @@ class Point(gp_Pnt, ViewableItem):
 
         :raise TypeError: If *v* cannot be converted to a vector.
         """
-        from afem.geometry.check import CheckGeom
-
-        v = CheckGeom.to_vector(v)
+        v = Vector.to_vector(v)
         self.Translate(v)
         return True
 
@@ -1133,9 +1175,7 @@ class Point(gp_Pnt, ViewableItem):
         :return: *True* if scaled.
         :rtype: bool
         """
-        from afem.geometry.check import CheckGeom
-
-        pnt = CheckGeom.to_point(pnt)
+        pnt = Point.to_point(pnt)
         self.Scale(pnt, s)
         return True
 
@@ -1172,9 +1212,7 @@ class Point(gp_Pnt, ViewableItem):
         if isinstance(origin, Axis3):
             is_local = True
         else:
-            from afem.geometry.check import CheckGeom
-
-            origin = CheckGeom.to_point(origin)
+            origin = Point.to_point(origin)
 
         # x-axis
         if is_local:
@@ -1230,8 +1268,6 @@ class Point(gp_Pnt, ViewableItem):
         :return: *True* if the entity is point_like, *False* if not.
         :rtype: bool
         """
-        if isinstance(entity, cls):
-            return True
         if isinstance(entity, gp_Pnt):
             return True
         if isinstance(entity, (tuple, list, ndarray)):
@@ -1241,7 +1277,7 @@ class Point(gp_Pnt, ViewableItem):
     @classmethod
     def to_point(cls, entity):
         """
-        Convert entity to a point` if possible.
+        Convert entity to a point if possible.
 
         :param entity: An entity.
 
@@ -1406,6 +1442,31 @@ class Direction(gp_Dir):
         angle = radians(angle)
         self.Rotate(ax1, angle)
         return True
+
+    @classmethod
+    def to_direction(cls, geom):
+        """
+        Convert entity to a Direction if possible.
+
+        :param vector_like geom: An entity.
+
+        :return: The entity if already a Direction, or a new Direction if it is
+            vector_like.
+        :rtype: afem.geometry.entities.Direction
+
+        :raise TypeError: If entity cannot be converted to a Direction.
+        """
+        if geom is None:
+            return None
+
+        if isinstance(geom, cls):
+            return geom
+        elif isinstance(geom, (tuple, list, ndarray)):
+            return cls(geom[0], geom[1], geom[2])
+        elif isinstance(geom, Vector):
+            return cls(geom)
+        else:
+            raise TypeError('Cannot convert to Direction.')
 
     @classmethod
     def by_xyz(cls, x, y, z):
@@ -1605,6 +1666,33 @@ class Vector(gp_Vec):
         angle = radians(angle)
         self.Rotate(ax1, angle)
         return True
+
+    @classmethod
+    def to_vector(cls, entity):
+        """
+        Convert entity to a vector if possible.
+
+        :param vector_like entity: An entity.
+
+        :return: The entity if already a vector, or a new vector if it is
+            vector_like.
+        :rtype: afem.geometry.entities.Vector
+
+        :raise TypeError: If entity cannot be converted to a Vector.
+        """
+        if entity is None:
+            return None
+
+        if isinstance(entity, cls):
+            return entity
+        elif isinstance(entity, (tuple, list, ndarray)):
+            return cls(entity[0], entity[1], entity[2])
+        elif isinstance(entity, Direction):
+            return cls(entity)
+        elif isinstance(entity, gp_Vec):
+            return cls(entity.XYZ())
+        else:
+            raise TypeError('Cannot convert to Vector.')
 
     @classmethod
     def by_xyz(cls, x, y, z):
@@ -1853,9 +1941,7 @@ class Geometry(ViewableItem):
 
         :raise TypeError: If *v* cannot be converted to a vector.
         """
-        from afem.geometry.check import CheckGeom
-
-        v = CheckGeom.to_vector(v)
+        v = Vector.to_vector(v)
         self.object.Translate(v)
         return True
 

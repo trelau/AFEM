@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.gp import gp_Pnt, gp_Vec, gp_Pnt2d, gp_Vec2d
-from numpy import ndarray
 
 from afem.geometry.entities import *
 
@@ -39,13 +37,7 @@ class CheckGeom(object):
         :return: *True* if the entity is point_like, *False* if not.
         :rtype: bool
         """
-        if isinstance(entity, Point):
-            return True
-        if isinstance(entity, gp_Pnt):
-            return True
-        if isinstance(entity, (tuple, list, ndarray)):
-            return len(entity) == 3
-        return False
+        return Point.is_point_like(entity)
 
     @staticmethod
     def is_point(geom):
@@ -96,11 +88,7 @@ class CheckGeom(object):
         :return: *True* if the entity is point2d_like, *False* if not.
         :rtype: bool
         """
-        if isinstance(geom, gp_Pnt2d):
-            return True
-        if isinstance(geom, (tuple, list, ndarray)):
-            return len(geom) == 2
-        return False
+        return Point2D.is_point2d_like(geom)
 
     @staticmethod
     def is_point2d(geom):
@@ -126,17 +114,7 @@ class CheckGeom(object):
 
         :raise TypeError: If entity cannot be converted to a Point2D.
         """
-        if geom is None:
-            return None
-
-        if isinstance(geom, Point2D):
-            return geom
-        elif isinstance(geom, gp_Pnt2d):
-            return Point2D(geom.XY())
-        elif CheckGeom.is_point2d_like(geom):
-            return Point2D(geom[0], geom[1])
-        else:
-            raise TypeError('Cannot convert to Point2D.')
+        return Point2D.to_point2d(geom)
 
     @staticmethod
     def is_vector(geom):
@@ -162,19 +140,7 @@ class CheckGeom(object):
 
         :raise TypeError: If entity cannot be converted to a Vector.
         """
-        if geom is None:
-            return None
-
-        if isinstance(geom, Vector):
-            return geom
-        elif isinstance(geom, (tuple, list, ndarray)):
-            return Vector(geom[0], geom[1], geom[2])
-        elif isinstance(geom, Direction):
-            return Vector(geom)
-        elif isinstance(geom, gp_Vec):
-            return Vector(geom.XYZ())
-        else:
-            raise TypeError('Cannot convert to Vector.')
+        return Vector.to_vector(geom)
 
     @staticmethod
     def to_vector2d(geom):
@@ -189,19 +155,7 @@ class CheckGeom(object):
 
         :raise TypeError: If entity cannot be converted to a Vector2D.
         """
-        if geom is None:
-            return None
-
-        if isinstance(geom, Vector2D):
-            return geom
-        elif isinstance(geom, (tuple, list, ndarray)):
-            return Vector2D(geom[0], geom[1])
-        elif isinstance(geom, Direction2D):
-            return Vector2D(geom)
-        elif isinstance(geom, gp_Vec2d):
-            return Vector2D(geom.XY())
-        else:
-            raise TypeError('Cannot convert to Vector2D.')
+        return Vector2D.to_vector2d(geom)
 
     @staticmethod
     def is_direction(geom):
@@ -227,17 +181,7 @@ class CheckGeom(object):
 
         :raise TypeError: If entity cannot be converted to a Direction.
         """
-        if geom is None:
-            return None
-
-        if isinstance(geom, Direction):
-            return geom
-        elif isinstance(geom, (tuple, list, ndarray)):
-            return Direction(geom[0], geom[1], geom[2])
-        elif isinstance(geom, Vector):
-            return Direction(geom)
-        else:
-            raise TypeError('Cannot convert to Direction.')
+        return Direction.to_direction(geom)
 
     @staticmethod
     def is_plane(geom):
