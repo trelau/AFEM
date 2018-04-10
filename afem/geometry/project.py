@@ -16,15 +16,15 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.Geom import Geom_Line
-from OCCT.GeomAPI import (GeomAPI_ExtremaCurveCurve,
-                          GeomAPI_ExtremaCurveSurface,
-                          GeomAPI_ProjectPointOnCurve,
-                          GeomAPI_ProjectPointOnSurf)
+from math import sqrt
+
+from OCCT.Extrema import (Extrema_ExtPC, Extrema_ExtCC, Extrema_POnCurv,
+                          Extrema_ExtPS, Extrema_ExtCS, Extrema_POnSurf)
 from OCCT.GeomProjLib import GeomProjLib
 
+from afem.adaptor.entities import AdaptorCurve, AdaptorSurface
 from afem.geometry.check import CheckGeom
-from afem.geometry.entities import Curve
+from afem.geometry.entities import Curve, Line
 
 __all__ = ["PointProjector", "ProjectPointToCurve",
            "ProjectPointToSurface", "CurveProjector", "ProjectCurveToPlane",
@@ -142,7 +142,10 @@ class ProjectPointToCurve(PointProjector):
     Project a point to a curve.
 
     :param point_like pnt: Point to project.
-    :param afem.geometry.entities.Curve crv: Curve to project to.
+    :param crv: Curve to project to.
+    :type crv: afem.adaptor.entities.AdaptorCurve or
+        afem.geometry.entities.Curve or afem.topology.entities.Edge or
+        afem.topology.entities.Wire
     :param array_like direction: Direction of projection. If *None* then a
         normal projection will be performed. By providing a direction the
         tool actually performs a line-curve intersection. This is generally
@@ -176,31 +179,33 @@ class ProjectPointToCurve(PointProjector):
     def __init__(self, pnt, crv, direction=None, update=False):
         super(ProjectPointToCurve, self).__init__()
 
-        # Perform
         pnt = CheckGeom.to_point(pnt)
         direction = CheckGeom.to_direction(direction)
+        adp_crv = AdaptorCurve.to_adaptor(crv)
         self._results = []
 
         if not direction:
-            # OCC projection.
-            proj = GeomAPI_ProjectPointOnCurve(pnt, crv.object)
-            npts = proj.NbPoints()
+            ext = Extrema_ExtPC(pnt, adp_crv.object)
+            npts = ext.NbExt()
             for i in range(1, npts + 1):
-                ui = proj.Parameter(i)
-                di = proj.Distance(i)
-                pi = crv.eval(ui)
+                poc = ext.Point(i)
+                ui = poc.Parameter()
+                pi = adp_crv.eval(ui)
+                di = sqrt(ext.SquareDistance(i))
                 self._results.append([pi, ui, di])
         else:
             # Use minimum distance between line and curve to project point
             # along a direction.
-            geom_line = Geom_Line(pnt, direction)
-            extrema = GeomAPI_ExtremaCurveCurve(crv.object,
-                                                geom_line)
-            npts = extrema.NbExtrema()
+            line = Line.by_direction(pnt, direction)
+            adp_crv2 = AdaptorCurve.to_adaptor(line)
+            ext = Extrema_ExtCC(adp_crv.object, adp_crv2.object)
+            npts = ext.NbExt()
             for i in range(1, npts + 1):
-                ui, _ = extrema.Parameters(i, 0., 0.)
-                di = extrema.Distance(i)
-                pi = crv.eval(ui)
+                poc1, poc2 = Extrema_POnCurv(), Extrema_POnCurv()
+                ext.Points(i, poc1, poc2)
+                ui = poc1.Parameter()
+                pi = adp_crv.eval(ui)
+                di = sqrt(ext.SquareDistance(i))
                 self._results.append([pi, ui, di])
 
         # Sort by distance and return.
@@ -216,7 +221,9 @@ class ProjectPointToSurface(PointProjector):
     Project a point to a surface.
 
     :param point_like pnt: Point to project.
-    :param afem.geometry.entities.Surface srf: Surface to project to.
+    :param srf: Surface to project to.
+    :type srf: :type crv: afem.adaptor.entities.AdaptorSurface or
+        afem.geometry.entities.Surface or afem.topology.entities.Face
     :param array_like direction: Direction of projection. If *None* then a
         normal projection will be performed. By providing a direction the
         tool actually performs a line-surface intersection. This is generally
@@ -247,34 +254,36 @@ class ProjectPointToSurface(PointProjector):
     1.0
     """
 
-    def __init__(self, pnt, srf, direction=None, update=False):
+    def __init__(self, pnt, srf, direction=None, update=False, tol=1.0e-7):
         super(ProjectPointToSurface, self).__init__()
 
-        # Perform
         pnt = CheckGeom.to_point(pnt)
         direction = CheckGeom.to_direction(direction)
+        adp_srf = AdaptorSurface.to_adaptor(srf)
         self._results = []
 
         if not direction:
-            # OCC projection.
-            proj = GeomAPI_ProjectPointOnSurf(pnt, srf.object)
-            npts = proj.NbPoints()
+            ext = Extrema_ExtPS(pnt, adp_srf.object, tol, tol)
+            npts = ext.NbExt()
             for i in range(1, npts + 1):
-                ui, vi = proj.Parameters(i, 0., 0.)
-                di = proj.Distance(i)
-                pi = srf.eval(ui, vi)
+                pos = ext.Point(i)
+                ui, vi = pos.Parameter(0., 0.)
+                pi = adp_srf.eval(ui, vi)
+                di = sqrt(ext.SquareDistance(i))
                 self._results.append([pi, (ui, vi), di])
         else:
             # Use minimum distance between line and surface to project point
             # along a direction.
-            geom_line = Geom_Line(pnt, direction)
-            extrema = GeomAPI_ExtremaCurveSurface(geom_line,
-                                                  srf.object)
-            npts = extrema.NbExtrema()
+            line = Line.by_direction(pnt, direction)
+            adp_crv = AdaptorCurve.to_adaptor(line)
+            ext = Extrema_ExtCS(adp_crv.object, adp_srf.object, tol, tol)
+            npts = ext.NbExt()
             for i in range(1, npts + 1):
-                _, ui, vi = extrema.Parameters(i, 0., 0., 0.)
-                di = extrema.Distance(i)
-                pi = srf.eval(ui, vi)
+                poc, pos = Extrema_POnCurv(), Extrema_POnSurf()
+                ext.Points(i, poc, pos)
+                ui, vi = pos.Parameter(0., 0.)
+                pi = adp_srf.eval(ui, vi)
+                di = sqrt(ext.SquareDistance(i))
                 self._results.append([pi, (ui, vi), di])
 
         # Sort by distance and return.
