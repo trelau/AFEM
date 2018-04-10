@@ -30,6 +30,10 @@ __all__ = ["AdaptorBase", "AdaptorCurve", "GeomAdaptorCurve",
 class AdaptorBase(object):
     """
     Base class for adaptor types.
+
+    :param obj: The underlying OpenCASCADE type.
+    :type obj: OCCT.Adaptor3d.Adaptor3d_Curve or
+        OCCT.Adaptor3d.Adaptor3d_Surface
     """
     # Expected type
     _OCC_TYPE = None
@@ -146,10 +150,17 @@ class AdaptorCurve(AdaptorBase):
     @staticmethod
     def to_adaptor(entity):
         """
+        Convert the entity to an adaptor type if possible.
 
-        :param entity:
+        :param entity: The entity.
+        :type entity: afem.adaptor.entities.AdaptorCurve or
+            afem.geometry.entities.Curve or afem.topology.entities.Edge or
+            afem.topology.entities.Wire
 
-        :return:
+        :return: The adaptor curve.
+        :rtype: afem.adaptor.entities.AdaptorCurve
+
+        :raise TypeError: If *entity* cannot be converted to an adaptor.
         """
         # Avoid circular import
         from afem.geometry.entities import Curve
@@ -177,13 +188,18 @@ class GeomAdaptorCurve(AdaptorCurve):
     @classmethod
     def by_curve(cls, curve, u1=None, u2=None):
         """
+        Create by a curve.
 
+        :param afem.geometry.entities.Curve curve: The curve.
+        :param float u1: First parameter.
+        :param float u2: Last parameter.
 
-        :param curve:
-        :param u1:
-        :param u2:
+        :return: The adaptor curve.
+        :rtype: afem.adaptor.entities.GeomAdaptorCurve
 
-        :return:
+        .. note::
+
+            Both *u1* and *u2* must be provided in order to be used.
         """
         if None not in [u1, u2]:
             adp_crv = GeomAdaptor_Curve(curve.object, u1, u2)
@@ -203,12 +219,13 @@ class EdgeAdaptorCurve(AdaptorCurve):
     @classmethod
     def by_edge(cls, edge, face=None):
         """
+        Create by an edge.
 
+        :param afem.topology.entities.Edge edge: The edge.
+        :param afem.topology.entities.Edge face: The face the edge lies in.
 
-        :param edge:
-        :param face:
-
-        :return:
+        :return: The adaptor curve.
+        :rtype: afem.adaptor.entities.EdgeAdaptorCurve
         """
         if face is None:
             adp_crv = BRepAdaptor_Curve(edge.object)
@@ -227,12 +244,14 @@ class WireAdaptorCurve(AdaptorCurve):
     @classmethod
     def by_wire(cls, wire, curvilinear_knots=False):
         """
+        Create by a wire.
 
+        :param afem.topology.entities.Wire wire: The wire.
+        :param bool curvilinear_knots: Option to determine the knot values of
+            the curve by their curvilinear abscissa.
 
-        :param wire:
-        :param curvilinear_knots:
-
-        :return:
+        :return: The adaptor curve.
+        :rtype: afem.adaptor.entities.WireAdaptorCurve
         """
         adp_crv = BRepAdaptor_CompCurve(wire.object, curvilinear_knots)
         return cls(adp_crv)
@@ -336,10 +355,16 @@ class AdaptorSurface(AdaptorBase):
     @staticmethod
     def to_adaptor(entity):
         """
+        Convert the entity to an adaptor type if possible.
 
-        :param entity:
+        :param entity: The entity.
+        :type entity: afem.adaptor.entities.AdaptorSurface or
+            afem.geometry.entities.Surface or afem.topology.entities.Face
 
-        :return:
+        :return: The adaptor surface.
+        :rtype: afem.adaptor.entities.AdaptorSurface
+
+        :raise TypeError: If *entity* cannot be converted to an adaptor.
         """
         # Avoid circular import
         from afem.geometry.entities import Surface
@@ -366,17 +391,22 @@ class GeomAdaptorSurface(AdaptorSurface):
     def by_surface(cls, surface, u1=None, u2=None, v1=None, v2=None,
                    tolu=0., tolv=0.):
         """
+        Create by a surface.
 
+        :param afem.geometry.entities.Surface surface: The surface.
+        :param u1: The lower u-parameter.
+        :param u2: The upper u-parameter.
+        :param v1: The lower v-parameter.
+        :param v2: The upper v-parameter.
+        :param tolu: Tolerance for u-direction.
+        :param tolv: Tolerance for v-direction.
 
-        :param surface:
-        :param u1:
-        :param u2:
-        :param v1:
-        :param v2:
-        :param tolu:
-        :param tolv:
+        :return: The adaptor surface.
+        :rtype: afem.adaptor.entities.GeomAdaptorSurface
 
-        :return:
+        .. note::
+
+            All *u1*, *u2*, *v1*, and *v2* must be provided to be used.
         """
         if None not in [u1, u2, v1, v2]:
             adp_srf = GeomAdaptor_Surface(surface.object, u1, u2, v1, v2,
@@ -397,12 +427,14 @@ class FaceAdaptorSurface(AdaptorSurface):
     @classmethod
     def by_face(cls, face, restrict=True):
         """
+        Create by a face.
 
+        :param afem.topology.entities.Face face: The face.
+        :param bool restrict: Option to restruct the uv-domain of the surface
+            to the boundary of the face.
 
-        :param face:
-        :param restrict:
-
-        :return:
+        :return: The adaptor surface.
+        :rtype: afem.adaptor.entities.FaceAdaptorSurface
         """
         adp_srf = BRepAdaptor_Surface(face.object, restrict)
         return cls(adp_srf)

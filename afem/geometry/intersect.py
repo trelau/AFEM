@@ -141,10 +141,6 @@ class IntersectCurveCurve(CurveIntersector):
     :param afem.geometry.entities.Curve crv2: The second curve.
     :param float itol: The intersection tolerance.
 
-    For more information see IntTools_EdgeEdge_.
-
-    .. _IntTools_EdgeEdge: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_int_tools___edge_edge.html
-
     Usage:
 
     >>> from afem.geometry import *
@@ -200,10 +196,6 @@ class IntersectCurveSurface(CurveIntersector):
 
     :param afem.geometry.entities.Curve crv: The curve.
     :param afem.geometry.entities.Surface srf: The surface.
-
-    For more information see GeomAPI_IntCS_.
-
-    .. _GeomAPI_IntCS: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___int_c_s.html
 
     Usage:
 
@@ -313,10 +305,6 @@ class IntersectSurfaceSurface(SurfaceIntersector):
     :param afem.geometry.entities.Surface srf2: The second surface.
     :param float itol: Intersection tolerance.
     :param bool approx: Approximate intersection curves.
-
-    For more information see GeomAPI_IntSS_.
-
-    .. _GeomAPI_IntSS: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___int_s_s.html
 
     Usage:
 

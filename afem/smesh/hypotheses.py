@@ -56,11 +56,6 @@ class Hypothesis(object):
     Base class for all hypotheses.
 
     :param OCCT.SMESH.SMESH_Hypothesis hyp: The SMESH hypothesis.
-
-    For more information see SMESH_Hypothesis_.
-
-    .. _SMESH_Hypothesis: http://docs.salome-platform.org/latest/tui/SMESH/classSMESH__Hypothesis.html
-
     """
 
     def __init__(self, hyp):
@@ -102,11 +97,6 @@ class Hypothesis(object):
 class Algorithm(Hypothesis):
     """
     Base class for algorithms.
-
-    For more information see SMESH_Algo_.
-
-    .. _SMESH_Algo: http://docs.salome-platform.org/latest/tui/SMESH/classSMESH__Algo.html
-
     """
 
     @staticmethod

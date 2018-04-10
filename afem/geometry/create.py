@@ -729,10 +729,6 @@ class NurbsCurve2DByApprox(object):
 
     :raise RuntimeError: If OCC method fails to interpolate the points with
         a curve.
-
-    For more information see Geom2dAPI_PointsToBSpline_.
-
-    .. _Geom2dAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d_a_p_i___points_to_b_spline.html
     """
 
     def __init__(self, qp, dmin=3, dmax=8, continuity=Geometry.C2,
@@ -783,10 +779,6 @@ class NurbsCurveByInterp(object):
         magnitude of end vectors.
 
     :raise RuntimeError: If OCC method fails.
-
-    For more information see GeomAPI_Interpolate_.
-
-    .. _GeomAPI_Interpolate: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___interpolate.html
     """
 
     def __init__(self, qp, is_periodic=False, v1=None, v2=None, tol=1.0e-7):
@@ -831,10 +823,6 @@ class NurbsCurveByApprox(object):
 
     :raise RuntimeError: If OCC method fails to interpolate the points with
         a curve.
-
-    For more information see GeomAPI_PointsToBSpline_.
-
-    .. _GeomAPI_PointsToBSpline: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___points_to_b_spline.html
     """
 
     def __init__(self, qp, dmin=3, dmax=8, continuity=Geometry.C2,
@@ -1054,10 +1042,6 @@ class PlaneByApprox(object):
 
     :raise ValueError: If the number of points is less than three.
     :raise RuntimeError: If a plane cannot be fit to the points.
-
-    For more information see GeomPlate_BuildAveragePlane_.
-
-    .. _GeomPlate_BuildAveragePlane: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_plate___build_average_plane.html
     """
 
     def __init__(self, pnts, tol=1.0e-7):
@@ -1963,10 +1947,6 @@ class NurbsSurfaceByApprox(object):
 
     :raise RuntimeError: If OCC method fails to approximate the curves with a
         surface.
-
-    For more information see GeomFill_AppSurf_.
-
-    .. _GeomFill_AppSurf: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_fill___app_surf.html
 
     Usage:
 

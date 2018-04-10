@@ -173,10 +173,6 @@ class SewShape(object):
         If *shape* is *None* then the user is expected to manually load the
         shape and perform the operation.
 
-    For more information see BRepBuilderAPI_Sewing_.
-
-    .. _BRepBuilderAPI_Sewing: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_builder_a_p_i___sewing.html
-
     Usage:
 
     >>> from afem.topology import *
@@ -426,10 +422,6 @@ class RebuildShapeByTool(object):
     :type tool: afem.topology.bop.BopCore
 
     :raise ValueError: If there are no sub-shapes to substitute.
-
-    For more information see ShapeBuild_ReShape_.
-
-    .. _ShapeBuild_ReShape: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_shape_build___re_shape.html
 
     Usage:
 

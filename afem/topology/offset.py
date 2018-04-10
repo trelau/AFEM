@@ -52,10 +52,6 @@ class ProjectShape(object):
         are discarded.
     :param bool limit: Option to limit projected edges to the face boundaries.
 
-    For more information see BRepOffsetAPI_NormalProjection_.
-
-    .. _BRepOffsetAPI_NormalProjection: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___normal_projection.html
-
     Usage:
 
     >>> from afem.geometry import *
@@ -162,10 +158,6 @@ class OffsetShape(object):
     :param bool perform_simple: Option to use simple algorithm without
         intersection computation.
 
-    For more information see BRepOffsetAPI_MakeOffsetShape_.
-
-    .. _BRepOffsetAPI_MakeOffsetShape: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___make_offset_shape.html
-
     Usage:
 
     >>> from afem.geometry import *
@@ -235,10 +227,6 @@ class LoftShape(object):
 
     :raise TypeError: If any of the sections cannot be added to the tool
         because they are of the wrong type.
-
-    For more information see BRepOffsetAPI_ThruSections_.
-
-    .. _BRepOffsetAPI_ThruSections: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___thru_sections.html
 
     Usage:
 
@@ -353,10 +341,6 @@ class SweepShape(object):
         afem.topology.entities.Shape
 
     :raise TypeError: If ``spin`` is not or cannot be converted to a wire.
-
-    For more information see BRepOffsetAPI_MakePipe_.
-
-    .. _BRepOffsetAPI_MakePipe: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___make_pipe.html
     """
 
     def __init__(self, spine, profile):
@@ -426,10 +410,6 @@ class SweepShapeWithNormal(object):
         C1 surface if a swept surface proved to be C0.
     :param OCCT.BRepBuilderAPI.BRepBuilderAPI_TransitionMode transition_mode:
         The transition mode to manage discontinuities on the swept shape.
-
-    For more information see BRepOffsetAPI_MakePipeShell_.
-
-    .. _BRepOffsetAPI_MakePipeShell: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_offset_a_p_i___make_pipe_shell.html
     """
 
     def __init__(self, spine, spine_support=None, tol3d=1.0e-4,

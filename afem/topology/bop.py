@@ -372,10 +372,6 @@ class FuseShapes(BopAlgo):
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
 
-    For more information see BRepAlgoAPI_Fuse_.
-
-    .. _BRepAlgoAPI_Fuse: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_algo_a_p_i___fuse.html
-
     Usage:
 
     >>> from afem.topology import *
@@ -414,10 +410,6 @@ class CutShapes(BopAlgo):
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
 
-    For more information see BRepAlgoAPI_Cut_.
-
-    .. _BRepAlgoAPI_Cut: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_algo_a_p_i___cut.html
-
     Usage:
 
     >>> from afem.topology import *
@@ -455,10 +447,6 @@ class CommonShapes(BopAlgo):
 
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
-
-    For more information see BRepAlgoAPI_Common_.
-
-    .. _BRepAlgoAPI_Common: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_algo_a_p_i___common.html
 
     Usage:
 
@@ -502,10 +490,6 @@ class IntersectShapes(BopAlgo):
 
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
-
-    For more information see BRepAlgoAPI_Section_.
-
-    .. _BRepAlgoAPI_Section: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_b_rep_algo_a_p_i___section.html
 
     Usage:
 

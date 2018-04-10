@@ -153,10 +153,6 @@ class ProjectPointToCurve(PointProjector):
     :param bool update: Option to update the point's location to match the
         nearest point.
 
-    For more information see GeomAPI_ProjectPointOnCurve_.
-
-    .. _GeomAPI_ProjectPointOnCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___project_point_on_curve.html
-
     Usage:
 
     >>> from afem.geometry import *
@@ -222,7 +218,7 @@ class ProjectPointToSurface(PointProjector):
 
     :param point_like pnt: Point to project.
     :param srf: Surface to project to.
-    :type srf: :type crv: afem.adaptor.entities.AdaptorSurface or
+    :type srf: afem.adaptor.entities.AdaptorSurface or
         afem.geometry.entities.Surface or afem.topology.entities.Face
     :param array_like direction: Direction of projection. If *None* then a
         normal projection will be performed. By providing a direction the
@@ -230,10 +226,6 @@ class ProjectPointToSurface(PointProjector):
         not recommended but provided by request.
     :param bool update: Option to update the point's location to match the
         nearest point.
-
-    For more information see GeomAPI_ProjectPointOnSurf_.
-
-    .. _GeomAPI_ProjectPointOnSurf: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_a_p_i___project_point_on_surf.html
 
     Usage:
 
@@ -331,10 +323,6 @@ class ProjectCurveToPlane(CurveProjector):
     :raise RuntimeError: If the OCC method fails to project the curve to the
         plane.
 
-    For more information see GeomProjLib_ProjectOnPlane_.
-
-    .. _GeomProjLib_ProjectOnPlane: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_proj_lib.html
-
     Usage:
 
     >>> from afem.geometry import *
@@ -373,10 +361,6 @@ class ProjectCurveToSurface(CurveProjector):
 
     :raise RuntimeError: If the OCC method fails to project the curve to the
         plane.
-
-    For more information see GeomProjLib_Project_.
-
-    .. _GeomProjLib_Project: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom_proj_lib.html
 
     Usage:
 

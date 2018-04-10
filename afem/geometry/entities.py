@@ -863,10 +863,6 @@ class NurbsCurve2D(Curve2D):
     NURBS curve in 2-D space around ``Geom2d_BSplineCurve``.
 
     :param OCCT.Geom2d.Geom2d_BSplineCurve obj: The curve object.
-
-    For more information see Geom2d_BSplineCurve_.
-
-    .. _Geom2d_BSplineCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d___b_spline_curve.html
     """
     _OCC_TYPE = Geom2d_BSplineCurve
 
@@ -1991,10 +1987,6 @@ class Curve(Geometry):
     Base class for curves around ``Geom_Curve``.
 
     :param OCCT.Geom.Geom_Curve obj: The curve object.
-
-    For more information see Geom_Curve_.
-
-    .. _Geom_Curve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___curve.html
     """
     _OCC_TYPE = Geom_Curve
 
@@ -2188,10 +2180,6 @@ class Line(Curve):
     Infinite line around ``Geom_Line``.
 
     :param OCCT.Geom.Geom_Line obj: The line object.
-
-    For more information see Geom_Line_.
-
-    .. _Geom_Line: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___line.html
     """
     _OCC_TYPE = Geom_Line
 
@@ -2306,10 +2294,6 @@ class NurbsCurve(Curve):
     NURBS curve around ``Geom_BSplineCurve``.
 
     :param OCCT.Geom.Geom_BSplineCurve obj: The curve object.
-
-    For more information see Geom_BSplineCurve_.
-
-    .. _Geom_BSplineCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___b_spline_curve.html
     """
     _OCC_TYPE = Geom_BSplineCurve
 
@@ -2541,10 +2525,6 @@ class Surface(Geometry):
     Base class for surfaces around ``Geom_Surface``.
 
     :param OCCT.Geom.Geom_Surface obj: The surface object.
-
-    For more information see Geom_Surface_.
-
-    .. _Geom_Surface: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom___surface.html
     """
     _OCC_TYPE = Geom_Surface
 
