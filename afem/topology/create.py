@@ -17,9 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from OCCT.BRep import BRep_Builder, BRep_Tool
-from OCCT.BRepAdaptor import BRepAdaptor_CompCurve, BRepAdaptor_Curve
 from OCCT.BRepAlgo import BRepAlgo
-from OCCT.BRepAlgoAPI import BRepAlgoAPI_Section
 from OCCT.BRepBuilderAPI import (BRepBuilderAPI_FindPlane,
                                  BRepBuilderAPI_MakeEdge,
                                  BRepBuilderAPI_MakeFace,
@@ -32,17 +30,18 @@ from OCCT.BRepOffsetAPI import BRepOffsetAPI_MakeOffset
 from OCCT.BRepPrimAPI import (BRepPrimAPI_MakeCylinder,
                               BRepPrimAPI_MakeHalfSpace, BRepPrimAPI_MakePrism,
                               BRepPrimAPI_MakeSphere, BRepPrimAPI_MakeBox)
-from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-from OCCT.GeomAPI import GeomAPI_ProjectPointOnCurve
 from OCCT.ShapeAnalysis import ShapeAnalysis_FreeBounds
 from OCCT.TopLoc import TopLoc_Location
 from OCCT.TopTools import TopTools_HSequenceOfShape
 from OCCT.TopoDS import TopoDS_Compound, TopoDS_Shell
-from numpy import ceil
 
+from afem.adaptor.entities import AdaptorCurve
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import CircleBy3Points, PlaneByApprox
-from afem.geometry.entities import Geometry, Curve, Plane, Point
+from afem.geometry.create import (CircleBy3Points, PlaneByApprox,
+                                  PointFromParameter, PointsAlongCurveByNumber,
+                                  PointsAlongCurveByDistance)
+from afem.geometry.entities import Geometry, Curve, Plane
+from afem.geometry.project import ProjectPointToCurve
 from afem.topology.bop import IntersectShapes
 from afem.topology.entities import (Shape, Vertex, Edge, Wire, Face, Shell,
                                     Solid, Compound)
@@ -1445,8 +1444,7 @@ class SphereBy3Points(object):
 
 # GEOMETRY --------------------------------------------------------------------
 
-# TODO Redo method with adaptor types
-class PointAlongShape(object):
+class PointAlongShape(PointFromParameter):
     """
     Create a point along an edge or wire at a specified distance from the first
     parameter.
@@ -1471,45 +1469,12 @@ class PointAlongShape(object):
     """
 
     def __init__(self, shape, ds, tol=1.0e-7):
-        if shape.shape_type not in [Shape.EDGE, Shape.WIRE]:
-            raise TypeError('Invalid shape in PointsAlongShapeByNumber.')
-
-        if shape.is_edge:
-            adp_crv = BRepAdaptor_Curve(shape.object)
-        elif shape.is_wire:
-            adp_crv = BRepAdaptor_CompCurve(shape.object)
-        else:
-            msg = 'Could not create adaptor curve in PointAlongShape.'
-            raise RuntimeError(msg)
-
-        u0 = adp_crv.FirstParameter()
-        ap = GCPnts_AbscissaPoint(tol, adp_crv, ds, u0)
-        if not ap.IsDone():
-            raise RuntimeError('GCPnts_AbscissaPoint failed.')
-
-        u = ap.Parameter()
-        self._u = u
-        p = adp_crv.Value(u)
-        self._p = Point(p.X(), p.Y(), p.Z())
-
-    @property
-    def point(self):
-        """
-        :return: The created point.
-        :rtype: afem.geometry.entities.Point
-        """
-        return self._p
-
-    @property
-    def parameter(self):
-        """
-        :return: The parameter on the adaptor curve.
-        :rtype: float
-        """
-        return self._u
+        adp_crv = AdaptorCurve.to_adaptor(shape)
+        u0 = adp_crv.u1
+        super(PointAlongShape, self).__init__(adp_crv, u0, ds, tol)
 
 
-class PointsAlongShapeByNumber(object):
+class PointsAlongShapeByNumber(PointsAlongCurveByNumber):
     """
     Create a specified number of points along an edge or wire.
 
@@ -1524,7 +1489,6 @@ class PointsAlongShapeByNumber(object):
         point. This shape is intersected with the edge or wire.
     :param afem.topology.entities.Shape shape2: A shape to define the last
         point. This shape is intersected with the edge or wire.
-    :param float tol: Tolerance.
 
     :raise TypeError: If *shape* if not an edge or wire.
     :raise RuntimeError: If OCC method fails.
@@ -1542,106 +1506,54 @@ class PointsAlongShapeByNumber(object):
     10
     """
 
-    def __init__(self, shape, n, d1=None, d2=None, shape1=None, shape2=None,
-                 tol=1.0e-7):
-        if shape.shape_type not in [Shape.EDGE, Shape.WIRE]:
-            raise TypeError('Invalid shape in PointsAlongShapeByNumber.')
+    def __init__(self, shape, n, d1=None, d2=None, shape1=None, shape2=None):
+        adp_crv = AdaptorCurve.to_adaptor(shape)
 
-        if shape.is_edge:
-            adp_crv = BRepAdaptor_Curve(shape.object)
-        elif shape.is_wire:
-            adp_crv = BRepAdaptor_CompCurve(shape.object)
-        else:
-            msg = 'Could not create adaptor curve in PointsAlongShapeByNumber.'
-            raise RuntimeError(msg)
-
-        u1 = adp_crv.FirstParameter()
-        u2 = adp_crv.LastParameter()
+        u1 = adp_crv.u1
+        u2 = adp_crv.u2
 
         # Adjust parameters of start/end shapes are provided
         if isinstance(shape1, Shape):
-            bop = BRepAlgoAPI_Section(shape.object, shape1.object)
-            shape = Shape.wrap(bop.Shape())
+            shape = IntersectShapes(shape, shape1).shape
             verts = shape.vertices
-            prms = []
+            prms = [u1]
             for v in verts:
                 pnt = v.point
-                proj = GeomAPI_ProjectPointOnCurve(pnt, adp_crv.Curve())
-                if proj.NbPoints() < 1:
+                proj = ProjectPointToCurve(pnt, adp_crv)
+                if proj.npts < 1:
                     continue
-                umin = proj.LowerDistanceParameter()
+                umin = proj.nearest_param
                 prms.append(umin)
             u1 = min(prms)
 
         if isinstance(shape2, Shape):
-            bop = BRepAlgoAPI_Section(shape.object, shape2.object)
-            shape = Shape.wrap(bop.Shape())
+            shape = IntersectShapes(shape, shape2).shape
             verts = shape.vertices
-            prms = []
+            prms = [u2]
             for v in verts:
                 pnt = v.point
-                proj = GeomAPI_ProjectPointOnCurve(pnt, adp_crv.Curve())
-                if proj.NbPoints() < 1:
+                proj = ProjectPointToCurve(pnt, adp_crv)
+                if proj.npts < 1:
                     continue
-                umin = proj.LowerDistanceParameter()
+                umin = proj.nearest_param
                 prms.append(umin)
-            u2 = max(prms)
+            u2 = min(prms)
 
         # Adjust u1 and u2 is d1 and d2 are provided
         if d1 is not None:
-            pac = GCPnts_AbscissaPoint(tol, adp_crv, d1, u1)
-            if pac.IsDone():
-                u1 = pac.Parameter()
+            pac = PointFromParameter(adp_crv, u1, d1)
+            if pac.is_done:
+                u1 = pac.parameter
         if d2 is not None:
-            pac = GCPnts_AbscissaPoint(tol, adp_crv, d2, u2)
-            if pac.IsDone():
-                u2 = pac.Parameter()
+            pac = PointFromParameter(adp_crv, u2, d2)
+            if pac.is_done:
+                u2 = pac.parameter
 
-        # Create uniform abscissa
-        ua = GCPnts_UniformAbscissa(adp_crv, int(n), u1, u2, tol)
-        if not ua.IsDone():
-            raise RuntimeError('GCPnts_UniformAbscissa failed.')
-
-        self._npts = ua.NbPoints()
-        self._pnts = []
-        for i in range(1, self._npts + 1):
-            u = ua.Parameter(i)
-            p = Point()
-            adp_crv.D0(u, p)
-            self._pnts.append(p)
-
-        # Point spacing
-        self._ds = None
-        if self._npts > 1:
-            self._ds = self._pnts[0].distance(self._pnts[1])
-
-    @property
-    def npts(self):
-        """
-        :return: The number of points.
-        :rtype: int
-        """
-        return self._npts
-
-    @property
-    def points(self):
-        """
-        :return: The points.
-        :rtype: list(afem.geometry.entities.Point)
-        """
-        return self._pnts
-
-    @property
-    def spacing(self):
-        """
-        :return: The spacing between the first and second points if there
-            are more than one point. Otherwise *None*.
-        :rtype: float or None
-        """
-        return self._ds
+        super(PointsAlongShapeByNumber, self).__init__(adp_crv, n, u1, u2,
+                                                       d1, d2)
 
 
-class PointsAlongShapeByDistance(object):
+class PointsAlongShapeByDistance(PointsAlongCurveByDistance):
     """
     Create a specified number of points along an edge or wire.
 
@@ -1678,107 +1590,50 @@ class PointsAlongShapeByDistance(object):
 
     def __init__(self, shape, maxd, d1=None, d2=None, shape1=None, shape2=None,
                  nmin=0, tol=1.0e-7):
-        if shape.shape_type not in [Shape.EDGE, Shape.WIRE]:
-            raise TypeError('Invalid shape in PointsAlongShapeByNumber.')
+        adp_crv = AdaptorCurve.to_adaptor(shape)
 
-        if shape.is_edge:
-            adp_crv = BRepAdaptor_Curve(shape.object)
-        elif shape.is_wire:
-            adp_crv = BRepAdaptor_CompCurve(shape.object)
-        else:
-            msg = 'Could not create adaptor curve in PointsAlongShapeByNumber.'
-            raise RuntimeError(msg)
-
-        u1 = adp_crv.FirstParameter()
-        u2 = adp_crv.LastParameter()
+        u1 = adp_crv.u1
+        u2 = adp_crv.u2
 
         # Adjust parameters of start/end shapes are provided
         if isinstance(shape1, Shape):
-            bop = BRepAlgoAPI_Section(shape.object, shape1.object)
-            shape = Shape.wrap(bop.Shape())
+            shape = IntersectShapes(shape, shape1).shape
             verts = shape.vertices
-            prms = []
+            prms = [u1]
             for v in verts:
                 pnt = v.point
-                proj = GeomAPI_ProjectPointOnCurve(pnt, adp_crv.Curve())
-                if proj.NbPoints() < 1:
+                proj = ProjectPointToCurve(pnt, adp_crv)
+                if proj.npts < 1:
                     continue
-                umin = proj.LowerDistanceParameter()
+                umin = proj.nearest_param
                 prms.append(umin)
             u1 = min(prms)
 
         if isinstance(shape2, Shape):
-            bop = BRepAlgoAPI_Section(shape.object, shape2.object)
-            shape = Shape.wrap(bop.Shape())
+            shape = IntersectShapes(shape, shape2).shape
             verts = shape.vertices
-            prms = []
+            prms = [u2]
             for v in verts:
                 pnt = v.point
-                proj = GeomAPI_ProjectPointOnCurve(pnt, adp_crv.Curve())
-                if proj.NbPoints() < 1:
+                proj = ProjectPointToCurve(pnt, adp_crv)
+                if proj.npts < 1:
                     continue
-                umin = proj.LowerDistanceParameter()
+                umin = proj.nearest_param
                 prms.append(umin)
-            u2 = max(prms)
+            u2 = min(prms)
 
         # Adjust u1 and u2 is d1 and d2 are provided
         if d1 is not None:
-            pac = GCPnts_AbscissaPoint(tol, adp_crv, d1, u1)
-            if pac.IsDone():
-                u1 = pac.Parameter()
+            pac = PointFromParameter(adp_crv, u1, d1)
+            if pac.is_done:
+                u1 = pac.parameter
         if d2 is not None:
-            pac = GCPnts_AbscissaPoint(tol, adp_crv, d2, u2)
-            if pac.IsDone():
-                u2 = pac.Parameter()
+            pac = PointFromParameter(adp_crv, u2, d2)
+            if pac.is_done:
+                u2 = pac.parameter
 
-        # Determine number of points
-        arc_length = GCPnts_AbscissaPoint.Length_(adp_crv, u1, u2, tol)
-        n = ceil(arc_length / maxd) + 1
-        if n < nmin:
-            n = nmin
-
-        # Create uniform abscissa
-        ua = GCPnts_UniformAbscissa(adp_crv, int(n), u1, u2, tol)
-        if not ua.IsDone():
-            raise RuntimeError('GCPnts_UniformAbscissa failed.')
-
-        self._npts = ua.NbPoints()
-        self._pnts = []
-        for i in range(1, self._npts + 1):
-            u = ua.Parameter(i)
-            p = Point()
-            adp_crv.D0(u, p)
-            self._pnts.append(p)
-
-        # Point spacing
-        self._ds = None
-        if self._npts > 1:
-            self._ds = self._pnts[0].distance(self._pnts[1])
-
-    @property
-    def npts(self):
-        """
-        :return: The number of points.
-        :rtype: int
-        """
-        return self._npts
-
-    @property
-    def points(self):
-        """
-        :return: The points.
-        :rtype: list(afem.geometry.entities.Point)
-        """
-        return self._pnts
-
-    @property
-    def spacing(self):
-        """
-        :return: The spacing between the first and second points if there
-            are more than one point. Otherwise *None*.
-        :rtype: float or None
-        """
-        return self._ds
+        super(PointsAlongShapeByDistance, self).__init__(adp_crv, maxd, u1, u2,
+                                                         d1, d2, nmin)
 
 
 class PlaneByEdges(object):
