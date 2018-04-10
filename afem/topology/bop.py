@@ -30,7 +30,7 @@ from OCCT.TopoDS import TopoDS_Face
 
 from afem.geometry.entities import Surface
 from afem.occ.utils import to_topods_list
-from afem.topology.entities import Shape, Face, Solid
+from afem.topology.entities import Shape, Face, Solid, Compound
 from afem.topology.explore import ExploreWire
 from afem.topology.modify import RebuildShapeByTool
 
@@ -891,9 +891,7 @@ class TrimOpenWire(object):
         shape2 = Shape.to_shape(shape2)
 
         # Split wire with shapes
-        from afem.topology.create import CompoundByShapes
-
-        other_shape = CompoundByShapes([shape1, shape2]).compound
+        other_shape = Compound.by_shapes([shape1, shape2])
         split = SplitShapes(wire, other_shape)
         split_wire = split.shape.wires[0]
 

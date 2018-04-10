@@ -24,6 +24,7 @@ developed by Laughlin Research, LLC.
    geometry
    sketch
    topology
+   adaptor
    oml
    structure
    smesh

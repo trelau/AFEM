@@ -21,10 +21,10 @@ import json
 from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
                                  BRepBuilderAPI_MakeWire)
 from OCCT.GCPnts import GCPnts_QuasiUniformDeflection
-from OCCT.GeomAdaptor import GeomAdaptor_Curve
 from OCCT.ShapeFix import ShapeFix_Wire
 from OCCT.ShapeUpgrade import ShapeUpgrade_SplitSurface
 
+from afem.adaptor.entities import AdaptorCurve
 from afem.config import logger
 from afem.exchange.step import StepRead
 from afem.exchange.xde import XdeDocument
@@ -805,8 +805,8 @@ def _reloft_wing_surface(srf, tol):
     crvs = []
     for u in srf.uknots:
         c0 = srf.u_iso(u)
-        adp_crv = GeomAdaptor_Curve(c0.object)
-        tool = GCPnts_QuasiUniformDeflection(adp_crv, tol)
+        adp_crv = AdaptorCurve.to_adaptor(c0)
+        tool = GCPnts_QuasiUniformDeflection(adp_crv.object, tol)
         if not tool.IsDone():
             logger.info('\tTessellation failed. Using original surface.')
             return srf

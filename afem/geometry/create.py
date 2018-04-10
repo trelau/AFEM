@@ -28,7 +28,6 @@ from OCCT.Geom import (Geom_BSplineSurface, Geom_Circle,
 from OCCT.Geom2dAPI import Geom2dAPI_Interpolate, Geom2dAPI_PointsToBSpline
 from OCCT.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                           GeomAPI_PointsToBSpline)
-from OCCT.GeomAdaptor import GeomAdaptor_Curve
 from OCCT.GeomFill import (GeomFill_AppSurf, GeomFill_Line,
                            GeomFill_SectionGenerator)
 from OCCT.GeomPlate import GeomPlate_BuildAveragePlane
@@ -46,6 +45,7 @@ from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
 from afem.geometry.project import *
 from afem.occ import utils as occ_utils
+from afem.adaptor.entities import AdaptorCurve
 
 __all__ = ["PointByXYZ", "PointByArray",
            "PointFromParameter", "PointsAlongCurveByNumber",
@@ -110,16 +110,18 @@ class PointFromParameter(object):
     """
     Create a point along a curve at a specified distance from a parameter.
 
-    :param afem.geometry.entities.Curve c: The curve.
+    :param c: The curve.
+    :type c: afem.adaptor.entities.AdaptorCurve or afem.geometry.entities.Curve
+        or afem.topology.entities.Edge or afem.topology.entities.Wire
     :param float u0: The initial parameter.
     :param float ds: The distance along the curve from the given parameter.
     :param float tol: Tolerance.
     """
 
     def __init__(self, c, u0, ds, tol=1.0e-7):
-        adp_curve = GeomAdaptor_Curve(c.object)
+        adp_curve = AdaptorCurve.to_adaptor(c)
 
-        tool = GCPnts_AbscissaPoint(tol, adp_curve, ds, u0)
+        tool = GCPnts_AbscissaPoint(tol, adp_curve.object, ds, u0)
         if not tool.IsDone():
             warn('GCPnts_AbscissaPoint failed.', RuntimeWarning)
 
@@ -128,7 +130,7 @@ class PointFromParameter(object):
         if self._is_done:
             u = tool.Parameter()
             self._u = u
-            p = c.eval(u)
+            p = adp_curve.eval(u)
             self._p = p
 
     @property
@@ -161,7 +163,9 @@ class PointsAlongCurveByNumber(object):
     Create a specified number of points along a curve. The points will be
     equidistant.
 
-    :param afem.geometry.entities.Curve c: The curve.
+    :param c: The curve.
+    :type c: afem.adaptor.entities.AdaptorCurve or afem.geometry.entities.Curve
+        or afem.topology.entities.Edge or afem.topology.entities.Wire
     :param int n: Number of points to create.
     :param float u1: The parameter of the first point (default=*c.u1*).
     :param float u2: The parameter of the last point (default=*c.u2*).
@@ -176,26 +180,26 @@ class PointsAlongCurveByNumber(object):
 
     def __init__(self, c, n, u1=None, u2=None, d1=None, d2=None, tol=1.0e-7):
         n = int(n)
-        adp_crv = GeomAdaptor_Curve(c.object)
+        adp_crv = AdaptorCurve.to_adaptor(c)
 
         # Set u1 and u2
         if u1 is None:
-            u1 = adp_crv.FirstParameter()
+            u1 = adp_crv.u1
         if u2 is None:
-            u2 = adp_crv.LastParameter()
+            u2 = adp_crv.u2
 
         # Adjust u1 and u2 if d1 or d2 != 0
         if d1 is not None:
-            tool = PointFromParameter(c, u1, d1, tol)
+            tool = PointFromParameter(adp_crv, u1, d1, tol)
             if tool.is_done:
                 u1 = tool.parameter
         if d2 is not None:
-            tool = PointFromParameter(c, u2, d2, tol)
+            tool = PointFromParameter(adp_crv, u2, d2, tol)
             if tool.is_done:
                 u2 = tool.parameter
 
         # Create uniform abscissa
-        tool = GCPnts_UniformAbscissa(adp_crv, n, u1, u2, tol)
+        tool = GCPnts_UniformAbscissa(adp_crv.object, n, u1, u2, tol)
         if not tool.IsDone():
             warn('GCPnts_UniformAbscissa failed.', RuntimeWarning)
 
@@ -210,8 +214,7 @@ class PointsAlongCurveByNumber(object):
             self._npts = tool.NbPoints()
             for i in range(1, self._npts + 1):
                 u = tool.Parameter(i)
-                p = Point()
-                adp_crv.D0(u, p)
+                p = adp_crv.eval(u)
                 self._pnts.append(p)
                 self._prms.append(u)
 
@@ -271,7 +274,9 @@ class PointsAlongCurveByDistance(object):
     be equidistant. This method calculates the number of points given the
     curve length and then uses :class:`.PointsAlongCurveByNumber`.
 
-    :param afem.geometry.entities.Curve c: The curve.
+    :param c: The curve.
+    :type c: afem.adaptor.entities.AdaptorCurve or afem.geometry.entities.Curve
+        or afem.topology.entities.Edge or afem.topology.entities.Wire
     :param float maxd: The maximum allowed spacing between points. The
         actual spacing will be adjusted to not to exceed this value.
     :param float u1: The parameter of the first point (default=c.u1).
@@ -291,38 +296,32 @@ class PointsAlongCurveByDistance(object):
         maxd = float(maxd)
         nmin = int(nmin)
 
-        adp_crv = GeomAdaptor_Curve(c.object)
+        adp_crv = AdaptorCurve.to_adaptor(c)
 
         # Set u1 and u2
         if u1 is None:
-            u1 = adp_crv.FirstParameter()
+            u1 = adp_crv.u1
         if u2 is None:
-            u2 = adp_crv.LastParameter()
+            u2 = adp_crv.u2
 
         # Adjust u1 and u2 if d1 or d2 != 0
         if d1 is not None:
-            ap = GCPnts_AbscissaPoint(tol, adp_crv, d1, u1)
-            if ap.IsDone():
-                u1 = ap.Parameter()
-            else:
-                msg = "GCPnts_AbscissaPoint failed for u1."
-                warn(msg, RuntimeWarning)
+            tool = PointFromParameter(adp_crv, u1, d1, tol)
+            if tool.is_done:
+                u1 = tool.parameter
         if d2 is not None:
-            ap = GCPnts_AbscissaPoint(tol, adp_crv, d2, u2)
-            if ap.IsDone():
-                u2 = ap.Parameter()
-            else:
-                msg = "GCPnts_AbscissaPoint failed for u2."
-                warn(msg, RuntimeWarning)
+            tool = PointFromParameter(adp_crv, u2, d2, tol)
+            if tool.is_done:
+                u2 = tool.parameter
 
         # Determine number of points
-        arc_length = GCPnts_AbscissaPoint.Length_(adp_crv, u1, u2, tol)
+        arc_length = adp_crv.arc_length(u1, u2, tol)
         n = ceil(arc_length / maxd) + 1
         if n < nmin:
             n = nmin
 
         # Create uniform abscissa
-        ua = GCPnts_UniformAbscissa(adp_crv, int(n), u1, u2, tol)
+        ua = GCPnts_UniformAbscissa(adp_crv.object, int(n), u1, u2, tol)
         if not ua.IsDone():
             msg = "GCPnts_UniformAbscissa failed."
             raise RuntimeError(msg)
@@ -333,8 +332,7 @@ class PointsAlongCurveByDistance(object):
         prms = []
         for i in range(1, npts + 1):
             u = ua.Parameter(i)
-            p = Point()
-            adp_crv.D0(u, p)
+            p = adp_crv.eval(u)
             pnts.append(p)
             prms.append(u)
         self._npts = npts
@@ -1098,7 +1096,9 @@ class PlaneFromParameter(object):
     """
     Create a plane along a curve at a specified distance from a parameter.
 
-    :param afem.geometry.entities.Curve c: The curve.
+    :param c: The curve.
+    :type c: afem.adaptor.entities.AdaptorCurve or afem.geometry.entities.Curve
+        or afem.topology.entities.Edge or afem.topology.entities.Wire
     :param float u0: The initial parameter.
     :param float ds: The distance along the curve from the given parameter.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
@@ -1109,29 +1109,23 @@ class PlaneFromParameter(object):
 
     :return: The plane.
     :rtype: afem.geometry.entities.Plane
-
-    :raise RuntimeError: If OCC method fails.
     """
 
     def __init__(self, c, u0, ds, ref_pln=None, tol=1.0e-7):
-        adp_curve = GeomAdaptor_Curve(c.object)
+        adp_curve = AdaptorCurve.to_adaptor(c)
 
-        ap = GCPnts_AbscissaPoint(tol, adp_curve, ds, u0)
-        if not ap.IsDone():
-            msg = "GCPnts_AbscissaPoint failed."
-            raise RuntimeError(msg)
+        tool = PointFromParameter(adp_curve, u0, ds, tol)
 
-        u = ap.Parameter()
+        u = tool.parameter
         self._u = u
-        p = c.eval(u)
+        p = adp_curve.eval(u)
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.object.Pln()
+            gp_pln = ref_pln.gp_pln
             ax1 = gp_pln.Axis()
-            dn = ax1.Direction()
-            self._pln = Plane(Geom_Plane(p, dn))
+            v = ax1.Direction()
         else:
-            v = c.deriv(u, 1)
-            self._pln = PlaneByNormal(p, v).plane
+            v = adp_curve.deriv(u, 1)
+        self._pln = PlaneByNormal(p, v).plane
 
     @property
     def plane(self):
@@ -1232,7 +1226,9 @@ class PlanesAlongCurveByNumber(object):
     Create planes along a curve using a specified number. The origin of the
     planes will be equidistant along the curve.
 
-    :param afem.geometry.entities.Curve c: The curve.
+    :param c: The curve.
+    :type c: afem.adaptor.entities.AdaptorCurve or afem.geometry.entities.Curve
+        or afem.topology.entities.Edge or afem.topology.entities.Wire
     :param int n: Number of planes to create (*n* > 0).
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
         will be used to define the normal of all planes along the curve. If
@@ -1264,7 +1260,8 @@ class PlanesAlongCurveByNumber(object):
 
     def __init__(self, c, n, ref_pln=None, u1=None, u2=None, d1=None,
                  d2=None, tol=1.0e-7):
-        pnt_builder = PointsAlongCurveByNumber(c, n, u1, u2, d1, d2, tol)
+        adp_crv = AdaptorCurve.to_adaptor(c)
+        pnt_builder = PointsAlongCurveByNumber(adp_crv, n, u1, u2, d1, d2, tol)
         if pnt_builder.npts == 0:
             msg = ('Failed to generate points along the curve for creating '
                    'planes along a curve by number.')
@@ -1276,7 +1273,7 @@ class PlanesAlongCurveByNumber(object):
 
         plns = []
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.object.Pln()
+            gp_pln = ref_pln.gp_pln
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             for p in pnts:
@@ -1286,7 +1283,7 @@ class PlanesAlongCurveByNumber(object):
             for i in range(npts):
                 p = pnts[i]
                 u = prms[i]
-                vn = c.deriv(u, 1)
+                vn = adp_crv.deriv(u, 1)
                 dn = Direction(vn)
                 pln = Plane(Geom_Plane(p, dn))
                 plns.append(pln)
@@ -1347,7 +1344,9 @@ class PlanesAlongCurveByDistance(object):
     number of points given the curve length and then uses
     :class:`.PlanesAlongCurveByNumber`.
 
-    :param afem.geometry.entities.Curve c: The curve.
+    :param c: The curve.
+    :type c: afem.adaptor.entities.AdaptorCurve or afem.geometry.entities.Curve
+        or afem.topology.entities.Edge or afem.topology.entities.Wire
     :param float maxd: The maximum allowed spacing between planes. The
         actual spacing will be adjusted to not to exceed this value.
     :param afem.geometry.entities.Plane ref_pln: The normal of this plane
@@ -1381,7 +1380,8 @@ class PlanesAlongCurveByDistance(object):
 
     def __init__(self, c, maxd, ref_pln=None, u1=None, u2=None, d1=None,
                  d2=None, nmin=0, tol=1.0e-7):
-        pnt_builder = PointsAlongCurveByDistance(c, maxd, u1, u2, d1, d2,
+        adp_crv = AdaptorCurve.to_adaptor(c)
+        pnt_builder = PointsAlongCurveByDistance(adp_crv, maxd, u1, u2, d1, d2,
                                                  nmin, tol)
         if pnt_builder.npts == 0:
             msg = ('Failed to generate points along the curve for creating '
@@ -1394,7 +1394,7 @@ class PlanesAlongCurveByDistance(object):
 
         plns = []
         if isinstance(ref_pln, Plane):
-            gp_pln = ref_pln.object.Pln()
+            gp_pln = ref_pln.gp_pln
             ax1 = gp_pln.Axis()
             dn = ax1.Direction()
             for p in pnts:
@@ -1404,7 +1404,7 @@ class PlanesAlongCurveByDistance(object):
             for i in range(npts):
                 p = pnts[i]
                 u = prms[i]
-                vn = c.deriv(u, 1)
+                vn = adp_crv.deriv(u, 1)
                 dn = Direction(vn)
                 pln = Plane(Geom_Plane(p, dn))
                 plns.append(pln)
@@ -1725,7 +1725,6 @@ class PlanesAlongCurveAndSurfaceByDistance(object):
                    'planes along a curve by distance.')
             raise RuntimeError(msg)
         npts = pnt_builder.npts
-        pnts = pnt_builder.points
         prms = pnt_builder.parameters
         spacing = pnt_builder.spacing
 

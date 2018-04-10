@@ -26,6 +26,7 @@ from OCCT.TopAbs import TopAbs_VERTEX
 from numpy import float64, inf, mean, sqrt, zeros
 from scipy.spatial import KDTree
 
+from afem.adaptor.entities import AdaptorCurve
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Curve, Point
 
@@ -365,7 +366,8 @@ def _distance_point_to_curve(point, curve):
     Find the minimum distance between a point and a curve.
     """
     # OCC extrema.
-    ext_pc = Extrema_ExtPC(point, curve.adaptor)
+    adp_crv = AdaptorCurve.to_adaptor(curve)
+    ext_pc = Extrema_ExtPC(point, adp_crv.object)
     if not ext_pc.IsDone():
         return None
 

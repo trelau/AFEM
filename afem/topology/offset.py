@@ -436,7 +436,7 @@ class SweepShapeWithNormal(object):
                  tol_bound=1.0e-4, tol_angular=1.0e-2, max_degree=None,
                  max_segments=None, force_c1=None,
                  transition_mode=BRepBuilderAPI_Transformed):
-        self._tool = BRepOffsetAPI_MakePipeShell(spine)
+        self._tool = BRepOffsetAPI_MakePipeShell(spine.object)
 
         if isinstance(spine_support, Shape):
             self._tool.SetMode(spine_support.object)

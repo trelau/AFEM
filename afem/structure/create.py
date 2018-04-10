@@ -19,8 +19,7 @@
 from math import radians, tan
 from warnings import warn
 
-from OCCT.BRepAdaptor import BRepAdaptor_CompCurve
-
+from afem.adaptor.entities import WireAdaptorCurve
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import *
 from afem.geometry.entities import *
@@ -2135,9 +2134,9 @@ class StringerByShape(object):
         dx = height / tan(radians(angle))
 
         # Make the profiles
-        adp_crv = BRepAdaptor_CompCurve(spine.object, True)
+        adp_crv = WireAdaptorCurve.by_wire(spine, True)
 
-        p0 = CheckGeom.to_point(adp_crv.Value(dx))
+        p0 = adp_crv.eval(dx)
         dss = DistanceShapeToShape(support_shape, p0)
         vn = CheckGeom.to_vector(dss.normal_on_shape1(1))
         vn.scale(height)
@@ -2145,7 +2144,7 @@ class StringerByShape(object):
         p1.translate(vn)
         profile1 = EdgeByPoints(p0, p1).edge
 
-        p0 = CheckGeom.to_point(adp_crv.Value(adp_crv.LastParameter() - dx))
+        p0 = adp_crv.eval(adp_crv.u2 - dx)
         dss = DistanceShapeToShape(support_shape, p0)
         vn = CheckGeom.to_vector(dss.normal_on_shape1(1))
         vn.scale(height)

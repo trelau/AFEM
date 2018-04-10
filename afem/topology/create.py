@@ -303,7 +303,7 @@ class WireByEdges(object):
     Create a wire using topologically connected edges.
 
     :param collections.Sequence(afem.topology.entities.Edge) edges: The edges.
-        They must share a common vertex to be connected
+        They must share a common vertex to be connected.
 
     >>> from afem.geometry import NurbsCurveByPoints
     >>> from afem.topology import EdgeByCurve, WireByEdges
@@ -1445,6 +1445,7 @@ class SphereBy3Points(object):
 
 # GEOMETRY --------------------------------------------------------------------
 
+# TODO Redo method with adaptor types
 class PointAlongShape(object):
     """
     Create a point along an edge or wire at a specified distance from the first

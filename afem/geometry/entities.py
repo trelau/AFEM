@@ -676,17 +676,6 @@ class Curve2D(Geometry2D):
     """
     _OCC_TYPE = Geom2d_Curve
 
-    def __init__(self, obj):
-        super(Curve2D, self).__init__(obj)
-
-    @property
-    def adaptor(self):
-        """
-        :return: A curve adaptor.
-        :rtype: OCCT.Geom2dAdaptor.Geom2dAdaptor_Curve
-        """
-        return Geom2dAdaptor_Curve(self.object)
-
     @property
     def u1(self):
         """
@@ -834,7 +823,8 @@ class Curve2D(Geometry2D):
         """
         if u1 > u2:
             u1, u2 = u2, u1
-        return GCPnts_AbscissaPoint.Length_(self.adaptor, u1, u2, tol)
+        adp_crv = Geom2dAdaptor_Curve(self.object)
+        return GCPnts_AbscissaPoint.Length_(adp_crv, u1, u2, tol)
 
     def to_3d(self, pln):
         """
@@ -879,17 +869,6 @@ class NurbsCurve2D(Curve2D):
     .. _Geom2d_BSplineCurve: https://www.opencascade.com/doc/occt-7.2.0/refman/html/class_geom2d___b_spline_curve.html
     """
     _OCC_TYPE = Geom2d_BSplineCurve
-
-    def __init__(self, obj):
-        super(NurbsCurve2D, self).__init__(obj)
-
-    @property
-    def adaptor(self):
-        """
-        :return: A curve adaptor.
-        :rtype: OCCT.Geom2dAdaptor.Geom2dAdaptor_Curve
-        """
-        return Geom2dAdaptor_Curve(self.object)
 
     @property
     def p(self):
@@ -2028,14 +2007,6 @@ class Curve(Geometry):
         return BRepBuilderAPI_MakeEdge(self.object).Edge()
 
     @property
-    def adaptor(self):
-        """
-        :return: A curve adaptor.
-        :rtype: OCCT.GeomAdaptor.GeomAdaptor_Curve
-        """
-        return GeomAdaptor_Curve(self.object)
-
-    @property
     def u1(self):
         """
         :return: The first parameter.
@@ -2181,7 +2152,8 @@ class Curve(Geometry):
         """
         if u1 > u2:
             u1, u2 = u2, u1
-        return GCPnts_AbscissaPoint.Length_(self.adaptor, u1, u2, tol)
+        adp_crv = GeomAdaptor_Curve(self.object)
+        return GCPnts_AbscissaPoint.Length_(adp_crv, u1, u2, tol)
 
     @staticmethod
     def wrap(curve):
@@ -2717,12 +2689,12 @@ class Surface(Geometry):
 
     def surface_area(self, u1, v1, u2, v2, tol=1.0e-7):
         """
-        Calculate the surface area between the parameter.
+        Calculate the surface area between the parameters.
 
-        :param float u1:
-        :param float v1:
-        :param float u2:
-        :param float v2:
+        :param float u1: The first parameter in u-direction.
+        :param float v1: The first parameter in v-direction.
+        :param float u2: The last parameter in u-direction.
+        :param float v2: The last parameter in v-direction.
         :param float tol: The tolerance.
 
         :return: The area.

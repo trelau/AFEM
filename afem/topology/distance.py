@@ -18,13 +18,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from warnings import warn
 
-from OCCT.BRepAdaptor import BRepAdaptor_Surface
 from OCCT.BRepExtrema import (BRepExtrema_DistShapeShape, BRepExtrema_IsVertex,
                               BRepExtrema_IsOnEdge, BRepExtrema_IsInFace)
 from OCCT.Extrema import Extrema_ExtFlag_MIN
 
+from afem.adaptor.entities import FaceAdaptorSurface
 from afem.geometry.check import CheckGeom
-from afem.geometry.entities import Point, Vector, Direction
+from afem.geometry.entities import Point, Direction
 from afem.topology.entities import Shape, Vertex
 
 __all__ = ["DistanceShapeToShape", "DistanceShapeToShapes",
@@ -295,12 +295,8 @@ class DistanceShapeToShape(object):
         face = self.support_on_shape1(n)
         u, v = self.par_on_face_shape1(n)
 
-        adp_srf = BRepAdaptor_Surface(face.object)
-        p = Point()
-        du, dv = Vector(), Vector()
-        adp_srf.D1(u, v, p, du, dv)
-
-        return Direction(du.Crossed(dv))
+        adp_srf = FaceAdaptorSurface.by_face(face)
+        return Direction.by_vector(adp_srf.norm(u, v))
 
     def normal_on_shape2(self, n=1):
         """
@@ -320,12 +316,8 @@ class DistanceShapeToShape(object):
         face = self.support_on_shape2(n)
         u, v = self.par_on_face_shape2(n)
 
-        adp_srf = BRepAdaptor_Surface(face.object)
-        p = Point()
-        du, dv = Vector(), Vector()
-        adp_srf.D1(u, v, p, du, dv)
-
-        return Direction(du.Crossed(dv))
+        adp_srf = FaceAdaptorSurface.by_face(face)
+        return Direction.by_vector(adp_srf.norm(u, v))
 
 
 class DistanceShapeToShapes(object):

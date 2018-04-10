@@ -21,6 +21,7 @@ from math import sqrt
 from OCCT.Extrema import (Extrema_ExtCC, Extrema_ExtCS, Extrema_ExtPC,
                           Extrema_ExtPS, Extrema_ExtSS)
 
+from afem.adaptor.entities import AdaptorCurve, AdaptorSurface
 from afem.geometry.check import CheckGeom
 
 __all__ = ["DistancePointToCurve", "DistancePointToSurface",
@@ -33,7 +34,10 @@ class DistancePointToCurve(object):
     Calculate the extrema between a point and a curve.
 
     :param point_like pnt: The point.
-    :param afem.geometry.entities.Curve crv: The curve.
+    :param crv: The curve.
+    :type crv: afem.adaptor.entities.AdaptorCurve or
+        afem.geometry.entities.Curve or afem.topology.entities.Edge or
+        afem.topology.entities.Wire
     :param float tol: The tolerance.
 
     :raise RuntimeError: If ``Extrema_ExtPC`` fails.
@@ -49,7 +53,8 @@ class DistancePointToCurve(object):
     """
 
     def __init__(self, pnt, crv, tol=1.0e-10):
-        tool = Extrema_ExtPC(pnt, crv.adaptor, tol)
+        adp_crv = AdaptorCurve.to_adaptor(crv)
+        tool = Extrema_ExtPC(pnt, adp_crv.object, tol)
 
         if not tool.IsDone():
             msg = 'Extrema between point and curve failed.'
@@ -127,14 +132,17 @@ class DistancePointToSurface(object):
     Calculate the extrema between a point and a surface.
 
     :param point_like pnt: The point.
-    :param afem.geometry.entities.Surface srf: The surface.
+    :param srf: The surface.
+    :type srf: afem.adaptor.entities.AdaptorSurface or
+        afem.geometry.entities.Surface or afem.topology.entities.Face
     :param float tol: The tolerance.
 
     :raise RuntimeError: If ``Extrema_ExtPS`` fails.
     """
 
     def __init__(self, pnt, srf, tol=1.0e-10):
-        tool = Extrema_ExtPS(pnt, srf.adaptor, tol, tol)
+        adp_srf = AdaptorSurface.to_adaptor(srf)
+        tool = Extrema_ExtPS(pnt, adp_srf.object, tol, tol)
 
         if not tool.IsDone():
             msg = 'Extrema between point and surface failed.'
@@ -212,15 +220,23 @@ class DistanceCurveToCurve(object):
     """
     Calculate the extrema between two curves.
 
-    :param afem.geometry.entities.Curve crv1: The first curve.
-    :param afem.geometry.entities.Curve crv2: The second curve.
+    :param crv1: The first curve.
+    :type crv2: afem.adaptor.entities.AdaptorCurve or
+        afem.geometry.entities.Curve or afem.topology.entities.Edge or
+        afem.topology.entities.Wire
+    :param crv2: The second curve.
+    :type crv2: afem.adaptor.entities.AdaptorCurve or
+        afem.geometry.entities.Curve or afem.topology.entities.Edge or
+        afem.topology.entities.Wire
     :param float tol: The tolerance.
 
     :raise RuntimeError: If ``Extrema_ExtCC`` fails.
     """
 
     def __init__(self, crv1, crv2, tol=1.0e-10):
-        tool = Extrema_ExtCC(crv1.adaptor, crv2.adaptor, tol, tol)
+        adp_crv1 = AdaptorCurve.to_adaptor(crv1)
+        adp_crv2 = AdaptorCurve.to_adaptor(crv2)
+        tool = Extrema_ExtCC(adp_crv1.object, adp_crv2.object, tol, tol)
 
         if not tool.IsDone():
             msg = 'Extrema between two curves failed.'
@@ -305,15 +321,22 @@ class DistanceCurveToSurface(object):
     """
     Calculate the extrema between a curve and surface.
 
-    :param afem.geometry.entities.Curve crv: The curve.
-    :param afem.geometry.entities.Surface srf: surface.
+    :param crv: The curve.
+    :type crv: afem.adaptor.entities.AdaptorCurve or
+        afem.geometry.entities.Curve or afem.topology.entities.Edge or
+        afem.topology.entities.Wire
+    :param srf: surface.
+    :type srf: afem.adaptor.entities.AdaptorSurface or
+        afem.geometry.entities.Surface or afem.topology.entities.Face
     :param float tol: The tolerance.
 
     :raise RuntimeError: If the extrema algorithm fails.
     """
 
     def __init__(self, crv, srf, tol=1.0e-10):
-        tool = Extrema_ExtCS(crv.adaptor, srf.adaptor, tol, tol)
+        adp_crv = AdaptorCurve.to_adaptor(crv)
+        adp_srf = AdaptorSurface.to_adaptor(srf)
+        tool = Extrema_ExtCS(adp_crv.object, adp_srf.object, tol, tol)
 
         if not tool.IsDone():
             msg = 'Extrema between curve and surface failed.'
@@ -398,15 +421,21 @@ class DistanceSurfaceToSurface(object):
     """
     Calculate the extrema between two surfaces.
 
-    :param afem.geometry.entities.Surface srf1: The first surface.
-    :param afem.geometry.entities.Surface srf2: The second surface.
+    :param srf1: The first surface.
+    :type srf1: afem.adaptor.entities.AdaptorSurface or
+        afem.geometry.entities.Surface or afem.topology.entities.Face
+    :param srf2: The second surface.
+    :type srf2: afem.adaptor.entities.AdaptorSurface or
+        afem.geometry.entities.Surface or afem.topology.entities.Face
     :param float tol: The tolerance.
 
     :raise RuntimeError: If ``Extrema_ExtSS`` fails.
     """
 
     def __init__(self, srf1, srf2, tol=1.0e-10):
-        tool = Extrema_ExtSS(srf1.adaptor, srf2.adaptor, tol, tol)
+        adp_srf1 = AdaptorSurface.to_adaptor(srf1)
+        adp_srf2 = AdaptorSurface.to_adaptor(srf2)
+        tool = Extrema_ExtSS(adp_srf1.object, adp_srf2.object, tol, tol)
 
         if not tool.IsDone():
             msg = 'Extrema between curve and surface failed.'
