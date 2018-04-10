@@ -121,7 +121,7 @@ class Part(ShapeHolder, NamedItem):
     @property
     def type(self):
         """
-        :return: The type of the part.
+        :return: The class name of the part.
         :rtype: str
         """
         return self.__class__.__name__
@@ -172,7 +172,7 @@ class Part(ShapeHolder, NamedItem):
         :return: List of sub-parts associated to this part.
         :rtype: list(afem.structure.entities.Part)
         """
-        return self._subparts.values()
+        return list(self._subparts.values())
 
     @property
     def cref(self):

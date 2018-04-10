@@ -5,7 +5,7 @@ import time
 from afem.config import Settings
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.misc import util as misc_utils
+from afem.misc import utils as misc_utils
 from afem.oml import Body
 from afem.smesh import *
 from afem.structure import *

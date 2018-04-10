@@ -17,7 +17,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
-                          TColStd_Array2OfReal)
+                          TColStd_Array2OfReal, TColStd_HSequenceOfReal)
 from OCCT.TColgp import (TColgp_Array1OfPnt, TColgp_Array1OfPnt2d,
                          TColgp_Array2OfPnt, TColgp_HArray1OfPnt,
                          TColgp_HArray1OfPnt2d)
@@ -25,7 +25,7 @@ from OCCT.TopoDS import TopoDS_ListOfShape
 from OCCT.gp import gp_Pnt, gp_Pnt2d
 from numpy import array as np_array, zeros
 
-from afem.misc.util import is_array_like
+from afem.misc.utils import is_array_like
 
 
 def to_gp_pnt(p):
@@ -207,6 +207,21 @@ def to_tcolgp_array2_pnt(pnts):
             array.SetValue(i, j, gp)
 
     return array
+
+
+def to_tcolstd_hseq_real(array):
+    """
+    Convert the sequence of floats to OCC data.
+
+    :param array_like array: The array.
+
+    :return: The OCC data.
+    :rtype: OCCT.TColStd.TColStd_HSequenceOfReal
+    """
+    hseq = TColStd_HSequenceOfReal()
+    for x in array:
+        hseq.Append(x)
+    return hseq
 
 
 def to_tcolstd_array2_real(array):

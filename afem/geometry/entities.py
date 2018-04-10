@@ -42,7 +42,7 @@ from numpy import add, array, float64, subtract, ones
 
 from afem.base.entities import ViewableItem
 from afem.geometry import utils as geom_utils
-from afem.misc import util as misc_utils
+from afem.misc import utils as misc_utils
 from afem.occ import utils as occ_utils
 
 __all__ = ["Geometry2D", "Point2D", "Vector2D", "Direction2D",

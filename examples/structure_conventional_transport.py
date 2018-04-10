@@ -5,7 +5,7 @@ from OCCT.BRepPrimAPI import BRepPrimAPI_MakeSphere
 from afem.config import Settings
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.misc import util as misc_utils
+from afem.misc import utils as misc_utils
 from afem.oml import Body
 from afem.structure import *
 from afem.topology import *

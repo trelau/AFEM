@@ -23,16 +23,16 @@ from OCCT.BRepBuilderAPI import (BRepBuilderAPI_MakeFace,
 from OCCT.GCPnts import GCPnts_QuasiUniformDeflection
 from OCCT.GeomAdaptor import GeomAdaptor_Curve
 from OCCT.ShapeFix import ShapeFix_Wire
-from OCCT.ShapeUpgrade import (ShapeUpgrade_SplitSurface)
-from OCCT.TColStd import TColStd_HSequenceOfReal
+from OCCT.ShapeUpgrade import ShapeUpgrade_SplitSurface
 
 from afem.config import logger
 from afem.exchange.step import StepRead
 from afem.exchange.xde import XdeDocument
+from afem.geometry import utils as geom_utils
 from afem.geometry.create import (PointFromParameter, NurbsSurfaceByInterp,
                                   NurbsCurveByPoints, NurbsCurveByApprox)
 from afem.geometry.entities import Geometry
-from afem.geometry import utils as geom_utils
+from afem.occ import utils as occ_utils
 from afem.oml.entities import Body
 from afem.topology.check import CheckShape
 from afem.topology.entities import *
@@ -732,9 +732,7 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
     s7.segment(u1, u2, v1, v2)
 
     # Split the TE surface at each u-knot.
-    usplits = TColStd_HSequenceOfReal()
-    for ui in uknots[1:-1]:
-        usplits.Append(ui)
+    usplits = occ_utils.to_tcolstd_hseq_real(uknots[1:-1])
 
     split = ShapeUpgrade_SplitSurface()
     split.Init(s6.object)
