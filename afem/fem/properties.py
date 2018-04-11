@@ -16,17 +16,29 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from setuptools import setup
+from afem.base.entities import NamedItem
 
-setup(
-    name='afem',
-    version='0.3.0',
-    packages=['afem', 'afem.base', 'afem.exchange', 'afem.fem',
-              'afem.geometry', 'afem.graphics', 'afem.misc', 'afem.occ',
-              'afem.oml', 'afem.sketch', 'afem.smesh', 'afem.structure',
-              'afem.topology'],
-    author='Laughlin Research, LLC',
-    author_email='info@laughlinresearch.com',
-    description='Airframe Finite Element Modeler',
-    license='LGPL v2.1'
-)
+__all__ = ["Property", "Shell"]
+
+
+class Property(NamedItem):
+    """
+    Base class for properties.
+    """
+
+    def __init__(self, name):
+        super(Property, self).__init__(name)
+
+
+class Shell(Property):
+    """
+    Shell element property.
+    """
+
+    def __init__(self, name, t):
+        super(Shell, self).__init__(name)
+        self._t = t
+
+    @property
+    def t(self):
+        return self._t

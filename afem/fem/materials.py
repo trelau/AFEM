@@ -16,17 +16,44 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from setuptools import setup
+from afem.base.entities import NamedItem
 
-setup(
-    name='afem',
-    version='0.3.0',
-    packages=['afem', 'afem.base', 'afem.exchange', 'afem.fem',
-              'afem.geometry', 'afem.graphics', 'afem.misc', 'afem.occ',
-              'afem.oml', 'afem.sketch', 'afem.smesh', 'afem.structure',
-              'afem.topology'],
-    author='Laughlin Research, LLC',
-    author_email='info@laughlinresearch.com',
-    description='Airframe Finite Element Modeler',
-    license='LGPL v2.1'
-)
+__all__ = ["Material", "Isotropic"]
+
+
+class Material(NamedItem):
+    """
+    Base class for materials.
+    """
+
+    def __init__(self, name):
+        super(Material, self).__init__(name)
+
+
+class Isotropic(Material):
+    """
+    Linear isotropic material.
+    """
+
+    def __init__(self, name, E, G, nu, rho):
+        super(Isotropic, self).__init__(name)
+        self._E = E
+        self._G = G
+        self._nu = nu
+        self._rho = rho
+
+    @property
+    def E(self):
+        return self._E
+
+    @property
+    def G(self):
+        return self._G
+
+    @property
+    def nu(self):
+        return self._nu
+
+    @property
+    def rho(self):
+        return self._rho

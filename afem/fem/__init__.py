@@ -16,17 +16,3 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from setuptools import setup
-
-setup(
-    name='afem',
-    version='0.3.0',
-    packages=['afem', 'afem.base', 'afem.exchange', 'afem.fem',
-              'afem.geometry', 'afem.graphics', 'afem.misc', 'afem.occ',
-              'afem.oml', 'afem.sketch', 'afem.smesh', 'afem.structure',
-              'afem.topology'],
-    author='Laughlin Research, LLC',
-    author_email='info@laughlinresearch.com',
-    description='Airframe Finite Element Modeler',
-    license='LGPL v2.1'
-)

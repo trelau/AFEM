@@ -28,6 +28,7 @@ developed by Laughlin Research, LLC.
    oml
    structure
    smesh
+   fem
    exchange
    graphics
 
