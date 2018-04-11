@@ -495,6 +495,7 @@ class GroupAPI(object):
             part = CreatePartByName(type_, name=name, shape=shape,
                                     group=group, cref=cref, sref=sref).part
             if color is not None:
-                part.set_color(color)
+                r, g, b = color.Red(), color.Green(), color.Blue()
+                part.set_color(r, g, b)
 
         return True

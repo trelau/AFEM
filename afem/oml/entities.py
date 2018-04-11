@@ -423,7 +423,8 @@ class Body(ShapeHolder, NamedItem):
             if sref is not None:
                 body.set_sref(sref)
             if color is not None:
-                body.set_color(color)
+                r, g, b = color.Red(), color.Green(), color.Blue()
+                body.set_color(r, g, b)
             label_to_bodies[label] = body
 
         return label_to_bodies
