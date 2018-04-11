@@ -483,7 +483,8 @@ class NetgenHypo2D(Hypothesis):
     :param float growth_rate: Growth rate between 0 to 1.
     :param int nseg_per_edge: Number of segments per edge.
     :param int nseg_per_radius: Number of segments per radius.
-    :param bool surface_curvature: Enable surface curvature to define edge size.
+    :param bool surface_curvature: Enable surface curvature to define edge
+        size.
     :param bool fuse_edges: Option to fuse edges.
     """
 

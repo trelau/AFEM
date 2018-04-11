@@ -346,7 +346,6 @@ class Body(ShapeHolder, NamedItem):
             color of the Body. Other user-defined metadata is currently not
             saved.
         """
-        # TODO Fix cirular import. Need to organize differently...
         from afem.exchange.xde import XdeDocument
         # Create document
         doc = XdeDocument(binary)
@@ -424,7 +423,7 @@ class Body(ShapeHolder, NamedItem):
             if sref is not None:
                 body.set_sref(sref)
             if color is not None:
-                body.color = color
+                body.set_color(color)
             label_to_bodies[label] = body
 
         return label_to_bodies

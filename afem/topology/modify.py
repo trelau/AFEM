@@ -563,12 +563,12 @@ class ShapeBSplineRestriction(object):
     :param float tol2d: Tolerance for 2-d approximations.
     :param int dmax: Maximum allowed degree for approximation.
     :param int nmax: Maximum allowed number of segments for approximation.
-    :param bool degree: If *True*, the approximation is made with degree limited
-        by *dmax* but at the expense of *nmax*. If *False*, the approximation is
-        made with number of spans limited by *nmax* but at the expense of
-        *dmax*.
-    :param bool rational: If *True*, the approximation for rational B-Spline and
-        Bezier are converted to polynomial.
+    :param bool degree: If *True*, the approximation is made with degree
+        limited by *dmax* but at the expense of *nmax*. If *False*, the
+        approximation is made with number of spans limited by *nmax* but at the
+        expense of *dmax*.
+    :param bool rational: If *True*, the approximation for rational B-Spline
+        and Bezier are converted to polynomial.
     :param OCCT.GeomAbs.GeomAbs_Shape continuity3d: Desired continuity for 3-d
         curve and surface approximation.
     :param OCCT.GeomAbs.GeomAbs_Shape continuity2d: Desired continuity for 2-d

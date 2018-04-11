@@ -2082,8 +2082,8 @@ class StringerByShape(object):
         stringer.
     :type basis_shape: afem.topology.entities.Shape or
         afem.geometry.entities.Surface
-    :param support_shape: The shape that will defines the normal direction along
-        the path.
+    :param support_shape: The shape that will defines the normal direction
+        along the path.
     :type support_shape: afem.topology.entities.Shape or
         afem.geometry.entities.Surface
     :param float height: The height.

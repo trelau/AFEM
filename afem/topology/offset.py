@@ -151,8 +151,8 @@ class OffsetShape(object):
         shape if positive and inside if negative.
     :param float tol: Tolerance for coincidence for generated shapes. If not
         provided the average tolerance of the shape is used.
-    :param OCCT.GeomAbs.GeomAbs_JoinType join_mode: Option for how to fill holes
-        that may appear when offsetting two adjacent faces.
+    :param OCCT.GeomAbs.GeomAbs_JoinType join_mode: Option for how to fill
+        holes that may appear when offsetting two adjacent faces.
     :param bool remove_internal_edges: Option to remove internal edges from the
         result.
     :param bool perform_simple: Option to use simple algorithm without

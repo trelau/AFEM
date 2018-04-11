@@ -185,8 +185,8 @@ class Element(object):
     @property
     def point_iter(self):
         """
-        :return: Yield nodes of the element as points. The corner points will be
-            first followed by medium points if quadratic.
+        :return: Yield nodes of the element as points. The corner points will
+            be first followed by medium points if quadratic.
         :rtype: collections.Iterable(afem.geometry.entities.Point)
         """
         for n in self.node_iter:
@@ -406,8 +406,8 @@ class FaceSide(object):
     Entity the represents the side of a quasi-quadrilateral face. It can be
     composed of several edges and gives access to geometry and 1-D mesh.
 
-    :param OCCT.StdMeshers.StdMeshers_FaceSide the_side: The StdMeshers_FaceSide
-        instance.
+    :param OCCT.StdMeshers.StdMeshers_FaceSide the_side: The
+        StdMeshers_FaceSide instance.
     """
 
     def __init__(self, the_side):

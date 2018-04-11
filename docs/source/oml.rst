@@ -168,14 +168,14 @@ These wires are then used to loft a solid shape::
 The ``make_ruled=True`` option was used to produce linear segments between the
 airfoil cross sections, rather than blending them together with approximation.
 
-At this point, a solid body (i.e., a ``TopoDS_Solid``) has been defined and a
+At this point, a solid body (i.e., a ``Solid``) has been defined and a
 ``Body`` can be initialized::
 
     wing = Body(shape, 'Wing')
 
-The ``label`` parameter, given as "Wing" in this example, is optional but is
+The ``name`` parameter, given as "Wing" in this example, is optional but is
 useful and can be treated as a default type of metadata. Defining a valid
-``TopoDS_Solid`` is the only hard requirement when defining a ``Body`` for use
+``Solid`` is the only hard requirement when defining a ``Body`` for use
 during structural modeling. The user can use all the tools available to create
 them manually as done above, or they can be derived by importing data from
 other sources such as STEP files. The wing derived above is shown below:

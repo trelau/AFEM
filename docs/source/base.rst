@@ -1,6 +1,7 @@
 Base
 ====
-Various generic base classes.
+The ``base`` package is a collection of simple entities that define base
+classes that are used throughout the library.
 
 Entities
 --------

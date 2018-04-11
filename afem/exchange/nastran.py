@@ -31,6 +31,11 @@ def export_bdf(the_mesh, fn):
 
     :return: *True* if done, *False* if not.
     :rtype: bool
+
+    .. warning::
+
+        This method is experimental and provides minimal Nastran export
+        capability.
     """
     fout = open(fn, 'w')
     if not fout:

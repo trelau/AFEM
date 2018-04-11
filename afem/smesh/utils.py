@@ -263,7 +263,7 @@ class MeshEditor(object):
         """
         Translate the elements.
 
-        :param vector_like: The translation vector.
+        :param vector_like vector: The translation vector.
         :param collection.Sequence(afem.smesh.entities.Element) elements: The
             elements to transform. If none are provided then the whole mesh is
             used.

@@ -86,15 +86,12 @@ class NamedItem(object):
 class ViewableItem(object):
     """
     Base class for types that can be viewed.
-
-    :ivar OCCT.Quantity.Quantity_Color color: The OpenCASCADE color quantity.
-    :ivar float transparency: The transparency level.
     """
 
     def __init__(self):
         r, g, b = rand(1, 3)[0]
-        self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
-        self.transparency = 0.
+        self._color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
+        self._transparency = 0.
 
     @property
     def displayed_shape(self):
@@ -105,6 +102,22 @@ class ViewableItem(object):
         msg = ('Viewing this type is not yet support. '
                'Implement displayed_shape property.')
         raise NotImplementedError(msg)
+
+    @property
+    def color(self):
+        """
+        :return: The color.
+        :rtype: OCCT.Quantity.Quantity_Color
+        """
+        return self._color
+
+    @property
+    def transparency(self):
+        """
+        :return: The transparency.
+        :rtype: float
+        """
+        return self._transparency
 
     def set_color(self, r, g, b):
         """
@@ -122,7 +135,7 @@ class ViewableItem(object):
             g /= 255.
         if b > 1.:
             b /= 255.
-        self.color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
+        self._color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
 
     def set_transparency(self, transparency):
         """
@@ -136,7 +149,7 @@ class ViewableItem(object):
             transparency = 0.
         elif transparency > 1.:
             transparency = 1.
-        self.transparency = transparency
+        self._transparency = transparency
 
 
 class ShapeHolder(ViewableItem):

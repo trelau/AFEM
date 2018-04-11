@@ -53,7 +53,7 @@ log_dict = {'debug': logging.DEBUG,
             'error': logging.ERROR,
             'critical': logging.CRITICAL}
 
-__all__ = ["Settings"]
+__all__ = ["Settings", "logger", "units_dict"]
 
 
 class Settings(object):
@@ -104,8 +104,8 @@ class Settings(object):
         :raise KeyError: If the given level is not supported.
 
         .. note::
-            Note all logging levels are currently utilized. The default value of
-            'info' is recommended for general use.
+            Note all logging levels are currently utilized. The default value
+            of 'info' is recommended for general use.
         """
         level = level.lower()
         logger.setLevel(log_dict[level])

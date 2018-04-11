@@ -1570,7 +1570,6 @@ class PointsAlongShapeByDistance(PointsAlongCurveByDistance):
     :param afem.topology.entities.Shape shape2: A shape to define the last
         point. This shape is intersected with the edge or wire.
     :param int nmin: Minimum number of points to create.
-    :param float tol: Tolerance.
 
     :raise TypeError: If *shape* if not a curve or wire.
     :raise RuntimeError: If OCC method fails.
@@ -1589,7 +1588,7 @@ class PointsAlongShapeByDistance(PointsAlongCurveByDistance):
     """
 
     def __init__(self, shape, maxd, d1=None, d2=None, shape1=None, shape2=None,
-                 nmin=0, tol=1.0e-7):
+                 nmin=0):
         adp_crv = AdaptorCurve.to_adaptor(shape)
 
         u1 = adp_crv.u1

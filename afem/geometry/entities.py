@@ -3195,7 +3195,8 @@ class NurbsSurface(Surface):
         """
         Create a NURBS surface by data.
 
-        :param list(list(point_like)) cp: Two-dimensional list of control points.
+        :param list(list(point_like)) cp: Two-dimensional list of control
+            points.
         :param list(float) uknots: Knot vector for u-direction.
         :param list(float) vknots: Knot vector for v-direction.
         :param list(int) umult: Multiplicities of knot vector in u-direction.
@@ -3206,20 +3207,6 @@ class NurbsSurface(Surface):
             point weights.
         :param bool is_u_periodic: Flag for periodicity in u-direction.
         :param bool is_v_periodic: Flag for periodicity in v-direction.
-
-        Usage:
-
-        >>> from afem.geometry import NurbsSurface
-        >>> cp = [[Point(), Point(10., 0., 0.)], [Point(0., 10., 0.), Point(10., 10., 0.)]]
-        >>> uknots = [0., 1.]
-        >>> vknots = [0., 1.]
-        >>> umult = [2, 2]
-        >>> vmult = [2, 2]
-        >>> p = 1
-        >>> q = 1
-        >>> s = NurbsSurface.by_data(cp, uknots, vknots, umult, vmult, p, q)
-        >>> s.eval(0.5, 0.5)
-        Point(5.000, 5.000, 0.000)
         """
         tcol_cp = occ_utils.to_tcolgp_array2_pnt(cp)
         tcol_uknots = occ_utils.to_tcolstd_array1_real(uknots)
