@@ -53,15 +53,15 @@ root_rib_pln = PlaneByAxes((0., ymax, 0.), 'xz').plane
 # Front center spar
 p1 = wing.eval(0.15, 0.)
 pln = PlaneByAxes(p1, 'yz').plane
-fc_spar = SparBetweenShapes('fc spar', xz_plane, root_rib_pln, wing, pln).spar
+fc_spar = SparBetweenShapes('fc spar', xz_plane, root_rib_pln, wing, pln).part
 
 # Rear center spar
 p1 = wing.eval(0.70, 0.)
 pln = PlaneByAxes(p1, 'yz').plane
-rc_spar = SparBetweenShapes('rc spar', xz_plane, root_rib_pln, wing, pln).spar
+rc_spar = SparBetweenShapes('rc spar', xz_plane, root_rib_pln, wing, pln).part
 
 # Root rib
-root_rib = RibByPoints('root rib', fc_spar.p2, rc_spar.p2, wing).rib
+root_rib = RibByPoints('root rib', fc_spar.p2, rc_spar.p2, wing).part
 
 # Strut rib where strut intersects.
 p0 = strut.eval(0.5, 0.)
@@ -72,56 +72,56 @@ v = bop.vertices[0]
 p = v.point
 strut_edge = EdgeByPoints(p0, p).edge
 pln = PlaneByAxes(p, 'xz').plane
-strut_rib = RibBySurface('kink rib', pln, wing).rib
+strut_rib = RibByShape('kink rib', pln, wing).part
 
 # Tip rib
-tip_rib = RibByParameters('tip rib', 0.15, 0.995, 0.70, 0.995, wing).rib
+tip_rib = RibByParameters('tip rib', 0.15, 0.995, 0.70, 0.995, wing).part
 
 # Inboard front spar
 u = strut_rib.local_to_global_u(0.15)
 p2 = strut_rib.point_on_cref(u)
 pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape, p2).plane
-inbd_fspar = SparByPoints('inbd fspar', root_rib.p1, p2, wing, pln).spar
+inbd_fspar = SparByPoints('inbd fspar', root_rib.p1, p2, wing, pln).part
 
 # Inboard rear spar
 u = strut_rib.local_to_global_u(0.70)
 p2 = strut_rib.point_on_cref(u)
 pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, p2).plane
-inbd_rspar = SparByPoints('inbd rspar', root_rib.p2, p2, wing, pln).spar
+inbd_rspar = SparByPoints('inbd rspar', root_rib.p2, p2, wing, pln).part
 
 # Outboard front spar
 pln = PlaneByIntersectingShapes(strut_rib.shape, inbd_fspar.shape,
                                 tip_rib.p1).plane
 outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.p2, tip_rib.p1, wing,
-                           pln).spar
+                           pln).part
 
 # Outboard rear spar
 pln = PlaneByIntersectingShapes(strut_rib.shape, inbd_rspar.shape,
                                 tip_rib.p2).plane
 outbd_rspar = SparByPoints('outbd rspar', inbd_rspar.p2, tip_rib.p2, wing,
-                           pln).spar
+                           pln).part
 
 # Jury rib where strut intersects
 p0 = jury.eval(0.5, 1.)
 pln = PlaneByAxes(p0, 'xz').plane
 jury_rib = RibBetweenShapes('jury rib', inbd_fspar.shape, inbd_rspar.shape,
-                            wing, pln).rib
+                            wing, pln).part
 
 # Inboard ribs
 u2 = inbd_rspar.invert_cref(jury_rib.p2)
 inbd_ribs = RibsAlongCurveByDistance('inbd rib', inbd_rspar.cref, 70.,
                                      inbd_fspar.shape, inbd_rspar.shape, wing,
-                                     u2=u2, d1=18, d2=-30).ribs
+                                     u2=u2, d1=18, d2=-30).parts
 
 # Middle ribs
 mid_ribs = RibsAlongCurveByDistance('mid rib', inbd_rspar.cref, 70.,
                                     inbd_fspar.shape, inbd_rspar.shape, wing,
-                                    u1=u2, d1=18, d2=-30).ribs
+                                    u1=u2, d1=18, d2=-30).parts
 
 # Outboard ribs
 outbd_ribs = RibsAlongCurveByDistance('outbd rib', outbd_rspar.cref, 70.,
                                       outbd_fspar.shape, outbd_rspar.shape,
-                                      wing, d1=18, d2=-30).ribs
+                                      wing, d1=18, d2=-30).parts
 
 # Join and discard internal structure.
 internal_parts = GroupAPI.get_parts()
@@ -129,7 +129,7 @@ FuseSurfacePartsByCref(internal_parts)
 DiscardByCref(internal_parts)
 
 # Wing skin
-wskin = SkinByBody('wing skin', wing).skin
+wskin = SkinByBody('wing skin', wing).part
 
 # Join the wing skin and internal structure
 # wskin.fuse(*internal_parts)
@@ -145,18 +145,18 @@ wskin.set_transparency(0.5)
 # HTAIL -----------------------------------------------------------------------
 # GroupAPI.create_group('htail group')
 #
-# fspar = SparByParameters('htail fspar', 0.15, 0.01, 0.15, 0.99, htail).spar
-# rspar = SparByParameters('htail rspar', 0.70, 0.01, 0.70, 0.99, htail).spar
-# root = RibByPoints('htail root rib', fspar.p1, rspar.p1, htail).rib
-# tip = RibByPoints('htail tip rib', fspar.p2, rspar.p2, htail).rib
+# fspar = SparByParameters('htail fspar', 0.15, 0.01, 0.15, 0.99, htail).part
+# rspar = SparByParameters('htail rspar', 0.70, 0.01, 0.70, 0.99, htail).part
+# root = RibByPoints('htail root rib', fspar.p1, rspar.p1, htail).part
+# tip = RibByPoints('htail tip rib', fspar.p2, rspar.p2, htail).part
 # ribs = RibsAlongCurveByDistance('htail rib', rspar.cref, 12, fspar.shape,
-#                                 rspar.shape, htail, d1=12, d2=-12).ribs
+#                                 rspar.shape, htail, d1=12, d2=-12).parts
 #
 # internal_parts = GroupAPI.get_parts()
 # FuseSurfacePartsByCref(internal_parts)
 # DiscardByCref(internal_parts)
 #
-# skin = SkinByBody('htail skin', htail).skin
+# skin = SkinByBody('htail skin', htail).part
 # skin.fuse(*internal_parts)
 # skin.discard_by_dmin(htail.sref_shape, 1.)
 # skin.fix()
@@ -167,11 +167,11 @@ wskin.set_transparency(0.5)
 # GroupAPI.create_group('vtail group')
 #
 # u, v = ProjectPointToSurface(fspar.p1, vtail.sref).nearest_param
-# mspar = SparByParameters('vtail mspar', u, 0.05, u, v, vtail).spar
+# mspar = SparByParameters('vtail mspar', u, 0.05, u, v, vtail).part
 #
 # u, v = ProjectPointToSurface(rspar.p1, vtail.sref).nearest_param
-# rspar = SparByParameters('vtail rspar', u, 0.05, u, v, vtail).spar
-# fspar = SparByParameters('vtail fspar', 0.12, 0.05, 0.12, v, vtail).spar
+# rspar = SparByParameters('vtail rspar', u, 0.05, u, v, vtail).part
+# fspar = SparByParameters('vtail fspar', 0.12, 0.05, 0.12, v, vtail).part
 # RibByPoints('vtail root rib', fspar.p1, rspar.p1, vtail)
 # RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
 # RibsAlongCurveByDistance('vtail rib', rspar.cref, 18., fspar.shape, rspar.shape,
@@ -181,7 +181,7 @@ wskin.set_transparency(0.5)
 # FuseSurfacePartsByCref(internal_parts)
 # DiscardByCref(internal_parts)
 #
-# skin = SkinByBody('vtail skin', vtail).skin
+# skin = SkinByBody('vtail skin', vtail).part
 # skin.fuse(*internal_parts)
 # skin.discard_by_dmin(vtail.sref_shape, 1.)
 # skin.fix()
@@ -191,11 +191,11 @@ wskin.set_transparency(0.5)
 # FUSELAGE --------------------------------------------------------------------
 GroupAPI.create_group('fuselage group')
 
-frame1 = FrameByPlane('frame 1', fc_spar.plane, fuselage, 4.).frame
+frame1 = FrameByPlane('frame 1', fc_spar.plane, fuselage, 4.).part
 frame1.cut(wing)
 frame1.cut(other_wing)
 
-frame2 = FrameByPlane('frame 2', rc_spar.plane, fuselage, 4.).frame
+frame2 = FrameByPlane('frame 2', rc_spar.plane, fuselage, 4.).part
 frame2.cut(wing)
 frame2.cut(other_wing)
 
@@ -247,7 +247,7 @@ frame2.cut(other_wing)
 #
 # internal_parts = GroupAPI.get_parts()
 #
-# skin = SkinByBody('fuselage skin', fuselage).skin
+# skin = SkinByBody('fuselage skin', fuselage).part
 # skin.set_transparency(0.5)
 #
 # FuseSurfaceParts([skin], internal_parts)
@@ -255,7 +255,7 @@ frame2.cut(other_wing)
 # BEAMS -----------------------------------------------------------------------
 GroupAPI.create_group('strut group')
 
-beam1 = Beam1DByShape('beam 1', strut_edge).beam
+beam1 = Beam1DByShape('beam 1', strut_edge).part
 beam1.set_color(1, 0, 0)
 
 p1 = jury.eval(0.5, 0.5)
@@ -263,7 +263,7 @@ p2 = p1.copy()
 v = VectorByArray((0, 0, 1.)).vector
 ProjectPointToCurve(p1, beam1.cref, direction=v, update=True)
 ProjectPointToCurve(p2, jury_rib.cref, direction=v, update=True)
-beam2 = Beam1DByPoints('beam 2', p1, p2).beam
+beam2 = Beam1DByPoints('beam 2', p1, p2).part
 beam2.set_color(1, 0, 0)
 beam2.cut(wing)
 
@@ -273,10 +273,10 @@ gear_group = GroupAPI.create_group('gear group')
 # Spar at strut location
 p = beam1.cref.eval(0.)
 pln = PlaneByAxes(p, 'yz').plane
-SparBySurface('main gear spar', pln, gear)
+SparByShape('main gear spar', pln, gear)
 
-x = SparBySurface('gear spar 1', frame1.plane, gear).spar
-y = SparBySurface('gear spar 2', frame2.plane, gear).spar
+x = SparByShape('gear spar 1', frame1.plane, gear).part
+y = SparByShape('gear spar 2', frame2.plane, gear).part
 
 frame1.cut(gear)
 frame2.cut(gear)

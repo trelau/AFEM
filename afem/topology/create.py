@@ -59,7 +59,7 @@ __all__ = ["VertexByPoint",
            "ShapeByFaces", "ShapeByDrag",
            "BoxBuilder", "BoxBySize", "BoxBy2Points",
            "CylinderByAxis",
-           "SphereBy3Points",
+           "SphereByRadius", "SphereBy3Points",
            "PointAlongShape", "PointsAlongShapeByNumber",
            "PointsAlongShapeByDistance",
            "PlaneByEdges", "PlaneByIntersectingShapes"]
@@ -1391,23 +1391,18 @@ class CylinderByAxis(object):
 
 # SPHERE ----------------------------------------------------------------------
 
-class SphereBy3Points(object):
+class SphereByRadius(object):
     """
-    Create a sphere using three points.
+    Create a sphere by a center and radius.
 
-    :param point_like p1: The first point.
-    :param point_like p2: The second point.
-    :param point_like p3: The third point.
+    :param point_like origin: The origin.
+    :param float radius: The radius.
     """
 
-    def __init__(self, p1, p2, p3):
-        p1 = CheckGeom.to_point(p1)
-        p2 = CheckGeom.to_point(p2)
-        p3 = CheckGeom.to_point(p3)
+    def __init__(self, origin=(0., 0., 0.), radius=1.):
+        origin = CheckGeom.to_point(origin)
 
-        circle = CircleBy3Points(p1, p2, p3).circle
-
-        self._builder = BRepPrimAPI_MakeSphere(circle.center, circle.radius)
+        self._builder = BRepPrimAPI_MakeSphere(origin, radius)
 
     @property
     def face(self):
@@ -1440,6 +1435,25 @@ class SphereBy3Points(object):
         :rtype: OCCT.BRepPrim.BRepPrim_Sphere
         """
         return self._builder.Sphere()
+
+
+class SphereBy3Points(SphereByRadius):
+    """
+    Create a sphere using three points.
+
+    :param point_like p1: The first point.
+    :param point_like p2: The second point.
+    :param point_like p3: The third point.
+    """
+
+    def __init__(self, p1, p2, p3):
+        p1 = CheckGeom.to_point(p1)
+        p2 = CheckGeom.to_point(p2)
+        p3 = CheckGeom.to_point(p3)
+
+        circle = CircleBy3Points(p1, p2, p3).circle
+
+        super(SphereBy3Points, self).__init__(circle.center, circle.radius)
 
 
 # GEOMETRY --------------------------------------------------------------------

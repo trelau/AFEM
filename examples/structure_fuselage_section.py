@@ -22,7 +22,7 @@ cylinder = CylinderByAxis(radius, length).solid
 fuselage = Body(cylinder)
 
 # Skin
-skin = SkinByBody('skin', fuselage).skin
+skin = SkinByBody('skin', fuselage).part
 
 # Trim off closed ends of skin since it came from a solid cylinder.
 pln1 = PlaneByAxes(axes='xy').plane
@@ -35,14 +35,14 @@ skin.cut(box)
 
 # Floor
 pln = PlaneByAxes((0., main_floor_yloc, 0.), 'xz').plane
-main_floor = FloorBySurface('main floor', pln, fuselage).floor
+main_floor = FloorByShape('main floor', pln, fuselage).part
 
 pln = PlaneByAxes((0., cargo_floor_yloc, 0.), 'xz').plane
-cargo_floor = FloorBySurface('cargo floor', pln, fuselage).floor
+cargo_floor = FloorByShape('cargo floor', pln, fuselage).part
 
 # Frames
 frames = FramesBetweenPlanesByDistance('frame', pln1, pln2, frame_spacing,
-                                       fuselage, frame_height).frames
+                                       fuselage, frame_height).parts
 
 # Floor beams and posts
 rev_cylinder = cylinder.reversed()

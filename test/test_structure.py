@@ -158,7 +158,7 @@ class TestStructureCreate(unittest.TestCase):
         e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
         f = FaceByDrag(e, (0., 10., 0.)).face
         builder = SurfacePartByShape('part', f)
-        part = builder.surface_part
+        part = builder.part
         self.assertIsInstance(part, SurfacePart)
 
     def test_spar_by_parameters(self):

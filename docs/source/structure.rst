@@ -85,6 +85,14 @@ Create
 ------
 .. py:currentmodule:: afem.structure.create
 
+PartBuilder
+~~~~~~~~~~~
+.. autoclass:: PartBuilder
+
+PartsBuilder
+~~~~~~~~~~~~
+.. autoclass:: PartsBuilder
+
 CurvePartByShape
 ~~~~~~~~~~~~~~~~
 .. autoclass:: CurvePartByShape
@@ -105,6 +113,42 @@ SurfacePartByShape
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: SurfacePartByShape
 
+SurfacePartByParameters
+~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfacePartByParameters
+
+SurfacePartByPoints
+~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfacePartByPoints
+
+SurfacePartByEnds
+~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfacePartByEnds
+
+SurfacePartBetweenShapes
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfacePartBetweenShapes
+
+SurfacePartsBetweenPlanesByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfacePartsBetweenPlanesByNumber
+
+SurfacePartsBetweenPlanesByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfacePartsBetweenPlanesByDistance
+
+SurfacePartsAlongCurveByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfacePartsAlongCurveByNumber
+
+SurfacePartsAlongCurveByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: SurfacePartsAlongCurveByDistance
+
+SparByShape
+~~~~~~~~~~~
+.. autoclass:: SparByShape
+
 SparByParameters
 ~~~~~~~~~~~~~~~~
 .. autoclass:: SparByParameters
@@ -116,14 +160,6 @@ SparByPoints
 SparByEnds
 ~~~~~~~~~~
 .. autoclass:: SparByEnds
-
-SparBySurface
-~~~~~~~~~~~~~
-.. autoclass:: SparBySurface
-
-SparByShape
-~~~~~~~~~~~
-.. autoclass:: SparByShape
 
 SparBetweenShapes
 ~~~~~~~~~~~~~~~~~
@@ -145,6 +181,10 @@ SparsAlongCurveByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: SparsAlongCurveByDistance
 
+RibByShape
+~~~~~~~~~~
+.. autoclass:: RibByShape
+
 RibByParameters
 ~~~~~~~~~~~~~~~~
 .. autoclass:: RibByParameters
@@ -152,14 +192,6 @@ RibByParameters
 RibByPoints
 ~~~~~~~~~~~~
 .. autoclass:: RibByPoints
-
-RibBySurface
-~~~~~~~~~~~~
-.. autoclass:: RibBySurface
-
-RibByShape
-~~~~~~~~~~
-.. autoclass:: RibByShape
 
 RibBetweenShapes
 ~~~~~~~~~~~~~~~~
@@ -189,13 +221,13 @@ RibsAlongCurveAndSurfaceByDistance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: RibsAlongCurveAndSurfaceByDistance
 
-BulkheadBySurface
-~~~~~~~~~~~~~~~~~
-.. autoclass:: BulkheadBySurface
+BulkheadByShape
+~~~~~~~~~~~~~~~
+.. autoclass:: BulkheadByShape
 
-FloorBySurface
-~~~~~~~~~~~~~~
-.. autoclass:: FloorBySurface
+FloorByShape
+~~~~~~~~~~~~
+.. autoclass:: FloorByShape
 
 FrameByPlane
 ~~~~~~~~~~~~~

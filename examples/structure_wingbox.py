@@ -55,11 +55,11 @@ def build_wingbox(wing, params):
 
     # Front spar
     fspar = SparByParameters('front spar', fspar_chord, root_span,
-                             fspar_chord, tip_span, wing).spar
+                             fspar_chord, tip_span, wing).part
 
     # Rear spar
     rspar = SparByParameters('rear spar', rspar_chord, root_span,
-                             rspar_chord, tip_span, wing).spar
+                             rspar_chord, tip_span, wing).part
 
     # Root rib
     p1 = fspar.p1
@@ -67,12 +67,12 @@ def build_wingbox(wing, params):
         p2 = rspar.p1
     else:
         p2 = wing.eval(aux_spar_xloc, root_span)
-    root = RibByPoints('root rib', p1, p2, wing).rib
+    root = RibByPoints('root rib', p1, p2, wing).part
 
     # Tip rib
     p1 = fspar.p2
     p2 = rspar.p2
-    tip = RibByPoints('tip rib', p1, p2, wing).rib
+    tip = RibByPoints('tip rib', p1, p2, wing).part
 
     # Generate points along rear spar and project to front spar to define ribs.
     prear = rspar.points_by_distance(rib_spacing, d1=rib_spacing,
@@ -86,7 +86,7 @@ def build_wingbox(wing, params):
         if pf.is_equal(pr):
             continue
         name = ' '.join(['rib', str(i)])
-        rib = RibByPoints(name, pf, pr, wing).rib
+        rib = RibByPoints(name, pf, pr, wing).part
         ribs.append(rib)
         i += 1
 
@@ -99,7 +99,7 @@ def build_wingbox(wing, params):
         p1 = root.point_from_parameter(dx / 2.)
         rib = ribs[mid_spar_rib - 1]
         p2 = rib.point_from_parameter(0.5, is_rel=True)
-        mspar = SparByPoints('mid spar', p1, p2, wing).spar
+        mspar = SparByPoints('mid spar', p1, p2, wing).part
 
     # Aux spar.
     aspar = None
@@ -114,7 +114,7 @@ def build_wingbox(wing, params):
         # Use intersection of the rib and rear spar to define plane for aux
         # spar.
         sref = PlaneByIntersectingShapes(rspar.shape, rib.shape, p1).plane
-        aspar = SparByPoints('aux spar', p1, p2, wing, sref).spar
+        aspar = SparByPoints('aux spar', p1, p2, wing, sref).part
 
     # Build ribs from root rib to front spar.
     root_ribs = []
@@ -129,7 +129,7 @@ def build_wingbox(wing, params):
             if pf.is_equal(pr):
                 continue
             name = ' '.join(['rib', str(i)])
-            rib = RibByPoints(name, pf, pr, wing).rib
+            rib = RibByPoints(name, pf, pr, wing).part
             if not rib:
                 continue
             ribs.append(rib)
@@ -147,7 +147,7 @@ def build_wingbox(wing, params):
             if pf.is_equal(pr):
                 continue
             name = ' '.join(['rib', str(i)])
-            rib = RibByPoints(name, pf, pr, wing).rib
+            rib = RibByPoints(name, pf, pr, wing).part
             if not rib:
                 continue
             ribs.append(rib)
@@ -221,7 +221,7 @@ def build_wingbox(wing, params):
     DiscardByCref(internal_parts)
 
     # SKIN --------------------------------------------------------------------
-    skin = SkinByBody('wing skin', wing, False).skin
+    skin = SkinByBody('wing skin', wing, False).part
     skin.set_transparency(0.5)
 
     # Join the wing skin and internal structure

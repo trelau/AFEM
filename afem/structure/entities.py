@@ -601,7 +601,7 @@ class Part(ShapeHolder, NamedItem):
         return PointFromParameter(self._cref, u0, ds).point
 
     def points_by_number(self, n, d1=None, d2=None, shape1=None,
-                         shape2=None, tol=1.0e-7):
+                         shape2=None):
         """
         Create a specified number of points along the reference curve.
 
@@ -616,7 +616,6 @@ class Part(ShapeHolder, NamedItem):
             point. This shape is intersected with the edge or wire.
         :param afem.topology.entities.Shape shape2: A shape to define the last
             point. This shape is intersected with the edge or wire.
-        :param float tol: Tolerance.
 
         :return: The points.
         :rtype: list(afem.geometry.entities.Point)
@@ -628,12 +627,11 @@ class Part(ShapeHolder, NamedItem):
             raise AttributeError(msg)
 
         edge = Edge.by_curve(self._cref)
-        builder = PointsAlongShapeByNumber(edge, n, d1, d2, shape1, shape2,
-                                           tol)
+        builder = PointsAlongShapeByNumber(edge, n, d1, d2, shape1, shape2)
         return builder.points
 
     def points_by_distance(self, maxd, nmin=0, d1=None, d2=None, shape1=None,
-                           shape2=None, tol=1.0e-7):
+                           shape2=None):
         """
         Create a points along the reference curve by distance.
 
@@ -650,7 +648,6 @@ class Part(ShapeHolder, NamedItem):
             point. This shape is intersected with the edge or wire.
         :param afem.topology.entities.Shape shape2: A shape to define the last
             point. This shape is intersected with the edge or wire.
-        :param float tol: Tolerance.
 
         :return: The points.
         :rtype: list(afem.geometry.entities.Point)
@@ -663,7 +660,7 @@ class Part(ShapeHolder, NamedItem):
 
         edge = Edge.by_curve(self._cref)
         builder = PointsAlongShapeByDistance(edge, maxd, d1, d2, shape1,
-                                             shape2, nmin, tol)
+                                             shape2, nmin)
         return builder.points
 
     def point_to_cref(self, pnt, direction=None):

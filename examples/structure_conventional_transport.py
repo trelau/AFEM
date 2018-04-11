@@ -1,7 +1,3 @@
-from __future__ import print_function
-
-from OCCT.BRepPrimAPI import BRepPrimAPI_MakeSphere
-
 from afem.config import Settings
 from afem.geometry import *
 from afem.graphics import Viewer
@@ -33,11 +29,11 @@ fuse_group = GroupAPI.create_group('fuselage group')
 
 # Nose bulkhead
 pln = PlaneByAxes((36, 0, 0), 'yz').plane
-bh1 = BulkheadBySurface('bh1', pln, fuselage).bulkhead
+bh1 = BulkheadByShape('bh1', pln, fuselage).part
 
 # Flight deck bulkhead
 pln = PlaneByAxes((120, 0, -24), 'yz').plane
-bh2 = BulkheadBySurface('bh2', pln, fuselage).bulkhead
+bh2 = BulkheadByShape('bh2', pln, fuselage).part
 
 # Cut door in flight deck
 face = FaceByPlane(pln, -18, 18, 0, 72).face
@@ -48,8 +44,8 @@ p = vtail.eval(0, 0)
 pln = PlaneByAxes(p, 'yz').plane
 section = IntersectShapes(fuselage.shape, pln).shape
 cg = LinearProps(section).cg
-sphere = BRepPrimAPI_MakeSphere(cg, 120).Shell()
-rev_fuselage = fuselage.shape.Reversed()
+sphere = SphereByRadius(cg, 120).shell
+rev_fuselage = fuselage.shape.reversed()
 sphere = CutShapes(sphere, rev_fuselage).shape
 rear_pressure_bh = Bulkhead('rear pressure bh', sphere)
 hs = HalfspaceBySurface(pln, (0, 0, 0)).solid
@@ -62,21 +58,21 @@ rear_pressure_bh_pln = PlaneByAxes(cg, 'yz').plane
 # Fwd bulkhead at 25% wing chord
 p0 = wing.eval(0.25, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
-fwd_bh = BulkheadBySurface('fwd bh', pln, fuselage).bulkhead
+fwd_bh = BulkheadByShape('fwd bh', pln, fuselage).part
 
 # Rear bulkhead at 65% wing chord
 p0 = wing.eval(0.65, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
-rear_bh = BulkheadBySurface('rear bh', pln, fuselage).bulkhead
+rear_bh = BulkheadByShape('rear bh', pln, fuselage).part
 
 # Aft bulkhead at 85% wing chord
 p0 = wing.eval(0.85, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
-aft_bh = BulkheadBySurface('aft bh', pln, fuselage).bulkhead
+aft_bh = BulkheadByShape('aft bh', pln, fuselage).part
 
 # Floor
 pln = PlaneByAxes((0., 0., -24.), 'xy').plane
-floor = FloorBySurface('floor', pln, fuselage).floor
+floor = FloorByShape('floor', pln, fuselage).part
 floor.set_transparency(0.5)
 floor.cut(rear_pressure_bh)
 floor.discard_by_solid(hs.reversed())
@@ -84,7 +80,7 @@ floor.cut(bh1.plane)
 floor.cut(bh2.plane)
 
 # Skin
-fskin = SkinByBody('fuselage skin', fuselage).skin
+fskin = SkinByBody('fuselage skin', fuselage).part
 fskin.set_transparency(0.5)
 
 # Cutting solids.
@@ -113,7 +109,7 @@ for pln1, pln2 in misc_utils.pairwise(plns):
     builder = FramesBetweenPlanesByDistance('frame', pln1, pln2, 24.,
                                             fuselage, 4., 24., -24.,
                                             first_index=next_index)
-    frames += builder.frames
+    frames += builder.parts
     next_index = builder.next_index
 
 # Floor beams and posts
@@ -147,7 +143,7 @@ for frame in frames[3:]:
 # Frames at bulkheads
 plns = [fwd_bh.plane, rear_bh.plane, aft_bh.plane]
 indx = len(frames) + 1
-bh_frames = FramesByPlanes('frame', plns, fuselage, 4., indx).frames
+bh_frames = FramesByPlanes('frame', plns, fuselage, 4., indx).parts
 
 CutParts(bh_frames, below_floor)
 frames += bh_frames
@@ -173,7 +169,7 @@ bbox = BBox()
 bbox.add_shape(fuselage.shape)
 xmax = bbox.xmax
 pln = PlaneByAxes((xmax - 36, 0, 0), 'yz').plane
-tail_bh = BulkheadBySurface('tail bh', pln, fuselage).bulkhead
+tail_bh = BulkheadByShape('tail bh', pln, fuselage).part
 
 # Aft frames
 plns = [rear_pressure_bh_pln, tail_bh.plane]
@@ -182,13 +178,13 @@ for pln1, pln2 in misc_utils.pairwise(plns):
     builder = FramesBetweenPlanesByDistance('frame', pln1, pln2, 24.,
                                             fuselage, 8, 36., -36.,
                                             first_index=next_index)
-    frames += builder.frames
+    frames += builder.parts
     next_index = builder.next_index
 
 # Join
 # FuseSurfaceParts([fwd_bh, rear_bh, aft_bh, floor, fskin], frames)
 
 master = GroupAPI.get_master()
-v = Viewer(1280, 1024)
+v = Viewer()
 v.add(master)
 v.start()

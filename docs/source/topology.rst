@@ -194,6 +194,10 @@ CylinderByAxis
 ~~~~~~~~~~~~~~
 .. autoclass:: CylinderByAxis
 
+SphereByRadius
+~~~~~~~~~~~~~~
+.. autoclass:: SphereByRadius
+
 SphereBy3Points
 ~~~~~~~~~~~~~~~
 .. autoclass:: SphereBy3Points

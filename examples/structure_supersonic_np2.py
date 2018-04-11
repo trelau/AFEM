@@ -34,7 +34,7 @@ def build(wing, fuselage):
 
     # Center rib using an xz-plane
     xz_plane = PlaneByAxes().plane
-    RibBySurface('center rib', xz_plane, wing, wa)
+    RibByShape('center rib', xz_plane, wing, wa)
 
     # Ribs 1, 2, and 3 are at specific key points in the wing and are defined
     # in the xz-plane. For this model, using the xz-plane makes the ribs align
@@ -44,19 +44,19 @@ def build(wing, fuselage):
     # Remember that the bounding box has already been enlarged by 6 units.
     p = PointByXYZ(0., fuselage_bbox.ymax, 0.).point
     sref = PlaneByAxes(p, 'xz').plane
-    rib1 = RibBySurface('rib 1', sref, wing, wa).rib
+    rib1 = RibByShape('rib 1', sref, wing, wa).part
 
     # Rib 2 is at the third cross section of the wing. The v-direction
     # parameter is vknots[2] since Python indexing starts at 0.
     p = wing.sref.eval(0., vknots[2])
     sref = PlaneByAxes(p, 'xz').plane
-    rib2 = RibBySurface('rib 2', sref, wing, wa).rib
+    rib2 = RibByShape('rib 2', sref, wing, wa).part
 
     # Rib 3 is at the tip of the wing which is found using the parameters
     # (0., 1.) of the wing reference surface.
     p = wing.sref.eval(0., 1.)
     sref = PlaneByAxes(p, 'xz').plane
-    rib3 = RibBySurface('rib 3', sref, wing, wa).rib
+    rib3 = RibByShape('rib 3', sref, wing, wa).part
 
     # Spars are defined in the wing using a front and rear spar location and
     # then evenly spaced number of spars between them. At each location there
@@ -79,38 +79,38 @@ def build(wing, fuselage):
     p1 = rib1.point_from_parameter(0.15, is_rel=True)
     sref = PlaneByAxes(p1, 'yz').plane
     fc_spar = SparBetweenShapes('center fspar', xz_plane, rib1.shape, wing,
-                                sref, wa).spar
+                                sref, wa).part
 
     # Front inboard spar
     p2 = rib2.point_from_parameter(0.15, is_rel=True)
     sref = PlaneByIntersectingShapes(fc_spar.shape, rib1.shape, p2).plane
     inbd_fspar = SparByPoints('inbd fspar', fc_spar.p2, p2, wing, sref,
-                              wa).spar
+                              wa).part
 
     # Front outboard spar
     p3 = rib3.point_from_parameter(0.15, is_rel=True)
     sref = PlaneByIntersectingShapes(inbd_fspar.shape, rib2.shape, p3).plane
     outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.p2, p3, wing,
-                               sref, wa).spar
+                               sref, wa).part
 
     # Front spar bulkhead
-    BulkheadBySurface('fspar bh', fc_spar.plane, fuselage, fa)
+    BulkheadByShape('fspar bh', fc_spar.plane, fuselage, fa)
 
     # Rear center spar at a relative distance along the center rib
     p1 = rib1.point_from_parameter(0.92, is_rel=True)
     sref = PlaneByAxes(p1, 'yz').plane
     rc_spar = SparBetweenShapes('center rspar', xz_plane, rib1.shape, wing,
-                                sref, wa).spar
+                                sref, wa).part
 
     # The rear spar is a single spar between the rear center spar and Rib 3.
     # The orientation is defined by the rear center spar at a relative location
     # along Rib 3.
     p3 = rib3.point_from_parameter(0.80, is_rel=True)
     sref = PlaneByIntersectingShapes(rc_spar.shape, rib1.shape, p3).plane
-    rspar = SparByPoints('rspar', rc_spar.p2, p3, wing, sref, wa).spar
+    rspar = SparByPoints('rspar', rc_spar.p2, p3, wing, sref, wa).part
 
     # Rear spar bulkhead
-    BulkheadBySurface('rspar bh', rc_spar.plane, fuselage, fa)
+    BulkheadByShape('rspar bh', rc_spar.plane, fuselage, fa)
 
     # Generate evenly spaced points between the front and rear spars to define
     # intermediate spars. Start and end parameters are found along the key ribs
@@ -137,15 +137,15 @@ def build(wing, fuselage):
     for p1, p2, p3 in zip(pnts1, pnts2, pnts3):
         # Bulkhead and center spar location
         sref = PlaneByAxes(p1, 'yz').plane
-        BulkheadBySurface('bh', sref, fuselage, fa)
+        BulkheadByShape('bh', sref, fuselage, fa)
 
         # Center spar
         spar1 = SparBetweenShapes('spar', xz_plane, rib1.shape, wing, sref,
-                                  wa).spar
+                                  wa).part
 
         # Inboard spar
         sref = PlaneByIntersectingShapes(spar1.shape, rib1.shape, p2).plane
-        spar2 = SparByPoints('spar', p1, p2, wing, sref, wa).spar
+        spar2 = SparByPoints('spar', p1, p2, wing, sref, wa).part
 
         # Outboard spar
         sref = PlaneByIntersectingShapes(spar2.shape, rib2.shape, p3).plane
@@ -155,26 +155,26 @@ def build(wing, fuselage):
     # then define the ribs.
     plns = PlanesBetweenPlanesByNumber(rib1.plane, rib2.plane, 1).planes
     for pln in plns:
-        RibBySurface('inbd rib', pln, wing, wa)
+        RibByShape('inbd rib', pln, wing, wa)
 
     # Outboard ribs by distance between Rib 2 and Rib 3
     plns = PlanesBetweenPlanesByDistance(rib2.plane, rib3.plane, 60., 60.,
                                          -60.).planes
     for pln in plns:
-        RibBySurface('rib', pln, wing, wa)
+        RibByShape('rib', pln, wing, wa)
 
     # Forward bulkhead at the second wing cross section in the yz-plane. The
     # origin of the plane is the leading edge (u=0.) at the second cross
     # section (vknots[1]).
     p = wing.eval(0., vknots[1])
     sref = PlaneByAxes(p, 'yz').plane
-    fbh = BulkheadBySurface('forward bh', sref, fuselage, fa).bulkhead
+    fbh = BulkheadByShape('forward bh', sref, fuselage, fa).part
 
     # Forward frames between an offset distance from the nose to the forward
     # bulkhead. Specify the spacing and the height.
     yz_plane = PlaneByAxes(axes='yz').plane
     frames = FramesBetweenPlanesByDistance('frame', yz_plane, fbh.plane, 60.,
-                                           fuselage, 3., 84., group=fa).frames
+                                           fuselage, 3., 84., group=fa).parts
 
     # Aft bulkheads between the rear spar bulkhead and a distance offset from
     # the aft end of the fuselage. Get the maximum x-distance (i.e., length of
@@ -185,7 +185,7 @@ def build(wing, fuselage):
     plns = PlanesBetweenPlanesByDistance(pln1, aft_pln, 60., 24., -24.).planes
     last_plane = plns[-1]
     for pln in plns:
-        BulkheadBySurface('bh', pln, fuselage, fa)
+        BulkheadByShape('bh', pln, fuselage, fa)
 
     # Gather lists of internal parts for the wing and fuselage structure
     internal_wing_parts = wa.get_parts()
@@ -231,10 +231,10 @@ def build(wing, fuselage):
     v.clear()
 
     # Fuselage skin using the shell of the fuselage body
-    fskin = SkinByBody('fuselage skin', fuselage, group=fa).skin
+    fskin = SkinByBody('fuselage skin', fuselage, group=fa).part
 
     # Wing skin using the shell of the wing body
-    wskin = SkinByBody('wing skin', wing, group=wa).skin
+    wskin = SkinByBody('wing skin', wing, group=wa).part
 
     # Discard the "caps" of the wing skin since ribs have been defined there
     # and we don't want overlapping structure. For this, define an iso-curve

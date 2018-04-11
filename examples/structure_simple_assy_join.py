@@ -25,13 +25,13 @@ wing_group = GroupAPI.create_group('wing group')
 
 rib_group = GroupAPI.create_group('rib group', wing_group)
 
-root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, wing).rib
-tip = RibByParameters('tip', 0.15, 0.2, 0.70, 0.2, wing).rib
+root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, wing).part
+tip = RibByParameters('tip', 0.15, 0.2, 0.70, 0.2, wing).part
 
 spar_group = GroupAPI.create_group('spar group', wing_group)
 
-fspar = SparByPoints('fspar', root.p1, tip.p1, wing).spar
-rspar = SparByPoints('rspar', root.p2, tip.p2, wing).spar
+fspar = SparByPoints('fspar', root.p1, tip.p1, wing).part
+rspar = SparByPoints('rspar', root.p2, tip.p2, wing).part
 
 rib_group.activate()
 RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, wing,
@@ -42,7 +42,7 @@ FuseGroups([rib_group, spar_group])
 DiscardByCref(wing_group.get_parts())
 
 wing_group.activate()
-skin = SkinByBody('wing skin', wing).skin
+skin = SkinByBody('wing skin', wing).part
 parts = rib_group.get_parts() + spar_group.get_parts()
 skin.fuse(*parts)
 skin.discard_by_dmin(wing.sref_shape, 1.)
@@ -52,11 +52,11 @@ skin.set_transparency(0.5)
 # FUSELAGE
 fuse_group = GroupAPI.create_group('fuse group')
 
-skin = SkinByBody('fuselage skin', fuselage).skin
+skin = SkinByBody('fuselage skin', fuselage).part
 skin.set_transparency(0.5)
 
 pln = PlaneByAxes(root.point_from_parameter(0.5, is_rel=True), 'yz').plane
-frame = FrameByPlane('frame', pln, fuselage, 3.).frame
+frame = FrameByPlane('frame', pln, fuselage, 3.).part
 
 # Causing issues with fusing group
 # vol = VolumesFromShapes(wing_group.get_parts()).shape
@@ -68,11 +68,11 @@ skin.fuse(frame)
 # HTAIL
 htail_group = GroupAPI.create_group('htail group')
 
-root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, htail).rib
-tip = RibByParameters('tip', 0.15, 0.5, 0.70, 0.5, htail).rib
+root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, htail).part
+tip = RibByParameters('tip', 0.15, 0.5, 0.70, 0.5, htail).part
 
-fspar = SparByPoints('fspar', root.p1, tip.p1, htail).spar
-rspar = SparByPoints('rspar', root.p2, tip.p2, htail).spar
+fspar = SparByPoints('fspar', root.p1, tip.p1, htail).part
+rspar = SparByPoints('rspar', root.p2, tip.p2, htail).part
 
 pln = PlaneByAxes().plane
 RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, htail,
@@ -82,7 +82,7 @@ parts = htail_group.get_parts()
 FuseSurfacePartsByCref(parts)
 DiscardByCref(parts)
 
-skin = SkinByBody('htail skin', htail).skin
+skin = SkinByBody('htail skin', htail).part
 skin.fuse(*parts)
 skin.discard_by_dmin(htail.sref_shape, 1.)
 skin.fix()
@@ -95,7 +95,6 @@ print(time.time() - start)
 
 shape = bop.shape
 tool = ExploreFreeEdges(shape)
-print(tool.free_edges)
 
 parts = GroupAPI.get_master().get_parts()
 

@@ -39,30 +39,30 @@ wing.set_transparency(0.5)
 r = 148. / 2.
 pln = PlaneByAxes((0., r, 0.), 'xz').plane
 
-root_rib = RibBySurface('root rib', pln, wing).rib
+root_rib = RibByShape('root rib', pln, wing).part
 
 # Tip rib
 p0 = [-370.472441, 669.291339, 58.555188]
 pln = PlaneByAxes(p0, 'xz').plane
-tip_rib = RibBySurface('tip rib', pln, wing).rib
+tip_rib = RibByShape('tip rib', pln, wing).part
 
 # Rear spar
 p1 = root_rib.point_from_parameter(0.7, is_rel=True)
 p2 = tip_rib.point_from_parameter(0.7, is_rel=True)
-rspar = SparByPoints('rear spar', p1, p2, wing).spar
+rspar = SparByPoints('rear spar', p1, p2, wing).part
 
 # Front inboard spar
 u = root_rib.local_to_global_u(0.15)
 p1 = root_rib.point_on_cref(u)
 v = wing.sref.vknots[1]
 p2 = wing.eval(0.15, v)
-inbd_fspar = SparByPoints('inbd front spar', p1, p2, wing).spar
+inbd_fspar = SparByPoints('inbd front spar', p1, p2, wing).part
 
 # Front outboard spar
 p1 = inbd_fspar.p2
 u = tip_rib.local_to_global_u(0.15)
 p2 = tip_rib.point_on_cref(u)
-outbd_fspar = SparByPoints('outbd front spar', p1, p2, wing).spar
+outbd_fspar = SparByPoints('outbd front spar', p1, p2, wing).part
 
 # Adjust root and tip rib reference curve
 root_rib.set_p1(inbd_fspar.p1)
@@ -75,18 +75,18 @@ p1 = inbd_fspar.p2
 p2 = inbd_fspar.p2
 rspar.points_to_cref([p2])
 pln = PlaneByIntersectingShapes(inbd_fspar.shape, outbd_fspar.shape, p2).plane
-kink_rib = RibByPoints('kink rib', p1, p2, wing, pln).rib
+kink_rib = RibByPoints('kink rib', p1, p2, wing, pln).part
 
 # Inboard ribs
 u2 = rspar.invert_cref(kink_rib.p2)
 inbd_ribs = RibsAlongCurveByDistance('inbd rib', rspar.cref, 24.,
                                      inbd_fspar.shape, rspar.shape, wing,
-                                     d1=12., d2=-24., u2=u2).ribs
+                                     d1=12., d2=-24., u2=u2).parts
 
 # Outboard ribs
 outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 24.,
                                       outbd_fspar.shape, rspar.shape, wing,
-                                      d1=24, d2=-24., u1=u2).ribs
+                                      d1=24, d2=-24., u1=u2).parts
 
 # Front center spar
 xz_pln = PlaneByAxes(axes='xz').plane
@@ -96,14 +96,14 @@ p1 = inbd_fspar.p1
 ProjectPointToSurface(p1, xz_pln, update=True)
 
 pln = PlaneByIntersectingShapes(inbd_fspar.shape, root_rib.shape, p1).plane
-fcspar = SparByPoints('front center spar', p1, p2, wing, pln).spar
+fcspar = SparByPoints('front center spar', p1, p2, wing, pln).part
 
 # Rear center spar
 p2 = rspar.p1
 p1 = rspar.p1
 ProjectPointToSurface(p1, xz_pln, update=True)
 pln = PlaneByIntersectingShapes(rspar.shape, root_rib.shape, p1).plane
-rcspar = SparByPoints('rear center spar', p1, p2, wing, pln).spar
+rcspar = SparByPoints('rear center spar', p1, p2, wing, pln).part
 
 # Center ribs
 tool = PointsAlongCurveByNumber(rcspar.cref, 4)
@@ -112,7 +112,7 @@ center_ribs = []
 for p in tool.interior_points:
     pln = PlaneByAxes(p, 'xz').plane
     name = ' '.join(['center rib', str(i)])
-    rib = RibBetweenShapes(name, fcspar.shape, rcspar.shape, wing, pln).rib
+    rib = RibBetweenShapes(name, fcspar.shape, rcspar.shape, wing, pln).part
     center_ribs.append(rib)
     i += 1
 
@@ -123,7 +123,7 @@ FuseSurfacePartsByCref(wing_parts)
 DiscardByCref(wing_parts)
 
 # Skin
-skin = SkinByBody('skin', wing).skin
+skin = SkinByBody('skin', wing).part
 skin.fuse(*wing_parts)
 
 hs = HalfspaceBySurface(tip_rib.sref, [0, 1e6, 0]).solid

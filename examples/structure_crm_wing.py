@@ -80,7 +80,7 @@ vknots = rhs_wing.sref.vknots
 # Root rib at the first wing station using xz-plane. Restrict to 15 and 75%
 # chord.
 pln = PlaneByAxes(rhs_wing.eval(0., vknots[1]), 'xz').plane
-root_rib = RibBySurface('root rib', pln, rhs_wing).rib
+root_rib = RibByShape('root rib', pln, rhs_wing).part
 p1 = root_rib.point_from_parameter(0.15, is_rel=True)
 p2 = root_rib.point_from_parameter(0.75, is_rel=True)
 root_rib.set_p1(p1)
@@ -88,32 +88,33 @@ root_rib.set_p2(p2)
 
 # Tip rib
 v2 = vknots[-1]
-tip_rib = RibByParameters('tip rib', 0.15, v2, 0.75, v2, rhs_wing).rib
+tip_rib = RibByParameters('tip rib', 0.15, v2, 0.75, v2, rhs_wing).part
 
 # Front center spar
 pln = PlaneByAxes(root_rib.p1, 'yz').plane
 fc_spar = SparBetweenShapes('fc spar', xz_face, root_rib.shape, rhs_wing,
-                            pln).spar
+                            pln).part
 
 # Rear center spar
 pln = PlaneByAxes(root_rib.p2, 'yz').plane
 rc_spar = SparBetweenShapes('rc spar', xz_face, root_rib.shape, rhs_wing,
-                            pln).spar
+                            pln).part
 
 # Front spar is between the second and last wing stations. Use intersection
 # of center spar and root rib for orientation.
-pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape, tip_rib.p1).plane
-fspar = SparByPoints('fspar', root_rib.p1, tip_rib.p1, rhs_wing, pln).spar
+pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape,
+                                tip_rib.p1).plane
+fspar = SparByPoints('fspar', root_rib.p1, tip_rib.p1, rhs_wing, pln).part
 
 # Rear spar 1 is between second and third wing stations. Use intersection
 # of center spar and root rib for orientation.
 v2 = vknots[2]
 p2 = rhs_wing.eval(0.75, v2)
 pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, p2).plane
-rspar1 = SparByPoints('rspar 1', root_rib.p2, p2, rhs_wing, pln).spar
+rspar1 = SparByPoints('rspar 1', root_rib.p2, p2, rhs_wing, pln).part
 
 # Rear spar 2 is between the third and last wing stations
-rspar2 = SparByPoints('rspar 2', rspar1.p2, tip_rib.p2, rhs_wing).spar
+rspar2 = SparByPoints('rspar 2', rspar1.p2, tip_rib.p2, rhs_wing).part
 
 parts = GroupAPI.get_parts()
 
@@ -142,7 +143,7 @@ builder3 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar.shape,
                                     u1=uref_kink,
                                     first_index=builder2.next_index)
 
-ribs = builder1.ribs + builder2.ribs + builder3.ribs
+ribs = builder1.parts + builder2.parts + builder3.parts
 
 # Fuse the ribs with their interfacing structure
 FuseSurfaceParts(ribs, [root_rib, fspar, rspar1, rspar2])
@@ -150,14 +151,14 @@ DiscardByCref(ribs)
 
 # Center wing ribs
 ribs = RibsBetweenPlanesByNumber('center rib', xz_pln, root_rib.plane, 4,
-                                 fc_spar.shape, rc_spar.shape, rhs_wing).ribs
+                                 fc_spar.shape, rc_spar.shape, rhs_wing).parts
 FuseSurfaceParts(ribs, [fc_spar, rc_spar])
 DiscardByCref(ribs)
 
 internal_parts = GroupAPI.get_parts()
 
 # Skin
-skin = SkinByBody('skin', rhs_wing).skin
+skin = SkinByBody('skin', rhs_wing).part
 skin.fuse(*internal_parts)
 skin.discard_by_dmin(rhs_wing.sref_shape, 1.)
 skin.fix()

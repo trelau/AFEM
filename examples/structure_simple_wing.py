@@ -19,14 +19,14 @@ wing = vsp_import.get_body('WingGeom')
 
 # Build structure
 wingbox = GroupAPI.create_group('wing box')
-fspar = SparByParameters('front spar', 0.15, 0., 0.15, 1., wing).spar
-rspar = SparByParameters('rear spar', 0.70, 0., 0.70, 1., wing).spar
+fspar = SparByParameters('front spar', 0.15, 0., 0.15, 1., wing).part
+rspar = SparByParameters('rear spar', 0.70, 0., 0.70, 1., wing).part
 RibByPoints('root rib', fspar.p1, rspar.p1, wing)
 RibByPoints('tip rib', fspar.p2, rspar.p2, wing)
 RibsAlongCurveByDistance('rib', rspar.cref, 30, fspar.shape, rspar.shape,
                          wing, d1=30, d2=-30)
 internal_parts = wingbox.get_parts()
-skin = SkinByBody('skin', wing).skin
+skin = SkinByBody('skin', wing).part
 cref = wing.sref.u_iso(0.5)
 skin.discard_by_dmin(cref, 1.0)
 
