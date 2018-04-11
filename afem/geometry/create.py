@@ -40,12 +40,12 @@ from numpy import array, cross, mean, zeros
 from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
 
+from afem.adaptor.entities import AdaptorCurve
 from afem.geometry import utils as geom_utils
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
 from afem.geometry.project import *
 from afem.occ import utils as occ_utils
-from afem.adaptor.entities import AdaptorCurve
 
 __all__ = ["PointByXYZ", "PointByArray",
            "PointFromParameter", "PointsAlongCurveByNumber",
@@ -631,7 +631,7 @@ class CircleByPlane(object):
             msg = "Invalid plane."
             raise TypeError(msg)
 
-        gp_circ = gce_MakeCirc(center, plane.object.Pln(), radius).Value()
+        gp_circ = gce_MakeCirc(center, plane.gp_pln, radius).Value()
 
         self._circle = Circle(Geom_Circle(gp_circ))
 
@@ -1228,18 +1228,6 @@ class PlanesAlongCurveByNumber(object):
 
     :raise RuntimeError: If :class:`.PointsAlongCurveByNumber` fails to
         generate points along the curve.
-
-    Usage:
-
-    >>> from afem.geometry import LineByPoints, PlanesAlongCurveByNumber
-    >>> line = LineByPoints((0., 0., 0.), (10., 0., 0.)).line
-    >>> builder = PlanesAlongCurveByNumber(line, 3, u1=0., u2=10.)
-    >>> builder.nplanes
-    3
-    >>> builder.parameters
-    [0.0, 5.0, 10.0]
-    >>> builder.spacing
-    5.0
     """
 
     def __init__(self, c, n, ref_pln=None, u1=None, u2=None, d1=None,
@@ -1348,18 +1336,6 @@ class PlanesAlongCurveByDistance(object):
 
     :raise RuntimeError: If :class:`.PointsAlongCurveByDistance` fails to
         generate points along the curve.
-
-    Usage:
-
-    >>> from afem.geometry import LineByPoints, Point, PlanesAlongCurveByDistance
-    >>> p1 = Point()
-    >>> p2 = Point(10., 0., 0.)
-    >>> line = LineByPoints(p1, p2).line
-    >>> builder = PlanesAlongCurveByDistance(line, 5., u1=0., u2=10.)
-    >>> builder.nplanes
-    3
-    >>> builder.parameters
-    [0.0, 5.0, 10.0]
     """
 
     def __init__(self, c, maxd, ref_pln=None, u1=None, u2=None, d1=None,
@@ -1461,26 +1437,6 @@ class PlanesBetweenPlanesByNumber(object):
 
     :raise RuntimeError: If the line extending from the normal of the first
         plane cannot be intersected with the second plane.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByNormal, PlanesBetweenPlanesByNumber
-    >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
-    >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
-    >>> builder = PlanesBetweenPlanesByNumber(pln1, pln2, 3)
-    >>> builder.nplanes
-    3
-    >>> builder.spacing
-    2.5
-    >>> pln1 = builder.planes[0]
-    >>> pln1.eval(0., 0.)
-    Point(2.500, 0.000, 0.000)
-    >>> pln2 = builder.planes[1]
-    >>> pln2.eval(0., 0.)
-    Point(5.000, 0.000, 0.000)
-    >>> pln3 = builder.planes[2]
-    >>> pln3.eval(0., 0.)
-    Point(7.500, 0.000, 0.000)
     """
 
     def __init__(self, pln1, pln2, n, d1=None, d2=None):
@@ -1580,29 +1536,6 @@ class PlanesBetweenPlanesByDistance(object):
 
     :raise RuntimeError: If the line extending from the normal of the first
         plane cannot be intersected with the second plane.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByNormal, PlanesBetweenPlanesByDistance
-    >>> pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
-    >>> pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
-    >>> builder = PlanesBetweenPlanesByDistance(pln1, pln2, 2.)
-    >>> builder.nplanes
-    4
-    >>> builder.spacing
-    2.0
-    >>> pln1 = builder.planes[0]
-    >>> pln1.eval(0., 0.)
-    Point(2.000, 0.000, 0.000)
-    >>> pln2 = builder.planes[1]
-    >>> pln2.eval(0., 0.)
-    Point(4.000, 0.000, 0.000)
-    >>> pln3 = builder.planes[2]
-    >>> pln3.eval(0., 0.)
-    Point(6.000, 0.000, 0.000)
-    >>> pln4 = builder.planes[3]
-    >>> pln4.eval(0., 0.)
-    Point(8.000, 0.000, 0.000)
     """
 
     def __init__(self, pln1, pln2, maxd, d1=None, d2=None, nmin=0):
@@ -1791,7 +1724,6 @@ class PlanesAlongCurveAndSurfaceByDistance(object):
 
 # NURBSSURFACE ----------------------------------------------------------------
 
-
 class NurbsSurfaceByInterp(object):
     """
     Create a surface by interpolating curves. This method was developed from
@@ -1804,18 +1736,6 @@ class NurbsSurfaceByInterp(object):
     :param OCCT.Approx.Approx_ParametrizationType parm_type: Parametrization
         type.
     :param float tol2d: 2-D tolerance.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
-    >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
-    >>> builder = NurbsSurfaceByInterp([c1, c2, c3], 2)
-    >>> assert builder.surface
-    >>> s = builder.surface
-    >>> s.eval(0.5, 0.5)
-    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, crvs, q=3, parm_type=Approx_ChordLength, tol2d=1.0e-9):
@@ -1947,22 +1867,6 @@ class NurbsSurfaceByApprox(object):
 
     :raise RuntimeError: If OCC method fails to approximate the curves with a
         surface.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
-    >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
-    >>> builder = NurbsSurfaceByApprox([c1, c2, c3])
-    >>> assert builder.surface
-    >>> builder.told3d_reached
-    0.0
-    >>> builder.told2d_reached
-    0.0
-    >>> s = builder.surface
-    >>> s.eval(0.5, 0.5)
-    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, crvs, dmin=3, dmax=8, tol3d=1.0e-3, tol2d=1.0e-6,

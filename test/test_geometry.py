@@ -267,7 +267,7 @@ class TestGeometryCreate(unittest.TestCase):
         self.assertAlmostEqual(p.y, 1.333, places=3)
         self.assertAlmostEqual(p.z, 0.)
 
-    def test_plane_by_parameter(self):
+    def test_plane_from_parameter(self):
         line = LineByPoints((0, 0, 0), (10, 0, 0)).line
         pln = PlaneFromParameter(line, 0., 1.).plane
         self.assertIsInstance(pln, Plane)
@@ -275,6 +275,84 @@ class TestGeometryCreate(unittest.TestCase):
         self.assertAlmostEqual(p.x, 1.)
         self.assertAlmostEqual(p.y, -1.)
         self.assertAlmostEqual(p.z, 1.)
+
+    def test_planes_along_curve_by_number(self):
+        p1 = Point()
+        p2 = Point(10., 0., 0.)
+        line = LineByPoints(p1, p2).line
+        builder = PlanesAlongCurveByNumber(line, 3, u1=0., u2=10.)
+        self.assertEqual(builder.nplanes, 3)
+        self.assertAlmostEqual(builder.spacing, 5.)
+        p1, p2, p3 = builder.planes
+        u1, u2, u3 = builder.parameters
+        self.assertIsInstance(p1, Plane)
+        self.assertIsInstance(p2, Plane)
+        self.assertIsInstance(p3, Plane)
+        self.assertAlmostEqual(u1, 0.)
+        self.assertAlmostEqual(u2, 5.)
+        self.assertAlmostEqual(u3, 10.)
+
+    def test_planes_along_curve_by_distance(self):
+        p1 = Point()
+        p2 = Point(10., 0., 0.)
+        line = LineByPoints(p1, p2).line
+        builder = PlanesAlongCurveByDistance(line, 5., u1=0., u2=10.)
+        self.assertEqual(builder.nplanes, 3)
+        self.assertAlmostEqual(builder.spacing, 5.)
+        p1, p2, p3 = builder.planes
+        u1, u2, u3 = builder.parameters
+        self.assertIsInstance(p1, Plane)
+        self.assertIsInstance(p2, Plane)
+        self.assertIsInstance(p3, Plane)
+        self.assertAlmostEqual(u1, 0.)
+        self.assertAlmostEqual(u2, 5.)
+        self.assertAlmostEqual(u3, 10.)
+
+    def test_planes_between_planes_by_number(self):
+        pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
+        pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
+        builder = PlanesBetweenPlanesByNumber(pln1, pln2, 3)
+        self.assertEqual(builder.nplanes, 3)
+        self.assertAlmostEqual(builder.spacing, 2.5)
+        p1, p2, p3 = builder.planes
+        self.assertIsInstance(p1, Plane)
+        self.assertIsInstance(p2, Plane)
+        self.assertIsInstance(p3, Plane)
+
+    def test_planes_between_planes_by_distance(self):
+        pln1 = PlaneByNormal((0., 0., 0.), (1., 0., 0.)).plane
+        pln2 = PlaneByNormal((10., 0., 0.), (1., 0., 0.)).plane
+        builder = PlanesBetweenPlanesByDistance(pln1, pln2, 2.5)
+        self.assertEqual(builder.nplanes, 3)
+        self.assertAlmostEqual(builder.spacing, 2.5)
+        p1, p2, p3 = builder.planes
+        self.assertIsInstance(p1, Plane)
+        self.assertIsInstance(p2, Plane)
+        self.assertIsInstance(p3, Plane)
+
+    def test_nurbs_surface_by_interp(self):
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
+        c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
+        builder = NurbsSurfaceByInterp([c1, c2, c3], 2)
+        s = builder.surface
+        self.assertIsInstance(s, NurbsSurface)
+        p = s.eval(0.5, 0.5)
+        self.assertAlmostEqual(p.x, 5.)
+        self.assertAlmostEqual(p.y, 5.)
+        self.assertAlmostEqual(p.z, 5.)
+
+    def test_nurbs_surface_by_approx(self):
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
+        c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
+        builder = NurbsSurfaceByApprox([c1, c2, c3])
+        s = builder.surface
+        self.assertIsInstance(s, NurbsSurface)
+        p = s.eval(0.5, 0.5)
+        self.assertAlmostEqual(p.x, 5.)
+        self.assertAlmostEqual(p.y, 5.)
+        self.assertAlmostEqual(p.z, 5.)
 
 
 if __name__ == '__main__':
