@@ -4,14 +4,7 @@ from afem.graphics import Viewer
 
 Settings.log_to_console()
 
-fn = r'..\models\777-200LR.stp'
-# fn = r'..\models\TBW_SUGAR.stp'
-# fn = r'..\models\F-16.stp'
-# fn = r'..\models\HWB.stp'
-# fn = r'..\models\N2A_nosplit.stp'
-# fn = r'..\models\manta2.stp'
-# fn = r'..\models\777-200LR_vsp315.stp'
-# fn = r'..\models\777-200LR_nosplit_vsp315.stp'
+fn = '../models/777-200LR.stp'
 
 vsp_import = ImportVSP(fn)
 

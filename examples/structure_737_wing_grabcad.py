@@ -10,7 +10,7 @@ from afem.topology import *
 Settings.log_to_console()
 
 # Import wing solid from STEP file
-step_read = StepRead(r'../models/boeing_737_wing_grabcad.step')
+step_read = StepRead(r'../models/B737_wing_GrabCAD.step')
 shape = step_read.shape
 solids = shape.solids
 # There should only be one solid that is the wing
