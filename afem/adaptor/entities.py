@@ -80,6 +80,14 @@ class AdaptorCurve(AdaptorBase):
         return self.object.LastParameter()
 
     @property
+    def continuity(self):
+        """
+        :return: The continuity of the adaptor curve.
+        :rtype: OCCT.GeomAbs.GeomAbs_Shape
+        """
+        return self.object.Continuity()
+
+    @property
     def is_closed(self):
         """
         :return: *True* if curve is closed, *False* if not.
@@ -94,6 +102,14 @@ class AdaptorCurve(AdaptorBase):
         :rtype: bool
         """
         return self.object.IsPeriodic()
+
+    @property
+    def type(self):
+        """
+        :return: The type of the adaptor curve.
+        :rtype: OCCT.GeomAbs.GeomAbs_CurveType
+        """
+        return self.object.GetType()
 
     @property
     def length(self):
@@ -303,6 +319,14 @@ class AdaptorSurface(AdaptorBase):
         :rtype: float
         """
         return self.object.LastVParameter()
+
+    @property
+    def type(self):
+        """
+        :return: The type of the adaptor surface.
+        :rtype: OCCT.GeomAbs.GeomAbs_SurfaceType
+        """
+        return self.object.GetType()
 
     def eval(self, u=0., v=0.):
         """

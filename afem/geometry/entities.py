@@ -30,7 +30,8 @@ from OCCT.Geom import (Geom_Line, Geom_Circle, Geom_Ellipse, Geom_BSplineCurve,
 from OCCT.Geom2d import Geom2d_BSplineCurve, Geom2d_Curve
 from OCCT.Geom2dAdaptor import Geom2dAdaptor_Curve
 from OCCT.GeomAPI import GeomAPI
-from OCCT.GeomAbs import GeomAbs_Shape, GeomAbs_JoinType
+from OCCT.GeomAbs import (GeomAbs_Shape, GeomAbs_JoinType, GeomAbs_CurveType,
+                          GeomAbs_SurfaceType)
 from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
 from OCCT.GeomLib import GeomLib_IsPlanarSurface
 from OCCT.TColStd import (TColStd_Array1OfInteger, TColStd_Array1OfReal,
@@ -671,8 +672,6 @@ class Geometry2D(object):
 class Curve2D(Geometry2D):
     """
     Base class for 2-D curves around ``Geom2d_Curve``.
-
-    :param OCCT.Geom2d.Geom2d_Curve obj: The 2-D curve object.
     """
     _OCC_TYPE = Geom2d_Curve
 
@@ -861,8 +860,6 @@ class Curve2D(Geometry2D):
 class NurbsCurve2D(Curve2D):
     """
     NURBS curve in 2-D space around ``Geom2d_BSplineCurve``.
-
-    :param OCCT.Geom2d.Geom2d_BSplineCurve obj: The curve object.
     """
     _OCC_TYPE = Geom2d_BSplineCurve
 
@@ -1986,9 +1983,34 @@ class Curve(Geometry):
     """
     Base class for curves around ``Geom_Curve``.
 
-    :param OCCT.Geom.Geom_Curve obj: The curve object.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_Line LINE: Line type.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_Circle CIRCLE: Circle type.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_Ellipse ELLIPSE: Ellipse type.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_Hyperbola HYPERBOLA: Hyperbola
+        type.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_Parabola PARABOLA: Parabola
+        type.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_BezierCurve BEZIER: Bezier
+        curve type.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_BSplineCurve BSPLINE: BSpline
+        curve type.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_OffsetCurve OFFSET: Offset
+        curve type.
+    :cvar OCCT.GeomAbs.GeomAbs_CurveType.GeomAbs_OtherCurve OTHER: Other curve
+        type.
     """
     _OCC_TYPE = Geom_Curve
+
+    # Curve types
+    LINE = GeomAbs_CurveType.GeomAbs_Line
+    CIRCLE = GeomAbs_CurveType.GeomAbs_Circle
+    ELLIPSE = GeomAbs_CurveType.GeomAbs_Ellipse
+    HYPERBOLA = GeomAbs_CurveType.GeomAbs_Hyperbola
+    PARABOLA = GeomAbs_CurveType.GeomAbs_Parabola
+    BEZIER = GeomAbs_CurveType.GeomAbs_BezierCurve
+    BSPLINE = GeomAbs_CurveType.GeomAbs_BSplineCurve
+    OFFSET = GeomAbs_CurveType.GeomAbs_OffsetCurve
+    OTHER = GeomAbs_CurveType.GeomAbs_OtherCurve
 
     @property
     def displayed_shape(self):
@@ -2178,8 +2200,6 @@ class Curve(Geometry):
 class Line(Curve):
     """
     Infinite line around ``Geom_Line``.
-
-    :param OCCT.Geom.Geom_Line obj: The line object.
     """
     _OCC_TYPE = Geom_Line
 
@@ -2212,8 +2232,6 @@ class Line(Curve):
 class Circle(Curve):
     """
     Circular curve around ``Geom_Circle``.
-
-    :param OCCT.Geom.Geom_Circle obj: The circle object.
     """
     _OCC_TYPE = Geom_Circle
 
@@ -2247,8 +2265,6 @@ class Circle(Curve):
 class Ellipse(Curve):
     """
     Elliptical curve around ``Geom_Ellipse``.
-
-    :param OCCT.Geom.Geom_Ellipse obj: The ellipse object.
     """
     _OCC_TYPE = Geom_Ellipse
 
@@ -2292,8 +2308,6 @@ class Ellipse(Curve):
 class NurbsCurve(Curve):
     """
     NURBS curve around ``Geom_BSplineCurve``.
-
-    :param OCCT.Geom.Geom_BSplineCurve obj: The curve object.
     """
     _OCC_TYPE = Geom_BSplineCurve
 
@@ -2449,8 +2463,6 @@ class TrimmedCurve(Curve):
     """
     Trimmed curve around ``Geom_TrimmedCurve``. This defines a basis curve
     limited by two parameter values.
-
-    :param OCCT.Geom.Geom_TrimmedCurve obj: The object.
     """
     _OCC_TYPE = Geom_TrimmedCurve
 
@@ -2524,9 +2536,39 @@ class Surface(Geometry):
     """
     Base class for surfaces around ``Geom_Surface``.
 
-    :param OCCT.Geom.Geom_Surface obj: The surface object.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_Plane PLANE: Plane type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_Cylinder CYLINDER: Cylinder
+        type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_Cone CONE: Cone type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_Sphere SPHERE: Sphere type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_Torus TORUS: Torus type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_BezierSurface BEZIER: Bezier
+        type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_BSplineSurface BSPLINE:
+        BSpline type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_SurfaceOfRevolution \
+        REVOLUTION: Revolution type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_SurfaceOfExtrusion \
+        EXTRUSION: Extrusion type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_OffsetSurface OFFSET: Offset
+        type.
+    :cvar OCCT.GeomAbs.GeomAbs_SurfaceType.GeomAbs_OtherSurface OTHER: Other
+        type.
     """
     _OCC_TYPE = Geom_Surface
+
+    # Surface types
+    PLANE = GeomAbs_SurfaceType.GeomAbs_Plane
+    CYLINDER = GeomAbs_SurfaceType.GeomAbs_Cylinder
+    CONE = GeomAbs_SurfaceType.GeomAbs_Cone
+    SPHERE = GeomAbs_SurfaceType.GeomAbs_Sphere
+    TORUS = GeomAbs_SurfaceType.GeomAbs_Torus
+    BEZIER = GeomAbs_SurfaceType.GeomAbs_BezierSurface
+    BSPLINE = GeomAbs_SurfaceType.GeomAbs_BSplineSurface
+    REVOLUTION = GeomAbs_SurfaceType.GeomAbs_SurfaceOfRevolution
+    EXTRUSION = GeomAbs_SurfaceType.GeomAbs_SurfaceOfExtrusion
+    OFFSET = GeomAbs_SurfaceType.GeomAbs_OffsetSurface
+    OTHER = GeomAbs_SurfaceType.GeomAbs_OtherSurface
 
     @property
     def displayed_shape(self):
@@ -2732,8 +2774,6 @@ class Surface(Geometry):
 class Plane(Surface):
     """
     Infinite plane around ``Geom_Plane``.
-
-    :param OCCT.Geom.Geom_Plane obj: The plane object.
     """
     _OCC_TYPE = Geom_Plane
 
@@ -2830,8 +2870,6 @@ class Plane(Surface):
 class NurbsSurface(Surface):
     """
     NURBS surface around ``Geom_BSplineSurface``.
-
-    :param OCCT.Geom.Geom_BSplineSurface obj: The surface object.
     """
     _OCC_TYPE = Geom_BSplineSurface
 
