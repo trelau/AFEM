@@ -17,10 +17,11 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from collections import Sequence
-from warnings import warn
 
 from OCCT.Quantity import Quantity_TOC_RGB, Quantity_Color
 from numpy.random import rand
+
+from afem.config import logger
 
 __all__ = ["Metadata", "NamedItem", "ViewableItem", "ShapeHolder"]
 
@@ -212,8 +213,12 @@ class ShapeHolder(ViewableItem):
                 expected = 'a ' + expected[0]
             else:
                 expected = 'one of (' + ', '.join(expected) + ')'
-            msg = ('Invalid shape provided for a {} object. '
-                   'Got a {} but expected {}.'.format(this, other, expected))
-            warn(msg, RuntimeWarning)
+            name = 'Unknown'
+            if isinstance(self, NamedItem):
+                name = self.name
+            msg = ('Invalid shape provided for a {} object with name {}. '
+                   'Got a {} but expected {}.'.format(this, name, other,
+                                                      expected))
+            logger.warning(msg)
 
         self._shape = shape

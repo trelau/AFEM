@@ -20,6 +20,7 @@ from OCCT.BRepCheck import BRepCheck_Analyzer, BRepCheck_NoError
 from OCCT.BRepClass3d import BRepClass3d_SolidClassifier
 from OCCT.TopAbs import TopAbs_IN, TopAbs_ON, TopAbs_OUT, TopAbs_UNKNOWN
 
+from afem.config import logger
 from afem.geometry.check import CheckGeom
 from afem.topology.entities import Face
 
@@ -79,18 +80,23 @@ class CheckShape(object):
         """
         return self._invalid
 
-    def show_errors(self, logger=None):
+    def print_errors(self):
         """
         Print the errors.
 
-        :param logger: A logger to print to. Otherwise to the console.
+        :return: None.
+        """
+        for msg in self._errors:
+            print(msg)
+
+    def log_errors(self):
+        """
+        Log the errors at the "info" level.
 
         :return: None.
         """
-        if logger is None:
-            logger = print
         for msg in self._errors:
-            logger(msg)
+            logger.info(msg)
 
     def is_subshape_valid(self, shape):
         """
@@ -120,18 +126,6 @@ class ClassifyPointInSolid(object):
             self._tool = BRepClass3d_SolidClassifier(solid.object)
         else:
             self._tool = BRepClass3d_SolidClassifier(solid.object, pnt, tol)
-
-    def perform(self, pnt, tol=1.0e-7):
-        """
-        Perform the classification with the point and tolerance.
-
-        :param point_like pnt: The point.
-        :param float tol: The tolerance.
-
-        :return: None.
-        """
-        pnt = CheckGeom.to_point(pnt)
-        self._tool.Perform(pnt, tol)
 
     @property
     def is_in(self):
@@ -172,6 +166,18 @@ class ClassifyPointInSolid(object):
         :rtype: bool
         """
         return self._tool.IsOnAFace()
+
+    def perform(self, pnt, tol=1.0e-7):
+        """
+        Perform the classification with the point and tolerance.
+
+        :param point_like pnt: The point.
+        :param float tol: The tolerance.
+
+        :return: None.
+        """
+        pnt = CheckGeom.to_point(pnt)
+        self._tool.Perform(pnt, tol)
 
     def face(self):
         """

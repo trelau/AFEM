@@ -69,7 +69,7 @@ def shape_of_entity(entity):
         return Shape.to_shape(entity)
 
 
-class Part(ShapeHolder, NamedItem):
+class Part(NamedItem, ShapeHolder):
     """
     Base class for all parts.
 
@@ -88,14 +88,15 @@ class Part(ShapeHolder, NamedItem):
     _mesh = None
 
     def __init__(self, name, shape, cref=None, sref=None, group=None):
+        super(Part, self).__init__(name)
+
         # Shape holder
         type_ = (Shape,)
         if isinstance(self, CurvePart):
             type_ = (Edge, Wire, Compound)
         elif isinstance(self, SurfacePart):
             type_ = (Face, Shell, Compound)
-        super(Part, self).__init__(type_, shape)
-        NamedItem.__init__(self, name)
+        ShapeHolder.__init__(self, type_, shape)
 
         # Unique ID
         self._id = Part._indx

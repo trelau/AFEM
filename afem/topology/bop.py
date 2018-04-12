@@ -17,7 +17,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from datetime import datetime
-from warnings import warn
 
 from OCCT.BOPAlgo import BOPAlgo_MakerVolume, BOPAlgo_Options
 from OCCT.BRepAlgoAPI import (BRepAlgoAPI_Common, BRepAlgoAPI_Cut,
@@ -28,6 +27,7 @@ from OCCT.Message import Message_Gravity
 from OCCT.TopTools import TopTools_SequenceOfShape
 from OCCT.TopoDS import TopoDS_Face
 
+from afem.config import logger
 from afem.geometry.entities import Surface
 from afem.occ.utils import to_topods_list
 from afem.topology.entities import Shape, Face, Solid, Compound
@@ -265,7 +265,7 @@ class BopAlgo(BopCore):
             n = self._bop.__class__.__name__
             msg = ('Setting tools not available for {}. '
                    'Doing nothing.'.format(n))
-            warn(msg, RuntimeWarning)
+            logger.warning(msg)
             return None
 
         tools = to_topods_list(shapes)
@@ -298,7 +298,7 @@ class BopAlgo(BopCore):
             n = self._bop.__class__.__name__
             msg = ('Refining edges not available for {}. '
                    'Doing nothing.'.format(n))
-            warn(msg, RuntimeWarning)
+            logger.warning(msg)
         else:
             self._bop.RefineEdges()
 
@@ -326,7 +326,7 @@ class BopAlgo(BopCore):
             n = self._bop.__class__.__name__
             msg = ('Getting section edges not available for {}. '
                    'Returning an empty list.'.format(n))
-            warn(msg, RuntimeWarning)
+            logger.warn(msg)
             return []
         else:
             return Shape.from_topods_list(self._bop.SectionEdges())

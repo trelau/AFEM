@@ -17,7 +17,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from math import ceil, radians
-from warnings import warn
 
 from OCCT.Approx import (Approx_ChordLength, Approx_IsoParametric)
 from OCCT.BSplCLib import BSplCLib
@@ -41,6 +40,7 @@ from numpy.linalg import norm
 from scipy.linalg import lu_factor, lu_solve
 
 from afem.adaptor.entities import AdaptorCurve
+from afem.config import logger
 from afem.geometry import utils as geom_utils
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import *
@@ -123,7 +123,8 @@ class PointFromParameter(object):
 
         tool = GCPnts_AbscissaPoint(tol, adp_curve.object, ds, u0)
         if not tool.IsDone():
-            warn('GCPnts_AbscissaPoint failed.', RuntimeWarning)
+            msg = 'GCPnts_AbscissaPoint failed in PointFromParameter.'
+            logger.warning(msg)
 
         self._is_done = tool.IsDone()
         self._u, self._p = None, None
@@ -201,7 +202,8 @@ class PointsAlongCurveByNumber(object):
         # Create uniform abscissa
         tool = GCPnts_UniformAbscissa(adp_crv.object, n, u1, u2, tol)
         if not tool.IsDone():
-            warn('GCPnts_UniformAbscissa failed.', RuntimeWarning)
+            msg = 'GCPnts_UniformAbscissa failed in PointsAlongCurveByNumber.'
+            logger.warning(msg)
 
         # Gather results
         self._is_done = tool.IsDone()

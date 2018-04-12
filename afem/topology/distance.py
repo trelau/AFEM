@@ -16,13 +16,12 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from warnings import warn
-
 from OCCT.BRepExtrema import (BRepExtrema_DistShapeShape, BRepExtrema_IsVertex,
                               BRepExtrema_IsOnEdge, BRepExtrema_IsInFace)
 from OCCT.Extrema import Extrema_ExtFlag_MIN
 
 from afem.adaptor.entities import FaceAdaptorSurface
+from afem.config import logger
 from afem.geometry.check import CheckGeom
 from afem.geometry.entities import Point, Direction
 from afem.topology.entities import Shape, Vertex
@@ -348,8 +347,8 @@ class DistanceShapeToShapes(object):
         for shape2 in other_shapes:
             dist = DistanceShapeToShape(shape, shape2)
             if dist.nsol == 0:
-                warn("Could not calculate distance to a shape. Continuing...",
-                     RuntimeWarning)
+                logger.warning("Could not calculate distance to a shape in "
+                               "DistanceShapeToShapes tool. Continuing...")
                 continue
             results.append((dist.dmin, shape2))
 

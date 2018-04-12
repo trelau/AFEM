@@ -89,6 +89,7 @@ class Settings(object):
         :return: None.
         """
         chdlr = logging.StreamHandler(sys.stdout)
+        chdlr.setFormatter(_fmt)
         logger.addHandler(chdlr)
 
     @staticmethod
@@ -102,10 +103,6 @@ class Settings(object):
         :return: None.
 
         :raise KeyError: If the given level is not supported.
-
-        .. note::
-            Note all logging levels are currently utilized. The default value
-            of 'info' is recommended for general use.
         """
         level = level.lower()
         logger.setLevel(log_dict[level])

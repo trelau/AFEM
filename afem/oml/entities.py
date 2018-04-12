@@ -30,7 +30,7 @@ from afem.topology.transform import mirror_shape
 __all__ = ["Body"]
 
 
-class Body(ShapeHolder, NamedItem):
+class Body(NamedItem, ShapeHolder):
     """
     Generic class for solid bodies and encapsulating necessary
     information when creating structural components.
@@ -41,8 +41,8 @@ class Body(ShapeHolder, NamedItem):
     """
 
     def __init__(self, shape, name='Body'):
-        super(Body, self).__init__(Solid, shape)
-        NamedItem.__init__(self, name)
+        super(Body, self).__init__(name)
+        ShapeHolder.__init__(self, Solid, shape)
 
         # Geometry data
         self._sref = None
