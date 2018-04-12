@@ -413,15 +413,19 @@ class RebuildShapeWithShapes(object):
 
 class RebuildShapeByTool(object):
     """
-    Rebuild a shape using a supported tool. This method will first try to make
-    substitutions on the faces of the shape. If not faces exist it will try
-    the edges. If no edges exist it will try the vertices.
+    Rebuild a shape using a supported tool.
 
     :param afem.topology.entities.Shape old_shape: The old shape.
     :param tool: The tool.
     :type tool: afem.topology.bop.BopCore
 
     :raise ValueError: If there are no sub-shapes to substitute.
+
+    .. note::
+
+         This tool will first try to make substitutions on the faces of the
+         shape. If no faces exist, it will try the edges. If no edges exist it
+         will try the vertices.
 
     Usage:
 

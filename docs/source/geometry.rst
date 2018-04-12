@@ -6,7 +6,7 @@ geometry" for both 2-D and 3-D domains. This package primarily wraps a number
 of OpenCASCADE native types and tools in order to provide a more "Pythonic"
 user interface. The entities and tools in the ``geometry`` package do not cover
 every OpenCASCADE type, but rather those frequently encountered during regular
-AFEM use. The entities and tools can be imported by::
+use. The entities and tools can be imported by::
 
     from afem.geometry import *
 

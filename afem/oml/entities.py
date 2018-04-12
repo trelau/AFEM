@@ -44,6 +44,9 @@ class Body(NamedItem, ShapeHolder):
         super(Body, self).__init__(name)
         ShapeHolder.__init__(self, Solid, shape)
 
+        # Random color
+        self.random_color()
+
         # Geometry data
         self._sref = None
         self._sref_shape = None

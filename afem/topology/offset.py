@@ -340,7 +340,7 @@ class SweepShape(object):
     :type profile: afem.geometry.entities.Geometry or
         afem.topology.entities.Shape
 
-    :raise TypeError: If ``spin`` is not or cannot be converted to a wire.
+    :raise TypeError: If ``spine`` is not or cannot be converted to a wire.
     """
 
     def __init__(self, spine, profile):

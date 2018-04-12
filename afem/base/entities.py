@@ -90,8 +90,7 @@ class ViewableItem(object):
     """
 
     def __init__(self):
-        r, g, b = rand(1, 3)[0]
-        self._color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
+        self._color = None
         self._transparency = 0.
 
     @property
@@ -107,8 +106,8 @@ class ViewableItem(object):
     @property
     def color(self):
         """
-        :return: The color.
-        :rtype: OCCT.Quantity.Quantity_Color
+        :return: The color or *None* if not set.
+        :rtype: OCCT.Quantity.Quantity_Color or None
         """
         return self._color
 
@@ -151,6 +150,15 @@ class ViewableItem(object):
         elif transparency > 1.:
             transparency = 1.
         self._transparency = transparency
+
+    def random_color(self):
+        """
+        Set the color randomly.
+
+        :return: None.
+        """
+        r, g, b = rand(1, 3)[0]
+        self._color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
 
 
 class ShapeHolder(ViewableItem):

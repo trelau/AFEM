@@ -592,7 +592,8 @@ class FaceByPlanarWire(object):
     Create a face from a planar wire.
 
     :param wire: The wire.
-    :type wire: afem.topology.entities.Wire or afem.geometry.entities.Curve
+    :type wire: afem.topology.entities.Wire or afem.topology.entities.Edge or
+        afem.geometry.entities.Curve
 
     Usage:
 
@@ -609,6 +610,8 @@ class FaceByPlanarWire(object):
     def __init__(self, wire):
         if isinstance(wire, Curve):
             wire = Wire.by_curve(wire)
+        elif isinstance(wire, Edge):
+            wire = Wire.by_edge(wire)
         self._f = Face(BRepBuilderAPI_MakeFace(wire.object, True).Face())
 
     @property
