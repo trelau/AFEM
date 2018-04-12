@@ -1,5 +1,6 @@
 Structure
 =========
+**NOT YET COMPLETE***
 This section describes the structure package. The entities and tools can be
 imported by::
 

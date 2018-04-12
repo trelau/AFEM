@@ -1,8 +1,8 @@
 Exchange
 ========
-The ``exchange`` package provides a number of common tools for data exchange
-including BREP (OpenCASCADE native format), STEP, IGES, and STL. The tools can
-be imported by::
+The ``afem.exchange`` package provides a number of common tools for data
+exchange including BREP (OpenCASCADE native format), STEP, IGES, and STL. The
+tools can be imported by::
 
     from afem.exchange import *
 

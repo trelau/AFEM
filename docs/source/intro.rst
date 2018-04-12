@@ -6,8 +6,14 @@ conceptual design. As a development toolkit, it provides the engineer with a
 flexible, modular, and extensible library of components and tools to rapidly
 build a useful structural model. It is **not** an end-user GUI application, but
 rather a library enabling engineers to rapidly build their own application
-specific tools and processes, encoding their own design rules and best practices
-along the way.
+specific tools and processes, encoding their own design rules and best
+practices along the way.
+
+Although AFEM targets airframe design and analysis applications, really only
+the ``afem.structure`` and ``afem.oml`` packages directly support that cause.
+All the other packages provide a more general and "Pythonic" set of entities
+and tools that could potentially be used to develop applications in other
+disciplines and/or domains.
 
 Technology Stack
 ================

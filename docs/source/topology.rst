@@ -1,10 +1,11 @@
 Topology
 ========
-The ``topology`` package provides tools for the creation and use of OpenCASCADE
-native topology (i.e., shapes). While geometry defines curves and surfaces,
-topology describes their connectivity and boundary representation. OpenCASCADE
-shapes are the core building blocks for building more complex parts and
-assemblies. The topology entities and tools can be imported by::
+**NOT YET COMPLETE**
+The ``afem.topology`` package provides tools for the creation and use of
+OpenCASCADE native topology (i.e., shapes). While geometry defines curves and
+surfaces, topology describes their connectivity and boundary representation.
+OpenCASCADE shapes are the core building blocks for building more complex parts
+and assemblies. The topology entities and tools can be imported by::
 
     from afem.topology import *
 

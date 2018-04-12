@@ -1,6 +1,6 @@
 Base
 ====
-The ``base`` package is a collection of simple entities that define base
+The ``afem.base`` package is a collection of simple entities that define base
 classes that are used throughout the library.
 
 Entities

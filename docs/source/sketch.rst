@@ -1,7 +1,7 @@
 Sketch
 ======
-The ``sketch`` package provides basic entities and tools for the creation of
-2-D planar geometry. This is not a constraint-solving sketch module
+The ``afem.sketch`` package provides basic entities and tools for the creation
+of 2-D planar geometry. This is not a constraint-solving sketch module
 like ones found in most CAD systems, but rather a simplified way to define
 planar 2-D curves and convert them to 3-D for operations like lofting or
 extrusion. The entities and tools can be imported by::

@@ -1,6 +1,6 @@
 SMESH
 =====
-The ``smesh`` packages provides entities and tools for working with the AFEM
+The ``afem.smesh`` packages provides entities and tools for working with the
 meshing library which is a standalone version from the Salome Platform. Similar
 to the OpenCASCADE C++ library, the SMESH library is linked to OpenCASCADE and
 exposed to Python via pybind11. To provide a more intuitive and "Pythonic" user

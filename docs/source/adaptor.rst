@@ -96,8 +96,9 @@ package:
     wire = WiresByConnectedEdges([edge, edge2]).wires[0]
     wire.set_color(1, 0, 0)
 
-    # Create an adaptor curve from a wire
-    adp_crv2 = WireAdaptorCurve.by_wire(wire)
+    # Create an adaptor curve from a wire. The static method "to_adaptor" can
+    # be used for convenience to convert entities to an adaptor if possible.
+    adp_crv2 = AdaptorCurve.to_adaptor(wire)
 
     # Create points along the wire adaptor curve
     tool = PointsAlongCurveByNumber(adp_crv2, 20)
