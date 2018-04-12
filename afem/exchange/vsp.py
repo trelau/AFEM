@@ -191,7 +191,7 @@ class ImportVSP(object):
                 solid, invalid = _build_solid(compound, self._divide)
                 self._invalid += invalid
                 if solid is not None:
-                    body = Body(solid)
+                    body = Body(solid, comp_name)
                     bodies[comp_name] = body
                 continue
             metadata = json.loads(name)
@@ -240,20 +240,19 @@ class ImportVSP(object):
             if metadata['m_Type'] == 5 and metadata['m_SurfType'] != 99:
                 wing, invalid = _process_wing(compound, self._divide,
                                               self._restrict, self._tol,
-                                              self._reloft)
+                                              self._reloft, comp_name)
                 self._invalid += invalid
                 if wing is not None:
-                    wing.set_name(comp_name)
                     bodies[comp_name] = wing
                     sref_id = metadata['Sref ID']
                     wing_bodies[sref_id] = wing
 
             # Fuselage
             elif metadata['m_Type'] in [4, 9]:
-                fuse, invalid = _process_fuse(compound, self._divide)
+                fuse, invalid = _process_fuse(compound, self._divide,
+                                              comp_name)
                 self._invalid += invalid
                 if fuse is not None:
-                    fuse.set_name(comp_name)
                     bodies[comp_name] = fuse
                     sref_id = metadata['Sref ID']
                     fuselage_bodies[sref_id] = fuse
@@ -263,7 +262,7 @@ class ImportVSP(object):
                 solid, invalid = _build_solid(compound, self._divide)
                 self._invalid += invalid
                 if solid:
-                    body = Body(solid)
+                    body = Body(solid, comp_name)
                     bodies[comp_name] = body
 
         # Attach wing reference surfaces to the bodies.
@@ -555,7 +554,7 @@ def _build_solid(compound, divide_closed):
         check = CheckShape(shell)
         if not check.is_valid:
             logger.info('\tShape errors:')
-            check.show_errors(logger.info)
+            check.log_errors()
         return shell, check.invalid_shapes
 
     solid = Solid.by_shell(shell)
@@ -573,7 +572,7 @@ def _build_solid(compound, divide_closed):
         if not check.is_valid:
             logger.info('\t...solid could not be fixed.')
             logger.info('\tShape errors:')
-            check.show_errors(logger.info)
+            check.log_errors()
             failed = check.invalid_shapes
             invalid += failed
     else:
@@ -584,7 +583,8 @@ def _build_solid(compound, divide_closed):
     return solid, invalid
 
 
-def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
+def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft,
+                  name):
     # Note that for VSP wings, the spanwise direction is u and the chord
     # direction is v, where v=0 is the TE and follows the lower surface fwd to
     # the LE, and then aft along the upper surface to the TE.
@@ -606,7 +606,7 @@ def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
     if bspline_restrict:
         solid = _bspline_restrict(solid, tol)
 
-    wing = Body(solid)
+    wing = Body(solid, name)
 
     if vsp_surf:
         wing.metadata.set('vsp surface', vsp_surf)
@@ -621,7 +621,7 @@ def _process_wing(compound, divide_closed, bspline_restrict, tol, reloft):
     return wing, invalid
 
 
-def _process_fuse(compound, divide_closed):
+def _process_fuse(compound, divide_closed, name):
     # For VSP fuselages, the longitudinal direction is u, and the
     # circumferential direction is v.
     # Build the solid.
@@ -629,7 +629,7 @@ def _process_fuse(compound, divide_closed):
     if not solid:
         return None, invalid
 
-    fuselage = Body(solid)
+    fuselage = Body(solid, name)
 
     faces = compound.faces
     if len(faces) == 1:
