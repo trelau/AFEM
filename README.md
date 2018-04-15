@@ -3,6 +3,12 @@ The AFEM application is an airframe modeling and FEM generation tool developed
 by Laughlin Research, LLC. AFEM enables the use of high-order structural
 analysis in the early phases of aircraft design.
 
+Although AFEM targets airframe design and analysis applications, really only
+the ``afem.structure`` and ``afem.oml`` packages directly support that cause.
+All the other packages provide a more general and "Pythonic" set of entities
+and tools that could potentially be used to develop applications in other
+disciplines and/or domains.
+
 ## Technology Stack
 The AFEM core technology stack includes:
 
@@ -21,17 +27,20 @@ The AFEM core technology stack includes:
   from this open source application serves as the central component for
   AFEM's mesh generation capabilities.
   
-* [pyOCCT](https://github.com/LaughlinResearch/pyOCCT): This open source project
-  provides Python bindings to the OpenCASCADE and Salome Platform meshing
-  libraries.
+* [pyOCCT](https://github.com/LaughlinResearch/pyOCCT): This open source
+  project provides Python bindings to the OpenCASCADE and Salome Platform
+  meshing libraries.
 
 # Installation
-AFEM is currently only supported for Windows 64-bit Python 3.5. [Anaconda
-Python](https://www.anaconda.com/download/) is recommended for package
-management and since prebuilt binaries are available for the prerequisites.
+AFEM is currently only supported for Windows 64-bit Python 3.5 and 3.6.
+Cross-platform support is dependent upon prerequisites such as pyOCCT.
+[Anaconda Python](https://www.anaconda.com/download/) or
+[Miniconda](https://conda.io/miniconda.html) is recommended for installation
+and regular use since many of the prerequisites are available via the Anaconda
+Cloud.
 
-It is recommended that a designated environment be created and used for AFEM. An
-example of creating this environment for Anaconda Python within an Anaconda
+It is recommended that a designated environment be created and used for AFEM.
+An example of creating this environment for Anaconda Python within an Anaconda
 command prompt is:
 
     conda create -n afem python=3.5
@@ -45,15 +54,10 @@ environment may look like:
 within an Anaconda command prompt.
  
 The [pyOCCT](https://github.com/LaughlinResearch/pyOCCT) package developed by
-Laughlin Research should now be installed. A Python wheel is available for
-Windows 64-bit Python 3.5 that contains the pyOCCT package as well as all
-necessary dependencies and can be installed using
-[pip](https://pypi.python.org/pypi/pip/). From the directory where the pyOCCT
-wheel is located the installation command may look like:
+Laughlin Research should now be installed. For supported platforms, installing
+pyOCCT can be done by:
 
-    pip install OCCT-0.0.1-cp35-none-win_amd64.whl
-    
-Note that the wheel filename may be different depending on version and platform.
+    conda install -c trelau pyocct
 
 Other dependencies such as NumPy and SciPy can be installed as needed using
 the conda package manager:
@@ -108,7 +112,7 @@ folder. Running the script:
 
     python structure_wingbox.py
     
-should generate an image similar to the one shown below. Remeber to make sure
+should generate an image similar to the one shown below. Remember to make sure
 the appropriate environment is active when using AFEM is applicable.
 
 ![wingbox](./docs/source/resources/wingbox.png)

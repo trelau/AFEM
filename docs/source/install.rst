@@ -2,9 +2,10 @@ Installation
 ============
 This section explains how to install AFEM and required dependencies.
 
-Currently, only Python 3.5 Windows 64-bit is supported. Although AFEM is
-Python 2/3 compatible, some core dependencies have thus far only been built
-for Python 3.5 Windows 64-bit. More platforms will be supported in the future.
+Currently, only Python 3.5 and 3.6 Windows 64-bit is supported. Although AFEM
+is Python 2/3 compatible, some core dependencies have thus far only been built
+for Python 3.5 and 3.6 Windows 64-bit. More platforms will be supported in the
+future.
 
 Installing Python
 -----------------
@@ -38,15 +39,10 @@ within an Anaconda Command Prompt.
 Installing Dependencies
 -----------------------
 The `pyOCCT <https://github.com/LaughlinResearch/pyOCCT>`_ package developed by
-Laughlin Research should now be installed. A Python wheel is available for
-Windows 64-bit Python 3.5 that contains the pyOCCT package as well as all
-necessary dependencies and can be installed using
-`pip <https://pypi.python.org/pypi/pip/>`_. From the directory where the pyOCCT
-wheel is located the installation command may look like::
+Laughlin Research should now be installed. For supported platforms, installing
+pyOCCT can be done by::
 
-    pip install OCCT-0.0.1-cp35-none-win_amd64.whl
-
-Note that the wheel filename may be different depending on version and platform.
+    conda install -c trelau pyocct
 
 Other dependencies such as NumPy and SciPy can be installed as needed using
 the conda package manager::
