@@ -64,8 +64,8 @@ or with pip::
 
 Installing AFEM
 ---------------
-Be sure to activate the designed AFEM environment before installation. AFEM is a
-pure Python package and can be installed using the command::
+Be sure to activate the designed AFEM environment before installation. AFEM is
+a pure Python package and can be installed using the command::
 
     python setup.py develop
 
@@ -75,19 +75,12 @@ The regular installation command::
 
     python setup.py install
 
-can be used to actually install the AFEM package into the Python *site-packages*
-folder.
+can be used to actually install the AFEM package into the Python
+*site-packages* folder.
 
 Installation files can be cleaned by::
 
     conda clean -a
-
-If installing AFEM from a prebuilt wheel, use pip::
-
-    pip install afem-0.2.0-cp35-none-win_amd64.whl
-
-from the folder where the wheel is located. Be sure that the appropriate
-environment is active before running this command.
 
 Building Documentation
 ----------------------
@@ -101,4 +94,4 @@ Then navigate to the *docs/* folder and run::
     make html
 
 This should build html documentation in a *docs/build/html* folder. Open the
-afem.html file with a web browser.
+index.html file with a web browser.

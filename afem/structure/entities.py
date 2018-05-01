@@ -90,9 +90,6 @@ class Part(NamedItem, ShapeHolder):
     def __init__(self, name, shape, cref=None, sref=None, group=None):
         super(Part, self).__init__(name)
 
-        # Random color
-        self.random_color()
-
         # Shape holder
         type_ = (Shape,)
         if isinstance(self, CurvePart):
@@ -100,6 +97,9 @@ class Part(NamedItem, ShapeHolder):
         elif isinstance(self, SurfacePart):
             type_ = (Face, Shell, Compound)
         ShapeHolder.__init__(self, type_, shape)
+
+        # Random color
+        self.random_color()
 
         # Unique ID
         self._id = Part._indx

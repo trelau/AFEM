@@ -1,7 +1,5 @@
 Topology
 ========
-**NOT YET COMPLETE**
-
 The ``afem.topology`` package provides tools for the creation and use of
 OpenCASCADE topology (i.e., shapes). While geometry defines curves and
 surfaces, topology describes their connectivity and boundary representation.

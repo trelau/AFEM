@@ -361,10 +361,10 @@ def build(wing, fuselage):
     # Export the shape to a STEP file
     step = StepWrite('AP203', 'in')
     step.transfer(the_shape)
-    step.write('nasa_supersonic_np2.step')
+    step.write('supersonic.step')
 
     # Export the mesh (nodes and elements) to a bulk data file
-    afem.exchange.nastran.export_bdf(the_mesh, 'nasa_supersonic_np2.bdf')
+    afem.exchange.nastran.export_bdf(the_mesh, 'supersonic.bdf')
 
 
 if __name__ == '__main__':
@@ -373,7 +373,7 @@ if __name__ == '__main__':
     Settings.log_to_console()
 
     # Import OpenVSP model
-    fname = r'..\models\NASA_N+2.stp'
+    fname = r'..\models\supersonic.stp'
     vsp_import = ImportVSP(fname)
 
     # A few notes about importing an OpenVSP STEP model:

@@ -1,8 +1,5 @@
-Objectives
-==========
-
 Design
 ======
 
-Usage
-=====
+Objectives
+----------
