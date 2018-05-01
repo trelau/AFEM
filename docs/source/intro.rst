@@ -1,6 +1,6 @@
 About
 =====
-AFEM is a "fit-for-purpose" engineering development toolkit designed to enable
+AFEM is a "fit-for-purpose" engineering development toolkit designed to support
 the use of high-order structural analysis during the early phases of aircraft
 conceptual design. As a development toolkit, it provides the engineer with a
 flexible, modular, and extensible library of components and tools to rapidly

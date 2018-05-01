@@ -1,7 +1,12 @@
 # AFEM — Airframe Finite Element Modeler
-The AFEM application is an airframe modeling and FEM generation tool developed
-by Laughlin Research, LLC. AFEM enables the use of high-order structural
-analysis in the early phases of aircraft design.
+AFEM is a "fit-for-purpose" engineering development toolkit designed to support
+the use of high-order structural analysis during the early phases of aircraft
+conceptual design. As a development toolkit, it provides the engineer with a
+flexible, modular, and extensible library of components and tools to rapidly
+build a useful structural model. It is **not** an end-user GUI application, but
+rather a library enabling engineers to rapidly build their own application
+specific tools and processes, encoding their own design rules and best
+practices along the way.
 
 Although AFEM targets airframe design and analysis applications, really only
 the ``afem.structure`` and ``afem.oml`` packages directly support that cause.
@@ -116,3 +121,12 @@ should generate an image similar to the one shown below. Remember to make sure
 the appropriate environment is active when using AFEM is applicable.
 
 ![wingbox](./docs/source/resources/wingbox.png)
+
+# TODO
+AFEM is under active development and should be considered a work in progress.
+The focus is currently:
+
+* Adding (and completing) examples
+* Simplifying the rules for meshing parts
+* Moving doctests to unit tests and adding more test
+* Cross-platform support for prerequisites like pyOCCT
