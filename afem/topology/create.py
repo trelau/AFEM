@@ -1556,16 +1556,6 @@ class PointsAlongShapeByNumber(PointsAlongCurveByNumber):
                 prms.append(umin)
             u2 = min(prms)
 
-        # Adjust u1 and u2 is d1 and d2 are provided
-        if d1 is not None:
-            pac = PointFromParameter(adp_crv, u1, d1)
-            if pac.is_done:
-                u1 = pac.parameter
-        if d2 is not None:
-            pac = PointFromParameter(adp_crv, u2, d2)
-            if pac.is_done:
-                u2 = pac.parameter
-
         super(PointsAlongShapeByNumber, self).__init__(adp_crv, n, u1, u2,
                                                        d1, d2)
 
@@ -1637,16 +1627,6 @@ class PointsAlongShapeByDistance(PointsAlongCurveByDistance):
                 umin = proj.nearest_param
                 prms.append(umin)
             u2 = min(prms)
-
-        # Adjust u1 and u2 is d1 and d2 are provided
-        if d1 is not None:
-            pac = PointFromParameter(adp_crv, u1, d1)
-            if pac.is_done:
-                u1 = pac.parameter
-        if d2 is not None:
-            pac = PointFromParameter(adp_crv, u2, d2)
-            if pac.is_done:
-                u2 = pac.parameter
 
         super(PointsAlongShapeByDistance, self).__init__(adp_crv, maxd, u1, u2,
                                                          d1, d2, nmin)

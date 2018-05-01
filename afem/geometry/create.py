@@ -18,12 +18,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from math import ceil, radians
 
-from OCCT.Approx import (Approx_ChordLength, Approx_IsoParametric)
+from OCCT.Approx import Approx_ChordLength, Approx_IsoParametric
 from OCCT.BSplCLib import BSplCLib
 from OCCT.GC import GC_MakeCircle
 from OCCT.GCPnts import GCPnts_AbscissaPoint, GCPnts_UniformAbscissa
-from OCCT.Geom import (Geom_BSplineSurface, Geom_Circle,
-                       Geom_Line, Geom_Plane)
+from OCCT.Geom import Geom_BSplineSurface, Geom_Circle, Geom_Line, Geom_Plane
 from OCCT.Geom2dAPI import Geom2dAPI_Interpolate, Geom2dAPI_PointsToBSpline
 from OCCT.GeomAPI import (GeomAPI_IntCS, GeomAPI_Interpolate,
                           GeomAPI_PointsToBSpline)
