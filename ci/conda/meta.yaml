@@ -1,0 +1,33 @@
+package:
+  name: afem
+  version: "0.3.0"
+
+source:
+  path: ../..
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python
+
+  run:
+    - python
+    - wxpython
+    - numpy
+    - scipy
+    - pyocct ==7.2.0.1
+    
+test:
+  source_files:
+  - test
+
+about:
+  home: https://github.com/LaughlinResearch/AFEM
+  license: LGPL2.1
+  license_family: LGPL
+  summary: Airframe Finite Element Modeler
+  description: A "fit-for-purpose" engineering development toolkit designed to
+               support the use of high-order structural analysis during the
+               early phases of aircraft conceptual design.
