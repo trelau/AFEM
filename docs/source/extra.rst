@@ -13,6 +13,6 @@ engineering publications:
     @misc{AFEM,
        author = {Laughlin Research, LLC},
        year = {2018},
-       note = {info@laughlinresearch.com},
-       title = {AFEM -- Aiframe Finite Element Modeler}
+       note = {https://github.com/LaughlinResearch/AFEM},
+       title = {AFEM -- Airframe Finite Element Modeler}
     }
