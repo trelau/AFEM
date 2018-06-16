@@ -396,8 +396,8 @@ if __name__ == '__main__':
     v.clear()
 
     # Retrieve relative components by name and set transparency for viewing
-    wing_ = vsp_import.get_body('wing')
-    fuse_ = vsp_import.get_body('fuse')
+    wing_ = vsp_import['wing']
+    fuse_ = vsp_import['fuse']
     wing_.set_transparency(0.5)
     fuse_.set_transparency(0.5)
 

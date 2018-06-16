@@ -11,7 +11,7 @@ Settings.log_to_console()
 # Import model
 fname = '../models/uniform_wing.stp'
 vsp = ImportVSP(fname)
-wing = vsp.get_body('Wing')
+wing = vsp['Wing']
 
 # Reference curves using wing reference surface generated from modified
 # OpenVSP

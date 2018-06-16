@@ -9,7 +9,7 @@ Settings.log_to_console()
 fn = '../models/vsp_bad_geom.stp'
 
 vsp_import = ImportVSP(fn)
-htail = vsp_import.get_body('Htail')
+htail = vsp_import['Htail']
 
 gui = Viewer()
 htail.set_color(0.5, 0.5, 0.5)

@@ -15,7 +15,7 @@ Settings.set_units('in')
 # Import model
 fn = r'../models/simple_wing.stp'
 vsp_import = ImportVSP(fn)
-wing = vsp_import.get_body('WingGeom')
+wing = vsp_import['WingGeom']
 
 # Build structure
 wingbox = GroupAPI.create_group('wing box')
