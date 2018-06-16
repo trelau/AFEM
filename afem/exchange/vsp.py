@@ -84,6 +84,9 @@ class ImportVSP(object):
             else:
                 raise TypeError('File extension not supported.')
 
+    def __getitem__(self, key):
+        return self.get_body(key)
+
     @property
     def bodies(self):
         """
