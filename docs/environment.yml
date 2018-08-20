@@ -1,0 +1,12 @@
+name: latest
+
+channels:
+  - defaults
+  - conda-forge
+  - cad
+
+dependencies:
+  - python=3.5
+  - pyocct
+  - numpy
+  - scipy
