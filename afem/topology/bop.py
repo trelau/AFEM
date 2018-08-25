@@ -371,21 +371,6 @@ class FuseShapes(BopAlgo):
 
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
-    >>> bop = FuseShapes(e1, e2)
-    >>> assert bop.is_done
-    >>> shape = bop.shape
-    >>> # Setting arguments and tools
-    >>> bop = FuseShapes()
-    >>> bop.set_args([e1])
-    >>> bop.set_tools([e2])
-    >>> bop.build()
-    >>> assert bop.is_done
     """
 
     def __init__(self, shape1=None, shape2=None, fuzzy_val=None,
@@ -409,21 +394,6 @@ class CutShapes(BopAlgo):
 
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> e2 = EdgeByPoints((5., 0., 0.), (6., 0., 0.)).edge
-    >>> bop = CutShapes(e1, e2)
-    >>> assert bop.is_done
-    >>> shape = bop.shape
-    >>> # Setting arguments and tools
-    >>> bop = CutShapes()
-    >>> bop.set_args([e1])
-    >>> bop.set_tools([e2])
-    >>> bop.build()
-    >>> assert bop.is_done
     """
 
     def __init__(self, shape1=None, shape2=None, fuzzy_val=None,
@@ -447,21 +417,6 @@ class CommonShapes(BopAlgo):
 
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> e2 = EdgeByPoints((5., 0., 0.), (6., 0., 0.)).edge
-    >>> bop = CommonShapes(e1, e2)
-    >>> assert bop.is_done
-    >>> shape = bop.shape
-    >>> # Setting arguments and tools
-    >>> bop = CommonShapes()
-    >>> bop.set_args([e1])
-    >>> bop.set_tools([e2])
-    >>> bop.build()
-    >>> assert bop.is_done
     """
 
     def __init__(self, shape1=None, shape2=None, fuzzy_val=None,
@@ -490,21 +445,6 @@ class IntersectShapes(BopAlgo):
 
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
-    >>> bop = IntersectShapes(e1, e2)
-    >>> assert bop.is_done
-    >>> shape = bop.shape
-    >>> # Setting arguments and tools
-    >>> bop = IntersectShapes()
-    >>> bop.set_args([e1])
-    >>> bop.set_tools([e2])
-    >>> bop.build()
-    >>> assert bop.is_done
     """
 
     def __init__(self, shape1=None, shape2=None, compute_pcurve1=False,
@@ -577,21 +517,6 @@ class SplitShapes(BopAlgo):
 
         If *shape1* or *shape2* is *None* then the user is expected to manually
         set the arguments and tools and build the result.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
-    >>> bop = SplitShapes(e1, e2)
-    >>> assert bop.is_done
-    >>> shape = bop.shape
-    >>> # Setting arguments and tools
-    >>> bop = SplitShapes()
-    >>> bop.set_args([e1])
-    >>> bop.set_tools([e2])
-    >>> bop.build()
-    >>> assert bop.is_done
     """
 
     def __init__(self, shape1=None, shape2=None, fuzzy_val=None,
@@ -661,19 +586,6 @@ class CutCylindricalHole(BopAlgo):
     :param afem.geometry.entities.Axis1: The axis for the hole.
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool nondestructive: Option to not modify the input shapes.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> from afem.topology import *
-    >>> pln = PlaneByAxes().plane
-    >>> face = FaceByPlane(pln, -2., 2., -2., 2.).face
-    >>> # The small offset is a workaround for planar cuts
-    >>> p = Point(0., 0.1, 0.)
-    >>> d = Direction(0., 1., 0.)
-    >>> ax1 = Axis1(p, d)
-    >>> bop = CutCylindricalHole(face, 1., ax1)
-    >>> assert bop.is_done
     """
 
     def __init__(self, shape, radius, ax1, fuzzy_val=None,
@@ -699,18 +611,6 @@ class LocalSplit(BopCore):
     :param bool approximate: Option to approximate intersection curves.
     :param float fuzzy_val: Fuzzy tolerance value.
     :param bool nondestructive: Option to not modify the input shapes.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> from afem.topology import *
-    >>> pln = PlaneByAxes().plane
-    >>> builder = SolidByPlane(pln, 5., 5., 5.)
-    >>> box = builder.solid
-    >>> tool = PlaneByAxes(axes='xy').plane
-    >>> face = box.faces[0]
-    >>> split = LocalSplit(face, tool, box)
-    >>> assert split.is_done
     """
 
     def __init__(self, shape, tool, basis_shape, approximate=False,

@@ -1065,22 +1065,6 @@ class Compound(Shape):
 class BBox(Bnd_Box):
     """
     Bounding box in 3-D space.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> bbox = BBox()
-    >>> bbox.add_shape(e)
-    >>> bbox.set_gap(0.)
-    >>> bbox.gap
-    0.0
-    >>> bbox.pmin
-    Point(0.000, 0.000, 0.000)
-    >>> bbox.pmax
-    Point(10.000, 0.000, 0.000)
-    >>> bbox.diagonal
-    10.0
     """
 
     def __init__(self):

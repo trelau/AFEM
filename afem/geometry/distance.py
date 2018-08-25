@@ -41,15 +41,6 @@ class DistancePointToCurve(object):
     :param float tol: The tolerance.
 
     :raise RuntimeError: If ``Extrema_ExtPC`` fails.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> c = NurbsCurveByPoints([(0. ,0., 0.), (10., 0., 0.)]).curve
-    >>> p = Point(5., 1., 0.)
-    >>> dist = DistancePointToCurve(p, c)
-    >>> dist.nsol
-    3
     """
 
     def __init__(self, pnt, crv, tol=1.0e-10):

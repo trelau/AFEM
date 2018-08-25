@@ -41,17 +41,6 @@ class DistanceShapeToShape(object):
     :param shape2: The second or geometry.
     :type shape2: afem.topology.entities.Shape or
         afem.geometry.entities.Geometry
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> v1 = VertexByPoint((0., 0., 0.)).vertex
-    >>> v2 = VertexByPoint((10., 0., 0.)).vertex
-    >>> tool = DistanceShapeToShape(v1, v2)
-    >>> tool.nsol
-    1
-    >>> tool.dmin
-    10.0
     """
 
     def __init__(self, shape1, shape2, deflection=1.0e-7):
@@ -326,20 +315,6 @@ class DistanceShapeToShapes(object):
 
     :param afem.topology.entities.Shape shape: The main shape.
     :param list(afem.topology.entities.Shape) other_shapes: The other shapes.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> v1 = VertexByPoint((0., 0., 0.)).vertex
-    >>> v2 = VertexByPoint((5., 0., 0.)).vertex
-    >>> v3 = VertexByPoint((10., 0., 0.)).vertex
-    >>> tool = DistanceShapeToShapes(v1, [v3, v2])
-    >>> tool.dmin
-    5.0
-    >>> tool.dmax
-    10.0
-    >>> tool.sorted_distances
-    [5.0, 10.0]
     """
 
     def __init__(self, shape, other_shapes):

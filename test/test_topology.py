@@ -19,7 +19,7 @@
 import unittest
 
 from afem.exchange import brep
-from afem.geometry import Point
+from afem.geometry import *
 from afem.graphics import Viewer
 from afem.topology import *
 
@@ -32,7 +32,7 @@ def show_shapes(*shapes):
 
 class TestTopologyCreate(unittest.TestCase):
     """
-    Test cases for topology creation.
+    Test cases for afem.topology.create.
     """
 
     def test_box_by_size(self):
@@ -75,8 +75,87 @@ class TestTopologyCreate(unittest.TestCase):
 
 class TestTopologyBop(unittest.TestCase):
     """
-    Test cases for Boolean operations.
+    Test cases for afem.topology.bop.
     """
+
+    def test_fuse_shapes(self):
+        e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
+        e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
+        fuse = FuseShapes(e1, e2)
+        self.assertTrue(fuse.is_done)
+        # Setting arguments and tools
+        fuse = FuseShapes()
+        fuse.set_args([e1])
+        fuse.set_tools([e2])
+        fuse.build()
+        self.assertTrue(fuse.is_done)
+
+    def test_cut_shapes(self):
+        e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
+        e2 = EdgeByPoints((5., 0., 0.), (6., 0., 0.)).edge
+        cut = CutShapes(e1, e2)
+        self.assertTrue(cut.is_done)
+        # Setting arguments and tools
+        cut = CutShapes()
+        cut.set_args([e1])
+        cut.set_tools([e2])
+        cut.build()
+        self.assertTrue(cut.is_done)
+
+    def test_common_shapes(self):
+        e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
+        e2 = EdgeByPoints((5., 0., 0.), (6., 0., 0.)).edge
+        common = CommonShapes(e1, e2)
+        self.assertTrue(common.is_done)
+        # Setting arguments and tools
+        common = CommonShapes()
+        common.set_args([e1])
+        common.set_tools([e2])
+        common.build()
+        self.assertTrue(common.is_done)
+
+    def test_intersect_shapes(self):
+        e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
+        e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
+        intersect = IntersectShapes(e1, e2)
+        self.assertTrue(intersect.is_done)
+        # Setting arguments and tools
+        intersect = IntersectShapes()
+        intersect.set_args([e1])
+        intersect.set_tools([e2])
+        intersect.build()
+        self.assertTrue(intersect.is_done)
+
+    def test_split_shapes(self):
+        e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
+        e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
+        split = SplitShapes(e1, e2)
+        self.assertTrue(split.is_done)
+        # Setting arguments and tools
+        split = SplitShapes()
+        split.set_args([e1])
+        split.set_tools([e2])
+        split.build()
+        self.assertTrue(split.is_done)
+
+    def test_cut_cylindrical_hole(self):
+        pln = PlaneByAxes().plane
+        face = FaceByPlane(pln, -2., 2., -2., 2.).face
+        # The small offset is a workaround for planar cuts
+        p = Point(0., 0.1, 0.)
+        d = Direction(0., 1., 0.)
+        ax1 = Axis1(p, d)
+        cut = CutCylindricalHole(face, 1., ax1)
+        self.assertTrue(cut.is_done)
+
+    def test_local_split(self):
+        pln = PlaneByAxes().plane
+        builder = SolidByPlane(pln, 5., 5., 5.)
+        box = builder.solid
+        tool = PlaneByAxes(axes='xy').plane
+        face = box.faces[0]
+        split = LocalSplit(face, tool, box)
+        self.assertTrue(split.is_done)
 
     @unittest.expectedFailure
     def test_section_fail_08292017(self):
@@ -180,6 +259,146 @@ class TestTopologyBop(unittest.TestCase):
 
         self.assertEqual(len(section.edges), 1)
         self.assertEqual(len(section.vertices), 2)
+
+
+class TestTopologyDistance(unittest.TestCase):
+    """
+    Test cases for afem.topoloy.distance.
+    """
+
+    def test_distance_shape_to_shape(self):
+        v1 = VertexByPoint((0., 0., 0.)).vertex
+        v2 = VertexByPoint((10., 0., 0.)).vertex
+        tool = DistanceShapeToShape(v1, v2)
+        self.assertEqual(tool.nsol, 1)
+        self.assertAlmostEqual(tool.dmin, 10.)
+
+    def test_distance_shape_to_shapes(self):
+        v1 = VertexByPoint((0., 0., 0.)).vertex
+        v2 = VertexByPoint((5., 0., 0.)).vertex
+        v3 = VertexByPoint((10., 0., 0.)).vertex
+        tool = DistanceShapeToShapes(v1, [v3, v2])
+        self.assertAlmostEqual(tool.dmin, 5.)
+        self.assertAlmostEqual(tool.dmax, 10.)
+        self.assertAlmostEqual(tool.sorted_distances[0], 5.)
+        self.assertAlmostEqual(tool.sorted_distances[1], 10.)
+
+
+class TestTopologyExplore(unittest.TestCase):
+    """
+    Test cases for afem.topoloy.explore.
+    """
+
+    def test_explore_wire(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        wire = WireByPoints([p1, p2, p3, p4], True).wire
+        explorer = ExploreWire(wire)
+        self.assertEqual(explorer.nedges, 4)
+
+
+class TestTopologyModify(unittest.TestCase):
+    """
+    Test cases for afem.topoloy.modify.
+    """
+
+    def test_sew_shape(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        w1 = WireByPoints([p1, p2, p3, p4], True).wire
+        f1 = FaceByPlanarWire(w1).face
+        p1 = (0., 0., 0.)
+        p2 = (0., 0., 1.)
+        p3 = (0., 1., 1.)
+        p4 = (0., 1., 0.)
+        w2 = WireByPoints([p1, p2, p3, p4], True).wire
+        f2 = FaceByPlanarWire(w2).face
+        p1 = (0., 0.5, 0.)
+        p2 = (-1., 0.5, 0.)
+        p3 = (-1., 1.5, 0.)
+        p4 = (0., 1.5, 0.)
+        w3 = WireByPoints([p1, p2, p3, p4], True).wire
+        f3 = FaceByPlanarWire(w3).face
+        # Build an unconnected shell
+        shell = ShellByFaces([f1, f2, f3]).shell
+        tool = SewShape(shell, non_manifold=True)
+        shape = tool.sewed_shape
+        self.assertEqual(len(shape.faces), 3)
+
+    def test_rebuild_shape_by_tool(self):
+        pln1 = PlaneByAxes(axes='xy').plane
+        box1 = SolidByPlane(pln1, 10., 10., 10.).solid
+        pln2 = PlaneByAxes((1., 1., 1.), 'xy').plane
+        box2 = SolidByPlane(pln2, 5., 15., 5.).solid
+        cut = CutShapes(box1, box2)
+        self.assertTrue(cut.is_done)
+        rebuild = RebuildShapeByTool(box1, cut)
+        new_shape = rebuild.new_shape
+        self.assertTrue(box1.is_solid)
+        shape = FixShape(new_shape).shape
+        self.assertTrue(shape.is_shell)
+
+
+class TestTopologyOffset(unittest.TestCase):
+    """
+    Test cases for afem.topology.offset.
+    """
+
+    def test_project_shape(self):
+        pln = PlaneByAxes().plane
+        face = FaceByPlane(pln, -5., 5., -5., 5.).face
+        edge = EdgeByPoints((0., 1., 15.), (0., 1., -15.)).edge
+        proj = ProjectShape(face, [edge])
+        self.assertTrue(proj.is_done)
+        self.assertEqual(proj.nedges, 1)
+
+    def test_loft_shape(self):
+        pnts1 = [(0., 0., 0.), (5., 0., 5.), (10., 0., 0.)]
+        wire1 = WireByPoints(pnts1).wire
+        pnts2 = [(0., 10., 0.), (5., 10., -5.), (10., 10., 0.)]
+        wire2 = WireByPoints(pnts2).wire
+        loft = LoftShape([wire1, wire2])
+        self.assertTrue(loft.is_done)
+
+
+class TestTopologyProps(unittest.TestCase):
+    """
+    Test cases for afem.topology.props.
+    """
+
+    def test_linear_props(self):
+        e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
+        prop = LinearProps(e)
+        self.assertAlmostEqual(prop.length, 1.)
+        p = prop.cg
+        self.assertAlmostEqual(p.x, 0.5)
+        self.assertAlmostEqual(p.y, 0.)
+        self.assertAlmostEqual(p.z, 0.)
+
+    def test_surface_props(self):
+        e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
+        f = FaceByDrag(e, (0., 1., 0.)).face
+        prop = SurfaceProps(f)
+        self.assertAlmostEqual(prop.area, 1.)
+        p = prop.cg
+        self.assertAlmostEqual(p.x, 0.5)
+        self.assertAlmostEqual(p.y, 0.5)
+        self.assertAlmostEqual(p.z, 0.)
+
+    def test_volume_props(self):
+        e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
+        f = FaceByDrag(e, (0., 1., 0.)).face
+        solid = SolidByDrag(f, (0., 0., 1.)).solid
+        prop = VolumeProps(solid)
+        self.assertAlmostEqual(prop.volume, 1.)
+        p = prop.cg
+        self.assertAlmostEqual(p.x, 0.5)
+        self.assertAlmostEqual(p.y, 0.5)
+        self.assertAlmostEqual(p.z, 0.5)
 
 
 if __name__ == '__main__':

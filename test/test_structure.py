@@ -26,6 +26,9 @@ from afem.topology import *
 
 
 class TestStructureEntities(unittest.TestCase):
+    """
+    Test cases for afem.structure.entities.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -118,6 +121,9 @@ class TestStructureEntities(unittest.TestCase):
 
 
 class TestStructureCreate(unittest.TestCase):
+    """
+    Test cases for afem.structure.create.
+    """
 
     @classmethod
     def setUpClass(cls):

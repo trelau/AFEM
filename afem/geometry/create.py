@@ -1138,12 +1138,6 @@ class PlaneByOrientation(object):
     :param float alpha: Rotation in degrees about global x-axis.
     :param float beta: Rotation in degrees about global y-axis.
     :param float gamma: Rotation in degrees about global z-axis.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByOrientation
-    >>> builder = PlaneByOrientation(alpha=30.)
-    >>> pln = builder.plane
     """
 
     def __init__(self, origin=(0., 0., 0.), axes='xz', alpha=0., beta=0.,

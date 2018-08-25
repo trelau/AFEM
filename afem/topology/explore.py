@@ -30,18 +30,6 @@ class ExploreWire(object):
 
     :param afem.topology.entities.Wire wire: The wire.
     :param afem.topology.entities.Face face: The face.
-
-    Usage:
-
-    >>> from afem.topology import ExploreWire, WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> wire = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> explorer = ExploreWire(wire)
-    >>> explorer.nedges
-    4
     """
 
     def __init__(self, wire, face=None):

@@ -96,16 +96,6 @@ class LinearProps(ShapeProps):
     :param afem.topology.entities.Shape shape: The shape.
     :param bool skip_shared: If *True*, edges shared by two or more faces are
         taken into calculation only once.
-
-    Usage:
-
-    >>> from afem.topology import EdgeByPoints, LinearProps
-    >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
-    >>> props = LinearProps(e)
-    >>> props.length
-    1.0
-    >>> props.cg
-    Point(0.500, 0.000, 0.000)
     """
 
     def __init__(self, shape, skip_shared=True):
@@ -129,17 +119,6 @@ class SurfaceProps(ShapeProps):
     :param float tol: Maximum relative error of computed area for each face.
     :param bool skip_shared: If *True*, faces shared by two or more shells are
         taken into calculation only once.
-
-    Usage:
-
-    >>> from afem.topology import EdgeByPoints, FaceByDrag, SurfaceProps
-    >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
-    >>> f = FaceByDrag(e, (0., 1., 0.)).face
-    >>> props = SurfaceProps(f)
-    >>> props.area
-    1.0
-    >>> props.cg
-    Point(0.500, 0.500, 0.000)
     """
 
     def __init__(self, shape, tol=1.0e-7, skip_shared=False):
@@ -167,18 +146,6 @@ class VolumeProps(ShapeProps):
     :param bool skip_shared: If *True*, volumes formed by equal faces (i.e.,
         the same TShape, location, and orientation) are taken into calculation
         only once.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> e = EdgeByPoints((0., 0., 0.), (1., 0., 0.)).edge
-    >>> f = FaceByDrag(e, (0., 1., 0.)).face
-    >>> solid = SolidByDrag(f, (0., 0., 1.)).solid
-    >>> props = VolumeProps(solid)
-    >>> props.volume
-    0.9999999999999999
-    >>> props.cg
-    Point(0.500, 0.500, 0.500)
     """
 
     def __init__(self, shape, tol=1.0e-7, only_closed=False,

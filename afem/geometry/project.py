@@ -87,8 +87,8 @@ class PointProjector(object):
     @property
     def nearest_param(self):
         """
-        :return: Parameter of nearest point.
-        :rtype: float
+        :return: Parameter(s) of nearest point on curve(surface).
+        :rtype: float or tuple(float, float)
         """
         return self._results[0][1]
 
@@ -152,24 +152,6 @@ class ProjectPointToCurve(PointProjector):
         not recommended but provided by request.
     :param bool update: Option to update the point's location to match the
         nearest point.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> p0 = Point()
-    >>> v = Direction(1., 0., 0.)
-    >>> line = LineByVector(p0, v).line
-    >>> p = Point(5., 5., 0.)
-    >>> proj = ProjectPointToCurve(p, line)
-    >>> assert proj.success
-    >>> proj.npts
-    1
-    >>> proj.nearest_point
-    Point(5.000, 0.000, 0.000)
-    >>> proj.nearest_param
-    5.0
-    >>> proj.dmin
-    5.0
     """
 
     def __init__(self, pnt, crv, direction=None, update=False):
@@ -226,24 +208,6 @@ class ProjectPointToSurface(PointProjector):
         not recommended but provided by request.
     :param bool update: Option to update the point's location to match the
         nearest point.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> p0 = Point()
-    >>> n = Direction(0., 0., 1.)
-    >>> pln = PlaneByNormal(p0, n).plane
-    >>> p = Point(1., 1., 1.)
-    >>> proj = ProjectPointToSurface(p, pln)
-    >>> assert proj.success
-    >>> proj.npts
-    1
-    >>> proj.nearest_point
-    Point(1.000, 1.000, 0.000)
-    >>> proj.nearest_param
-    (1.0, 1.0)
-    >>> proj.dmin
-    1.0
     """
 
     def __init__(self, pnt, srf, direction=None, update=False, tol=1.0e-7):
@@ -322,20 +286,6 @@ class ProjectCurveToPlane(CurveProjector):
 
     :raise RuntimeError: If the OCC method fails to project the curve to the
         plane.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> qp = [Point(), Point(5., 5., 1.), Point(10., 5., 1.)]
-    >>> c = NurbsCurveByInterp(qp).curve
-    >>> pln = PlaneByNormal(Point(), Direction(0., 0., 1.)).plane
-    >>> proj = ProjectCurveToPlane(c, pln, [0., 0., 1.])
-    >>> assert proj.success
-    >>> cnew = proj.curve
-    >>> cnew.p1
-    Point(0.000, 0.000, 0.000)
-    >>> cnew.p2
-    Point(10.000, 5.000, 0.000)
     """
 
     def __init__(self, crv, pln, direction=None, keep_param=True):
@@ -361,20 +311,6 @@ class ProjectCurveToSurface(CurveProjector):
 
     :raise RuntimeError: If the OCC method fails to project the curve to the
         plane.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> c = NurbsCurveByPoints([(0., 5., 6.), (10., 5., 6.)]).curve
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
-    >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
-    >>> s = NurbsSurfaceByApprox([c1, c2, c3]).surface
-    >>> proj = ProjectCurveToSurface(c, s)
-    >>> assert proj.success
-    >>> cproj = proj.curve
-    >>> cproj.eval(0.5)
-    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, crv, srf):

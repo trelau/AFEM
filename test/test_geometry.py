@@ -23,7 +23,7 @@ from afem.geometry import *
 
 class TestGeometryCreate(unittest.TestCase):
     """
-    Test cases for geometry creation.
+    Test cases for afem.geometry.create.
     """
 
     def test_point_by_xyz(self):
@@ -276,6 +276,13 @@ class TestGeometryCreate(unittest.TestCase):
         self.assertAlmostEqual(p.y, -1.)
         self.assertAlmostEqual(p.z, 1.)
 
+    def test_plane_by_orientation(self):
+        pln = PlaneByOrientation(alpha=30.).plane
+        p = pln.eval(1., 1.)
+        self.assertAlmostEqual(p.x, 1.)
+        self.assertAlmostEqual(p.y, -0.5)
+        self.assertAlmostEqual(p.z, 0.8660254)
+
     def test_planes_along_curve_by_number(self):
         p1 = Point()
         p2 = Point(10., 0., 0.)
@@ -350,6 +357,132 @@ class TestGeometryCreate(unittest.TestCase):
         s = builder.surface
         self.assertIsInstance(s, NurbsSurface)
         p = s.eval(0.5, 0.5)
+        self.assertAlmostEqual(p.x, 5.)
+        self.assertAlmostEqual(p.y, 5.)
+        self.assertAlmostEqual(p.z, 5.)
+
+
+class TestGeometryDistance(unittest.TestCase):
+    """
+    Test cases for afem.geometry.distance.
+    """
+
+    def test_distance_point_to_curve(self):
+        c = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        p = Point(5., 1., 0.)
+        dist = DistancePointToCurve(p, c)
+        self.assertEqual(dist.nsol, 3)
+
+
+class TestGeometryIntersect(unittest.TestCase):
+    """
+    Test cases for afem.geometry.intersect.
+    """
+
+    def test_intersect_curve_curve(self):
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(5., 0., 0.), (5., 5., 0.)]).curve
+        cci = IntersectCurveCurve(c1, c2)
+        self.assertTrue(cci.success)
+        self.assertEqual(cci.npts, 1)
+        p = cci.points[0]
+        self.assertAlmostEqual(p.x, 5.)
+        self.assertAlmostEqual(p.y, 0.)
+        self.assertAlmostEqual(p.z, 0.)
+
+    def test_intersect_curve_surface(self):
+        c = NurbsCurveByPoints([(5., 5., 10.), (5., 5., -10.)]).curve
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
+        c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
+        s = NurbsSurfaceByApprox([c1, c2, c3]).surface
+        csi = IntersectCurveSurface(c, s)
+        self.assertTrue(csi.success)
+        self.assertEqual(csi.npts, 1)
+        p = csi.points[0]
+        self.assertAlmostEqual(p.x, 5.)
+        self.assertAlmostEqual(p.y, 5.)
+        self.assertAlmostEqual(p.z, 5.)
+
+    def test_intersect_surface_surface(self):
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
+        c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
+        s = NurbsSurfaceByApprox([c1, c2, c3]).surface
+        pln = PlaneByNormal((5., 5., 0.), (1., 0., 0.)).plane
+        ssi = IntersectSurfaceSurface(s, pln)
+        self.assertTrue(ssi.success)
+        self.assertEqual(ssi.ncrvs, 1)
+        c = ssi.curve(1)
+        p = c.eval(0.5)
+        self.assertAlmostEqual(p.x, 5., places=3)
+        self.assertAlmostEqual(p.y, 5., places=3)
+        self.assertAlmostEqual(p.z, 5., places=3)
+
+
+class TestGeometryProject(unittest.TestCase):
+    """
+    Test cases for afem.geometry.project.
+    """
+
+    def test_project_point_to_curve(self):
+        p0 = Point()
+        v = Direction(1., 0., 0.)
+        line = LineByVector(p0, v).line
+        p = Point(5., 5., 0.)
+        proj = ProjectPointToCurve(p, line)
+        self.assertTrue(proj.success)
+        self.assertEqual(proj.npts, 1)
+        p = proj.nearest_point
+        self.assertAlmostEqual(p.x, 5.)
+        self.assertAlmostEqual(p.y, 0.)
+        self.assertAlmostEqual(p.z, 0.)
+        self.assertAlmostEqual(proj.nearest_param, 5.)
+        self.assertAlmostEqual(proj.dmin, 5.)
+
+    def test_project_point_to_surface(self):
+        p0 = Point()
+        n = Direction(0., 0., 1.)
+        pln = PlaneByNormal(p0, n).plane
+        p = Point(1., 1., 1.)
+        proj = ProjectPointToSurface(p, pln)
+        self.assertTrue(proj.success)
+        self.assertEqual(proj.npts, 1)
+        p = proj.nearest_point
+        self.assertAlmostEqual(p.x, 1.)
+        self.assertAlmostEqual(p.y, 1.)
+        self.assertAlmostEqual(p.z, 0.)
+        print(proj.nearest_param)
+        self.assertAlmostEqual(proj.nearest_param[0], 1.)
+        self.assertAlmostEqual(proj.nearest_param[1], 1.)
+        self.assertAlmostEqual(proj.dmin, 1.)
+
+    def test_project_curve_to_plane(self):
+        qp = [Point(), Point(5., 5., 1.), Point(10., 5., 1.)]
+        c = NurbsCurveByInterp(qp).curve
+        pln = PlaneByNormal(Point(), Direction(0., 0., 1.)).plane
+        proj = ProjectCurveToPlane(c, pln, [0., 0., 1.])
+        self.assertTrue(proj.success)
+        cnew = proj.curve
+        p1 = cnew.p1
+        self.assertAlmostEqual(p1.x, 0.)
+        self.assertAlmostEqual(p1.y, 0.)
+        self.assertAlmostEqual(p1.z, 0.)
+        p2 = cnew.p2
+        self.assertAlmostEqual(p2.x, 10.)
+        self.assertAlmostEqual(p2.y, 5.)
+        self.assertAlmostEqual(p2.z, 0.)
+
+    def test_project_curve_to_surface(self):
+        c = NurbsCurveByPoints([(0., 5., 6.), (10., 5., 6.)]).curve
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
+        c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
+        s = NurbsSurfaceByApprox([c1, c2, c3]).surface
+        proj = ProjectCurveToSurface(c, s)
+        self.assertTrue(proj.success)
+        cproj = proj.curve
+        p = cproj.eval(0.5)
         self.assertAlmostEqual(p.x, 5.)
         self.assertAlmostEqual(p.y, 5.)
         self.assertAlmostEqual(p.z, 5.)

@@ -58,30 +58,6 @@ __all__ = ["Geometry2D", "Point2D", "Vector2D", "Direction2D",
 class Point2D(gp_Pnt2d):
     """
     A 2-D Cartesian point derived from ``gp_Pnt2d``.
-
-    Usage:
-
-    >>> from afem.geometry import Point2D
-    >>> Point2D()
-    Point2D(0.0, 0.0)
-    >>> Point2D(1., 2.)
-    Point2D(1.0, 2.0)
-    >>> from numpy import array
-    >>> array(Point2D(1., 2.))
-    array([ 1.,  2.])
-    >>> p1 = Point2D(1., 2.)
-    >>> p2 = Point2D(4., 5.)
-    >>> p1[0]
-    1.0
-    >>> p1[1]
-    2.0
-    >>> p1 + p2
-    array([ 5.,  7.])
-    >>> p2 - p1
-    array([ 3.,  3.])
-    >>> array([p1, p2])
-    array([[ 1.,  2.],
-           [ 4.,  5.]])
     """
 
     def __init__(self, *args):
@@ -949,32 +925,6 @@ class NurbsCurve2D(Curve2D):
 class Point(gp_Pnt, ViewableItem):
     """
     A 3-D Cartesian point derived from ``gp_Pnt``.
-
-    Usage:
-
-    >>> from afem.geometry import Point
-    >>> Point()
-    Point(0.000, 0.000, 0.000)
-    >>> Point(1., 2., 3.)
-    Point(1.000, 2.000, 3.000)
-    >>> from numpy import array
-    >>> array(Point(1., 2., 3.))
-    array([ 1.,  2.,  3.])
-    >>> p1 = Point(1., 2., 3)
-    >>> p2 = Point(4., 5., 6.)
-    >>> p1[0]
-    1.0
-    >>> p1[1]
-    2.0
-    >>> p1[2]
-    3.0
-    >>> p1 + p2
-    array([ 5.,  7.,  9.])
-    >>> p2 - p1
-    array([ 3.,  3.,  3.])
-    >>> array([p1, p2])
-    array([[ 1.,  2.,  3.],
-           [ 4.,  5.,  6.]])
     """
 
     def __init__(self, *args):
@@ -1276,15 +1226,6 @@ class Point(gp_Pnt, ViewableItem):
 class Direction(gp_Dir):
     """
     Unit vector in 3-D space derived from ``gp_Dir``.
-
-    Usage:
-
-    >>> from afem.geometry import Direction, Vector
-    >>> Direction(10., 0., 0.)
-    Direction(1.0, 0.0, 0.0)
-    >>> v = Vector(10., 0., 0.)
-    >>> Direction(v)
-    Direction(1.0, 0.0, 0.0)
     """
 
     def __init__(self, *args):
@@ -1471,19 +1412,6 @@ class Direction(gp_Dir):
 class Vector(gp_Vec):
     """
     Vector in 3-D space derived from ``gp_Vec``.
-
-    Usage:
-
-    >>> from afem.geometry import Direction, Point, Vector
-    >>> Vector(1., 2., 3.)
-    Vector(1.0, 2.0, 3.0)
-    >>> d = Direction(1., 0., 0.)
-    >>> Vector(d)
-    Vector(1.0, 0.0, 0.0)
-    >>> p1 = Point()
-    >>> p2 = Point(1., 2., 3.)
-    >>> Vector(p1, p2)
-    Vector(1.0, 2.0, 3.0)
     """
 
     def __init__(self, *args):
@@ -1710,14 +1638,6 @@ class Vector(gp_Vec):
 class Axis1(gp_Ax1):
     """
     Axis in 3-D space derived from ``gp_Ax1``.
-
-    Usage:
-
-    >>> from afem.geometry import Axis1, Direction, Point
-    >>> ax1 = Axis1()
-    >>> p = Point()
-    >>> d = Direction(1., 0., 0.)
-    >>> ax1_ = Axis1(p, d)
     """
 
     def __init__(self, *args):
@@ -1749,15 +1669,6 @@ class Axis1(gp_Ax1):
 class Axis3(gp_Ax3):
     """
     Coordinate system in 3-D space derived from ``gp_Ax3``.
-
-    Usage:
-
-    >>> from afem.geometry import Axis3, Direction, Point
-    >>> p = Point()
-    >>> n = Direction(0., 0., 1.)
-    >>> vx = Direction(1., 0., 0.)
-    >>> ax3 = Axis3(p, n, vx)
-    >>> ax3_ = Axis3(p, n)
     """
 
     def __init__(self, *args):

@@ -172,34 +172,6 @@ class SewShape(object):
 
         If *shape* is *None* then the user is expected to manually load the
         shape and perform the operation.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> w1 = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> f1 = FaceByPlanarWire(w1).face
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (0., 0., 1.)
-    >>> p3 = (0., 1., 1.)
-    >>> p4 = (0., 1., 0.)
-    >>> w2 = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> f2 = FaceByPlanarWire(w2).face
-    >>> p1 = (0., 0.5, 0.)
-    >>> p2 = (-1., 0.5, 0.)
-    >>> p3 = (-1., 1.5, 0.)
-    >>> p4 = (0., 1.5, 0.)
-    >>> w3 = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> f3 = FaceByPlanarWire(w3).face
-    >>> # Build an unconnected shell
-    >>> shell = ShellByFaces([f1, f2, f3]).shell
-    >>> tool = SewShape(shell, non_manifold=True)
-    >>> shape = tool.sewed_shape
-    >>> len(shape.faces)
-    3
     """
 
     def __init__(self, shape=None, tol=None, min_tol=None, max_tol=None,
@@ -426,24 +398,6 @@ class RebuildShapeByTool(object):
          This tool will first try to make substitutions on the faces of the
          shape. If no faces exist, it will try the edges. If no edges exist it
          will try the vertices.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> from afem.topology import *
-    >>> pln1 = PlaneByAxes(axes='xy').plane
-    >>> box1 = SolidByPlane(pln1, 10., 10., 10.).solid
-    >>> pln2 = PlaneByAxes((1., 1., 1.), 'xy').plane
-    >>> box2 = SolidByPlane(pln2, 5., 15., 5.).solid
-    >>> cut = CutShapes(box1, box2)
-    >>> assert cut.is_done
-    >>> rebuild = RebuildShapeByTool(box1, cut)
-    >>> new_shape = rebuild.new_shape
-    >>> box1.is_solid
-    True
-    >>> shape = FixShape(new_shape).shape
-    >>> shape.is_shell
-    True
     """
 
     def __init__(self, old_shape, tool):

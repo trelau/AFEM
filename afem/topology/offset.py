@@ -51,19 +51,6 @@ class ProjectShape(object):
         project. If not satisfied then results for the corresponding shape
         are discarded.
     :param bool limit: Option to limit projected edges to the face boundaries.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> from afem.topology import *
-    >>> pln = PlaneByAxes().plane
-    >>> face = FaceByPlane(pln, -5., 5., -5., 5.).face
-    >>> edge = EdgeByPoints((0., 1., 15.), (0., 1., -15.)).edge
-    >>> proj = ProjectShape(face, [edge])
-    >>> proj.is_done
-    True
-    >>> proj.nedges
-    1
     """
 
     def __init__(self, shape, to_project, tol3d=1.0e-4, tol2d=None,
@@ -157,15 +144,6 @@ class OffsetShape(object):
         result.
     :param bool perform_simple: Option to use simple algorithm without
         intersection computation.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> from afem.topology import *
-    >>> pln = PlaneByAxes().plane
-    >>> face = FaceByPlane(pln, -5., 5., -5., 5.).face
-    >>> tool = OffsetShape(face, 5.)
-    >>> shape = tool.shape
     """
 
     def __init__(self, shape, offset, tol=None, join_mode=Geometry.ARC,
@@ -227,17 +205,6 @@ class LoftShape(object):
 
     :raise TypeError: If any of the sections cannot be added to the tool
         because they are of the wrong type.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> pnts1 = [(0., 0., 0.), (5., 0., 5.), (10., 0., 0.)]
-    >>> wire1 = WireByPoints(pnts1).wire
-    >>> pnts2 = [(0., 10., 0.), (5., 10., -5.), (10., 10., 0.)]
-    >>> wire2 = WireByPoints(pnts2).wire
-    >>> loft = LoftShape([wire1, wire2])
-    >>> loft.is_done
-    True
     """
 
     def __init__(self, sections, is_solid=False, make_ruled=False,

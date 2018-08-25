@@ -140,18 +140,6 @@ class IntersectCurveCurve(CurveIntersector):
     :param afem.geometry.entities.Curve crv1: The first curve.
     :param afem.geometry.entities.Curve crv2: The second curve.
     :param float itol: The intersection tolerance.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(5., 0., 0.), (5., 5., 0.)]).curve
-    >>> cci = IntersectCurveCurve(c1, c2)
-    >>> assert cci.success
-    >>> cci.npts
-    1
-    >>> cci.point(1)
-    Point(5.000, 0.000, 0.000)
     """
 
     def __init__(self, crv1, crv2, itol=1.0e-7):
@@ -196,21 +184,6 @@ class IntersectCurveSurface(CurveIntersector):
 
     :param afem.geometry.entities.Curve crv: The curve.
     :param afem.geometry.entities.Surface srf: The surface.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> c = NurbsCurveByPoints([(5., 5., 10.), (5., 5., -10.)]).curve
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
-    >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
-    >>> s = NurbsSurfaceByApprox([c1, c2, c3]).surface
-    >>> csi = IntersectCurveSurface(c, s)
-    >>> assert csi.success
-    >>> csi.npts
-    1
-    >>> csi.point(1)
-    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, crv, srf):
@@ -305,22 +278,6 @@ class IntersectSurfaceSurface(SurfaceIntersector):
     :param afem.geometry.entities.Surface srf2: The second surface.
     :param float itol: Intersection tolerance.
     :param bool approx: Approximate intersection curves.
-
-    Usage:
-
-    >>> from afem.geometry import *
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(0., 5., 5.), (10., 5., 5.)]).curve
-    >>> c3 = NurbsCurveByPoints([(0., 10., 0.), (10., 10., 0.)]).curve
-    >>> s = NurbsSurfaceByApprox([c1, c2, c3]).surface
-    >>> pln = PlaneByNormal((5., 5., 0.), (1., 0., 0.)).plane
-    >>> ssi = IntersectSurfaceSurface(s, pln)
-    >>> assert ssi.success
-    >>> ssi.ncrvs
-    1
-    >>> c = ssi.curve(1)
-    >>> c.eval(0.5)
-    Point(5.000, 5.000, 5.000)
     """
 
     def __init__(self, srf1, srf2, itol=1.0e-7, approx=True):
