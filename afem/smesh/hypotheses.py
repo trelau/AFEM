@@ -28,7 +28,9 @@ from OCCT.NETGENPlugin import (NETGENPlugin_Hypothesis_2D,
                                NETGENPlugin_NETGEN_2D,
                                NETGENPlugin_NETGEN_2D_ONLY,
                                NETGENPlugin_SimpleHypothesis_2D,
-                               NETGENPlugin_Hypothesis)
+                               NETGENPlugin_Hypothesis,
+                               NETGENPlugin_NETGEN_3D,
+                               NETGENPlugin_NETGEN_2D3D)
 from OCCT.SMESH import SMESH_Algo, SMESH_Hypothesis
 from OCCT.StdMeshers import (StdMeshers_Adaptive1D,
                              StdMeshers_Deflection1D, StdMeshers_LocalLength,
@@ -46,8 +48,8 @@ __all__ = ["Hypothesis", "Algorithm", "Regular1D", "CompositeSide1D",
            "MaxLength1D", "LocalLength1D", "NumberOfSegments1D", "Adaptive1D",
            "Deflection1D",
            "QuadrangleAlgo2D", "QuadrangleHypo2D",
-           "NetgenAlgo2D", "NetgenAlgoOnly2D", "NetgenHypo2D",
-           "NetgenSimple2D",
+           "NetgenHypothesis", "NetgenAlgo2D", "NetgenAlgoOnly2D",
+           "NetgenHypo2D", "NetgenSimple2D", "NetgenAlgo3D", "NetgenAlgo2D3D",
            "MeshGemsAlgo2D", "MeshGemsHypo2D"]
 
 
@@ -443,6 +445,60 @@ class QuadrangleHypo2D(Hypothesis):
         self._hyp.SetEnforcedNodes(shapes_, pnts)
 
 
+class NetgenHypothesis(Hypothesis):
+    """
+    NETGEN hypothesis.
+
+    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param float max_size: Maximum edge length.
+    :param float min_size: Minimum edge length.
+    :param bool allow_quads: Enable quad-dominated mesh.
+    :param bool second_order: Enable second-order mesh.
+    :param bool optimize: Enable mesh optimization.
+    :param fineness: Mesh fineness.
+    :type fineness: OCCT.NETGENPlugin.NETGENPlugin_Hypothesis.Fineness
+    :param float growth_rate: Growth rate between 0 to 1.
+    :param int nseg_per_edge: Number of segments per edge.
+    :param int nseg_per_radius: Number of segments per radius.
+    :param bool surface_curvature: Enable surface curvature to define edge
+        size.
+    :param bool fuse_edges: Option to fuse edges.
+
+    :cvar OCCT.NETGENPlugin.NETGENPlugin_Hypothesis.Fineness VERYCOARSE:
+    :cvar OCCT.NETGENPlugin.NETGENPlugin_Hypothesis.Fineness COARSE:
+    :cvar OCCT.NETGENPlugin.NETGENPlugin_Hypothesis.Fineness MODERATE:
+    :cvar OCCT.NETGENPlugin.NETGENPlugin_Hypothesis.Fineness FINE:
+    :cvar OCCT.NETGENPlugin.NETGENPlugin_Hypothesis.Fineness VERYFINE:
+    """
+
+    # Fineness
+    VERYCOARSE = NETGENPlugin_Hypothesis.VeryCoarse
+    COARSE = NETGENPlugin_Hypothesis.Coarse
+    MODERATE = NETGENPlugin_Hypothesis.Moderate
+    FINE = NETGENPlugin_Hypothesis.Fine
+    VERYFINE = NETGENPlugin_Hypothesis.VeryFine
+
+    def __init__(self, gen, max_size=1000., min_size=0.,
+                 allow_quads=False, second_order=False, optimize=True,
+                 fineness=NETGENPlugin_Hypothesis.Moderate, growth_rate=0.3,
+                 nseg_per_edge=1, nseg_per_radius=2, surface_curvature=False,
+                 fuse_edges=False):
+        hyp = NETGENPlugin_Hypothesis(gen.new_id(), -1, gen.object)
+        super(NetgenHypothesis, self).__init__(hyp)
+
+        self._hyp.SetMaxSize(max_size)
+        self._hyp.SetMinSize(min_size)
+        self._hyp.SetSecondOrder(second_order)
+        self._hyp.SetOptimize(optimize)
+        self._hyp.SetFineness(fineness)
+        self._hyp.SetGrowthRate(growth_rate)
+        self._hyp.SetNbSegPerEdge(nseg_per_edge)
+        self._hyp.SetNbSegPerRadius(nseg_per_radius)
+        self._hyp.SetQuadAllowed(allow_quads)
+        self._hyp.SetSurfaceCurvature(surface_curvature)
+        self._hyp.SetFuseEdges(fuse_edges)
+
+
 class NetgenAlgo2D(Algorithm):
     """
     NETGEN 2-D algorithm.
@@ -802,3 +858,27 @@ class MeshGemsHypo2D(Hypothesis):
         """
         patch = [set(patch_ids)]
         self._hyp.SetHyperPatches(patch)
+
+
+class NetgenAlgo3D(Algorithm):
+    """
+    NETGEN 3-D algorithm.
+
+    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    """
+
+    def __init__(self, gen):
+        hyp = NETGENPlugin_NETGEN_3D(gen.new_id(), -1, gen.object)
+        super(NetgenAlgo3D, self).__init__(hyp)
+
+
+class NetgenAlgo2D3D(Algorithm):
+    """
+    NETGEN 2-D/3-D algorithm.
+
+    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    """
+
+    def __init__(self, gen):
+        hyp = NETGENPlugin_NETGEN_2D3D(gen.new_id(), -1, gen.object)
+        super(NetgenAlgo2D3D, self).__init__(hyp)

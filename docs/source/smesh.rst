@@ -232,6 +232,10 @@ QuadrangleHypo2D
 ~~~~~~~~~~~~~~~~
 .. autoclass:: QuadrangleHypo2D
 
+NetgenHypothesis
+~~~~~~~~~~~~~~~~
+.. autoclass:: NetgenHypothesis
+
 NetgenAlgo2D
 ~~~~~~~~~~~~
 .. autoclass:: NetgenAlgo2D
@@ -247,6 +251,14 @@ NetgenHypo2D
 NetgenSimple2D
 ~~~~~~~~~~~~~~
 .. autoclass:: NetgenSimple2D
+
+NetgenAlgo3D
+~~~~~~~~~~~~
+.. autoclass:: NetgenAlgo3D
+
+NetgenAlgo2D3D
+~~~~~~~~~~~~~~
+.. autoclass:: NetgenAlgo2D3D
 
 MeshGemsAlgo2D
 ~~~~~~~~~~~~~~

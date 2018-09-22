@@ -196,6 +196,14 @@ class Mesh(object):
         return self._mesh.NbQuadrangles()
 
     @property
+    def num_volumes(self):
+        """
+        :return: Number of volume elements.
+        :rtype: int
+        """
+        return self._mesh.NbVolumes()
+
+    @property
     def num_submesh(self):
         """
         :return: Number of sub-meshes.
