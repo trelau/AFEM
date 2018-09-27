@@ -290,6 +290,22 @@ class Shape(ViewableItem):
         return self._get_shapes(self.COMPSOLID)
 
     @property
+    def num_edges(self):
+        """
+        :return: The number of edges in the shape.
+        :rtype: int
+        """
+        return len(self.edges)
+
+    @property
+    def num_faces(self):
+        """
+        :return: The number of faces in the shape.
+        :rtype: int
+        """
+        return len(self.faces)
+
+    @property
     def tol_avg(self):
         """
         :return: The average global tolerance.
