@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from OCCT.gp import gp_Trsf
 from OCCT.SMDS import SMDS_ListOfNodes, SMDS_ListOfElements
 from OCCT.SMESH import SMESH_MeshEditor, SMESH_MesherHelper
+from OCCT.gp import gp_Trsf
 
 from afem.geometry.check import CheckGeom
 from afem.smesh.entities import Element, Node
@@ -351,6 +351,16 @@ class MeshEditor(object):
         if method == 5:
             return self._editor.TriToQuadTaper(elms, max_bending_angle)
         return False
+
+    def convert_to_quadratic(self):
+        """
+        Convert to quadratic mesh by inserting mid-sided nodes along the edge
+        between existing nodes.
+
+        :return: *True* if successful, *False* if not.
+        :rtype: bool
+        """
+        return self._editor.ConvertToQuadratic(True, False)
 
 
 class MeshHelper(object):
