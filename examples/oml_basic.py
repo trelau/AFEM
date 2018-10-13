@@ -71,7 +71,7 @@ gui.add(wing.sref_shape)
 gui.start()
 
 # Evaluate point
-p = wing.eval(0.5, 0.5)
+p = wing.sref.eval(0.5, 0.5)
 
 # Extract a plane
 pln = wing.extract_plane(0.5, 0., 0.5, 0.5)

@@ -17,7 +17,9 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 
-from afem.geometry.entities import *
+from afem.geometry.entities import (Point, Point2D, Vector, Vector2D,
+                                    Direction, Plane, Curve, TrimmedCurve,
+                                    NurbsCurve2D, Line, Surface, Axis3)
 
 __all__ = ["CheckGeom"]
 
@@ -195,17 +197,6 @@ class CheckGeom(object):
         return isinstance(geom, Plane)
 
     @staticmethod
-    def is_line(geom):
-        """
-        Check if the entity is a :class:`.Line`.
-
-        :param geom: An entity.
-        :return: *True* if the entity is a Line, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(geom, Line)
-
-    @staticmethod
     def is_curve(geom):
         """
         Check if the entity is a curve.
@@ -226,6 +217,28 @@ class CheckGeom(object):
         :rtype: bool
         """
         return isinstance(geom, NurbsCurve2D)
+
+    @staticmethod
+    def is_line(geom):
+        """
+        Check if the entity is a :class:`.Line`.
+
+        :param geom: An entity.
+        :return: *True* if the entity is a Line, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(geom, Line)
+
+    @staticmethod
+    def is_trimmed_curve(geom):
+        """
+        Check if the entity is a :class:`.TrimmedCurve`.
+
+        :param geom: An entity.
+        :return: *True* if the entity is a TrimmedCurve, *False* if not.
+        :rtype: bool
+        """
+        return isinstance(geom, TrimmedCurve)
 
     @staticmethod
     def is_surface(geom):

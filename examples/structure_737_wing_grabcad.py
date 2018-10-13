@@ -52,33 +52,33 @@ p2 = tip_rib.point_from_parameter(0.7, is_rel=True)
 rspar = SparByPoints('rear spar', p1, p2, wing).part
 
 # Front inboard spar
-u = root_rib.local_to_global_u(0.15)
+u = root_rib.cref.local_to_global_param(0.15)
 p1 = root_rib.point_on_cref(u)
 v = wing.sref.vknots[1]
-p2 = wing.eval(0.15, v)
+p2 = wing.sref.eval(0.15, v)
 inbd_fspar = SparByPoints('inbd front spar', p1, p2, wing).part
 
 # Front outboard spar
-p1 = inbd_fspar.p2
-u = tip_rib.local_to_global_u(0.15)
+p1 = inbd_fspar.cref.p2
+u = tip_rib.cref.local_to_global_param(0.15)
 p2 = tip_rib.point_on_cref(u)
 outbd_fspar = SparByPoints('outbd front spar', p1, p2, wing).part
 
 # Adjust root and tip rib reference curve
-root_rib.set_p1(inbd_fspar.p1)
-root_rib.set_p2(rspar.p1)
-tip_rib.set_p1(outbd_fspar.p2)
-tip_rib.set_p2(rspar.p2)
+root_rib.set_p1(inbd_fspar.cref.p1)
+root_rib.set_p2(rspar.cref.p1)
+tip_rib.set_p1(outbd_fspar.cref.p2)
+tip_rib.set_p2(rspar.cref.p2)
 
 # Kink rib
-p1 = inbd_fspar.p2
-p2 = inbd_fspar.p2
+p1 = inbd_fspar.cref.p2
+p2 = inbd_fspar.cref.p2
 rspar.points_to_cref([p2])
 pln = PlaneByIntersectingShapes(inbd_fspar.shape, outbd_fspar.shape, p2).plane
 kink_rib = RibByPoints('kink rib', p1, p2, wing, pln).part
 
 # Inboard ribs
-u2 = rspar.invert_cref(kink_rib.p2)
+u2 = rspar.invert_cref(kink_rib.cref.p2)
 inbd_ribs = RibsAlongCurveByDistance('inbd rib', rspar.cref, 24.,
                                      inbd_fspar.shape, rspar.shape, wing,
                                      d1=12., d2=-24., u2=u2).parts
@@ -91,16 +91,16 @@ outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 24.,
 # Front center spar
 xz_pln = PlaneByAxes(axes='xz').plane
 
-p2 = inbd_fspar.p1
-p1 = inbd_fspar.p1
+p2 = inbd_fspar.cref.p1
+p1 = inbd_fspar.cref.p1
 ProjectPointToSurface(p1, xz_pln, update=True)
 
 pln = PlaneByIntersectingShapes(inbd_fspar.shape, root_rib.shape, p1).plane
 fcspar = SparByPoints('front center spar', p1, p2, wing, pln).part
 
 # Rear center spar
-p2 = rspar.p1
-p1 = rspar.p1
+p2 = rspar.cref.p1
+p1 = rspar.cref.p1
 ProjectPointToSurface(p1, xz_pln, update=True)
 pln = PlaneByIntersectingShapes(rspar.shape, root_rib.shape, p1).plane
 rcspar = SparByPoints('rear center spar', p1, p2, wing, pln).part
@@ -141,8 +141,8 @@ the_gen.compute(the_mesh, the_shape)
 
 # View
 skin.set_transparency(0.5)
-v = Viewer()
-v.add(GroupAPI.get_master())
-v.start()
-v.add(the_mesh)
-v.start()
+gui = Viewer()
+gui.add(GroupAPI.get_master())
+gui.start()
+gui.add(the_mesh)
+gui.start()

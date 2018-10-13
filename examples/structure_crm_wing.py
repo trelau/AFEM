@@ -79,7 +79,7 @@ vknots = rhs_wing.sref.vknots
 
 # Root rib at the first wing station using xz-plane. Restrict to 15 and 75%
 # chord.
-pln = PlaneByAxes(rhs_wing.eval(0., vknots[1]), 'xz').plane
+pln = PlaneByAxes(rhs_wing.sref.eval(0., vknots[1]), 'xz').plane
 root_rib = RibByShape('root rib', pln, rhs_wing).part
 p1 = root_rib.point_from_parameter(0.15, is_rel=True)
 p2 = root_rib.point_from_parameter(0.75, is_rel=True)
@@ -91,30 +91,32 @@ v2 = vknots[-1]
 tip_rib = RibByParameters('tip rib', 0.15, v2, 0.75, v2, rhs_wing).part
 
 # Front center spar
-pln = PlaneByAxes(root_rib.p1, 'yz').plane
+pln = PlaneByAxes(root_rib.cref.p1, 'yz').plane
 fc_spar = SparBetweenShapes('fc spar', xz_face, root_rib.shape, rhs_wing,
                             pln).part
 
 # Rear center spar
-pln = PlaneByAxes(root_rib.p2, 'yz').plane
+pln = PlaneByAxes(root_rib.cref.p2, 'yz').plane
 rc_spar = SparBetweenShapes('rc spar', xz_face, root_rib.shape, rhs_wing,
                             pln).part
 
 # Front spar is between the second and last wing stations. Use intersection
 # of center spar and root rib for orientation.
 pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape,
-                                tip_rib.p1).plane
-fspar = SparByPoints('fspar', root_rib.p1, tip_rib.p1, rhs_wing, pln).part
+                                tip_rib.cref.p1).plane
+fspar = SparByPoints('fspar', root_rib.cref.p1, tip_rib.cref.p1, rhs_wing,
+                     pln).part
 
 # Rear spar 1 is between second and third wing stations. Use intersection
 # of center spar and root rib for orientation.
 v2 = vknots[2]
-p2 = rhs_wing.eval(0.75, v2)
+p2 = rhs_wing.sref.eval(0.75, v2)
 pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, p2).plane
-rspar1 = SparByPoints('rspar 1', root_rib.p2, p2, rhs_wing, pln).part
+rspar1 = SparByPoints('rspar 1', root_rib.cref.p2, p2, rhs_wing, pln).part
 
 # Rear spar 2 is between the third and last wing stations
-rspar2 = SparByPoints('rspar 2', rspar1.p2, tip_rib.p2, rhs_wing).part
+rspar2 = SparByPoints('rspar 2', rspar1.cref.p2, tip_rib.cref.p2,
+                      rhs_wing).part
 
 parts = GroupAPI.get_parts()
 
@@ -127,12 +129,12 @@ aft_shape = CompoundByShapes([root_rib.shape, rspar1.shape,
                               rspar2.shape]).compound
 
 # Start/stopping point for inboard ribs to avoid rib at kink
-uref = fspar.invert_cref(rspar1.p1)
+uref = fspar.invert_cref(rspar1.cref.p1)
 builder1 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar.shape,
                                     aft_shape, rhs_wing, d1=25., d2=-12.5,
                                     u2=uref)
 
-uref_kink = fspar.invert_cref(rspar1.p2)
+uref_kink = fspar.invert_cref(rspar1.cref.p2)
 builder2 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar.shape,
                                     aft_shape, rhs_wing, d1=12.5, d2=-12.5,
                                     u1=uref, u2=uref_kink,
@@ -189,8 +191,8 @@ print('Computing mesh...')
 the_gen.compute(the_mesh, shape_to_mesh)
 
 # View
-v = Viewer()
-v.add(GroupAPI.get_master())
-v.start()
-v.add(the_mesh)
-v.start()
+gui = Viewer()
+gui.add(GroupAPI.get_master())
+gui.start()
+gui.add(the_mesh)
+gui.start()

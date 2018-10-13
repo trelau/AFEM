@@ -33,17 +33,17 @@ other_htail = bodies['Htail.1']
 fuse_group = GroupAPI.create_group('fuselage group')
 
 # Fwd bulkhead at 25% wing chord
-p0 = wing.eval(0.25, 0.)
+p0 = wing.sref.eval(0.25, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
 fwd_bh = BulkheadByShape('fwd bh', pln, fuselage).part
 
 # Rear bulkhead at 65% wing chord
-p0 = wing.eval(0.65, 0.)
+p0 = wing.sref.eval(0.65, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
 rear_bh = BulkheadByShape('rear bh', pln, fuselage).part
 
 # Aft bulkhead at 85% wing chord
-p0 = wing.eval(0.85, 0.)
+p0 = wing.sref.eval(0.85, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
 aft_bh = BulkheadByShape('aft bh', pln, fuselage).part
 
@@ -55,11 +55,11 @@ floor = FloorByShape('floor', pln, fuselage).part
 fskin = SkinByBody('fuselage skin', fuselage).part
 
 # Cutting solids.
-p0 = wing.eval(0., 0.)
+p0 = wing.sref.eval(0., 0.)
 fwd_pln = PlaneByAxes(p0, 'yz').plane
 fwd_cut = SolidByPlane(fwd_pln, 1.e6, 1.e6, -1.e6).solid
 
-p0 = wing.eval(1., 0.)
+p0 = wing.sref.eval(1., 0.)
 aft_pln = PlaneByAxes(p0, 'yz').plane
 aft_cut = SolidByPlane(aft_pln, 1.e6, 1.e6, 1.e6).solid
 
@@ -106,7 +106,10 @@ cutter = bop.shape
 CutParts([fskin, fwd_bh, rear_bh, aft_bh, floor] + frames, cutter)
 
 # Join
+print('Joining fuselage parts...')
+start = time.time()
 FuseSurfaceParts([fwd_bh, rear_bh, aft_bh, floor, fskin], frames)
+print('Complete in ', time.time() - start, ' seconds.')
 
 # WING ------------------------------------------------------------------------
 wing_group = GroupAPI.create_group('wing group')
@@ -153,47 +156,47 @@ tip_rib = RibByParameters('tip rib', 0.15, v, 0.65, v, wing).part
 # Front and rear spar. Use intersection of root rib and center spars to
 # define planes so the edges all align at the root rib.
 pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape,
-                                tip_rib.p1).plane
+                                tip_rib.cref.p1).plane
 
-p1 = root_rib.p1
-p2 = tip_rib.p1
+p1 = root_rib.cref.p1
+p2 = tip_rib.cref.p1
 fspar = SparByPoints('fspar', p1, p2, wing, pln).part
 
 pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape,
-                                tip_rib.p2).plane
-p1 = root_rib.p2
-p2 = tip_rib.p2
+                                tip_rib.cref.p2).plane
+p1 = root_rib.cref.p2
+p2 = tip_rib.cref.p2
 rspar = SparByPoints('rspar', p1, p2, wing, pln).part
 
 # Aux spar
 v = wing.sref.vknots[1]
-p0 = wing.eval(0.5, v)
+p0 = wing.sref.eval(0.5, v)
 pln = PlaneByAxes(p0, 'xz').plane
 aux_spar = SparBetweenShapes('aux spar', root_chord, pln, wing,
                              aft_bh.sref).part
 
 # Rib at end of aux spar
-pln = PlaneByAxes(aux_spar.p2, 'xz').plane
+pln = PlaneByAxes(aux_spar.cref.p2, 'xz').plane
 face1 = FaceBySurface(fspar.sref).face
 face2 = FaceBySurface(aft_bh.sref).face
 kink_rib = RibBetweenShapes('kink rib', face1, face2, wing, pln).part
 
 # Streamwise ribs between root and kink rib.
-root_pln = PlaneByAxes(root_rib.p2, 'xz').plane
+root_pln = PlaneByAxes(root_rib.cref.p2, 'xz').plane
 plns = [root_pln, kink_rib.sref]
 inbd_ribs = RibsBetweenPlanesByDistance('inbd rib', root_pln, kink_rib.plane,
                                         30., fspar.shape, rspar.shape, wing,
                                         30., -30.).parts
 
 # Outboard ribs
-u1 = rspar.invert_cref(kink_rib.p2)
+u1 = rspar.invert_cref(kink_rib.cref.p2)
 outbd_ribs = RibsAlongCurveByDistance('outbd rib', rspar.cref, 30.,
                                       fspar.shape, rspar.shape, wing, u1=u1,
                                       d1=30., d2=-30.).parts
 
 # Rib along kink rib to front spar.
-u1 = fspar.invert_cref(kink_rib.p1)
-u2 = fspar.invert_cref(outbd_ribs[0].p1)
+u1 = fspar.invert_cref(kink_rib.cref.p1)
+u2 = fspar.invert_cref(outbd_ribs[0].cref.p1)
 kink_ribs = RibsAlongCurveByDistance('kink rib', fspar.cref, 30., fspar.shape,
                                      kink_rib.shape, wing, u1=u1, u2=u2,
                                      d1=30., d2=-30., nmin=1).parts
@@ -213,7 +216,10 @@ DiscardByCref(internal_parts)
 wskin = SkinByBody('wing skin', wing).part
 
 # Join the wing skin and internal structure
+print('Joining wing parts...')
+start = time.time()
 wskin.fuse(*internal_parts)
+print('Complete in ', time.time() - start, ' seconds.')
 
 # Discard faces touching reference surface.
 wskin.discard_by_dmin(wing.sref_shape, 1.0)
@@ -223,10 +229,10 @@ wskin.discard_by_dmin(wing.sref_shape, 1.0)
 wskin.fix()
 
 # JOIN ------------------------------------------------------------------------
-print('Fusing assemblies...')
+print('Joining assemblies...')
 start = time.time()
 bop = FuseGroups([wing_group, fuse_group])
-print('complete', time.time() - start)
+print('Complete in ', time.time() - start, ' seconds.')
 
 # Mesh
 shape_to_mesh = GroupAPI.prepare_shape_to_mesh()
@@ -247,7 +253,7 @@ the_mesh.add_hypotheses([netgen_hyp, netgen_alg], shape_to_mesh)
 mapped_hyp = QuadrangleHypo2D(the_gen)
 mapped_algo = QuadrangleAlgo2D(the_gen)
 for part_ in internal_parts:
-    for face in part_.faces:
+    for face in part_.shape.faces:
         if mapped_algo.is_applicable(face):
             the_mesh.add_hypotheses([mapped_algo, mapped_hyp], face)
 
@@ -258,13 +264,13 @@ status = the_gen.compute(the_mesh, shape_to_mesh)
 if not status:
     print('Failed to compute mesh')
 else:
-    print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
+    print('Complete in ', time.time() - mesh_start, ' seconds.')
 
 # Find free edges
 tool = ExploreFreeEdges(shape_to_mesh)
 
 # View
-v = Viewer()
-v.display_mesh(the_mesh.object, 2)
-v.add(*tool.free_edges)
-v.start()
+gui = Viewer()
+gui.display_mesh(the_mesh.object, 2)
+gui.add(*tool.free_edges)
+gui.start()

@@ -18,25 +18,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from numpy import mean
 
-from afem.base.entities import ShapeHolder, NamedItem
 from afem.config import logger
+from afem.core.entities import ShapeHolder
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import (PlaneByNormal, PlaneFromParameter,
-                                  PointFromParameter, PointsAlongCurveByNumber)
-from afem.geometry.entities import Axis1, Plane, TrimmedCurve
-from afem.geometry.project import (ProjectPointToCurve,
-                                   ProjectPointToSurface)
+from afem.geometry.create import (PlaneByNormal, PointsAlongCurveByNumber)
+from afem.geometry.entities import Axis1
 from afem.structure.group import GroupAPI
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)
 from afem.topology.check import CheckShape, ClassifyPointInSolid
 from afem.topology.create import (CompoundByShapes, HalfspaceBySurface,
-                                  PointAlongShape, PointsAlongShapeByDistance,
-                                  PointsAlongShapeByNumber,
-                                  ShellByFaces, WiresByShape, FaceByPlane,
+                                  PointAlongShape, WiresByShape, FaceByPlane,
                                   SolidByDrag)
 from afem.topology.distance import DistanceShapeToShape
-from afem.topology.entities import *
+from afem.topology.entities import Shape, Edge, Wire, Face, Shell, Compound
 from afem.topology.fix import FixShape
 from afem.topology.modify import (RebuildShapeByTool,
                                   RebuildShapeWithShapes, RebuildShapesByTool,
@@ -69,7 +64,7 @@ def shape_of_entity(entity):
         return Shape.to_shape(entity)
 
 
-class Part(NamedItem, ShapeHolder):
+class Part(ShapeHolder):
     """
     Base class for all parts.
 
@@ -88,32 +83,16 @@ class Part(NamedItem, ShapeHolder):
     _mesh = None
 
     def __init__(self, name, shape, cref=None, sref=None, group=None):
-        super(Part, self).__init__(name)
-
-        # Shape holder
-        type_ = (Shape,)
+        types = (Shape,)
         if isinstance(self, CurvePart):
-            type_ = (Edge, Wire, Compound)
+            types = (Edge, Wire, Compound)
         elif isinstance(self, SurfacePart):
-            type_ = (Face, Shell, Compound)
-        ShapeHolder.__init__(self, type_, shape)
-
-        # Random color
-        self.random_color()
+            types = (Face, Shell, Compound)
+        super(Part, self).__init__(name, shape, cref, sref, types)
 
         # Unique ID
         self._id = Part._indx
         Part._indx += 1
-
-        # Geometry data
-        self._cref, self._sref = None, None
-        if cref is not None:
-            self.set_cref(cref)
-        if sref is not None:
-            self.set_sref(sref)
-
-        # Other data
-        self._subparts = {}
 
         # Add to group
         GroupAPI.add_parts(group, self)
@@ -123,186 +102,12 @@ class Part(NamedItem, ShapeHolder):
         logger.info(msg)
 
     @property
-    def type(self):
-        """
-        :return: The class name of the part.
-        :rtype: str
-        """
-        return self.__class__.__name__
-
-    @property
     def id(self):
         """
         :return: The unique part ID.
         :rtype: int
         """
         return self._id
-
-    @property
-    def is_null(self):
-        """
-        :return: *True* if part shape is null, *False* if not.
-        :rtype: bool
-        """
-        return self._shape.is_null
-
-    @property
-    def tol_avg(self):
-        """
-        :return: The average tolerance of the part shape.
-        :rtype: float
-        """
-        return self._shape.tol_avg
-
-    @property
-    def tol_max(self):
-        """
-        :return: The maximum tolerance of the part shape.
-        :rtype: float
-        """
-        return self._shape.tol_max
-
-    @property
-    def tol_min(self):
-        """
-        :return: The minimum tolerance of the part shape.
-        :rtype: float
-        """
-        return self._shape.tol_min
-
-    @property
-    def subparts(self):
-        """
-        :return: List of sub-parts associated to this part.
-        :rtype: list(afem.structure.entities.Part)
-        """
-        return list(self._subparts.values())
-
-    @property
-    def cref(self):
-        """
-        :return: The part reference curve.
-        :rtype: afem.geometry.entities.TrimmedCurve
-        """
-        return self._cref
-
-    @property
-    def sref(self):
-        """
-        :return: The part reference surface.
-        :rtype: afem.geometry.entities.Surface
-        """
-        return self._sref
-
-    @property
-    def has_cref(self):
-        """
-        :return: *True* if part has a reference curve, *False* if not.
-        :rtype: bool
-        """
-        return CheckGeom.is_curve(self._cref)
-
-    @property
-    def has_sref(self):
-        """
-        :return: *True* if part has a reference surface, *False* if not.
-        :rtype: bool
-        """
-        return CheckGeom.is_surface(self._sref)
-
-    @property
-    def is_planar(self):
-        """
-        :return: *True* if the reference surface is a plane, *False* if not.
-        :rtype: bool
-        """
-        return isinstance(self._sref, Plane)
-
-    @property
-    def plane(self):
-        """
-        :return: A plane if the reference surface is a plane.
-        :rtype: afem.geometry.entities.Plane
-
-        :raise TypeError: If the reference surface is not a plane.
-        """
-        if not self.is_planar:
-            raise TypeError('Reference surface is not a plane.')
-        return self._sref
-
-    @property
-    def p1(self):
-        """
-        :return: The first point of the part reference curve.
-        :rtype: afem.geometry.entities.Point
-
-        :raises ValueError: If the part has no reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part has no reference curve.'
-            raise ValueError(msg)
-        return self._cref.p1
-
-    @property
-    def p2(self):
-        """
-        :return: The last point of the part reference curve.
-        :rtype: afem.geometry.entities.Point
-
-        :raises ValueError: If the part has no reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part has no reference curve.'
-            raise ValueError(msg)
-        return self._cref.p2
-
-    @property
-    def nedges(self):
-        """
-        :return: The number of edges in the part shape.
-        :rtype: int
-        """
-        return len(self.edges)
-
-    @property
-    def edges(self):
-        """
-        :return: All the edges of the part shape.
-        :rtype: list(afem.topology.entities.Edge)
-        """
-        return self._shape.edges
-
-    @property
-    def edge_compound(self):
-        """
-        :return: A compound containing the part edges.
-        :rtype: afem.topology.entities.Compound
-        """
-        return CompoundByShapes(self.edges).compound
-
-    @property
-    def nfaces(self):
-        """
-        :return: The number of faces in the part shape.
-        :rtype: int
-        """
-        return len(self.faces)
-
-    @property
-    def faces(self):
-        """
-        :return: All the faces of the part shape.
-        :rtype: list(afem.topology.entities.Face)
-        """
-        return self._shape.faces
-
-    @property
-    def face_compound(self):
-        """
-        :return: A compound containing the part faces.
-        :rtype: afem.topology.entities.Compound
-        """
-        return CompoundByShapes(self.faces).compound
 
     @property
     def mesh(self):
@@ -342,500 +147,6 @@ class Part(NamedItem, ShapeHolder):
         """
         ds = self.submesh.ds
         return [n for n in ds.node_iter]
-
-    def set_cref(self, cref):
-        """
-        Set the part reference curve.
-
-        :param afem.geometry.entities.Curve cref: The curve. If it is not a
-            :class:`.TrimmedCurve`, then it will be converted to one. Access
-            the original curve using the *basis_curve* property (i.e.,
-            part.cref.basis_curve).
-        :param cref: The reference curve.
-
-        :return: None.
-
-        :raise TypeError: If *cref* is an invalid curve.
-        """
-        if not CheckGeom.is_curve(cref):
-            raise TypeError('Invalid curve type.')
-
-        if isinstance(cref, TrimmedCurve):
-            self._cref = cref
-        else:
-            self._cref = TrimmedCurve.by_parameters(cref)
-
-    def set_u1(self, u1):
-        """
-        Set the first parameter of the reference curve.
-
-        :param float u1: The parameter.
-
-        :return: None.
-
-        :raise ValueError: If the *u1* is greater than or equal to *u2*.
-        """
-        if u1 >= self._cref.u2:
-            msg = ('First parameter greater than or equal to second '
-                   'parameter of curve.')
-            raise ValueError(msg)
-
-        self._cref.set_trim(u1, self._cref.u2)
-
-    def set_u2(self, u2):
-        """
-        Set the last parameter of the reference curve.
-
-        :param float u2: The parameter.
-
-        :return: None.
-
-        :raise ValueError: If the *u2* is less than or equal to *u1*.
-        """
-        if u2 <= self._cref.u1:
-            msg = ('Second parameter less than or equal to first '
-                   'parameter of curve.')
-            raise ValueError(msg)
-
-        self._cref.set_trim(self._cref.u1, u2)
-
-    def set_p1(self, p1):
-        """
-        Set the first parameter of the reference curve by inverting the point.
-
-        :param point_like p1: The point.
-
-        :return: None.
-
-        :raise RuntimeError: If no projection can be found.
-        """
-        u1 = self.invert_cref(p1)
-        if u1 is None:
-            msg = 'No projection found on reference curve.'
-            raise RuntimeError(msg)
-
-        self.set_u1(u1)
-
-    def set_p2(self, p2):
-        """
-        Set the last parameter of the reference curve by inverting the point.
-
-        :param point_like p2: The point.
-
-        :return: None.
-
-        :raise RuntimeError: If no projection can be found.
-        """
-        u2 = self.invert_cref(p2)
-        if u2 is None:
-            msg = 'No projection found on reference curve.'
-            raise RuntimeError(msg)
-
-        self.set_u2(u2)
-
-    def trim_u1(self, entity):
-        """
-        Trim the first parameter of the reference curve by interesting it with
-        the entity.
-
-        :param entity: The entity.
-        :type entity: afem.geometry.entities.Geometry or
-            afem.topology.entities.Shape
-
-        :return: None.
-
-        :raise RuntimeError: If an intersection with the reference curve cannot
-            be found.
-        """
-        shape1 = Shape.to_shape(self.cref)
-        shape2 = Shape.to_shape(entity)
-        bop = IntersectShapes(shape1, shape2)
-        if not bop.is_done:
-            raise RuntimeError('Failed to intersect reference curve.')
-
-        pnts = [v.point for v in bop.vertices]
-        p = CheckGeom.nearest_point(self.p1, pnts)
-        self.set_p1(p)
-
-    def trim_u2(self, entity):
-        """
-        Trim the last parameter of the reference curve by interesting it with
-        the entity.
-
-        :param entity: The entity.
-        :type entity: afem.geometry.entities.Geometry or
-            afem.topology.entities.Shape
-
-        :return: None.
-
-        :raise RuntimeError: If an intersection with the reference curve cannot
-            be found.
-        """
-        shape1 = Shape.to_shape(self.cref)
-        shape2 = Shape.to_shape(entity)
-        bop = IntersectShapes(shape1, shape2)
-        if not bop.is_done:
-            raise RuntimeError('Failed to intersect reference curve.')
-
-        pnts = [v.point for v in bop.vertices]
-        p = CheckGeom.nearest_point(self.p2, pnts)
-        self.set_p2(p)
-
-    def set_sref(self, sref):
-        """
-        Set the part reference surface.
-
-        :param afem.geometry.entities.Surface sref: The surface.
-
-        :return: None.
-
-        :raise TypeError: If *sref* is an invalid surface.
-        """
-        if not CheckGeom.is_surface(sref):
-            msg = 'Invalid surface type.'
-            raise TypeError(msg)
-        self._sref = sref
-
-    def add_subpart(self, key, subpart):
-        """
-        Add a sub-part to the part.
-
-        :param str key: The key.
-        :param afem.structure.entities.Part subpart: The sub-part.
-
-        :return: None.
-
-        :raise TypeError: If *subpart* is not a part.
-        """
-        if not isinstance(subpart, Part):
-            msg = 'Sub-part is not a part.'
-            raise TypeError(msg)
-        self._subparts[key] = subpart
-
-    def get_subpart(self, key):
-        """
-        Get a sub-part.
-
-        :param str key: The key.
-
-        :return: The sub-part. Returns *None* if the key is not present.
-        :rtype: afem.structure.entities.Part
-
-        :raise KeyError: If key not present in the dictionary.
-        """
-        return self._subparts[key]
-
-    def local_to_global_u(self, u):
-        """
-        Convert local parameter from 0 <= u <= 1 to u1 <= u <= u2 using the
-        part reference curve.
-
-        :param float u: Local u-parameter.
-
-        :return: Global u-parameter.
-        :rtype: float
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-        return self._cref.local_to_global_param(u)
-
-    def point_on_cref(self, u):
-        """
-        Evaluate point on reference curve.
-
-        :param float u: The parameter.
-
-        :return: The point.
-        :rtype: afem.geometry.entities.Point
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-        return self._cref.eval(u)
-
-    def point_on_sref(self, u, v):
-        """
-        Evaluate point on reference surface.
-
-        :param float u: The u-parameter.
-        :param float v: The v-parameter.
-
-        :return: The point.
-        :rtype: afem.geometry.entities.Point
-
-        :raise AttributeError: If part does not have a reference surface.
-        """
-        if not self.has_sref:
-            msg = 'Part does not have a reference surface.'
-            raise AttributeError(msg)
-        return self._sref.eval(u, v)
-
-    def point_from_parameter(self, ds, u0=None, is_rel=False):
-        """
-        Evaluate point on reference curve at a distance from a parameter.
-
-        :param float ds: The distance.
-        :param float u0: The parameter. If not provided the first parameter
-            of the reference curve will be used.
-        :param bool is_rel: Option specifying if the distance is absolute or
-            a relative to the length of the reference curve. If relative, then
-            *ds* is multiplied by the curve length to get the absolute value
-            for the :class:`.PointFromParameter` method.
-
-        :return: The point.
-        :rtype: afem.geometry.entities.Point
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        if u0 is None:
-            u0 = self._cref.u1
-
-        if is_rel:
-            ds *= self._cref.length
-
-        return PointFromParameter(self._cref, u0, ds).point
-
-    def points_by_number(self, n, d1=None, d2=None, shape1=None,
-                         shape2=None):
-        """
-        Create a specified number of points along the reference curve.
-
-        :param int n: Number of points to create (*n* > 0).
-        :param float d1: An offset distance for the first point. This is
-            typically a positive number indicating a distance from *u1*
-            towards *u2*.
-        :param float d2: An offset distance for the last point. This is
-            typically a negative number indicating a distance from *u2*
-            towards *u1*.
-        :param afem.topology.entities.Shape shape1: A shape to define the first
-            point. This shape is intersected with the edge or wire.
-        :param afem.topology.entities.Shape shape2: A shape to define the last
-            point. This shape is intersected with the edge or wire.
-
-        :return: The points.
-        :rtype: list(afem.geometry.entities.Point)
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        edge = Edge.by_curve(self._cref)
-        builder = PointsAlongShapeByNumber(edge, n, d1, d2, shape1, shape2)
-        return builder.points
-
-    def points_by_distance(self, maxd, nmin=0, d1=None, d2=None, shape1=None,
-                           shape2=None):
-        """
-        Create a points along the reference curve by distance.
-
-        :param float maxd: The maximum allowed spacing between points. The
-            actual spacing will be adjusted to not to exceed this value.
-        :param int nmin: Minimum number of points to create.
-        :param float d1: An offset distance for the first point. This is
-            typically a positive number indicating a distance from *u1*
-            towards *u2*.
-        :param float d2: An offset distance for the last point. This is
-            typically a negative number indicating a distance from *u2*
-            towards *u1*.
-        :param afem.topology.entities.Shape shape1: A shape to define the first
-            point. This shape is intersected with the edge or wire.
-        :param afem.topology.entities.Shape shape2: A shape to define the last
-            point. This shape is intersected with the edge or wire.
-
-        :return: The points.
-        :rtype: list(afem.geometry.entities.Point)
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        edge = Edge.by_curve(self._cref)
-        builder = PointsAlongShapeByDistance(edge, maxd, d1, d2, shape1,
-                                             shape2, nmin)
-        return builder.points
-
-    def point_to_cref(self, pnt, direction=None):
-        """
-        Project a point to reference curve.
-
-        :param afem.geometry.entities.Point pnt: The point. Position will be
-            updated.
-        :param vector_like direction: Projection direction.
-
-        :return: *True* if projected, *False* if not.
-        :rtype: bool
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        proj = ProjectPointToCurve(pnt, self._cref, direction, update=True)
-        if not proj.success:
-            return False
-        return True
-
-    def points_to_cref(self, pnts, direction=None):
-        """
-        Project points to the reference curve.
-
-        :param list(afem.geometry.entities.Point) pnts: The points. Position
-            will be updated.
-        :param vector_like direction: Projection direction.
-
-        :return: List of status for each point.
-        :rtype: list(bool)
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        success = []
-        for p in pnts:
-            status = self.point_to_cref(p, direction)
-            success.append(status)
-        return success
-
-    def point_to_sref(self, pnt, direction=None):
-        """
-        Project a point to reference surface.
-
-        :param afem.geometry.entities.Point pnt: The point. Position will be
-            updated.
-        :param vector_like direction: Projection direction.
-
-        :return: *True* if projected, *False* if not.
-        :rtype: bool
-
-        :raise AttributeError: If part does not have a reference surface.
-        """
-        if not self.has_sref:
-            msg = 'Part does not have a reference surface.'
-            raise AttributeError(msg)
-
-        proj = ProjectPointToSurface(pnt, self._sref, direction)
-        if not proj.success:
-            return False
-
-        p = proj.nearest_point
-        pnt.set_xyz(p.xyz)
-        return True
-
-    def points_to_sref(self, pnts, direction=None):
-        """
-        Project points to reference surface.
-
-        :param list(afem.geometry.entities.Point) pnts: The points. Position
-            will be updated.
-        :param vector_like direction: Projection direction.
-
-        :return: List of status for each point.
-        :rtype: list(bool)
-
-        :raise AttributeError: If part does not have a reference surface.
-        """
-        if not self.has_sref:
-            msg = 'Part does not have a reference surface.'
-            raise AttributeError(msg)
-
-        success = []
-        for p in pnts:
-            status = self.point_to_sref(p, direction)
-            success.append(status)
-        return success
-
-    def plane_from_parameter(self, ds, u0=None, is_rel=False, ref_pln=None,
-                             tol=1.0e-7):
-        """
-        Get a plane along the reference curve.
-
-        :param float ds: The distance.
-        :param float u0: The parameter. If not provided the first parameter
-            of the reference curve will be used.
-        :param bool is_rel: Option specifying if the distance is absolute or
-            a relative to the length of the reference curve. If relative, then
-            *ds* is multiplied by the curve length to get the absolute value
-            for the :class:`.PlaneFromParameter` method.
-        :param afem.geometry.entities.Plane ref_pln: The normal of this plane
-            will be used to define the normal of the new plane. If no plane is
-            provided, then the first derivative of the curve will define the
-            plane normal.
-        :param float tol: Tolerance.
-
-        :return: The plane.
-        :rtype: afem.geometry.entities.Plane
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        if u0 is None:
-            u0 = self._cref.u1
-
-        if is_rel:
-            ds *= self.cref.length
-
-        return PlaneFromParameter(self._cref, u0, ds, ref_pln, tol).plane
-
-    def invert_cref(self, pnt):
-        """
-        Invert the point on the reference curve.
-
-        :param point_like pnt: The point.
-
-        :return: The parameter on the reference curve. Returns *None* if no
-            projection is found.
-        :rtype: float or None
-
-        :raise AttributeError: If part does not have a reference curve.
-        """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        proj = ProjectPointToCurve(pnt, self._cref)
-        if proj.success:
-            return proj.nearest_param
-        return None
-
-    def invert_sref(self, pnt):
-        """
-        Invert the point on the reference surface.
-
-        :param point_like pnt: The point.
-
-        :return: The parameters on the reference surface (u, v). Returns
-            *None* if no projection is found.
-        :rtype: tuple(float) or tuple(None)
-
-        :raise AttributeError: If part does not have a reference surface.
-        """
-        if not self.has_sref:
-            msg = 'Part does not have a reference surface.'
-            raise AttributeError(msg)
-
-        proj = ProjectPointToSurface(pnt, self._sref)
-        if proj.success:
-            return proj.nearest_param
-        return None, None
 
     def distance(self, other):
         """
@@ -997,15 +308,15 @@ class Part(NamedItem, ShapeHolder):
         :raise TypeError: If this part is not a curve or surface part.
         """
         if isinstance(self, CurvePart):
-            shapes = self.edges
+            shapes = self.shape.edges
         elif isinstance(self, SurfacePart):
-            shapes = self.faces
+            shapes = self.shape.faces
         else:
             msg = 'Invalid part type in discard operation.'
             raise TypeError(msg)
 
         if tol is None:
-            tol = self.tol_avg
+            tol = self.shape.tol_avg
 
         rebuild = RebuildShapeWithShapes(self._shape)
         classifer = ClassifyPointInSolid(solid, tol=tol)
@@ -1049,9 +360,9 @@ class Part(NamedItem, ShapeHolder):
         entity = Shape.to_shape(entity)
 
         if isinstance(self, CurvePart):
-            shapes = self.edges
+            shapes = self.shape.edges
         elif isinstance(self, SurfacePart):
-            shapes = self.faces
+            shapes = self.shape.faces
         else:
             msg = 'Invalid part type in discard operation.'
             raise TypeError(msg)
@@ -1092,9 +403,9 @@ class Part(NamedItem, ShapeHolder):
         entity = Shape.to_shape(entity)
 
         if isinstance(self, CurvePart):
-            shapes = self.edges
+            shapes = self.shape.edges
         elif isinstance(self, SurfacePart):
-            shapes = self.faces
+            shapes = self.shape.faces
         else:
             msg = 'Invalid part type in discard operation.'
             raise TypeError(msg)
@@ -1128,13 +439,7 @@ class Part(NamedItem, ShapeHolder):
 
         :return: *True* if shapes were discard, *False* if not.
         :rtype: bool
-
-        :raise AttributeError: If part does not have a reference curve.
         """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
         # Create vectors at each end of the reference curve pointing "out" of
         # the part
         u1, u2 = self._cref.u1, self._cref.u2
@@ -1266,9 +571,10 @@ class SurfacePart(Part):
             it returns the length of all edges of the part.
         :rtype: float
         """
-        if self.has_cref:
+        try:
             return self.cref.length
-        return LinearProps(self._shape).length
+        except AttributeError:
+            return LinearProps(self._shape).length
 
     @property
     def area(self):
@@ -1277,25 +583,6 @@ class SurfacePart(Part):
         :rtype: float
         """
         return SurfaceProps(self._shape).area
-
-    @property
-    def stiffeners(self):
-        """
-        :return: List of stiffeners associated to the part.
-        :rtype: list(afem.structure.entities.Stiffener1D)
-        """
-        return [part for part in self.subparts]
-
-    def make_shell(self):
-        """
-        Attempt to make a shell from the faces of the part. This method
-        only constructs the faces into a shell without checking for a valid
-        shape.
-
-        :return: A new shell from the shape of the part.
-        :rtype: afem.topology.entities.Shell
-        """
-        return ShellByFaces(self.faces).shell
 
     def fuse(self, *other_parts):
         """
@@ -1444,18 +731,7 @@ class SurfacePart(Part):
         :return: The status of the Boolean operation that will cut the hole.
             *True* if the operation was performed, *False* if not.
         :rtype: bool
-
-        :raise AttributeError: If the part does not have a reference curve or
-            surface.
         """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
-        if not self.has_sref:
-            msg = 'Part does not have a reference surface.'
-            raise AttributeError(msg)
-
         # Intersect the shape with a plane to use for the hole height location
         pln = self.plane_from_parameter(ds, u0, is_rel)
         bop = IntersectShapes(self._shape, pln)
@@ -1488,14 +764,7 @@ class SurfacePart(Part):
         :param float d: The diameter.
 
         :return: None.
-
-        :raise AttributeError: If the part does not have a reference curve or
-            surface.
         """
-        if not self.has_cref:
-            msg = 'Part does not have a reference curve.'
-            raise AttributeError(msg)
-
         pac = PointsAlongCurveByNumber(self.cref, n + 2)
         for u in pac.parameters[1:-1]:
             self.cut_hole(d, 0., u)

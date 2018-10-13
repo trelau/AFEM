@@ -25,9 +25,9 @@ from afem.topology import *
 
 
 def show_shapes(*shapes):
-    v = Viewer()
-    v.add(*shapes)
-    v.start()
+    gui = Viewer()
+    gui.add(*shapes)
+    gui.start()
 
 
 class TestTopologyCreate(unittest.TestCase):
@@ -117,14 +117,14 @@ class TestTopologyBop(unittest.TestCase):
     def test_intersect_shapes(self):
         e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
         e2 = EdgeByPoints((5., 1., 0.), (5., -1., 0.)).edge
-        intersect = IntersectShapes(e1, e2)
-        self.assertTrue(intersect.is_done)
+        section = IntersectShapes(e1, e2)
+        self.assertTrue(section.is_done)
         # Setting arguments and tools
-        intersect = IntersectShapes()
-        intersect.set_args([e1])
-        intersect.set_tools([e2])
-        intersect.build()
-        self.assertTrue(intersect.is_done)
+        section = IntersectShapes()
+        section.set_args([e1])
+        section.set_tools([e2])
+        section.build()
+        self.assertTrue(section.is_done)
 
     def test_split_shapes(self):
         e1 = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge

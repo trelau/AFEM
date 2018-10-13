@@ -44,9 +44,9 @@ class TestStructureEntities(unittest.TestCase):
                                      cls.wing).part
         cls.rspar = SparByParameters('rspar', 0.65, 0.15, 0.65, 0.5,
                                      cls.wing).part
-        cls.part1 = RibByPoints('rib1', cls.fspar.p1, cls.rspar.p1,
+        cls.part1 = RibByPoints('rib1', cls.fspar.cref.p1, cls.rspar.cref.p1,
                                 cls.wing).part
-        cls.part2 = RibByPoints('rib2', cls.fspar.p2, cls.rspar.p2,
+        cls.part2 = RibByPoints('rib2', cls.fspar.cref.p2, cls.rspar.cref.p2,
                                 cls.wing).part
 
         cls.null_rib = RibByParameters('null rib', 0.15, 0.5, 0.65, 0.5,
@@ -68,54 +68,51 @@ class TestStructureEntities(unittest.TestCase):
 
     def test_part_shape(self):
         self.assertIsInstance(self.fspar.shape, Compound)
-        p = self.wing.eval(0.5, 0.5)
+        p = self.wing.sref.eval(0.5, 0.5)
         pln = PlaneByAxes(p, 'xz').plane
         f = FaceByPlane(pln, -100, 100, -100, 100).face
         self.assertIsNone(self.null_rib.set_shape(f))
 
     def test_part_is_null(self):
-        self.assertFalse(self.fspar.is_null)
-        self.assertTrue(self.null_rib.is_null)
+        self.assertFalse(self.fspar.shape.is_null)
+        self.assertTrue(self.null_rib.shape.is_null)
 
     def test_part_tol(self):
-        self.assertAlmostEqual(self.fspar.tol_avg, 1.5366868787116302e-5,
+        self.assertAlmostEqual(self.fspar.shape.tol_avg, 1.5366868787116302e-5,
                                places=7)
-        self.assertAlmostEqual(self.fspar.tol_max, 5.922308296231664e-5,
+        self.assertAlmostEqual(self.fspar.shape.tol_max, 5.922308296231664e-5,
                                places=7)
 
     def test_part_cref(self):
         self.assertIsInstance(self.fspar.cref, TrimmedCurve)
-        self.assertTrue(self.fspar.has_cref)
 
     def test_part_sref(self):
         self.assertIsInstance(self.fspar.sref, Plane)
-        self.assertTrue(self.fspar.has_sref)
 
     def test_part_plane(self):
-        self.assertTrue(self.fspar.is_planar)
         self.assertIsInstance(self.fspar.sref, Plane)
 
     def test_part_p1(self):
-        p1 = self.fspar.p1
+        p1 = self.fspar.cref.p1
         self.assertAlmostEqual(p1.x, 969.324, places=3)
         self.assertAlmostEqual(p1.y, 196.839, places=3)
         self.assertAlmostEqual(p1.z, -59.085, places=3)
 
     def test_part_p2(self):
-        p2 = self.fspar.p2
+        p2 = self.fspar.cref.p2
         self.assertAlmostEqual(p2.x, 1251.391, places=3)
         self.assertAlmostEqual(p2.y, 652.999, places=3)
         self.assertAlmostEqual(p2.z, 6.559, places=3)
 
     def test_part_edges(self):
-        self.assertEqual(self.fspar.nedges, 9)
-        for e in self.fspar.edges:
+        self.assertEqual(self.fspar.shape.num_edges, 9)
+        for e in self.fspar.shape.edges:
             self.assertIsInstance(e, Edge)
         self.assertIsInstance(self.fspar.edge_compound, Compound)
 
     def test_part_faces(self):
-        self.assertEqual(self.fspar.nfaces, 1)
-        for f in self.fspar.faces:
+        self.assertEqual(self.fspar.shape.num_faces, 1)
+        for f in self.fspar.shape.faces:
             self.assertIsInstance(f, Face)
         self.assertIsInstance(self.fspar.face_compound, Compound)
 
@@ -167,28 +164,28 @@ class TestStructureCreate(unittest.TestCase):
         self.assertIsInstance(spar, Spar)
 
     def test_spar_by_points(self):
-        p1 = self.wing.eval(0.5, 0.)
-        p2 = self.wing.eval(0.5, 0.75)
+        p1 = self.wing.sref.eval(0.5, 0.)
+        p2 = self.wing.sref.eval(0.5, 0.75)
         builder = SparByPoints('spar', p1, p2, self.wing)
         spar = builder.part
         self.assertIsInstance(spar, Spar)
 
     def test_spar_by_ends(self):
         p1 = (0.5, 0.)
-        p2 = self.wing.eval(0.5, 0.75)
+        p2 = self.wing.sref.eval(0.5, 0.75)
         builder = SparByEnds('spar', p1, p2, self.wing)
         spar = builder.part
         self.assertIsInstance(spar, Spar)
 
     def test_spar_by_surface(self):
-        p0 = self.wing.eval(0.5, 0.)
+        p0 = self.wing.sref.eval(0.5, 0.)
         pln = PlaneByAxes(p0, 'yz').plane
         builder = SparByShape('spar', pln, self.wing)
         spar = builder.part
         self.assertIsInstance(spar, Spar)
 
     def test_spar_by_shape(self):
-        p0 = self.wing.eval(0.5, 0.)
+        p0 = self.wing.sref.eval(0.5, 0.)
         pln = PlaneByAxes(p0, 'yz').plane
         f = FaceBySurface(pln).face
         builder = SparByShape('spar', f, self.wing)
@@ -196,13 +193,13 @@ class TestStructureCreate(unittest.TestCase):
         self.assertIsInstance(spar, Spar)
 
     def test_spar_between_shapes(self):
-        p = self.wing.eval(0.5, 0.)
+        p = self.wing.sref.eval(0.5, 0.)
         pln1 = PlaneByAxes(p, 'xz').plane
         shape1 = FaceBySurface(pln1).face
-        p = self.wing.eval(0.5, 0.5)
+        p = self.wing.sref.eval(0.5, 0.5)
         pln2 = PlaneByAxes(p, 'xz').plane
         shape2 = FaceBySurface(pln2).face
-        p = self.wing.eval(0.5, 0.)
+        p = self.wing.sref.eval(0.5, 0.)
         pln3 = PlaneByNormal(p, (0.5, -0.2, 0.)).plane
         basis_shape = FaceBySurface(pln3).face
         builder = SparBetweenShapes('spar', shape1, shape2, self.wing,
@@ -215,8 +212,8 @@ class TestStructureCreate(unittest.TestCase):
         rib1 = builder.part
         builder = RibByParameters('rib2', 0.15, 0.25, 0.65, 0.25, self.wing)
         rib2 = builder.part
-        pln1 = PlaneByAxes(rib2.p1, 'yz').plane
-        pln2 = PlaneByAxes(rib2.p2, 'yz').plane
+        pln1 = PlaneByAxes(rib2.cref.p1, 'yz').plane
+        pln2 = PlaneByAxes(rib2.cref.p2, 'yz').plane
         builder = SparsBetweenPlanesByNumber('spar', pln1, pln2, 5, rib1,
                                              rib2, self.wing)
         self.assertEqual(builder.nparts, 5)
@@ -229,8 +226,8 @@ class TestStructureCreate(unittest.TestCase):
         rib1 = builder.part
         builder = RibByParameters('rib2', 0.15, 0.25, 0.65, 0.25, self.wing)
         rib2 = builder.part
-        pln1 = PlaneByAxes(rib2.p1, 'yz').plane
-        pln2 = PlaneByAxes(rib2.p2, 'yz').plane
+        pln1 = PlaneByAxes(rib2.cref.p1, 'yz').plane
+        pln2 = PlaneByAxes(rib2.cref.p2, 'yz').plane
         builder = SparsBetweenPlanesByDistance('spar', pln1, pln2, 36., rib1,
                                                rib2, self.wing)
         self.assertEqual(builder.nparts, 5)
@@ -270,21 +267,21 @@ class TestStructureCreate(unittest.TestCase):
         self.assertIsInstance(rib, Rib)
 
     def test_rib_by_points(self):
-        p1 = self.wing.eval(0.15, 0.15)
-        p2 = self.wing.eval(0.65, 0.15)
+        p1 = self.wing.sref.eval(0.15, 0.15)
+        p2 = self.wing.sref.eval(0.65, 0.15)
         builder = RibByPoints('rib', p1, p2, self.wing)
         rib = builder.part
         self.assertIsInstance(rib, Rib)
 
     def test_rib_by_surface(self):
-        p0 = self.wing.eval(0.5, 0.5)
+        p0 = self.wing.sref.eval(0.5, 0.5)
         pln = PlaneByAxes(p0, 'xz').plane
         builder = RibByShape('rib', pln, self.wing)
         rib = builder.part
         self.assertIsInstance(rib, Rib)
 
     def test_rib_by_shape(self):
-        p0 = self.wing.eval(0.5, 0.25)
+        p0 = self.wing.sref.eval(0.5, 0.25)
         pln = PlaneByAxes(p0, 'xz').plane
         f = FaceBySurface(pln).face
         builder = RibByShape('rib', f, self.wing)
@@ -292,13 +289,13 @@ class TestStructureCreate(unittest.TestCase):
         self.assertIsInstance(rib, Rib)
 
     def test_rib_between_shapes(self):
-        p = self.wing.eval(0.15, 0.5)
+        p = self.wing.sref.eval(0.15, 0.5)
         pln1 = PlaneByAxes(p, 'yz').plane
         shape1 = FaceBySurface(pln1).face
-        p = self.wing.eval(0.65, 0.5)
+        p = self.wing.sref.eval(0.65, 0.5)
         pln2 = PlaneByAxes(p, 'yz').plane
         shape2 = FaceBySurface(pln2).face
-        p = self.wing.eval(0.5, 0.5)
+        p = self.wing.sref.eval(0.5, 0.5)
         pln3 = PlaneByAxes(p, 'xz').plane
         basis_shape = FaceBySurface(pln3).face
         builder = RibBetweenShapes('rib', shape1, shape2, self.wing,
@@ -307,7 +304,7 @@ class TestStructureCreate(unittest.TestCase):
         self.assertIsInstance(rib, Rib)
 
     def rib_by_orientation(self):
-        p = self.wing.eval(0.15, 0.15)
+        p = self.wing.sref.eval(0.15, 0.15)
         builder = RibByOrientation('rib', p, self.wing, gamma=15.)
         rib = builder.part
         self.assertIsInstance(rib, Rib)
@@ -317,8 +314,8 @@ class TestStructureCreate(unittest.TestCase):
         fspar = builder.part
         builder = SparByParameters('rspar', 0.65, 0.15, 0.65, 0.5, self.wing)
         rspar = builder.part
-        pln1 = PlaneByAxes(fspar.p1, 'xz').plane
-        pln2 = PlaneByAxes(fspar.p2, 'xz').plane
+        pln1 = PlaneByAxes(fspar.cref.p1, 'xz').plane
+        pln2 = PlaneByAxes(fspar.cref.p2, 'xz').plane
         builder = RibsBetweenPlanesByNumber('rib', pln1, pln2, 5, fspar,
                                             rspar, self.wing)
         self.assertEqual(builder.nparts, 5)
@@ -331,8 +328,8 @@ class TestStructureCreate(unittest.TestCase):
         fspar = builder.part
         builder = SparByParameters('rspar', 0.65, 0.15, 0.65, 0.5, self.wing)
         rspar = builder.part
-        pln1 = PlaneByAxes(fspar.p1, 'xz').plane
-        pln2 = PlaneByAxes(fspar.p2, 'xz').plane
+        pln1 = PlaneByAxes(fspar.cref.p1, 'xz').plane
+        pln2 = PlaneByAxes(fspar.cref.p2, 'xz').plane
         builder = RibsBetweenPlanesByDistance('rib', pln1, pln2, 36., fspar,
                                               rspar, self.wing)
         self.assertEqual(builder.nparts, 12)
@@ -346,8 +343,9 @@ class TestStructureCreate(unittest.TestCase):
         fspar = builder.part
         builder = SparByParameters('rspar', 0.65, 0.15, 0.65, 0.5, self.wing)
         rspar = builder.part
-        root = RibByPoints('root', fspar.p1, rspar.p1, self.wing).part
-        tip = RibByPoints('tip', fspar.p2, rspar.p2, self.wing).part
+        root = RibByPoints('root', fspar.cref.p1, rspar.cref.p1,
+                           self.wing).part
+        tip = RibByPoints('tip', fspar.cref.p2, rspar.cref.p2, self.wing).part
         p1 = root.point_on_cref(0.5 * (root.cref.u1 + root.cref.u2))
         p2 = tip.point_on_cref(0.5 * (tip.cref.u1 + tip.cref.u2))
         curve = NurbsCurveByPoints([p1, p2]).curve
@@ -363,8 +361,9 @@ class TestStructureCreate(unittest.TestCase):
         fspar = builder.part
         builder = SparByParameters('rspar', 0.65, 0.15, 0.65, 0.5, self.wing)
         rspar = builder.part
-        root = RibByPoints('root', fspar.p1, rspar.p1, self.wing).part
-        tip = RibByPoints('tip', fspar.p2, rspar.p2, self.wing).part
+        root = RibByPoints('root', fspar.cref.p1, rspar.cref.p1,
+                           self.wing).part
+        tip = RibByPoints('tip', fspar.cref.p2, rspar.cref.p2, self.wing).part
         p1 = root.point_on_cref(0.5 * (root.cref.u1 + root.cref.u2))
         p2 = tip.point_on_cref(0.5 * (tip.cref.u1 + tip.cref.u2))
         curve = NurbsCurveByPoints([p1, p2]).curve

@@ -8,6 +8,6 @@ fn = '../models/777-200LR.stp'
 
 vsp_import = ImportVSP(fn)
 
-v = Viewer()
-v.add(*vsp_import.all_bodies)
-v.start()
+gui = Viewer()
+gui.add(*vsp_import.all_bodies)
+gui.start()

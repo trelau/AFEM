@@ -380,7 +380,7 @@ class Shape(ViewableItem):
     def point(self):
         """
         :return: *None* unless overridden in derived class.
-        :rtype: afem.geometry.entites.Point or None
+        :rtype: afem.geometry.entities.Point or None
         """
         return None
 

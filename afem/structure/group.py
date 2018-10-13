@@ -409,7 +409,7 @@ class GroupAPI(object):
         parts = group.get_parts()
         for part in parts:
             name = doc.add_shape(part.shape, part.name, False)
-            name.set_string(part.type)
+            name.set_string(part.type_name)
             name.set_color(part.color)
 
             # Reference curve

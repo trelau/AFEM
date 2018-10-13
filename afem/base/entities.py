@@ -16,14 +16,10 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from collections import Sequence
-
 from OCCT.Quantity import Quantity_TOC_RGB, Quantity_Color
 from numpy.random import rand
 
-from afem.config import logger
-
-__all__ = ["Metadata", "NamedItem", "ViewableItem", "ShapeHolder"]
+__all__ = ["Metadata", "NamedItem", "ViewableItem"]
 
 
 class Metadata(dict):
@@ -46,6 +42,8 @@ class Metadata(dict):
 class NamedItem(object):
     """
     Base class for types that can be give a name.
+
+    :param str name: The name.
     """
 
     def __init__(self, name='Item'):
@@ -159,74 +157,3 @@ class ViewableItem(object):
         """
         r, g, b = rand(1, 3)[0]
         self._color = Quantity_Color(r, g, b, Quantity_TOC_RGB)
-
-
-class ShapeHolder(ViewableItem):
-    """
-    Base class for types that store a shape.
-
-    :param expected_type: The expected type(s).
-    :type expected_type: Type[afem.topology.entities.Shape] or
-        tuple(Type[afem.topology.entities.Shape])
-    :param afem.topology.entities.Shape shape: The shape.
-    """
-
-    def __init__(self, expected_type, shape=None):
-        super(ShapeHolder, self).__init__()
-        if isinstance(expected_type, Sequence):
-            self._types = expected_type
-        else:
-            self._types = (expected_type,)
-        self._shape = None
-        if shape is not None:
-            self.set_shape(shape)
-
-    @property
-    def shape(self):
-        """
-        :Getter: The shape.
-        :Setter: Set the shape.
-        :type: afem.topology.entities.Shape
-        """
-        return self._shape
-
-    @shape.setter
-    def shape(self, shape):
-        self.set_shape(shape)
-
-    @property
-    def displayed_shape(self):
-        """
-        :return: The shape to be displayed.
-        :rtype: OCCT.TopoDS.TopoDS_Shape
-        """
-        return self.shape.object
-
-    def set_shape(self, shape):
-        """
-        Set the shape.
-
-        :param afem.topology.entities.Shape shape: The shape.
-
-        :return: None.
-        """
-        if not isinstance(shape, self._types):
-            this = self.__class__.__name__
-            other = shape.__class__.__name__
-
-            expected = []
-            for type_ in self._types:
-                expected.append(type_.__name__)
-            if len(expected) == 1:
-                expected = 'a ' + expected[0]
-            else:
-                expected = 'one of (' + ', '.join(expected) + ')'
-            name = 'Unknown'
-            if isinstance(self, NamedItem):
-                name = self.name
-            msg = ('Invalid shape provided for a {} object with name {}. '
-                   'Got a {} but expected {}.'.format(this, name, other,
-                                                      expected))
-            logger.warning(msg)
-
-        self._shape = shape

@@ -69,7 +69,7 @@ cb_fspar1 = SparByPoints('cb spar 1', p1, p2, wing).part
 
 p2 = cb_sob.point_from_parameter(0.05, is_rel=True)
 pln = PlaneByIntersectingShapes(cb_wall.shape, cb_fspar1.shape, p2).plane
-cb_fspar2 = SparByPoints('cb fspar 2', cb_fspar1.p2, p2, wing, pln).part
+cb_fspar2 = SparByPoints('cb fspar 2', cb_fspar1.cref.p2, p2, wing, pln).part
 
 # Outboard wing structure
 
@@ -80,18 +80,22 @@ root_rib = RibByParameters('ob root rib', 0.15, 0.5, 0.7, 0.5, wing).part
 tip_rib = RibByParameters('ob tip rib', 0.15, 0.995, 0.7, 0.995, wing).part
 
 # Outbd front spar
-ob_fspar = SparByPoints('ob fspar', root_rib.p1, tip_rib.p1, wing).part
+ob_fspar = SparByPoints('ob fspar', root_rib.cref.p1, tip_rib.cref.p1,
+                        wing).part
 
 # Outbd rear spar
-ob_rspar = SparByPoints('ob rspar', root_rib.p2, tip_rib.p2, wing).part
+ob_rspar = SparByPoints('ob rspar', root_rib.cref.p2, tip_rib.cref.p2,
+                        wing).part
 
 # Outbd ribs
 RibsAlongCurveByDistance('ob rib', ob_rspar.cref, 30, ob_fspar.shape,
                          ob_rspar.shape, wing, d1=30, d2=-30)
 
 # Trap wing (need to redo and align spars given intersection of parts)
-fspar = SparByPoints('trap fspar', cb_fspar2.p2, ob_fspar.p1, wing).part
-rspar = SparByPoints('trap rspar', rear_cabin_bh.p2, ob_rspar.p1, wing).part
+fspar = SparByPoints('trap fspar', cb_fspar2.cref.p2, ob_fspar.cref.p1,
+                     wing).part
+rspar = SparByPoints('trap rspar', rear_cabin_bh.cref.p2, ob_rspar.cref.p1,
+                     wing).part
 
 RibsBetweenPlanesByDistance('trap rib', cb_sob.plane, root_rib.plane, 30,
                             fspar.shape, rspar.shape, wing, 30, -30)
@@ -102,12 +106,12 @@ pln = PlaneByAxes(p0, 'yz').plane
 SparByShape('rc spar', pln, wing)
 
 # Spars and cb intersections
-p1 = cb_fspar1.p2
+p1 = cb_fspar1.cref.p2
 pln = PlaneByAxes(p1, 'yz').plane
 spar1 = SparByShape('cb spar 1', pln, wing).part
 spar1.trim_u2(cb_wall.shape)
 
-p1 = cb_fspar2.p2
+p1 = cb_fspar2.cref.p2
 ProjectPointToCurve(p1, root_chord, update=True)
 pln = PlaneByAxes(p1, 'yz').plane
 spar2 = SparByShape('cb spar 2', pln, wing).part
@@ -140,8 +144,8 @@ GroupAPI.create_group('vtail group')
 
 fspar = SparByParameters('vtail fspar', 0.15, 0.01, 0.15, 0.99, vtail).part
 rspar = SparByParameters('vtail rspar', 0.70, 0.01, 0.70, 0.99, vtail).part
-RibByPoints('vtail root rib', fspar.p1, rspar.p1, vtail)
-RibByPoints('vtail tip rib', fspar.p2, rspar.p2, vtail)
+RibByPoints('vtail root rib', fspar.cref.p1, rspar.cref.p1, vtail)
+RibByPoints('vtail tip rib', fspar.cref.p2, rspar.cref.p2, vtail)
 RibsAlongCurveByDistance('vtail rib', rspar.cref, 18, fspar.shape, rspar.shape,
                          vtail, d1=18, d2=-30)
 
@@ -156,6 +160,6 @@ skin.fix()
 
 # View
 skin.set_transparency(0.5)
-v = Viewer()
-v.add(GroupAPI.get_master())
-v.start()
+gui = Viewer()
+gui.add(GroupAPI.get_master())
+gui.start()

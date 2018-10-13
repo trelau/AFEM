@@ -14,7 +14,3 @@ NamedItem
 ViewableItem
 ~~~~~~~~~~~~
 .. autoclass:: ViewableItem
-
-ShapeHolder
-~~~~~~~~~~~
-.. autoclass:: ShapeHolder

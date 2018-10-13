@@ -30,8 +30,8 @@ tip = RibByParameters('tip', 0.15, 0.2, 0.70, 0.2, wing).part
 
 spar_group = GroupAPI.create_group('spar group', wing_group)
 
-fspar = SparByPoints('fspar', root.p1, tip.p1, wing).part
-rspar = SparByPoints('rspar', root.p2, tip.p2, wing).part
+fspar = SparByPoints('fspar', root.cref.p1, tip.cref.p1, wing).part
+rspar = SparByPoints('rspar', root.cref.p2, tip.cref.p2, wing).part
 
 rib_group.activate()
 RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, wing,
@@ -71,8 +71,8 @@ htail_group = GroupAPI.create_group('htail group')
 root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, htail).part
 tip = RibByParameters('tip', 0.15, 0.5, 0.70, 0.5, htail).part
 
-fspar = SparByPoints('fspar', root.p1, tip.p1, htail).part
-rspar = SparByPoints('rspar', root.p2, tip.p2, htail).part
+fspar = SparByPoints('fspar', root.cref.p1, tip.cref.p1, htail).part
+rspar = SparByPoints('rspar', root.cref.p2, tip.cref.p2, htail).part
 
 pln = PlaneByAxes().plane
 RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, htail,
@@ -90,8 +90,9 @@ skin.set_transparency(0.5)
 
 # JOIN
 start = time.time()
+print('Performing assembly join...')
 bop = FuseGroups([wing_group, fuse_group, htail_group])
-print(time.time() - start)
+print('Joining complete in ', time.time() - start, ' seconds.')
 
 shape = bop.shape
 tool = ExploreFreeEdges(shape)
@@ -118,7 +119,7 @@ if not status:
 else:
     print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-v = Viewer()
-v.add(*tool.free_edges)
-v.display_mesh(the_mesh.object, 2)
-v.start()
+gui = Viewer()
+gui.add(*tool.free_edges)
+gui.display_mesh(the_mesh.object, 2)
+gui.start()

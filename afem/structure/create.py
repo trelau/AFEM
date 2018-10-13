@@ -292,7 +292,7 @@ class SurfacePartByShape(PartBuilder):
             cref = w.curve
             # Orient cref so that p1 is nearest (u1, v1) on the body
             umin, vmin = body.sref.u1, body.sref.v1
-            p0 = body.eval(umin, vmin)
+            p0 = body.sref.eval(umin, vmin)
             p1 = cref.eval(cref.u1)
             p2 = cref.eval(cref.u2)
             d1 = p0.distance(p1)
@@ -409,8 +409,8 @@ class SurfacePartByPoints(SurfacePartByParameters):
         p2 = CheckGeom.to_point(p2)
 
         # Invert points
-        u1, v1 = body.invert(p1)
-        u2, v2 = body.invert(p2)
+        u1, v1 = body.invert_sref(p1)
+        u2, v2 = body.invert_sref(p2)
 
         # Use SparByParameters
         super(SurfacePartByPoints, self).__init__(name, u1, v1, u2, v2, body,
@@ -449,14 +449,14 @@ class SurfacePartByEnds(SurfacePartByParameters):
         if len(e1) == 2:
             u1, v1 = e1
         elif CheckGeom.is_point_like(e1):
-            u1, v1 = body.invert(e1)
+            u1, v1 = body.invert_sref(e1)
         else:
             raise TypeError('Invalid type for e1.')
 
         if len(e2) == 2:
             u2, v2 = e2
         elif CheckGeom.is_point_like(e2):
-            u2, v2 = body.invert(e2)
+            u2, v2 = body.invert_sref(e2)
         else:
             raise TypeError('Invalid type for e2.')
 

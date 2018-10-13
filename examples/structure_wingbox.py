@@ -62,16 +62,16 @@ def build_wingbox(wing, params):
                              rspar_chord, tip_span, wing).part
 
     # Root rib
-    p1 = fspar.p1
+    p1 = fspar.cref.p1
     if not build_aux_spar:
-        p2 = rspar.p1
+        p2 = rspar.cref.p1
     else:
-        p2 = wing.eval(aux_spar_xloc, root_span)
+        p2 = wing.sref.eval(aux_spar_xloc, root_span)
     root = RibByPoints('root rib', p1, p2, wing).part
 
     # Tip rib
-    p1 = fspar.p2
-    p2 = rspar.p2
+    p1 = fspar.cref.p2
+    p2 = rspar.cref.p2
     tip = RibByPoints('tip rib', p1, p2, wing).part
 
     # Generate points along rear spar and project to front spar to define ribs.
@@ -94,7 +94,7 @@ def build_wingbox(wing, params):
     mspar = None
     if mid_spar_rib > 0:
         u1 = root.cref.u1
-        u2 = root.invert_cref(rspar.p1)
+        u2 = root.invert_cref(rspar.cref.p1)
         dx = root.cref.arc_length(u1, u2)
         p1 = root.point_from_parameter(dx / 2.)
         rib = ribs[mid_spar_rib - 1]
@@ -104,10 +104,10 @@ def build_wingbox(wing, params):
     # Aux spar.
     aspar = None
     if build_aux_spar:
-        p1 = root.p2
+        p1 = root.cref.p2
         p2 = rspar.point_from_parameter(0.25, is_rel=True)
         # Find nearest rib point and set equal to aux spar.
-        pnts = [rib.p2 for rib in ribs]
+        pnts = [rib.cref.p2 for rib in ribs]
         p2 = CheckGeom.nearest_point(p2, pnts)
         indx = pnts.index(p2)
         rib = ribs[indx]
@@ -120,7 +120,7 @@ def build_wingbox(wing, params):
     root_ribs = []
     if mspar:
         # Fwd of mid spar
-        u2 = root.invert_cref(mspar.p1)
+        u2 = root.invert_cref(mspar.cref.p1)
         builder = PointsAlongCurveByNumber(root.cref, 3, u2=u2)
         prib = builder.interior_points
         pfront = [p.copy() for p in prib]
@@ -137,8 +137,8 @@ def build_wingbox(wing, params):
             i += 1
 
         # Aft of mid spar
-        u1 = root.invert_cref(mspar.p1)
-        u2 = root.invert_cref(rspar.p1)
+        u1 = root.invert_cref(mspar.cref.p1)
+        u2 = root.invert_cref(rspar.cref.p1)
         builder = PointsAlongCurveByNumber(root.cref, 3, u1=u1, u2=u2)
         prib = builder.interior_points
         pfront = [p.copy() for p in prib]
@@ -156,7 +156,7 @@ def build_wingbox(wing, params):
 
     # Rib at intersection of rear spar and root rib. Use intersection and
     # projected point to define a plane.
-    p2 = rspar.p1
+    p2 = rspar.cref.p1
     p1 = p2.copy()
     fspar.point_to_cref(p1, rspar_norm)
     sref = PlaneByIntersectingShapes(root.shape, rspar.shape, p1).plane
@@ -166,20 +166,20 @@ def build_wingbox(wing, params):
     root_chord = wing.extract_curve(0, 0, 1, 0)
 
     # Front center spar.
-    p2 = fspar.p1
+    p2 = fspar.cref.p1
     p1 = p2.copy()
     ProjectPointToCurve(p1, root_chord, update=True)
     SparByPoints('fc spar', p1, p2, wing)
 
     # Rear center spar.
-    p2 = rspar.p1
+    p2 = rspar.cref.p1
     p1 = p2.copy()
     ProjectPointToCurve(p1, root_chord, update=True)
     SparByPoints('rc spar', p1, p2, wing)
 
     # Mid center spar
     if mid_spar_rib > 0:
-        p2 = mspar.p1
+        p2 = mspar.cref.p1
         p1 = p2.copy()
         ProjectPointToCurve(p1, root_chord, update=True)
         SparByPoints('center mid spar', p1, p2, wing)
@@ -187,7 +187,7 @@ def build_wingbox(wing, params):
     # Center spar at each root rib intersection
     i = 1
     for rib in root_ribs:
-        p2 = rib.p2
+        p2 = rib.cref.p2
         p1 = p2.copy()
         name = ' '.join(['center spar', str(i)])
         ProjectPointToCurve(p1, root_chord, update=True)
@@ -206,7 +206,7 @@ def build_wingbox(wing, params):
             # Since the structure is not joined yet, intersect the rear spar
             # and rib shapes to find the edge(s). Use this edge to define a
             # plane so the aux ribs will line up with the main ribs.
-            p1 = rib.p2
+            p1 = rib.cref.p2
             p2 = p1.copy()
             aspar.point_to_cref(p2)
             sref = PlaneByIntersectingShapes(rspar.shape, rib.shape, p2).plane
@@ -254,7 +254,7 @@ def build_wingbox(wing, params):
     print('Volume is ', VolumeProps(shape2).volume)
 
     # Create a semi-infinite box to cut volume with.
-    p0 = wing.eval(0.5, 0.1)
+    p0 = wing.sref.eval(0.5, 0.1)
     pln = PlaneByAxes(p0, 'xy').plane
     face = FaceByPlane(pln, -1500, 1500, -1500, 1500).face
     cut_space = ShapeByDrag(face, (0., 0., 500.)).shape
@@ -295,7 +295,7 @@ def build_wingbox(wing, params):
     mapped_hyp = QuadrangleHypo2D(the_gen)
     mapped_algo = QuadrangleAlgo2D(the_gen)
     for part_ in internal_parts:
-        for face in part_.faces:
+        for face in part_.shape.faces:
             if mapped_algo.is_applicable(face):
                 the_mesh.add_hypotheses([mapped_algo, mapped_hyp], face)
 
@@ -308,9 +308,9 @@ def build_wingbox(wing, params):
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    v.display_mesh(the_mesh.object, 2)
-    v.start()
-    v.clear()
+    gui.display_mesh(the_mesh.object, 2)
+    gui.start()
+    gui.clear()
 
     # Uncomment this to export STEP file.
     # from afem.io import StepExport
@@ -329,14 +329,14 @@ if __name__ == '__main__':
     bodies = Body.load_bodies(fname)
     wing_in = bodies['Wing']
 
-    v = Viewer()
+    gui = Viewer()
     # Build wing box
     inputs = {'build aux': True,
               'mid spar rib': 10,
               'aux rib list': ['2', '5', '8']}
     group = build_wingbox(wing_in, inputs)
 
-    v.add(group)
-    v.start()
+    gui.add(group)
+    gui.start()
 
     print('Complete in ', time.time() - start, ' seconds.')

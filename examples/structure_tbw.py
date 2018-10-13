@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from afem.config import Settings
 from afem.geometry import *
 from afem.graphics import Viewer
@@ -51,21 +49,21 @@ xz_plane = PlaneByAxes().plane
 root_rib_pln = PlaneByAxes((0., ymax, 0.), 'xz').plane
 
 # Front center spar
-p1 = wing.eval(0.15, 0.)
+p1 = wing.sref.eval(0.15, 0.)
 pln = PlaneByAxes(p1, 'yz').plane
 fc_spar = SparBetweenShapes('fc spar', xz_plane, root_rib_pln, wing, pln).part
 
 # Rear center spar
-p1 = wing.eval(0.70, 0.)
+p1 = wing.sref.eval(0.70, 0.)
 pln = PlaneByAxes(p1, 'yz').plane
 rc_spar = SparBetweenShapes('rc spar', xz_plane, root_rib_pln, wing, pln).part
 
 # Root rib
-root_rib = RibByPoints('root rib', fc_spar.p2, rc_spar.p2, wing).part
+root_rib = RibByPoints('root rib', fc_spar.cref.p2, rc_spar.cref.p2, wing).part
 
 # Strut rib where strut intersects.
-p0 = strut.eval(0.5, 0.)
-p1 = strut.eval(0.5, 1.)
+p0 = strut.sref.eval(0.5, 0.)
+p1 = strut.sref.eval(0.5, 1.)
 strut_edge = EdgeByPoints(p0, p1).edge
 bop = IntersectShapes(strut_edge, wing.shape)
 v = bop.vertices[0]
@@ -78,37 +76,37 @@ strut_rib = RibByShape('kink rib', pln, wing).part
 tip_rib = RibByParameters('tip rib', 0.15, 0.995, 0.70, 0.995, wing).part
 
 # Inboard front spar
-u = strut_rib.local_to_global_u(0.15)
+u = strut_rib.cref.local_to_global_param(0.15)
 p2 = strut_rib.point_on_cref(u)
 pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape, p2).plane
-inbd_fspar = SparByPoints('inbd fspar', root_rib.p1, p2, wing, pln).part
+inbd_fspar = SparByPoints('inbd fspar', root_rib.cref.p1, p2, wing, pln).part
 
 # Inboard rear spar
-u = strut_rib.local_to_global_u(0.70)
+u = strut_rib.cref.local_to_global_param(0.70)
 p2 = strut_rib.point_on_cref(u)
 pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, p2).plane
-inbd_rspar = SparByPoints('inbd rspar', root_rib.p2, p2, wing, pln).part
+inbd_rspar = SparByPoints('inbd rspar', root_rib.cref.p2, p2, wing, pln).part
 
 # Outboard front spar
 pln = PlaneByIntersectingShapes(strut_rib.shape, inbd_fspar.shape,
-                                tip_rib.p1).plane
-outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.p2, tip_rib.p1, wing,
-                           pln).part
+                                tip_rib.cref.p1).plane
+outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.cref.p2, tip_rib.cref.p1,
+                           wing, pln).part
 
 # Outboard rear spar
 pln = PlaneByIntersectingShapes(strut_rib.shape, inbd_rspar.shape,
-                                tip_rib.p2).plane
-outbd_rspar = SparByPoints('outbd rspar', inbd_rspar.p2, tip_rib.p2, wing,
-                           pln).part
+                                tip_rib.cref.p2).plane
+outbd_rspar = SparByPoints('outbd rspar', inbd_rspar.cref.p2, tip_rib.cref.p2,
+                           wing, pln).part
 
 # Jury rib where strut intersects
-p0 = jury.eval(0.5, 1.)
+p0 = jury.sref.eval(0.5, 1.)
 pln = PlaneByAxes(p0, 'xz').plane
 jury_rib = RibBetweenShapes('jury rib', inbd_fspar.shape, inbd_rspar.shape,
                             wing, pln).part
 
 # Inboard ribs
-u2 = inbd_rspar.invert_cref(jury_rib.p2)
+u2 = inbd_rspar.invert_cref(jury_rib.cref.p2)
 inbd_ribs = RibsAlongCurveByDistance('inbd rib', inbd_rspar.cref, 70.,
                                      inbd_fspar.shape, inbd_rspar.shape, wing,
                                      u2=u2, d1=18, d2=-30).parts
@@ -258,7 +256,7 @@ GroupAPI.create_group('strut group')
 beam1 = Beam1DByShape('beam 1', strut_edge).part
 beam1.set_color(1, 0, 0)
 
-p1 = jury.eval(0.5, 0.5)
+p1 = jury.sref.eval(0.5, 0.5)
 p2 = p1.copy()
 v = VectorByArray((0, 0, 1.)).vector
 ProjectPointToCurve(p1, beam1.cref, direction=v, update=True)

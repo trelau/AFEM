@@ -84,13 +84,13 @@ def build(wing, fuselage):
     # Front inboard spar
     p2 = rib2.point_from_parameter(0.15, is_rel=True)
     sref = PlaneByIntersectingShapes(fc_spar.shape, rib1.shape, p2).plane
-    inbd_fspar = SparByPoints('inbd fspar', fc_spar.p2, p2, wing, sref,
+    inbd_fspar = SparByPoints('inbd fspar', fc_spar.cref.p2, p2, wing, sref,
                               wa).part
 
     # Front outboard spar
     p3 = rib3.point_from_parameter(0.15, is_rel=True)
     sref = PlaneByIntersectingShapes(inbd_fspar.shape, rib2.shape, p3).plane
-    outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.p2, p3, wing,
+    outbd_fspar = SparByPoints('outbd fspar', inbd_fspar.cref.p2, p3, wing,
                                sref, wa).part
 
     # Front spar bulkhead
@@ -107,7 +107,7 @@ def build(wing, fuselage):
     # along Rib 3.
     p3 = rib3.point_from_parameter(0.80, is_rel=True)
     sref = PlaneByIntersectingShapes(rc_spar.shape, rib1.shape, p3).plane
-    rspar = SparByPoints('rspar', rc_spar.p2, p3, wing, sref, wa).part
+    rspar = SparByPoints('rspar', rc_spar.cref.p2, p3, wing, sref, wa).part
 
     # Rear spar bulkhead
     BulkheadByShape('rspar bh', rc_spar.plane, fuselage, fa)
@@ -118,19 +118,19 @@ def build(wing, fuselage):
     # are used so overlapping spars are not defined at the ends of the ribs.
 
     # Points for center spars along Rib 1
-    u1 = rib1.invert_cref(fc_spar.p2)
-    u2 = rib1.invert_cref(rc_spar.p2)
+    u1 = rib1.invert_cref(fc_spar.cref.p2)
+    u2 = rib1.invert_cref(rc_spar.cref.p2)
     pnts1 = PointsAlongCurveByNumber(rib1.cref, 6, u1, u2).interior_points
 
     # Points for inboard spars along Rib 2
-    u1 = rib2.invert_cref(inbd_fspar.p2)
+    u1 = rib2.invert_cref(inbd_fspar.cref.p2)
     pi = IntersectCurveCurve(rib2.cref, rspar.cref).point(1)
     u2 = rib2.invert_cref(pi)
     pnts2 = PointsAlongCurveByNumber(rib2.cref, 6, u1, u2).interior_points
 
     # Points for outboard spars along Rib 3
-    u1 = rib3.invert_cref(outbd_fspar.p2)
-    u2 = rib3.invert_cref(rspar.p2)
+    u1 = rib3.invert_cref(outbd_fspar.cref.p2)
+    u2 = rib3.invert_cref(rspar.cref.p2)
     pnts3 = PointsAlongCurveByNumber(rib3.cref, 6, u1, u2).interior_points
 
     # Intermediate spars and bulkheads
@@ -166,7 +166,7 @@ def build(wing, fuselage):
     # Forward bulkhead at the second wing cross section in the yz-plane. The
     # origin of the plane is the leading edge (u=0.) at the second cross
     # section (vknots[1]).
-    p = wing.eval(0., vknots[1])
+    p = wing.sref.eval(0., vknots[1])
     sref = PlaneByAxes(p, 'yz').plane
     fbh = BulkheadByShape('forward bh', sref, fuselage, fa).part
 
@@ -199,9 +199,9 @@ def build(wing, fuselage):
     # Boolean operation results in shapes that do not yet represent the
     # intended part, we must devise a way to (at least semi-automatically)
     # refine the shape.
-    v.add(*internal_wing_parts)
-    v.start()
-    v.clear()
+    gui.add(*internal_wing_parts)
+    gui.start()
+    gui.clear()
 
     # When a wing part is created and if a wing reference surface is available,
     # a part "reference curve" gets created and attached to the part. This
@@ -214,11 +214,11 @@ def build(wing, fuselage):
     # tools do.
 
     # Show the wing reference surface and the underlying part reference curves
-    v.add(wing.sref)
+    gui.add(wing.sref)
     for part in internal_wing_parts:
-        v.add(part.cref)
-    v.start()
-    v.clear()
+        gui.add(part.cref)
+    gui.start()
+    gui.clear()
 
     # Fuse the interfacing wing parts together first using their reference
     # curves. Then discard faces of the parts using the reference curves again.
@@ -226,9 +226,9 @@ def build(wing, fuselage):
     DiscardByCref(internal_wing_parts)
 
     # Show the parts again to see the difference
-    v.add(*internal_wing_parts)
-    v.start()
-    v.clear()
+    gui.add(*internal_wing_parts)
+    gui.start()
+    gui.clear()
 
     # Fuselage skin using the shell of the fuselage body
     fskin = SkinByBody('fuselage skin', fuselage, group=fa).part
@@ -241,15 +241,15 @@ def build(wing, fuselage):
     # within the wing reference surface from root to tip. For this case, the
     # only faces that should be near this curve at the caps of the wing skin.
     # Use this curve and a minimum distance to discard these faces.
-    v.add(wskin)
-    v.start()
+    gui.add(wskin)
+    gui.start()
 
     cref = wing.sref.u_iso(0.5)
     wskin.discard_by_dmin(cref, 0.01)
 
     # Show after discarding
-    v.start()
-    v.clear()
+    gui.start()
+    gui.clear()
 
     # Fuse wing skin and internal parts. This will trim the skin with the parts
     # and update all the shapes of each part.
@@ -269,8 +269,8 @@ def build(wing, fuselage):
     # In this case solid boxes are defined that contain the faces that are to
     # be discarded. Any face that has a centroid inside the given solid will be
     # removed.
-    v.add(fskin)
-    v.start()
+    gui.add(fskin)
+    gui.start()
 
     # Forward faces
     pln = frames[0].plane
@@ -284,8 +284,8 @@ def build(wing, fuselage):
     fskin.discard_by_solid(box)
 
     # Show after
-    v.start()
-    v.clear()
+    gui.start()
+    gui.clear()
 
     # The fuselage structure to this point is defined entirely in the fuselage
     # body. If a "half-model" is desired, one option is to simply the cut the
@@ -299,9 +299,9 @@ def build(wing, fuselage):
     CutParts(fa.get_parts(), box)
 
     # Show after
-    v.add(*fa.get_parts())
-    v.start()
-    v.clear()
+    gui.add(*fa.get_parts())
+    gui.start()
+    gui.clear()
 
     # During all the Boolean operations, it's possible that some shapes become
     # corrupt (poor tolerances, invalid topology, etc.) and need repaired
@@ -326,9 +326,9 @@ def build(wing, fuselage):
     # Set some viewing options and show the model
     wskin.set_transparency(0.5)
     fskin.set_transparency(0.5)
-    v.add(*wa.get_parts())
-    v.add(*fa.get_parts())
-    v.start()
+    gui.add(*wa.get_parts())
+    gui.add(*fa.get_parts())
+    gui.start()
 
     # For now, just throw a global unstructured quad-dominant mesh with a
     # constance size at the whole thing. Local mesh control is possible but
@@ -354,9 +354,9 @@ def build(wing, fuselage):
     # internal mesh better.
     wskin.set_transparency(0.)
     fskin.set_transparency(0.)
-    v.display_mesh(the_mesh.object, 2)
-    v.start()
-    v.clear()
+    gui.display_mesh(the_mesh.object, 2)
+    gui.start()
+    gui.clear()
 
     # Export the shape to a STEP file
     step = StepWrite('AP203', 'in')
@@ -390,10 +390,10 @@ if __name__ == '__main__':
     #      rather than two faces split between the upper and lower surface.
 
     # View the model
-    v = Viewer()
-    v.add(*vsp_import.all_bodies)
-    v.start()
-    v.clear()
+    gui = Viewer()
+    gui.add(*vsp_import.all_bodies)
+    gui.start()
+    gui.clear()
 
     # Retrieve relative components by name and set transparency for viewing
     wing_ = vsp_import['wing']
@@ -408,10 +408,10 @@ if __name__ == '__main__':
     # structure in terms of percent chord and/or semispan. Currently, the
     # u-direction of the surface is in the chordwise and the v-direction is
     # spanwise. Show this surface.
-    v.add(wing_)
-    v.add(wing_.sref)
-    v.start()
-    v.clear()
+    gui.add(wing_)
+    gui.add(wing_.sref)
+    gui.start()
+    gui.clear()
 
     # Build the structural model
     build(wing_, fuse_)

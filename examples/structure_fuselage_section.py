@@ -118,7 +118,7 @@ for face in the_shape.faces:
 the_gen.compute(the_mesh)
 
 # View
-v = Viewer()
-v.add(GroupAPI.get_master())
-v.add(the_mesh)
-v.start()
+gui = Viewer()
+gui.add(GroupAPI.get_master())
+gui.add(the_mesh)
+gui.start()

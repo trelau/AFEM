@@ -185,6 +185,6 @@ for pln1, pln2 in misc_utils.pairwise(plns):
 # FuseSurfaceParts([fwd_bh, rear_bh, aft_bh, floor, fskin], frames)
 
 master = GroupAPI.get_master()
-v = Viewer()
-v.add(master)
-v.start()
+gui = Viewer()
+gui.add(master)
+gui.start()

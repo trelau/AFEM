@@ -21,6 +21,7 @@ developed by Laughlin Research, LLC.
 
    settings
    base
+   core
    geometry
    sketch
    topology
