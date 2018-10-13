@@ -372,6 +372,16 @@ class Mesh(object):
         """
         self._mesh.ExportUNV(fn)
 
+    def import_unv(self, fn):
+        """
+        Import a mesh from a UNV file.
+
+        :param str fn: The input file.
+
+        :return: None.
+        """
+        return self._mesh.UNVToMesh(fn)
+
 
 class MeshDS(object):
     """
