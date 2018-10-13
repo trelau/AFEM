@@ -654,7 +654,7 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
     master_surf = face.surface
     # master_surf = NurbsSurface(master_surf.object)
     uknots, vknots = master_surf.uknots, master_surf.vknots
-    vsplit = master_surf.local_to_global_param('v', 0.5)
+    vsplit = master_surf.local_to_global_u('v', 0.5)
 
     # Segment off the end caps and the trailing edges.
     u1, u2 = uknots[1], uknots[-2]

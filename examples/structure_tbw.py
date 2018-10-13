@@ -76,13 +76,13 @@ strut_rib = RibByShape('kink rib', pln, wing).part
 tip_rib = RibByParameters('tip rib', 0.15, 0.995, 0.70, 0.995, wing).part
 
 # Inboard front spar
-u = strut_rib.cref.local_to_global_param(0.15)
+u = strut_rib.cref.local_to_global_u(0.15)
 p2 = strut_rib.cref.eval(u)
 pln = PlaneByIntersectingShapes(root_rib.shape, fc_spar.shape, p2).plane
 inbd_fspar = SparByPoints('inbd fspar', root_rib.cref.p1, p2, wing, pln).part
 
 # Inboard rear spar
-u = strut_rib.cref.local_to_global_param(0.70)
+u = strut_rib.cref.local_to_global_u(0.70)
 p2 = strut_rib.cref.eval(u)
 pln = PlaneByIntersectingShapes(root_rib.shape, rc_spar.shape, p2).plane
 inbd_rspar = SparByPoints('inbd rspar', root_rib.cref.p2, p2, wing, pln).part
