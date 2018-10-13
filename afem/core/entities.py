@@ -380,29 +380,6 @@ class ShapeHolder(NamedItem, ViewableItem):
         p = CheckGeom.nearest_point(self.cref.p2, pnts)
         self.set_p2(p)
 
-    def point_on_cref(self, u):
-        """
-        Evaluate point on reference curve.
-
-        :param float u: The parameter.
-
-        :return: The point.
-        :rtype: afem.geometry.entities.Point
-        """
-        return self._cref.eval(u)
-
-    def point_on_sref(self, u, v):
-        """
-        Evaluate point on reference surface.
-
-        :param float u: The u-parameter.
-        :param float v: The v-parameter.
-
-        :return: The point.
-        :rtype: afem.geometry.entities.Point
-        """
-        return self._sref.eval(u, v)
-
     def point_from_parameter(self, ds, u0=None, is_rel=False):
         """
         Evaluate point on reference curve at a distance from a parameter.
