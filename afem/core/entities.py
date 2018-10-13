@@ -28,7 +28,9 @@ from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
 from afem.topology.bop import IntersectShapes
 from afem.topology.create import (CompoundByShapes, PointsAlongShapeByNumber,
                                   PointsAlongShapeByDistance, ShellByFaces,
-                                  WiresByConnectedEdges, FaceBySurface)
+                                  WiresByConnectedEdges, FaceBySurface,
+                                  PlanesAlongShapeByNumber,
+                                  PlanesAlongShapeByDistance)
 from afem.topology.distance import DistancePointToShapes
 from afem.topology.entities import Shape, Edge, BBox
 from afem.topology.modify import DivideC0Shape, DivideClosedShape
@@ -551,6 +553,70 @@ class ShapeHolder(NamedItem, ViewableItem):
             ds *= self.cref.length
 
         return PlaneFromParameter(self._cref, u0, ds, ref_pln, tol).plane
+
+    def planes_by_number(self, n, ref_pln=None, d1=None, d2=None,
+                         shape1=None, shape2=None):
+        """
+        Create a specified number of planes along the reference curve.
+
+        :param int n: Number of points to create (*n* > 0).
+        :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+            will be used to define the normal of all planes along the curve. If
+            no plane is provided, then the first derivative of the curve will
+            define the plane normal.
+        :param float d1: An offset distance for the first point. This is
+            typically a positive number indicating a distance from *u1* towards
+            *u2*.
+        :param float d2: An offset distance for the last point. This is
+            typically a negative number indicating a distance from *u2* towards
+            *u1*.
+        :param afem.topology.entities.Shape shape1: A shape to define the first
+            point. This shape is intersected with the reference curve.
+        :param afem.topology.entities.Shape shape2: A shape to define the last
+            point. This shape is intersected with the reference curve.
+
+        :return: List of planes along the curve.
+        :rtype: list(afem.geometry.entities.Plane)
+
+        :raise TypeError: If *shape* if not an edge or wire.
+        :raise RuntimeError: If OCC method fails.
+        """
+        edge = Edge.by_curve(self._cref)
+        return PlanesAlongShapeByNumber(edge, n, ref_pln, d1, d2, shape1,
+                                        shape2).planes
+
+    def planes_by_distance(self, maxd, ref_pln=None, d1=None, d2=None,
+                           shape1=None, shape2=None, nmin=0):
+        """
+        Create planes along the reference curve by distance between them.
+
+        :param float maxd: The maximum allowed spacing between planes. The
+            actual spacing will be adjusted to not to exceed this value.
+        :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+            will be used to define the normal of all planes along the curve. If
+            no plane is provided, then the first derivative of the curve will
+            define the plane normal.
+        :param float d1: An offset distance for the first point. This is
+            typically a positive number indicating a distance from *u1* towards
+            *u2*.
+        :param float d2: An offset distance for the last point. This is
+            typically a negative number indicating a distance from *u2* towards
+            *u1*.
+        :param afem.topology.entities.Shape shape1: A shape to define the first
+            point. This shape is intersected with the reference curve.
+        :param afem.topology.entities.Shape shape2: A shape to define the last
+            point. This shape is intersected with the reference curve.
+        :param int nmin: Minimum number of planes to create.
+
+        :return: List of planes along the curve.
+        :rtype: list(afem.geometry.entities.Plane)
+
+        :raise TypeError: If *shape* if not an edge or wire.
+        :raise RuntimeError: If OCC method fails.
+        """
+        edge = Edge.by_curve(self._cref)
+        return PlanesAlongShapeByDistance(edge, maxd, ref_pln, d1, d2, shape1,
+                                          shape2, nmin).planes
 
     def make_shell(self):
         """

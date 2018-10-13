@@ -485,6 +485,14 @@ PlaneByIntersectingShapes
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: PlaneByIntersectingShapes
 
+PlanesAlongShapeByNumber
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlanesAlongShapeByNumber
+
+PlanesAlongShapeByDistance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autoclass:: PlanesAlongShapeByDistance
+
 Explore
 -------
 .. py:currentmodule:: afem.topology.explore

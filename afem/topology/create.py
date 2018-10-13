@@ -39,7 +39,9 @@ from afem.adaptor.entities import AdaptorCurve
 from afem.geometry.check import CheckGeom
 from afem.geometry.create import (CircleBy3Points, PlaneByApprox,
                                   PointFromParameter, PointsAlongCurveByNumber,
-                                  PointsAlongCurveByDistance)
+                                  PointsAlongCurveByDistance,
+                                  PlanesAlongCurveByNumber,
+                                  PlanesAlongCurveByDistance)
 from afem.geometry.entities import Geometry, Curve, Plane
 from afem.geometry.project import ProjectPointToCurve
 from afem.topology.bop import IntersectShapes
@@ -62,7 +64,8 @@ __all__ = ["VertexByPoint",
            "SphereByRadius", "SphereBy3Points",
            "PointAlongShape", "PointsAlongShapeByNumber",
            "PointsAlongShapeByDistance",
-           "PlaneByEdges", "PlaneByIntersectingShapes"]
+           "PlaneByEdges", "PlaneByIntersectingShapes",
+           "PlanesAlongShapeByNumber", "PlanesAlongShapeByDistance"]
 
 
 # VERTEX ----------------------------------------------------------------------
@@ -1019,6 +1022,7 @@ class CompoundByShapes(object):
         builder = BRep_Builder()
         builder.MakeCompound(topods_compound)
         for shape in shapes:
+            shape = Shape.to_shape(shape)
             if isinstance(shape, Shape):
                 builder.Add(topods_compound, shape.object)
         self._cp = Compound(topods_compound)
@@ -1459,7 +1463,7 @@ class SphereBy3Points(SphereByRadius):
         super(SphereBy3Points, self).__init__(circle.center, circle.radius)
 
 
-# GEOMETRY --------------------------------------------------------------------
+# POINTS ----------------------------------------------------------------------
 
 class PointAlongShape(PointFromParameter):
     """
@@ -1531,30 +1535,10 @@ class PointsAlongShapeByNumber(PointsAlongCurveByNumber):
 
         # Adjust parameters of start/end shapes are provided
         if isinstance(shape1, Shape):
-            shape = IntersectShapes(shape, shape1).shape
-            verts = shape.vertices
-            prms = [u1]
-            for v in verts:
-                pnt = v.point
-                proj = ProjectPointToCurve(pnt, adp_crv)
-                if proj.npts < 1:
-                    continue
-                umin = proj.nearest_param
-                prms.append(umin)
-            u1 = min(prms)
+            u1 = _param_on_adp_crv(adp_crv, shape, shape1)
 
         if isinstance(shape2, Shape):
-            shape = IntersectShapes(shape, shape2).shape
-            verts = shape.vertices
-            prms = [u2]
-            for v in verts:
-                pnt = v.point
-                proj = ProjectPointToCurve(pnt, adp_crv)
-                if proj.npts < 1:
-                    continue
-                umin = proj.nearest_param
-                prms.append(umin)
-            u2 = min(prms)
+            u2 = _param_on_adp_crv(adp_crv, shape, shape2)
 
         super(PointsAlongShapeByNumber, self).__init__(adp_crv, n, u1, u2,
                                                        d1, d2)
@@ -1603,34 +1587,16 @@ class PointsAlongShapeByDistance(PointsAlongCurveByDistance):
 
         # Adjust parameters of start/end shapes are provided
         if isinstance(shape1, Shape):
-            shape = IntersectShapes(shape, shape1).shape
-            verts = shape.vertices
-            prms = [u1]
-            for v in verts:
-                pnt = v.point
-                proj = ProjectPointToCurve(pnt, adp_crv)
-                if proj.npts < 1:
-                    continue
-                umin = proj.nearest_param
-                prms.append(umin)
-            u1 = min(prms)
+            u1 = _param_on_adp_crv(adp_crv, shape, shape1)
 
         if isinstance(shape2, Shape):
-            shape = IntersectShapes(shape, shape2).shape
-            verts = shape.vertices
-            prms = [u2]
-            for v in verts:
-                pnt = v.point
-                proj = ProjectPointToCurve(pnt, adp_crv)
-                if proj.npts < 1:
-                    continue
-                umin = proj.nearest_param
-                prms.append(umin)
-            u2 = min(prms)
+            u2 = _param_on_adp_crv(adp_crv, shape, shape2)
 
         super(PointsAlongShapeByDistance, self).__init__(adp_crv, maxd, u1, u2,
                                                          d1, d2, nmin)
 
+
+# PLANES ----------------------------------------------------------------------
 
 class PlaneByEdges(object):
     """
@@ -1748,6 +1714,119 @@ class PlaneByIntersectingShapes(object):
         :rtype: afem.geometry.entities.Plane
         """
         return self._pln
+
+
+class PlanesAlongShapeByNumber(PlanesAlongCurveByNumber):
+    """
+    Create a specified number of planes along an edge or wire.
+
+    :param shape: The shape.
+    :type shape: afem.topology.entities.Edge or afem.topology.entities.Wire
+    :param int n: Number of points to create (*n* > 0).
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+        will be used to define the normal of all planes along the curve. If
+        no plane is provided, then the first derivative of the curve will
+        define the plane normal.
+    :param float d1: An offset distance for the first point. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last point. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param afem.topology.entities.Shape shape1: A shape to define the first
+        point. This shape is intersected with the edge or wire.
+    :param afem.topology.entities.Shape shape2: A shape to define the last
+        point. This shape is intersected with the edge or wire.
+
+    :raise TypeError: If *shape* if not an edge or wire.
+    :raise RuntimeError: If OCC method fails.
+    """
+
+    def __init__(self, shape, n, ref_pln=None, d1=None, d2=None, shape1=None,
+                 shape2=None):
+        adp_crv = AdaptorCurve.to_adaptor(shape)
+
+        u1 = adp_crv.u1
+        u2 = adp_crv.u2
+
+        # Adjust parameters of start/end shapes are provided
+        if isinstance(shape1, Shape):
+            u1 = _param_on_adp_crv(adp_crv, shape, shape1)
+
+        if isinstance(shape2, Shape):
+            u2 = _param_on_adp_crv(adp_crv, shape, shape2)
+
+        super(PlanesAlongShapeByNumber, self).__init__(adp_crv, n, ref_pln,
+                                                       u1, u2, d1, d2)
+
+
+class PlanesAlongShapeByDistance(PlanesAlongCurveByDistance):
+    """
+    Create planes along an edge or wire by distance between them.
+
+    :param shape: The shape.
+    :type shape: afem.topology.entities.Edge or afem.topology.entities.Wire
+    :param float maxd: The maximum allowed spacing between planes. The
+        actual spacing will be adjusted to not to exceed this value.
+    :param afem.geometry.entities.Plane ref_pln: The normal of this plane
+        will be used to define the normal of all planes along the curve. If
+        no plane is provided, then the first derivative of the curve will
+        define the plane normal.
+    :param float d1: An offset distance for the first point. This is typically
+        a positive number indicating a distance from *u1* towards *u2*.
+    :param float d2: An offset distance for the last point. This is typically
+        a negative number indicating a distance from *u2* towards *u1*.
+    :param afem.topology.entities.Shape shape1: A shape to define the first
+        point. This shape is intersected with the edge or wire.
+    :param afem.topology.entities.Shape shape2: A shape to define the last
+        point. This shape is intersected with the edge or wire.
+    :param int nmin: Minimum number of planes to create.
+
+    :raise TypeError: If *shape* if not an edge or wire.
+    :raise RuntimeError: If OCC method fails.
+    """
+
+    def __init__(self, shape, maxd, ref_pln=None, d1=None, d2=None,
+                 shape1=None, shape2=None, nmin=0):
+        adp_crv = AdaptorCurve.to_adaptor(shape)
+
+        u1 = adp_crv.u1
+        u2 = adp_crv.u2
+
+        # Adjust parameters of start/end shapes are provided
+        if isinstance(shape1, Shape):
+            u1 = _param_on_adp_crv(adp_crv, shape, shape1)
+
+        if isinstance(shape2, Shape):
+            u2 = _param_on_adp_crv(adp_crv, shape, shape2)
+
+        super(PlanesAlongShapeByDistance, self).__init__(adp_crv, maxd,
+                                                         ref_pln, u1, u2, d1,
+                                                         d2, nmin)
+
+
+def _param_on_adp_crv(adp_crv, shape, other_shape):
+    """
+    Determine the parameter on the adaptor curve by intersecting the shape.
+
+    :param afem.adaptor.entities.AdaptorCurve adp_crv: The curve.
+    :param afem.topology.entities.Shape shape: The shape that defines the
+        curve. This should be the same shape that created the adaptor curve.
+    :param afem.topology.entities.Shape other_shape: The other shape that
+        intersects the adaptor curve and will be used to find the parameter.
+
+    :return: The parameter on the curve or *None* if not found.
+    :rtype: float or None
+    """
+    shape = IntersectShapes(shape, other_shape).shape
+    verts = shape.vertices
+    prms = [adp_crv.u1]
+    for v in verts:
+        pnt = v.point
+        proj = ProjectPointToCurve(pnt, adp_crv)
+        if proj.npts < 1:
+            continue
+        umin = proj.nearest_param
+        prms.append(umin)
+    return min(prms)
 
 
 if __name__ == "__main__":
