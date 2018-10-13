@@ -169,6 +169,10 @@ latex_documents = [
      'Laughlin Research', 'manual'),
 ]
 
+latex_show_pagerefs = True
+latex_show_urls = 'footnote'
+latex_logo = './resources/icon.png'
+
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
