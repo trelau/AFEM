@@ -29,7 +29,8 @@ from OCCT.Geom import (Geom_Line, Geom_Circle, Geom_Ellipse, Geom_BSplineCurve,
                        Geom_Curve, Geom_Surface, Geom_Geometry)
 from OCCT.Geom2d import Geom2d_BSplineCurve, Geom2d_Curve
 from OCCT.Geom2dAdaptor import Geom2dAdaptor_Curve
-from OCCT.GeomAPI import GeomAPI
+from OCCT.GeomAPI import (GeomAPI, GeomAPI_ProjectPointOnCurve,
+                          GeomAPI_ProjectPointOnSurf)
 from OCCT.GeomAbs import (GeomAbs_Shape, GeomAbs_JoinType, GeomAbs_CurveType,
                           GeomAbs_SurfaceType)
 from OCCT.GeomAdaptor import GeomAdaptor_Curve, GeomAdaptor_Surface
@@ -2080,6 +2081,23 @@ class Curve(Geometry):
         adp_crv = GeomAdaptor_Curve(self.object)
         return GCPnts_AbscissaPoint.Length_(adp_crv, u1, u2, tol)
 
+    def invert(self, p):
+        """
+        Invert the point on the curve to find the parameter.
+
+        :param point_like p: The point.
+
+        :return: The nearest parameter on the curve.
+        :rtype: float
+
+        :raise RuntimeError: If algorithm fails.
+        """
+        p = Point.to_point(p)
+        proj = GeomAPI_ProjectPointOnCurve(p, self.object)
+        if proj.NbPoints() > 0:
+            return proj.LowerDistanceParameter()
+        raise RuntimeError('Failed to invert point.')
+
     @staticmethod
     def wrap(curve):
         """
@@ -2659,6 +2677,23 @@ class Surface(Geometry):
         :rtype: afem.geometry.entities.Curve
         """
         return Curve.wrap(self.object.VIso(v))
+
+    def invert(self, p):
+        """
+        Invert the point on the surface to find the parameters.
+
+        :param point_like p: The point.
+
+        :return: The nearest parameters on the curve.
+        :rtype: tuple(float, float)
+
+        :raise RuntimeError: If algorithm fails.
+        """
+        p = Point.to_point(p)
+        proj = GeomAPI_ProjectPointOnSurf(p, self.object)
+        if proj.NbPoints() > 0:
+            return proj.LowerDistanceParameters(0., 0.)
+        raise RuntimeError('Failed to invert point.')
 
     @staticmethod
     def wrap(surface):

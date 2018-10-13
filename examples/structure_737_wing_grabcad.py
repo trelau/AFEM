@@ -78,7 +78,7 @@ pln = PlaneByIntersectingShapes(inbd_fspar.shape, outbd_fspar.shape, p2).plane
 kink_rib = RibByPoints('kink rib', p1, p2, wing, pln).part
 
 # Inboard ribs
-u2 = rspar.invert_cref(kink_rib.cref.p2)
+u2 = rspar.cref.invert(kink_rib.cref.p2)
 inbd_ribs = RibsAlongCurveByDistance('inbd rib', rspar.cref, 24.,
                                      inbd_fspar.shape, rspar.shape, wing,
                                      d1=12., d2=-24., u2=u2).parts

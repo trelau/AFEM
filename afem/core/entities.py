@@ -308,7 +308,7 @@ class ShapeHolder(NamedItem, ViewableItem):
 
         :raise RuntimeError: If no projection can be found.
         """
-        u1 = self.invert_cref(p1)
+        u1 = self.cref.invert(p1)
         if u1 is None:
             msg = 'No projection found on reference curve.'
             raise RuntimeError(msg)
@@ -325,7 +325,7 @@ class ShapeHolder(NamedItem, ViewableItem):
 
         :raise RuntimeError: If no projection can be found.
         """
-        u2 = self.invert_cref(p2)
+        u2 = self.cref.invert(p2)
         if u2 is None:
             msg = 'No projection found on reference curve.'
             raise RuntimeError(msg)
@@ -545,42 +545,12 @@ class ShapeHolder(NamedItem, ViewableItem):
         :rtype: afem.geometry.entities.Plane
         """
         if u0 is None:
-            u0 = self._cref.u1
+            u0 = self.cref.u1
 
         if is_rel:
             ds *= self.cref.length
 
         return PlaneFromParameter(self._cref, u0, ds, ref_pln, tol).plane
-
-    def invert_cref(self, pnt):
-        """
-        Invert the point on the reference curve.
-
-        :param point_like pnt: The point.
-
-        :return: The parameter on the reference curve. Returns *None* if no
-            projection is found.
-        :rtype: float or None
-        """
-        proj = ProjectPointToCurve(pnt, self._cref)
-        if proj.success:
-            return proj.nearest_param
-        return None
-
-    def invert_sref(self, pnt):
-        """
-        Invert the point on the reference surface.
-
-        :param point_like pnt: The point.
-
-        :return: The parameters on the reference surface (u, v). Returns
-            *None* if no projection is found.
-        :rtype: tuple(float) or tuple(None)
-        """
-        proj = ProjectPointToSurface(pnt, self._sref)
-        if proj.success:
-            return proj.nearest_param
-        return None, None
 
     def make_shell(self):
         """

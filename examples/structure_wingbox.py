@@ -94,7 +94,7 @@ def build_wingbox(wing, params):
     mspar = None
     if mid_spar_rib > 0:
         u1 = root.cref.u1
-        u2 = root.invert_cref(rspar.cref.p1)
+        u2 = root.cref.invert(rspar.cref.p1)
         dx = root.cref.arc_length(u1, u2)
         p1 = root.point_from_parameter(dx / 2.)
         rib = ribs[mid_spar_rib - 1]
@@ -120,7 +120,7 @@ def build_wingbox(wing, params):
     root_ribs = []
     if mspar:
         # Fwd of mid spar
-        u2 = root.invert_cref(mspar.cref.p1)
+        u2 = root.cref.invert(mspar.cref.p1)
         builder = PointsAlongCurveByNumber(root.cref, 3, u2=u2)
         prib = builder.interior_points
         pfront = [p.copy() for p in prib]
@@ -137,8 +137,8 @@ def build_wingbox(wing, params):
             i += 1
 
         # Aft of mid spar
-        u1 = root.invert_cref(mspar.cref.p1)
-        u2 = root.invert_cref(rspar.cref.p1)
+        u1 = root.cref.invert(mspar.cref.p1)
+        u2 = root.cref.invert(rspar.cref.p1)
         builder = PointsAlongCurveByNumber(root.cref, 3, u1=u1, u2=u2)
         prib = builder.interior_points
         pfront = [p.copy() for p in prib]

@@ -129,12 +129,12 @@ aft_shape = CompoundByShapes([root_rib.shape, rspar1.shape,
                               rspar2.shape]).compound
 
 # Start/stopping point for inboard ribs to avoid rib at kink
-uref = fspar.invert_cref(rspar1.cref.p1)
+uref = fspar.cref.invert(rspar1.cref.p1)
 builder1 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar.shape,
                                     aft_shape, rhs_wing, d1=25., d2=-12.5,
                                     u2=uref)
 
-uref_kink = fspar.invert_cref(rspar1.cref.p2)
+uref_kink = fspar.cref.invert(rspar1.cref.p2)
 builder2 = RibsAlongCurveByDistance('rib', fspar.cref, 25., fspar.shape,
                                     aft_shape, rhs_wing, d1=12.5, d2=-12.5,
                                     u1=uref, u2=uref_kink,

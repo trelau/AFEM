@@ -118,19 +118,19 @@ def build(wing, fuselage):
     # are used so overlapping spars are not defined at the ends of the ribs.
 
     # Points for center spars along Rib 1
-    u1 = rib1.invert_cref(fc_spar.cref.p2)
-    u2 = rib1.invert_cref(rc_spar.cref.p2)
+    u1 = rib1.cref.invert(fc_spar.cref.p2)
+    u2 = rib1.cref.invert(rc_spar.cref.p2)
     pnts1 = PointsAlongCurveByNumber(rib1.cref, 6, u1, u2).interior_points
 
     # Points for inboard spars along Rib 2
-    u1 = rib2.invert_cref(inbd_fspar.cref.p2)
+    u1 = rib2.cref.invert(inbd_fspar.cref.p2)
     pi = IntersectCurveCurve(rib2.cref, rspar.cref).point(1)
-    u2 = rib2.invert_cref(pi)
+    u2 = rib2.cref.invert(pi)
     pnts2 = PointsAlongCurveByNumber(rib2.cref, 6, u1, u2).interior_points
 
     # Points for outboard spars along Rib 3
-    u1 = rib3.invert_cref(outbd_fspar.cref.p2)
-    u2 = rib3.invert_cref(rspar.cref.p2)
+    u1 = rib3.cref.invert(outbd_fspar.cref.p2)
+    u2 = rib3.cref.invert(rspar.cref.p2)
     pnts3 = PointsAlongCurveByNumber(rib3.cref, 6, u1, u2).interior_points
 
     # Intermediate spars and bulkheads

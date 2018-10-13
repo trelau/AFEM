@@ -743,7 +743,7 @@ class SurfacePart(Part):
             return False
         mid_length = max_length / 2.
         p = PointAlongShape(wire, mid_length).point
-        u, v = self.invert_sref(p)
+        u, v = self.sref.invert(p)
         v = self.sref.norm(u, v)
         v = CheckGeom.to_direction(v)
         ax1 = Axis1(p, v)

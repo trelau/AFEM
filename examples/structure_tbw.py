@@ -106,7 +106,7 @@ jury_rib = RibBetweenShapes('jury rib', inbd_fspar.shape, inbd_rspar.shape,
                             wing, pln).part
 
 # Inboard ribs
-u2 = inbd_rspar.invert_cref(jury_rib.cref.p2)
+u2 = inbd_rspar.cref.invert(jury_rib.cref.p2)
 inbd_ribs = RibsAlongCurveByDistance('inbd rib', inbd_rspar.cref, 70.,
                                      inbd_fspar.shape, inbd_rspar.shape, wing,
                                      u2=u2, d1=18, d2=-30).parts
