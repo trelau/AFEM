@@ -166,7 +166,9 @@ class ShapeHolder(NamedItem, ViewableItem):
     @property
     def sref_shape(self):
         """
-        :return: The reference shape.
+        :return: The reference shape. This should be the same as the reference
+            surface except it is processed (e.g., dividing closed surfaces and
+            C0 boundaries) for better robustness in some operations.
         :rtype: afem.topology.entities.Shape
         """
         return self._sref_shape
