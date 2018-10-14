@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+from afem.core.entities import ShapeHolder
+from afem.topology.entities import Shape
 
 
 def order_parts_by_id(parts):
@@ -30,3 +32,23 @@ def order_parts_by_id(parts):
     part_order = [(part.id, part) for part in parts]
     part_order.sort(key=lambda tup: tup[0])
     return [row[1] for row in part_order]
+
+
+def shape_of_entity(entity):
+    """
+    Get the shape of the entity. This method is useful if method inputs can
+    either be a part or a shape. If the entity is already a shape it will be
+    returned. If the entity is part the shape of the part will be returned. If
+    the entity is a curve or surface then it will be converted to a shape.
+
+    :param entity: The entity.
+    :type entity: afem.geometry.entities.Geometry or
+        afem.topology.entities.Shape or afem.base.entities.ShapeHolder
+
+    :return: The shape.
+    :rtype: afem.topology.entities.Shape
+    """
+    if isinstance(entity, ShapeHolder):
+        return entity.shape
+    else:
+        return Shape.to_shape(entity)

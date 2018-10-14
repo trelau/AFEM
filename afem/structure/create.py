@@ -24,6 +24,7 @@ from afem.geometry.check import CheckGeom
 from afem.geometry.create import *
 from afem.geometry.entities import *
 from afem.structure.entities import *
+from afem.structure.utils import shape_of_entity
 from afem.topology.bop import *
 from afem.topology.create import *
 from afem.topology.distance import DistanceShapeToShape

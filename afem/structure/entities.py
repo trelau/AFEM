@@ -24,6 +24,7 @@ from afem.geometry.check import CheckGeom
 from afem.geometry.create import (PlaneByNormal, PointsAlongCurveByNumber)
 from afem.geometry.entities import Axis1
 from afem.structure.group import GroupAPI
+from afem.structure.utils import shape_of_entity
 from afem.topology.bop import (CutCylindricalHole, CutShapes, FuseShapes,
                                IntersectShapes, LocalSplit, SplitShapes)
 from afem.topology.check import CheckShape, ClassifyPointInSolid
@@ -40,28 +41,7 @@ from afem.topology.props import LengthOfShapes, LinearProps, SurfaceProps
 
 __all__ = ["Part", "CurvePart", "Beam1D", "SurfacePart", "WingPart", "Spar",
            "Rib", "FuselagePart", "Bulkhead", "Floor", "Frame", "Skin",
-           "Stiffener1D", "Stiffener2D", "Stringer", "Beam2D",
-           "shape_of_entity"]
-
-
-def shape_of_entity(entity):
-    """
-    Get the shape of the entity. This method is useful if method inputs can
-    either be a part or a shape. If the entity is already a shape it will be
-    returned. If the entity is part the shape of the part will be returned. If
-    the entity is a curve or surface then it will be converted to a shape.
-
-    :param entity: The entity.
-    :type entity: afem.geometry.entities.Geometry or
-        afem.topology.entities.Shape or afem.base.entities.ShapeHolder
-
-    :return: The shape.
-    :rtype: afem.topology.entities.Shape
-    """
-    if isinstance(entity, ShapeHolder):
-        return entity.shape
-    else:
-        return Shape.to_shape(entity)
+           "Stiffener1D", "Stiffener2D", "Stringer", "Beam2D"]
 
 
 class Part(ShapeHolder):
