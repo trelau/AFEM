@@ -1,5 +1,0 @@
-Design
-======
-
-Objectives
-----------

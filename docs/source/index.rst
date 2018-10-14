@@ -7,13 +7,7 @@ developed by Laughlin Research, LLC.
    :maxdepth: 1
 
    intro
-
-.. toctree::
-   :caption: The Basics
-   :maxdepth: 2
-
    install
-   design
 
 .. toctree::
    :caption: Modules
