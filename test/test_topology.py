@@ -35,6 +35,218 @@ class TestTopologyCreate(unittest.TestCase):
     Test cases for afem.topology.create.
     """
 
+    def test_vertex_by_point(self):
+        builder = VertexByPoint((1., 2., 3.))
+        v = builder.vertex
+        self.assertIsInstance(v, Vertex)
+        self.assertAlmostEqual(v.point.x, 1.)
+        self.assertAlmostEqual(v.point.y, 2.)
+        self.assertAlmostEqual(v.point.z, 3.)
+
+    def test_edge_by_points(self):
+        builder = EdgeByPoints((0., 0., 0.), (10., 0., 0.))
+        e = builder.edge
+        v1 = builder.vertex1
+        v2 = builder.vertex2
+        self.assertIsInstance(e, Edge)
+        self.assertIsInstance(v1, Vertex)
+        self.assertIsInstance(v2, Vertex)
+        self.assertAlmostEqual(v1.point.x, 0.)
+        self.assertAlmostEqual(v1.point.y, 0.)
+        self.assertAlmostEqual(v1.point.z, 0.)
+        self.assertAlmostEqual(v2.point.x, 10.)
+        self.assertAlmostEqual(v2.point.y, 0.)
+        self.assertAlmostEqual(v2.point.z, 0.)
+        self.assertAlmostEqual(e.length, 10.)
+
+    def test_edge_by_curve(self):
+        c = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        builder = EdgeByCurve(c)
+        e = builder.edge
+        v1 = builder.vertex1
+        v2 = builder.vertex2
+        self.assertIsInstance(e, Edge)
+        self.assertIsInstance(v1, Vertex)
+        self.assertIsInstance(v2, Vertex)
+        self.assertAlmostEqual(v1.point.x, 0.)
+        self.assertAlmostEqual(v1.point.y, 0.)
+        self.assertAlmostEqual(v1.point.z, 0.)
+        self.assertAlmostEqual(v2.point.x, 10.)
+        self.assertAlmostEqual(v2.point.y, 0.)
+        self.assertAlmostEqual(v2.point.z, 0.)
+        self.assertAlmostEqual(e.length, 10.)
+
+    def test_edge_by_drag(self):
+        vertex = VertexByPoint((0., 0., 0.)).vertex
+        builder = EdgeByDrag(vertex, (1., 0., 0.))
+        e = builder.edge
+        v1 = builder.first_vertex
+        v2 = builder.last_vertex
+        self.assertIsInstance(e, Edge)
+        self.assertIsInstance(v1, Vertex)
+        self.assertIsInstance(v2, Vertex)
+        self.assertAlmostEqual(v1.point.x, 0.)
+        self.assertAlmostEqual(v1.point.y, 0.)
+        self.assertAlmostEqual(v1.point.z, 0.)
+        self.assertAlmostEqual(v2.point.x, 1.)
+        self.assertAlmostEqual(v2.point.y, 0.)
+        self.assertAlmostEqual(v2.point.z, 0.)
+        self.assertAlmostEqual(e.length, 1.)
+
+    def test_edge_by_wire_concat(self):
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
+        e1 = EdgeByCurve(c1).edge
+        e2 = EdgeByCurve(c2).edge
+        w = WireByEdges(e1, e2).wire
+        edge = EdgeByWireConcat(w).edge
+        self.assertIsInstance(edge, Edge)
+        self.assertAlmostEqual(edge.length, 11.41421, places=5)
+
+    def test_wire_by_edges(self):
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
+        e1 = EdgeByCurve(c1).edge
+        e2 = EdgeByCurve(c2).edge
+        builder = WireByEdges(e1, e2)
+        w = builder.wire
+        self.assertIsInstance(w, Wire)
+        self.assertAlmostEqual(w.length, 11.41421, places=5)
+
+    def test_wire_by_connected_edges(self):
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
+        e1 = EdgeByCurve(c1).edge
+        e2 = EdgeByCurve(c2).edge
+        builder = WiresByConnectedEdges([e1, e2])
+        self.assertEqual(builder.nwires, 1)
+        w = builder.wires[0]
+        self.assertIsInstance(w, Wire)
+        self.assertAlmostEqual(w.length, 11.41421, places=5)
+
+    def test_wire_by_points(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        builder = WireByPoints([p1, p2, p3, p4], True)
+        wire = builder.wire
+        self.assertIsInstance(wire, Wire)
+        self.assertTrue(wire.closed)
+        self.assertAlmostEqual(wire.length, 4.)
+
+    def test_wire_by_concat(self):
+        c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
+        c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
+        e1 = EdgeByCurve(c1).edge
+        e2 = EdgeByCurve(c2).edge
+        w = WireByEdges(e1, e2).wire
+        wire = WireByConcat(w).wire
+        self.assertIsInstance(wire, Wire)
+        self.assertAlmostEqual(wire.length, 11.41421, places=5)
+
+    def test_face_by_surface(self):
+        pln = PlaneByNormal().plane
+        f = FaceBySurface(pln).face
+        self.assertIsInstance(f, Face)
+
+    def test_face_by_plane(self):
+        pln = PlaneByNormal().plane
+        f = FaceByPlane(pln, -1., 1., -1., 1.).face
+        self.assertIsInstance(f, Face)
+
+    def test_face_by_planar_wire(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        wire = WireByPoints([p1, p2, p3, p4], True).wire
+        builder = FaceByPlanarWire(wire)
+        face = builder.face
+        self.assertIsInstance(face, Face)
+        self.assertAlmostEqual(face.area, 1.)
+
+    def test_face_by_drag(self):
+        vertex = VertexByPoint((0., 0., 0.)).vertex
+        e = EdgeByDrag(vertex, (1., 0., 0.)).edge
+        builder = FaceByDrag(e, (0., 1., 0.))
+        f = builder.face
+        self.assertIsInstance(f, Face)
+        self.assertAlmostEqual(f.area, 1.)
+
+    def test_shell_by_surface(self):
+        pln = PlaneByNormal().plane
+        shell = ShellBySurface(pln).shell
+        self.assertIsInstance(shell, Shell)
+
+    def test_shell_by_faces(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        wire = WireByPoints([p1, p2, p3, p4], True).wire
+        face = FaceByPlanarWire(wire).face
+        shell = ShellByFaces([face]).shell
+        self.assertIsInstance(shell, Shell)
+        self.assertAlmostEqual(shell.area, 1.)
+
+    def test_shell_by_drag(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        wire = WireByPoints([p1, p2, p3, p4], True).wire
+        builder = ShellByDrag(wire, (0., 0., 1.))
+        shell = builder.shell
+        self.assertIsInstance(shell, Shell)
+        self.assertAlmostEqual(shell.area, 4.)
+
+    def test_shell_by_sewing(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        w1 = WireByPoints([p1, p2, p3, p4], True).wire
+        f1 = FaceByPlanarWire(w1).face
+        p1 = (0., 0., 0.)
+        p2 = (0., 0., 1.)
+        p3 = (0., 1., 1.)
+        p4 = (0., 1., 0.)
+        w2 = WireByPoints([p1, p2, p3, p4], True).wire
+        f2 = FaceByPlanarWire(w2).face
+        builder = ShellBySewing([f1, f2])
+        self.assertEqual(builder.nshells, 1)
+        self.assertEqual(len(builder.shell.faces), 2)
+
+        # Non-manifold case
+        p1 = (0., 0., 0.)
+        p2 = (-1., 0., 0.)
+        p3 = (-1., 1., 0.)
+        p4 = (0., 1., 0.)
+        w3 = WireByPoints([p1, p2, p3, p4], True).wire
+        f3 = FaceByPlanarWire(w3).face
+        builder = ShellBySewing([f1, f2, f3], non_manifold=True)
+        self.assertEqual(builder.nshells, 1)
+        self.assertEqual(len(builder.shell.faces), 3)
+
+    def test_solid_by_plane(self):
+        pln = PlaneByNormal().plane
+        box = SolidByPlane(pln, 1., 1., 1.).solid
+        self.assertIsInstance(box, Solid)
+        self.assertAlmostEqual(box.volume, 1.)
+
+    def test_solid_by_drag(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        wire = WireByPoints([p1, p2, p3, p4], True).wire
+        face = FaceByPlanarWire(wire).face
+        builder = SolidByDrag(face, (0., 0., 1.))
+        box = builder.solid
+        self.assertIsInstance(box, Solid)
+        self.assertAlmostEqual(box.volume, 1.)
+
     def test_box_by_size(self):
         builder = BoxBySize(10., 10., 10.)
         self.assertIsInstance(builder.shell, Shell)
@@ -71,6 +283,53 @@ class TestTopologyCreate(unittest.TestCase):
         self.assertIsInstance(builder.face, Face)
         self.assertIsInstance(builder.shell, Shell)
         self.assertIsInstance(builder.solid, Solid)
+
+    def test_halfspace_by_shape(self):
+        pln = PlaneByNormal().plane
+        f = FaceByPlane(pln, -1., 1., -1., 1.).face
+        builder = HalfspaceByShape(f, (0., 0., 1.))
+        hs = builder.solid
+        self.assertIsInstance(hs, Solid)
+
+    def test_points_along_shape(self):
+        e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
+        tool = PointAlongShape(e, 5.)
+        p = tool.point
+        self.assertAlmostEqual(p.x, 5.)
+        self.assertAlmostEqual(p.y, 0.)
+        self.assertAlmostEqual(p.z, 0.)
+        self.assertAlmostEqual(tool.parameter, 5.)
+
+    def test_points_along_shape_by_number(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        wire = WireByPoints([p1, p2, p3, p4], True).wire
+        builder = PointsAlongShapeByNumber(wire, 10)
+        self.assertEqual(builder.npts, 10)
+        self.assertAlmostEqual(builder.spacing, 0.44444, places=5)
+
+    def test_points_along_shape_by_distance(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        wire = WireByPoints([p1, p2, p3, p4], True).wire
+        builder = PointsAlongShapeByDistance(wire, 1.)
+        self.assertEqual(builder.npts, 5)
+        self.assertAlmostEqual(builder.spacing, 1., places=5)
+
+    def test_plane_by_edges(self):
+        p1 = (0., 0., 0.)
+        p2 = (1., 0., 0.)
+        p3 = (1., 1., 0.)
+        p4 = (0., 1., 0.)
+        wire = WireByPoints([p1, p2, p3, p4]).wire
+        builder = PlaneByEdges(wire)
+        self.assertTrue(builder.found)
+        pln = builder.plane
+        self.assertIsInstance(pln, Plane)
 
 
 class TestTopologyBop(unittest.TestCase):

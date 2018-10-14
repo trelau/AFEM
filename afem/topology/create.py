@@ -75,12 +75,6 @@ class VertexByPoint(object):
     Create a vertex using a point.
 
     :param point_like pnt: The point.
-
-    Usage:
-
-    >>> from afem.topology import VertexByPoint
-    >>> builder = VertexByPoint((1., 2., 3.))
-    >>> v = builder.vertex
     """
 
     def __init__(self, pnt):
@@ -103,14 +97,6 @@ class EdgeByPoints(object):
 
     :param point_like p1: The first point.
     :param point_like p2: The second point.
-
-    Usage:
-
-    >>> from afem.topology import EdgeByPoints
-    >>> builder = EdgeByPoints((0., 0., 0.), (10., 0., 0.))
-    >>> e = builder.edge
-    >>> v1 = builder.vertex1
-    >>> v2 = builder.vertex2
     """
 
     def __init__(self, p1, p2):
@@ -173,16 +159,6 @@ class EdgeByCurve(object):
     Create an edge using a curve.
 
     :param afem.geometry.entities.Curve crv: The curve.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByPoints
-    >>> from afem.topology import EdgeByCurve
-    >>> c = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> builder = EdgeByCurve(c)
-    >>> e = builder.edge
-    >>> v1 = builder.vertex1
-    >>> v2 = builder.vertex2
     """
 
     def __init__(self, crv):
@@ -223,15 +199,6 @@ class EdgeByDrag(object):
 
     :param afem.topology.entities.Vertex vertex: The vertex.
     :param vector_like v: The vector to drag the shape.
-
-    Usage:
-
-    >>> from afem.topology import EdgeByDrag, VertexByPoint
-    >>> vertex = VertexByPoint((0., 0., 0.)).vertex
-    >>> builder = EdgeByDrag(vertex, (1., 0., 0.))
-    >>> e = builder.edge
-    >>> v1 = builder.first_vertex
-    >>> v2 = builder.last_vertex
     """
 
     def __init__(self, vertex, v):
@@ -272,17 +239,6 @@ class EdgeByWireConcat(object):
     have C0 continuity.
 
     :param afem.topology.entities.Wire wire: The wire.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByPoints
-    >>> from afem.topology import EdgeByCurve, WireByEdges, EdgeByWireConcat
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
-    >>> e1 =  EdgeByCurve(c1).edge
-    >>> e2 =  EdgeByCurve(c2).edge
-    >>> w = WireByEdges(e1, e2).wire
-    >>> edge = EdgeByWireConcat(w).edge
     """
 
     def __init__(self, wire):
@@ -306,17 +262,6 @@ class WireByEdges(object):
 
     :param collections.Sequence(afem.topology.entities.Edge) edges: The edges.
         They must share a common vertex to be connected.
-
-    >>> from afem.geometry import NurbsCurveByPoints
-    >>> from afem.topology import EdgeByCurve, WireByEdges
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 0., 0.)]).curve
-    >>> e1 =  EdgeByCurve(c1).edge
-    >>> e2 =  EdgeByCurve(c2).edge
-    >>> builder = WireByEdges(e1, e2)
-    >>> w = builder.wire
-    >>> e = builder.last_edge
-    >>> v = builder.last_vertex
     """
 
     def __init__(self, *edges):
@@ -364,18 +309,6 @@ class WiresByConnectedEdges(object):
         maximum tolerance of all edge will be used.
     :param bool shared: Option to use only shared vertices to connect edges.
         If *False* then geometric coincidence will be also checked.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByPoints
-    >>> from afem.topology import EdgeByCurve, WiresByConnectedEdges
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 0., 0.)]).curve
-    >>> e1 =  EdgeByCurve(c1).edge
-    >>> e2 =  EdgeByCurve(c2).edge
-    >>> builder = WiresByConnectedEdges([e1, e2])
-    >>> builder.nwires
-    1
     """
 
     def __init__(self, edges, tol=None, shared=False):
@@ -466,18 +399,6 @@ class WireByPoints(object):
 
     :param collections.Sequence(point_like) pnts: The ordered points.
     :param bool close: Option to close the wire.
-
-    Usage:
-
-    >>> from afem.topology import WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> builder = WireByPoints([p1, p2, p3, p4], True)
-    >>> wire = builder.wire
-    >>> wire.closed
-    True
     """
 
     def __init__(self, pnts, close=False):
@@ -504,17 +425,6 @@ class WireByConcat(object):
     have C0 continuity.
 
     :param afem.topology.entities.Wire wire: The wire.
-
-    Usage:
-
-    >>> from afem.geometry import NurbsCurveByPoints
-    >>> from afem.topology import EdgeByCurve, WireByEdges, WireByConcat
-    >>> c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
-    >>> c2 = NurbsCurveByPoints([(10., 0., 0.), (11., 1., 0.)]).curve
-    >>> e1 =  EdgeByCurve(c1).edge
-    >>> e2 =  EdgeByCurve(c2).edge
-    >>> w = WireByEdges(e1, e2).wire
-    >>> wire = WireByConcat(w).wire
     """
 
     def __init__(self, wire):
@@ -538,13 +448,6 @@ class FaceBySurface(object):
 
     :param afem.geometry.entities.Surface srf: The surface.
     :param float tol: Tolerance for resolution of degenerate edges.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByNormal
-    >>> from afem.topology import FaceBySurface
-    >>> pln = PlaneByNormal().plane
-    >>> f = FaceBySurface(pln).face
     """
 
     def __init__(self, srf, tol=1.0e-7):
@@ -568,13 +471,6 @@ class FaceByPlane(object):
     :param float umax: Maximum u-parameter.
     :param float vmin: Minimum v-parameter.
     :param float vmax: Maximum v-parameter.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByNormal
-    >>> from afem.topology import FaceByPlane
-    >>> pln = PlaneByNormal().plane
-    >>> f = FaceByPlane(pln, -1., 1., -1., 1.).face
     """
 
     def __init__(self, pln, umin, umax, vmin, vmax):
@@ -597,17 +493,6 @@ class FaceByPlanarWire(object):
     :param wire: The wire.
     :type wire: afem.topology.entities.Wire or afem.topology.entities.Edge or
         afem.geometry.entities.Curve
-
-    Usage:
-
-    >>> from afem.topology import FaceByPlanarWire, WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> wire = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> builder = FaceByPlanarWire(wire)
-    >>> face = builder.face
     """
 
     def __init__(self, wire):
@@ -632,16 +517,6 @@ class FaceByDrag(object):
 
     :param afem.topology.entities.Edge edge: The edge.
     :param vector_like v: The vector to drag the shape.
-
-    Usage:
-
-    >>> from afem.topology import EdgeByDrag, FaceByDrag, VertexByPoint
-    >>> vertex = VertexByPoint((0., 0., 0.)).vertex
-    >>> e = EdgeByDrag(vertex, (1., 0., 0.)).edge
-    >>> builder = FaceByDrag(e, (0., 1., 0.))
-    >>> f = builder.face
-    >>> e1 = builder.first_edge
-    >>> e2 = builder.last_edge
     """
 
     def __init__(self, edge, v):
@@ -683,13 +558,6 @@ class ShellBySurface(object):
     Create a shell from a surface.
 
     :param afem.geometry.entities.Surface srf: The surface.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByNormal
-    >>> from afem.topology import ShellBySurface
-    >>> pln = PlaneByNormal().plane
-    >>> shell = ShellBySurface(pln).shell
     """
 
     def __init__(self, srf):
@@ -711,17 +579,6 @@ class ShellByFaces(object):
     edges. This is not checked.
 
     :param collections.Sequence(afem.topology.entities.Face) faces: The faces.
-
-    Usage:
-
-    >>> from afem.topology import FaceByPlanarWire, ShellByFaces, WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> wire = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> face = FaceByPlanarWire(wire).face
-    >>> shell = ShellByFaces([face]).shell
     """
 
     def __init__(self, faces):
@@ -747,19 +604,6 @@ class ShellByDrag(object):
 
     :param afem.topology.entities.Wire wire: The wire.
     :param vector_like v: The vector to drag the shape.
-
-    Usage:
-
-    >>> from afem.topology import ShellByDrag, WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> wire = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> builder = ShellByDrag(wire, (0., 0., 1.))
-    >>> shell = builder.shell
-    >>> w1 = builder.first_wire
-    >>> w2 = builder.last_wire
     """
 
     def __init__(self, wire, v):
@@ -805,40 +649,6 @@ class ShellBySewing(object):
     :param bool non_manifold: Option for non-manifold processing.
 
     :raise RuntimeError: If an invalid shape type results.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> w1 = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> f1 = FaceByPlanarWire(w1).face
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (0., 0., 1.)
-    >>> p3 = (0., 1., 1.)
-    >>> p4 = (0., 1., 0.)
-    >>> w2 = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> f2 = FaceByPlanarWire(w2).face
-    >>> builder = ShellBySewing([f1, f2])
-    >>> builder.nshells
-    1
-    >>> len(builder.shell.faces)
-    2
-    >>>
-    >>> # Non-manifold case
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (-1., 0., 0.)
-    >>> p3 = (-1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> w3 = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> f3 = FaceByPlanarWire(w3).face
-    >>> builder = ShellBySewing([f1, f2, f3], non_manifold=True)
-    >>> builder.nshells
-    1
-    >>> len(builder.shell.faces)
-    3
     """
 
     def __init__(self, faces, tol=None, cut_free_edges=False,
@@ -925,13 +735,6 @@ class SolidByPlane(object):
     :param float width: Width of the box.
     :param float height: Height of the box.
     :param float depth: Depth of the box.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByNormal
-    >>> from afem.topology import SolidByPlane
-    >>> pln = PlaneByNormal().plane
-    >>> box = SolidByPlane(pln, 1., 1., 1.).solid
     """
 
     def __init__(self, pln, width, height, depth):
@@ -959,20 +762,6 @@ class SolidByDrag(object):
 
     :param afem.topology.entities.Face face: The face.
     :param vector_like v: The vector to drag the shape.
-
-    Usage:
-
-    >>> from afem.topology import FaceByPlanarWire, SolidByDrag, WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> wire = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> face = FaceByPlanarWire(wire).face
-    >>> builder = SolidByDrag(face, (0., 0., 1.))
-    >>> solid = builder.solid
-    >>> f1 = builder.first_face
-    >>> f2 = builder.last_face
     """
 
     def __init__(self, face, v):
@@ -1052,15 +841,6 @@ class HalfspaceByShape(object):
     :param point_like pnt: The reference point where the matter is located.
 
     :raise RuntimeError: If *shape* is not a face or shell.
-
-    Usage:
-
-    >>> from afem.geometry import PlaneByNormal
-    >>> from afem.topology import FaceByPlane, HalfspaceByShape
-    >>> pln = PlaneByNormal().plane
-    >>> f = FaceByPlane(pln, -1., 1., -1., 1.).face
-    >>> builder = HalfspaceByShape(f, (0., 0., 1.))
-    >>> hs = builder.solid
     """
 
     def __init__(self, shape, pnt):
@@ -1477,16 +1257,6 @@ class PointAlongShape(PointFromParameter):
 
     :raise TypeError: If *shape* if not a curve or wire.
     :raise RuntimeError: If OCC method fails.
-
-    Usage:
-
-    >>> from afem.topology import *
-    >>> e = EdgeByPoints((0., 0., 0.), (10., 0., 0.)).edge
-    >>> tool = PointAlongShape(e, 5.)
-    >>> tool.point
-    Point(5.000, 0.000, 0.000)
-    >>> tool.parameter
-    5.0
     """
 
     def __init__(self, shape, ds, tol=1.0e-7):
@@ -1513,18 +1283,6 @@ class PointsAlongShapeByNumber(PointsAlongCurveByNumber):
 
     :raise TypeError: If *shape* if not an edge or wire.
     :raise RuntimeError: If OCC method fails.
-
-    Usage:
-
-    >>> from afem.topology import PointsAlongShapeByNumber, WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> wire = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> builder = PointsAlongShapeByNumber(wire, 10)
-    >>> builder.npts
-    10
     """
 
     def __init__(self, shape, n, d1=None, d2=None, shape1=None, shape2=None):
@@ -1564,18 +1322,6 @@ class PointsAlongShapeByDistance(PointsAlongCurveByDistance):
 
     :raise TypeError: If *shape* if not a curve or wire.
     :raise RuntimeError: If OCC method fails.
-
-    Usage:
-
-    >>> from afem.topology import PointsAlongShapeByDistance, WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> wire = WireByPoints([p1, p2, p3, p4], True).wire
-    >>> builder = PointsAlongShapeByDistance(wire, 1.)
-    >>> builder.npts
-    5
     """
 
     def __init__(self, shape, maxd, d1=None, d2=None, shape1=None, shape2=None,
@@ -1606,19 +1352,6 @@ class PlaneByEdges(object):
     :param float tol: Edges must be within this planar tolerance. The
         tolerance is the largest value between the value provided or the
         largest tolerance of any one of the edges in the shape.
-
-    Usage:
-
-    >>> from afem.topology import PlaneByEdges, WireByPoints
-    >>> p1 = (0., 0., 0.)
-    >>> p2 = (1., 0., 0.)
-    >>> p3 = (1., 1., 0.)
-    >>> p4 = (0., 1., 0.)
-    >>> wire = WireByPoints([p1, p2, p3, p4]).wire
-    >>> builder = PlaneByEdges(wire)
-    >>> builder.found
-    True
-    >>> pln = builder.plane
     """
 
     def __init__(self, shape, tol=-1.):
@@ -1827,9 +1560,3 @@ def _param_on_adp_crv(adp_crv, shape, other_shape):
         umin = proj.nearest_param
         prms.append(umin)
     return min(prms)
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
