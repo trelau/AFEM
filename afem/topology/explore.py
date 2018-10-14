@@ -132,9 +132,3 @@ class ExploreFreeEdges(object):
         :rtype: list(afem.topology.entities.Edge)
         """
         return self._edges
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

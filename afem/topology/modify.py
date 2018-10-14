@@ -599,9 +599,3 @@ class ShapeBSplineRestriction(object):
         :rtype: afem.topology.entities.Shape
         """
         return Shape.wrap(self._modifier.ModifiedShape(shape))
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

@@ -345,9 +345,3 @@ def _curve_nearest_point(point, curves):
             cmin = c
 
     return cmin
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

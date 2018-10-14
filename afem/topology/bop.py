@@ -870,9 +870,3 @@ class TrimOpenWire(object):
         :rtype: list(afem.topology.entities.Vertex)
         """
         return self._verts
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

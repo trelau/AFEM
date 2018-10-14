@@ -297,9 +297,3 @@ class AreaOfShapes(object):
         :rtype: list(afem.topology.entities.Shape)
         """
         return self._shapes
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

@@ -319,9 +319,3 @@ class ProjectCurveToSurface(CurveProjector):
         # OCC projection
         hcrv = GeomProjLib.Project_(crv.object, srf.object)
         self._crv = Curve(hcrv)
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

@@ -3211,9 +3211,3 @@ class NurbsSurface(Surface):
                 geom_srf.SetWeight(i, j, tcol_weights.Value(i, j))
 
         return cls(geom_srf)
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

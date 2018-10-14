@@ -1340,9 +1340,3 @@ class BBox(Bnd_Box):
             raise TypeError(msg)
 
         return self.Distance(bbox)
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

@@ -1937,9 +1937,3 @@ class NurbsSurfaceByApprox(object):
         :rtype: float
         """
         return self._tol2d_reached
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
