@@ -16,12 +16,16 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+from OCCT.SMDSAbs import SMDSAbs_ElementType
 from OCCT.SMESH import SMESH_Gen, SMESH_subMesh
 
 from afem.smesh.entities import Node, Element
 from afem.topology.entities import Shape
 
-__all__ = ["MeshGen", "Mesh", "MeshDS", "SubMesh", "SubMeshDS"]
+__all__ = ["MeshGen",
+           "Mesh", "MeshDS",
+           "SubMesh", "SubMeshDS",
+           "MeshGroup"]
 
 
 class MeshGen(object):
@@ -117,7 +121,17 @@ class Mesh(object):
 
     :param afem.smesh.meshes.MeshGen gen: The MeshGen instance.
     :param bool is_embedded: Option for embedding mesh.
+
+    :cvar OCCT.SMDSAbs.SMDSAbs_ElementType ALL: SMESH all elements type.
+    :cvar OCCT.SMDSAbs.SMDSAbs_ElementType NODE: SMESH node type.
+    :cvar OCCT.SMDSAbs.SMDSAbs_ElementType EDGE: SMESH edge type.
+    :cvar OCCT.SMDSAbs.SMDSAbs_ElementType VOLUME: SMESH volume type.
     """
+    ALL = SMDSAbs_ElementType.SMDSAbs_All
+    NODE = SMDSAbs_ElementType.SMDSAbs_Node
+    EDGE = SMDSAbs_ElementType.SMDSAbs_Edge
+    FACE = SMDSAbs_ElementType.SMDSAbs_Face
+    VOLUME = SMDSAbs_ElementType.SMDSAbs_Volume
 
     def __init__(self, gen, is_embedded=False):
         self._mesh = gen.object.CreateMesh(-1, is_embedded)
@@ -340,6 +354,22 @@ class Mesh(object):
         """
         sub_mesh = self._mesh.GetSubMeshContaining(sub_shape.object)
         return SubMesh.wrap(sub_mesh)
+
+    def create_group(self, shape, name, type_):
+        """
+        Create a group belonging to the mesh.
+
+        :param afem.topology.entities.Shape shape: The shape to create the
+            group on.
+        :param str name: The name of the group.
+        :param OCCT.SMDSAbs.SMDSAbs_ElementType type_: The element type for the
+            group.
+
+        :return: The group.
+        :rtype: afem.smesh.meshes.MeshGroup
+        """
+        smesh_group = self.object.AddGroup(type_, name, -1, shape.object)
+        return MeshGroup(smesh_group)
 
     def export_dat(self, fn):
         """
@@ -827,3 +857,182 @@ class SubMeshDS(object):
         :return: None.
         """
         self._ds.Clear()
+
+
+class MeshGroup(object):
+    """
+    Mesh group for nodes and elements. This is a wrapper for ``SMESH_Group``.
+    The method ``Mesh.create_group()`` should be used to create a new group.
+
+    :param OCCT.SMESH.SMESH_Group group: The ``SMESH_Group`` object.
+    """
+
+    def __init__(self, group):
+        self._group = group
+        self._ds = group.GetGroupDS()
+
+    @property
+    def id(self):
+        """
+        :return: The group ID.
+        :rtype: int
+        """
+        return self._ds.GetID()
+
+    @property
+    def type(self):
+        """
+        :return: The group type.
+        :rtype: OCCT.SMDSAbs.SMDSAbs_ElementType
+        """
+        return self._ds.GetType()
+
+    @property
+    def name(self):
+        """
+        :Getter: The group name.
+        :Setter: Set the group name.
+        :type: str
+        """
+        return self._group.GetName()
+
+    @name.setter
+    def name(self, name):
+        self.set_name(name)
+
+    @property
+    def shape(self):
+        """
+        :Getter: The shape of the group.
+        :Setter: Set the group shape.
+        :type: afem.topology.entities.Shape
+        """
+        return Shape.wrap(self._ds.GetShape())
+
+    @shape.setter
+    def shape(self, shape):
+        self.set_shape(shape)
+
+    @property
+    def is_empty(self):
+        """
+        :return: Check if group is empty.
+        :rtype: bool
+        """
+        return self._ds.IsEmpty()
+
+    @property
+    def size(self):
+        """
+        :return: The number of entities in the group.
+        :rtype: int
+        """
+        return self._ds.Extent()
+
+    @property
+    def node_iter(self):
+        """
+        :return: Yield the nodes in the group.
+        :rtype: collections.Iterable(afem.smesh.entities.Node)
+
+        :raise TypeError: If group is not a node group.
+        """
+        if self.type != Mesh.NODE:
+            raise TypeError('Group is not a node group.')
+
+        it = self._ds.GetElements()
+        while it.more():
+            yield Node(it.next())
+
+    @property
+    def edge_iter(self):
+        """
+        :return: Yield the edges in the group.
+        :rtype: collections.Iterable(afem.smesh.entities.Element)
+
+        :raise TypeError: If group is not an edge group.
+        """
+        if self.type != Mesh.EDGE:
+            raise TypeError('Group is not an edge group.')
+
+        it = self._ds.GetElements()
+        while it.more():
+            yield Element(it.next())
+
+    @property
+    def face_iter(self):
+        """
+        :return: Yield the faces in the group.
+        :rtype: collections.Iterable(afem.smesh.entities.Element)
+
+        :raise TypeError: If group is not a face group.
+        """
+        if self.type != Mesh.FACE:
+            raise TypeError('Group is not a face group.')
+
+        it = self._ds.GetElements()
+        while it.more():
+            yield Element(it.next())
+
+    def set_name(self, name):
+        """
+        Set the group name.
+
+        :param str name: The group name.
+
+        :return: None.
+        """
+        self._group.SetName(name)
+
+    def set_shape(self, shape):
+        """
+        Set the shape of the group.
+
+        :param afem.topology.entities.Shape shape: The shape.
+
+        :return: None.
+        """
+        self._ds.SetShape(shape.object)
+
+    def contains_id(self, eid):
+        """
+        Check if group contains the element by using its ID.
+
+        :param int eid: The element ID.
+
+        :return: *True* if in the group, *False* otherwise.
+        :rtype: bool
+        """
+        return self._ds.Contains(eid)
+
+    def contains_node(self, node):
+        """
+        Check if group contains the node.
+
+        :param afem.smesh.entities.Node node: The node.
+
+        :return: *True* if in the group, *False* otherwise.
+        :rtype: bool
+
+        :raise TypeError: If the group is not a node group.
+        """
+        if self.type != Mesh.NODE:
+            raise TypeError('Group is not a node group.')
+
+        return self._ds.Contains(node.object)
+
+    def contains_elm(self, elm):
+        """
+        Check if group contains the element.
+
+        :param afem.smesh.entities.Element elm: The element.
+
+        :return: *True* if in the group, *False* otherwise.
+        :rtype: bool
+
+        :raise TypeError: If the group is not an element group.
+        """
+        if self.type == Mesh.NODE:
+            raise TypeError('Group is not an element group.')
+
+        return self._ds.Contains(elm.object)

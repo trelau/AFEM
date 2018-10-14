@@ -110,24 +110,6 @@ class Part(ShapeHolder):
             subshape = self.face_compound
         return self._mesh.get_submesh(subshape)
 
-    @property
-    def elements(self):
-        """
-        :return: The elements of the part.
-        :rtype: list(afem.mesh.entities.Element)
-        """
-        ds = self.submesh.ds
-        return [e for e in ds.elm_iter]
-
-    @property
-    def nodes(self):
-        """
-        :return: The nodes of part.
-        :rtype: list(afem.mesh.entities.Node)
-        """
-        ds = self.submesh.ds
-        return [n for n in ds.node_iter]
-
     def distance(self, other):
         """
         Find the minimum distance between the part and other shape.
@@ -692,6 +674,7 @@ class SurfacePart(Part):
         :return: Shared nodes.
         :rtype: list(afem.mesh.entities.Node)
         """
+        # TODO shared nodes
         nodes1 = set(self.nodes)
         nodes2 = set(other.nodes)
         return list(nodes1 & nodes2)

@@ -292,6 +292,10 @@ SubMeshDS
 ~~~~~~~~~
 .. autoclass:: SubMeshDS
 
+MeshGroup
+~~~~~~~~~
+.. autoclass:: MeshGroup
+
 Utilities
 ---------
 .. py:currentmodule:: afem.smesh.utils
