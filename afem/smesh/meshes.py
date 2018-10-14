@@ -241,20 +241,6 @@ class Mesh(object):
         """
         return self._ds
 
-    @classmethod
-    def wrap(cls, mesh):
-        """
-        Create a new instance using an existing SMESH_Mesh instance.
-
-        :param OCCT.SMESH.SMESH_Mesh mesh: A SMESH_Mesh instance.
-
-        :return: The new instance.
-        :rtype: afem.smesh.meshes.Mesh
-        """
-        new_mesh = cls.__new__(cls)
-        new_mesh._mesh = mesh
-        return new_mesh
-
     def shape_to_mesh(self, shape):
         """
         Set the shape to mesh.
@@ -355,21 +341,20 @@ class Mesh(object):
         sub_mesh = self._mesh.GetSubMeshContaining(sub_shape.object)
         return SubMesh.wrap(sub_mesh)
 
-    def create_group(self, shape, name, type_):
+    def create_group(self, name, type_, shape=None):
         """
         Create a group belonging to the mesh.
 
-        :param afem.topology.entities.Shape shape: The shape to create the
-            group on.
         :param str name: The name of the group.
         :param OCCT.SMDSAbs.SMDSAbs_ElementType type_: The element type for the
             group.
+        :param afem.topology.entities.Shape shape: The shape to create the
+            group on. If *None* provided, then the group is not on geometry.
 
         :return: The group.
         :rtype: afem.smesh.meshes.MeshGroup
         """
-        smesh_group = self.object.AddGroup(type_, name, -1, shape.object)
-        return MeshGroup(smesh_group)
+        return MeshGroup(self, name, type_, shape)
 
     def export_dat(self, fn):
         """
@@ -411,6 +396,21 @@ class Mesh(object):
         :return: None.
         """
         return self._mesh.UNVToMesh(fn)
+
+    @classmethod
+    def wrap(cls, mesh):
+        """
+        Create a new instance using an existing SMESH_Mesh instance.
+
+        :param OCCT.SMESH.SMESH_Mesh mesh: A SMESH_Mesh instance.
+
+        :return: The new instance.
+        :rtype: afem.smesh.meshes.Mesh
+        """
+        new_mesh = cls.__new__(cls)
+        new_mesh._mesh = mesh
+        new_mesh._ds = MeshDS(new_mesh)
+        return new_mesh
 
 
 class MeshDS(object):
@@ -620,6 +620,20 @@ class MeshDS(object):
         :rtype: afem.topology.entities.Shape
         """
         return Shape.wrap(self._ds.IndexToShape(indx))
+
+    @classmethod
+    def wrap(cls, mesh):
+        """
+        Create a new instance using an existing SMESHDS_Mesh instance.
+
+        :param OCCT.SMESHDS.SMESHDS_Mesh mesh: A SMESHDS_Mesh instance.
+
+        :return: The new instance.
+        :rtype: afem.smesh.meshes.MeshDS
+        """
+        new_mesh = cls.__new__(cls)
+        new_mesh._ds = mesh
+        return new_mesh
 
 
 class SubMesh(object):
@@ -861,15 +875,32 @@ class SubMeshDS(object):
 
 class MeshGroup(object):
     """
-    Mesh group for nodes and elements. This is a wrapper for ``SMESH_Group``.
-    The method ``Mesh.create_group()`` should be used to create a new group.
+    Mesh group for nodes and elements.
 
-    :param OCCT.SMESH.SMESH_Group group: The ``SMESH_Group`` object.
+    :param afem.smesh.meshes.Mesh mesh: The mesh the group belongs to.
+    :param str name: The name of the group.
+    :param OCCT.SMDSAbs.SMDSAbs_ElementType type_: The element type for the
+        group.
+    :param afem.topology.entities.Shape shape: The shape to create the
+            group on. If *None* provided, then the group is not on geometry.
     """
 
-    def __init__(self, group):
+    def __init__(self, mesh, name, type_, shape=None):
+        if isinstance(shape, Shape):
+            group = mesh.object.AddGroup(type_, name, -1, shape.object)
+        else:
+            group = mesh.object.AddGroup(type_, name, -1)
         self._group = group
         self._ds = group.GetGroupDS()
+        self._mesh = mesh
+
+    @property
+    def object(self):
+        """
+        :return: The underlying SMESH_Group object.
+        :rtype: OCCT.SMESH.SMESH_Group
+        """
+        return self._group
 
     @property
     def id(self):
@@ -886,6 +917,14 @@ class MeshGroup(object):
         :rtype: OCCT.SMDSAbs.SMDSAbs_ElementType
         """
         return self._ds.GetType()
+
+    @property
+    def mesh(self):
+        """
+        :return: The mesh the group belongs to.
+        :rtype: afem.smesh.meshes.Mesh
+        """
+        return self._mesh
 
     @property
     def name(self):
@@ -906,6 +945,8 @@ class MeshGroup(object):
         :Getter: The shape of the group.
         :Setter: Set the group shape.
         :type: afem.topology.entities.Shape
+
+        :raise AttributeError: If the group is not associated with a shape.
         """
         return Shape.wrap(self._ds.GetShape())
 
@@ -1036,3 +1077,88 @@ class MeshGroup(object):
             raise TypeError('Group is not an element group.')
 
         return self._ds.Contains(elm.object)
+
+    def union(self, other, name='union group'):
+        """
+        Union the entities of this group with another.
+
+        :param afem.smesh.meshes.MeshGroup other: The other group.
+        :param str name: The name of the new group.
+
+        :return: New group.
+        :rtype: afem.smesh.meshes.MeshGroup
+
+        :raise TypeError: If the two groups are of different type or they do
+            not share the same mesh.
+        """
+        if self.type != other.type:
+            raise TypeError('Groups are not the same type.')
+        if self.mesh.id != other.mesh.id:
+            raise TypeError('Groups do not share the same mesh.')
+
+        # Add elements of each group
+        new_group = MeshGroup(self.mesh, name, self.type)
+        it = self._ds.GetElements()
+        while it.more():
+            new_group._ds.Add(it.next())
+        it = other._ds.GetElements()
+        while it.more():
+            new_group._ds.Add(it.next())
+
+        return new_group
+
+    def intersect(self, other, name='intersect group'):
+        """
+        Intersect the entities between this group and another.
+
+        :param afem.smesh.meshes.MeshGroup other: The other group.
+        :param str name: The name of the new group.
+
+        :return: New group.
+        :rtype: afem.smesh.meshes.MeshGroup
+
+        :raise TypeError: If the two groups are of different type or they do
+            not share the same mesh.
+        """
+        if self.type != other.type:
+            raise TypeError('Groups are not the same type.')
+        if self.mesh.id != other.mesh.id:
+            raise TypeError('Groups do not share the same mesh.')
+
+        # Add elements of first group if they are in other
+        new_group = MeshGroup(self.mesh, name, self.type)
+        it = self._ds.GetElements()
+        while it.more():
+            e = it.next()
+            if other._ds.Contains(e):
+                new_group._ds.Add(e)
+
+        return new_group
+
+    def subtract(self, other, name='Subtract group'):
+        """
+        Subtract the entities from this group by another.
+
+        :param afem.smesh.meshes.MeshGroup other: The other group.
+        :param str name: The name of the new group.
+
+        :return: New group.
+        :rtype: afem.smesh.meshes.MeshGroup
+
+        :raise TypeError: If the two groups are of different type or they do
+            not share the same mesh.
+        """
+        if self.type != other.type:
+            raise TypeError('Groups are not the same type.')
+        if self.mesh.id != other.mesh.id:
+            raise TypeError('Groups do not share the same mesh.')
+
+        # Add elements of first group if they are not in other
+        new_group = MeshGroup(self.mesh, name, self.type)
+        it = self._ds.GetElements()
+        while it.more():
+            e = it.next()
+            if not other._ds.Contains(e):
+                new_group._ds.Add(e)
+
+        return new_group

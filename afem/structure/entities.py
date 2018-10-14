@@ -97,19 +97,6 @@ class Part(ShapeHolder):
         """
         return self._mesh
 
-    @property
-    def submesh(self):
-        """
-        :return: Sub-mesh for the part shape using the active mesh.
-        :rtype: afem.smesh.meshes.SubMesh
-        """
-        # Put core shape types into a compound
-        if isinstance(self, CurvePart):
-            subshape = self.edge_compound
-        else:
-            subshape = self.face_compound
-        return self._mesh.get_submesh(subshape)
-
     def distance(self, other):
         """
         Find the minimum distance between the part and other shape.
@@ -664,20 +651,6 @@ class SurfacePart(Part):
 
         self.rebuild(bop)
         return True
-
-    def shared_nodes(self, other):
-        """
-        Get nodes shared between the two parts.
-
-        :param afem.structure.entities.SurfacePart other: The other part.
-
-        :return: Shared nodes.
-        :rtype: list(afem.mesh.entities.Node)
-        """
-        # TODO shared nodes
-        nodes1 = set(self.nodes)
-        nodes2 = set(other.nodes)
-        return list(nodes1 & nodes2)
 
     def cut_hole(self, d, ds, u0=None, is_rel=False):
         """
