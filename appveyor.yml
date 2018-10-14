@@ -25,7 +25,7 @@ install:
   - cmd: conda.exe config --remove channels defaults
   - cmd: conda.exe config --add channels defaults
   - cmd: conda.exe config --add channels conda-forge
-  - cmd: conda.exe config --add channels trelau
+  - cmd: conda.exe config --add channels laughlinresearch
 
 build: off
 
