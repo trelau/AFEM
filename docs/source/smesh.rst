@@ -166,11 +166,40 @@ With the shape set and meshing controls applied, the mesh is computed by::
 
     gen.compute(mesh)
 
-The remaining part of the script simply displays the mesh and sub-meshes
+The next part of the script simply displays the mesh and sub-meshes
 derived from sub-shapes of the main shape. These sub-meshes can be used to
 access nodes and elements.
 
 .. image:: ./resources/simple_mesh.png
+
+Towards the end of the script a small demonstration of the ``MeshGroup`` class
+is provided:
+
+.. code-block:: python
+
+    # Use groups to organize mesh data
+    edge_nodes = mesh.create_group('edge nodes', mesh.NODE, edges[-1])
+    face_nodes = mesh.create_group('face nodes', mesh.NODE, faces[-1])
+
+Mesh groups are an excellent mechanism for organizing and accessing mesh data.
+The code above creates two groups of nodes on an edge and a face of the box.
+Other types of groups can be created for 1-D edge elements, as well as 2-D face
+elements including triangles and quadrangles. These groups make accessing the
+mesh data from the given shape much easier, flexible, and robust then using
+sub-meshes (this is not the intended purpose of sub-meshes anyway). Mesh groups
+can actually be created before the mesh is computed.
+
+For mesh groups of similar type, additional organizational methods are provided
+including union, intersect, and subtracting the mesh data between two groups.
+In the example below, the nodes from the edge group are subtracted from the
+nodes in the face group::
+
+    group = face_nodes.subtract(edge_nodes)
+
+A new group is created (without association to any shape) and is shown below.
+The same operations will be available for any two groups of similar type.
+
+.. image:: ./resources/simple_mesh_group.png
 
 Entities
 --------

@@ -1,3 +1,4 @@
+from afem.geometry import Point
 from afem.graphics import Viewer
 from afem.smesh import (MeshGen, NetgenAlgo2D, NetgenSimple2D, MaxLength1D,
                         Regular1D)
@@ -37,7 +38,8 @@ gui.add(mesh)
 gui.start()
 gui.clear()
 
-# Get sub-meshes from sub-shapes
+# Get sub-meshes from sub-shapes. Note that extracting the nodes and elements
+# from a shape is better done with groups.
 face_submesh = mesh.get_submesh(faces[0])
 edge_submesh = mesh.get_submesh(edges[0])
 
@@ -48,4 +50,32 @@ gui.clear()
 
 # View the edge sub-mesh (1-D elements)
 gui.add(edge_submesh)
+gui.start()
+
+# Use groups to organize mesh data
+edge_nodes = mesh.create_group('edge nodes', mesh.NODE, edges[-1])
+face_nodes = mesh.create_group('face nodes', mesh.NODE, faces[-1])
+
+# Show edge nodes
+gui.clear()
+gui.add(mesh)
+for n in edge_nodes.node_iter:
+    p = Point(n.x, n.y, n.z)
+    gui.add(p)
+gui.start()
+
+# Show face nodes
+for n in face_nodes.node_iter:
+    p = Point(n.x, n.y, n.z)
+    gui.add(p)
+gui.start()
+
+# Subtract the edge nodes from the face nodes. Other group methods include
+# union and intersect.
+group = face_nodes.subtract(edge_nodes)
+gui.clear()
+gui.add(mesh)
+for n in group.node_iter:
+    p = Point(n.x, n.y, n.z)
+    gui.add(p)
 gui.start()
