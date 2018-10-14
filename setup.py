@@ -22,7 +22,7 @@ setup(
     name='afem',
     version='0.3.0',
     packages=['afem', 'afem.adaptor', 'afem.base', 'afem.core',
-              'afem.exchange', 'afem.fem', 'afem.geometry', 'afem.graphics',
+              'afem.exchange', 'afem.geometry', 'afem.graphics',
               'afem.misc', 'afem.occ', 'afem.oml', 'afem.sketch',
               'afem.smesh', 'afem.structure', 'afem.topology'],
     author='Laughlin Research, LLC',
