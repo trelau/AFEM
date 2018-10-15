@@ -213,6 +213,34 @@ Element
 ~~~~~~~
 .. autoclass:: Element
 
+FaceSide
+~~~~~~~~~
+.. autoclass:: FaceSide
+
+MeshGen
+~~~~~~~
+.. autoclass:: MeshGen
+
+Mesh
+~~~~
+.. autoclass:: Mesh
+
+MeshDS
+~~~~~~
+.. autoclass:: MeshDS
+
+SubMesh
+~~~~~~~
+.. autoclass:: SubMesh
+
+SubMeshDS
+~~~~~~~~~
+.. autoclass:: SubMeshDS
+
+MeshGroup
+~~~~~~~~~
+.. autoclass:: MeshGroup
+
 Hypotheses
 ----------
 .. py:currentmodule:: afem.smesh.hypotheses
@@ -296,34 +324,6 @@ MeshGemsAlgo2D
 MeshGemsHypo2D
 ~~~~~~~~~~~~~~
 .. autoclass:: MeshGemsHypo2D
-
-Meshes
-------
-.. py:currentmodule:: afem.smesh.meshes
-
-MeshGen
-~~~~~~~
-.. autoclass:: MeshGen
-
-Mesh
-~~~~
-.. autoclass:: Mesh
-
-MeshDS
-~~~~~~
-.. autoclass:: MeshDS
-
-SubMesh
-~~~~~~~
-.. autoclass:: SubMesh
-
-SubMeshDS
-~~~~~~~~~
-.. autoclass:: SubMeshDS
-
-MeshGroup
-~~~~~~~~~
-.. autoclass:: MeshGroup
 
 Utilities
 ---------

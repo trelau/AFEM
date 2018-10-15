@@ -60,7 +60,6 @@ class Part(ShapeHolder):
     :type group: str or afem.structure.group.Group or None
     """
     _indx = 1
-    _mesh = None
 
     def __init__(self, name, shape, cref=None, sref=None, group=None):
         types = (Shape,)
@@ -88,14 +87,6 @@ class Part(ShapeHolder):
         :rtype: int
         """
         return self._id
-
-    @property
-    def mesh(self):
-        """
-        :return: The active mesh.
-        :rtype: afem.smesh.meshes.Mesh
-        """
-        return self._mesh
 
     def distance(self, other):
         """
@@ -473,18 +464,6 @@ class Part(ShapeHolder):
         :return: None.
         """
         cls._indx = 1
-        cls._mesh = None
-
-    @classmethod
-    def set_mesh(cls, mesh):
-        """
-        Set the active mesh for all parts.
-
-        :param afem.smesh.meshes.Mesh mesh: The mesh.
-
-        :return: None.
-        """
-        cls._mesh = mesh
 
 
 class CurvePart(Part):
@@ -654,7 +633,7 @@ class SurfacePart(Part):
 
     def cut_hole(self, d, ds, u0=None, is_rel=False):
         """
-        Cut a hole in the part and update its shape.
+        Cut a hole in the part and update its shape (experimental).
 
         :param float d: Diameter of hole.
         :param float ds: The distance.

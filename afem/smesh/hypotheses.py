@@ -170,7 +170,7 @@ class Algorithm(Hypothesis):
 
         :param afem.topology.entities.Vertex v: The vertex.
         :param mesh: The mesh.
-        :type mesh: afem.smesh.meshes.Mesh or afem.smesh.meshes.MeshDS
+        :type mesh: afem.smesh.entities.Mesh or afem.smesh.entities.MeshDS
 
         :return: The node.
         :rtype: afem.smesh.entities.Node
@@ -206,7 +206,7 @@ class Algorithm(Hypothesis):
         """
         Check the hypothesis in the given mesh and shape.
 
-        :param afem.smesh.meshes.Mesh mesh: The mesh.
+        :param afem.smesh.entities.Mesh mesh: The mesh.
         :param afem.topology.entities.Shape shape: The shape.
         :param OCCT.SMESH.SMESH_Hypothesis.Hypothesis_Status status: The status
             to check.
@@ -220,7 +220,7 @@ class Algorithm(Hypothesis):
         """
         Compute the mesh on a shape.
 
-        :param afem.smesh.meshes.Mesh mesh: The mesh.
+        :param afem.smesh.entities.Mesh mesh: The mesh.
         :param afem.topology.entities.Shape shape: The shape.
 
         :return: *True* if completed, *False* if not.
@@ -233,7 +233,7 @@ class Regular1D(Algorithm):
     """
     Regular 1-D algorithm. Use this with a hypothesis to mesh edges.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     """
 
     def __init__(self, gen):
@@ -248,7 +248,7 @@ class CompositeSide1D(Algorithm):
     several edges provided that they form C1 curve in all faces of the main
     shape.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     """
 
     def __init__(self, gen):
@@ -260,7 +260,7 @@ class CompositeSide1D(Algorithm):
         """
         Return a face side the edge belongs to.
 
-        :param afem.smesh.meshes.Mesh mesh: The mesh.
+        :param afem.smesh.entities.Mesh mesh: The mesh.
         :param afem.topology.entities.Edge e: The edge.
         :param afem.topology.entities.Face f: The face.
         :param bool ignore_meshed: Unclear what option does.
@@ -278,7 +278,7 @@ class MaxLength1D(Hypothesis):
     """
     Maximum length 1-D hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param float max_length: Maximum edge length.
     """
 
@@ -301,7 +301,7 @@ class LocalLength1D(Hypothesis):
     """
     Local length 1-D hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param float local_length: The desired edge length.
     :param float precision: The value used to control the rounding of the
         number of segments. Use 0.5 to provide rounding to nearest integer,
@@ -336,7 +336,7 @@ class NumberOfSegments1D(Hypothesis):
     """
     Number of segments 1-D hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param int nseg: The number of segments.
     """
 
@@ -359,7 +359,7 @@ class Adaptive1D(Hypothesis):
     """
     Adaptive length 1-D hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param float min_size: Minimum edge size.
     :param float max_size: Maximum edge size.
     :param float deflection: Maximum distance from a segment to a curved edge.
@@ -378,7 +378,7 @@ class Deflection1D(Hypothesis):
     """
     Deflection length 1-D hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param float deflection: Maximum distance from a segment to a curved edge.
     """
 
@@ -393,7 +393,7 @@ class QuadrangleAlgo2D(Algorithm):
     """
     Quadrangle 2-D algorithm.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     """
 
     def __init__(self, gen):
@@ -420,7 +420,7 @@ class QuadrangleHypo2D(Hypothesis):
     """
     Quadrangle 2-D parameters.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param OCCT.StdMeshers.StdMeshers_QuadType quad_type: The quadrangle
         preference for transitions.
     """
@@ -449,7 +449,7 @@ class NetgenHypothesis(Hypothesis):
     """
     NETGEN hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param float max_size: Maximum edge length.
     :param float min_size: Minimum edge length.
     :param bool allow_quads: Enable quad-dominated mesh.
@@ -503,7 +503,7 @@ class NetgenAlgo2D(Algorithm):
     """
     NETGEN 2-D algorithm.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     """
 
     def __init__(self, gen):
@@ -516,7 +516,7 @@ class NetgenAlgoOnly2D(Algorithm):
     NETGEN 2-D only algorithm. Takes into account pre-existing nodes on face
     boundaries.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     """
 
     def __init__(self, gen):
@@ -528,7 +528,7 @@ class NetgenHypo2D(Hypothesis):
     """
     NETGEN 2-D hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param float max_size: Maximum edge length.
     :param float min_size: Minimum edge length.
     :param bool allow_quads: Enable quad-dominated mesh.
@@ -569,7 +569,7 @@ class NetgenSimple2D(Hypothesis):
     """
     NETGEN 2-D simple hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param float local_length: Local edge segment length.
     :param int nseg: Number of edge segments.
     :param bool allow_quads: Enable quad-dominated mesh.
@@ -598,7 +598,7 @@ class MeshGemsAlgo2D(Algorithm):
     """
     MeshGems MGCAD-Surf algorithm.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
 
     :raise NotImplementedError: If MeshGems is not available.
     """
@@ -614,7 +614,7 @@ class MeshGemsHypo2D(Hypothesis):
     """
     MeshGems MGCAD-Surf hypothesis.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     :param float size: Desired global edge size.
     :param bool allow_quads: Enable quad-dominant mesh.
 
@@ -864,7 +864,7 @@ class NetgenAlgo3D(Algorithm):
     """
     NETGEN 3-D algorithm.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     """
 
     def __init__(self, gen):
@@ -876,7 +876,7 @@ class NetgenAlgo2D3D(Algorithm):
     """
     NETGEN 2-D/3-D algorithm.
 
-    :param afem.smesh.meshes.MeshGen gen: A mesh generator.
+    :param afem.smesh.entities.MeshGen gen: A mesh generator.
     """
 
     def __init__(self, gen):

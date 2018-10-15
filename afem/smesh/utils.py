@@ -31,7 +31,7 @@ class MeshEditor(object):
     """
     Mesh editor.
 
-    :param afem.smesh.meshes.Mesh mesh: A mesh.
+    :param afem.smesh.entities.Mesh mesh: A mesh.
     """
 
     def __init__(self, mesh):
@@ -240,7 +240,7 @@ class MeshEditor(object):
             used.
         :param bool copy: Option to copy elements.
         :param bool make_groups: Option to make groups.
-        :param afem.smesh.meshes.Mesh target_mesh: The target mesh to place
+        :param afem.smesh.entities.Mesh target_mesh: The target mesh to place
             elements.
 
         :return: List of element ID's.
@@ -269,7 +269,7 @@ class MeshEditor(object):
             used.
         :param bool copy: Option to copy elements.
         :param bool make_groups: Option to make groups.
-        :param afem.smesh.meshes.Mesh target_mesh: The target mesh to place
+        :param afem.smesh.entities.Mesh target_mesh: The target mesh to place
             elements.
 
         :return: List of element ID's.
@@ -367,7 +367,7 @@ class MeshHelper(object):
     """
     Mesh helper.
 
-    :param afem.smesh.meshes.Mesh mesh: A mesh.
+    :param afem.smesh.entities.Mesh mesh: A mesh.
     """
 
     def __init__(self, mesh):
@@ -386,7 +386,7 @@ class MeshHelper(object):
         """
         Check if a 2-D mesh on a face is structured.
 
-        :param afem.smesh.meshes.SubMesh submesh: The submesh.
+        :param afem.smesh.entities.SubMesh submesh: The submesh.
 
         :return: *True* if structured, *False* if not.
         :rtype: bool
@@ -398,7 +398,7 @@ class MeshHelper(object):
         """
         Check if a 2-D mesh on a face is distorted.
 
-        :param afem.smesh.meshes.SubMesh submesh: The submesh.
+        :param afem.smesh.entities.SubMesh submesh: The submesh.
         :param bool check_uv: Option to check using *uv* parameters.
 
         :return: *True* if distored, *False* if not.
@@ -412,7 +412,7 @@ class MeshHelper(object):
         Get the support shape of a node.
 
         :param afem.smesh.entities.Node node: The node.
-        :param afem.smesh.meshes.MeshDS mesh_ds: The mesh data structure.
+        :param afem.smesh.entities.MeshDS mesh_ds: The mesh data structure.
 
         :return: The support shape.
         :rtype: afem.topology.entities.Shape
@@ -428,7 +428,7 @@ class MeshHelper(object):
 
         :param afem.topology.entities.Shape shape1: The first shape.
         :param afem.topology.entities.Shape shape2: The second shape.
-        :param afem.smesh.meshes.Mesh mesh: The mesh.
+        :param afem.smesh.entities.Mesh mesh: The mesh.
         :param OCCT.TopAbs.TopAbs_ShapeEnum ancestor_type: The shape type.
 
         :return: The common ancestor.
@@ -458,7 +458,7 @@ class MeshHelper(object):
         Check to see if the shape is a sub-shape in a mesh.
 
         :param afem.topology.entities.Shape shape: The shape.
-        :param afem.smesh.meshes.Mesh mesh: The mesh.
+        :param afem.smesh.entities.Mesh mesh: The mesh.
 
         :return: *True* if a sub-shape, *False* if not.
         :rtype: bool
@@ -501,7 +501,7 @@ class MeshHelper(object):
 
         :param afem.smesh.hypotheses.Hypothesis hyp: The hypothesis.
         :param afem.topology.entities.Shape shape: The shape.
-        :param afem.smesh.meshes.Mesh mesh: The mesh.
+        :param afem.smesh.entities.Mesh mesh: The mesh.
 
         :return: The shape that the hypothesis is applied to.
         :rtype: afem.topology.entities.Shape
