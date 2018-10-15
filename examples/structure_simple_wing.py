@@ -7,8 +7,6 @@ from afem.topology import *
 
 Settings.log_to_console()
 
-# v = Viewer()
-
 # Set units to inch.
 Settings.set_units('in')
 
@@ -33,41 +31,28 @@ skin.discard_by_dmin(cref, 1.0)
 FuseSurfaceParts([skin], internal_parts)
 
 # Mesh
-the_shape = wingbox.prepare_shape_to_mesh()
 print('Creating mesh')
-the_gen = MeshGen()
-the_mesh = MeshGen.create_mesh(the_gen)
-the_mesh.shape_to_mesh(the_shape)
+mesh = MeshVehicle()
 
 # 1-d
-hyp1d = LocalLength1D(the_gen, 4.)
-alg1d = Regular1D(the_gen)
-edges = the_shape.edges
+hyp1d = LocalLength1D(mesh.gen, 4.)
+alg1d = Regular1D(mesh.gen)
+edges = mesh.shape.edges
 cmp = CompoundByShapes(edges).compound
-the_mesh.add_hypothesis(hyp1d, cmp)
-the_mesh.add_hypothesis(alg1d, cmp)
+mesh.add_control(hyp1d, cmp)
+mesh.add_control(alg1d, cmp)
 
 # Unstructured quad-dominant
-hyp2d = NetgenSimple2D(the_gen, 4.)
-alg2d = NetgenAlgo2D(the_gen)
-the_mesh.add_hypothesis(hyp2d, the_shape)
-the_mesh.add_hypothesis(alg2d, the_shape)
+hyp2d = NetgenSimple2D(mesh.gen, 4.)
+alg2d = NetgenAlgo2D(mesh.gen)
+mesh.add_control(hyp2d)
+mesh.add_control(alg2d)
 
-# Apply mapped quadrangle to internal structure
-# mapped_hyp = QuadrangleHypo2D(the_gen)
-# mapped_alg = QuadrangleAlgo2D(the_gen)
-# for part_ in internal_parts + [skin]:
-#     for face in part_.faces:
-#         if mapped_alg.is_applicable(face, True):
-#             the_mesh.add_hypothesis(mapped_hyp, face)
-#             the_mesh.add_hypothesis(mapped_alg, face)
-
-the_gen.compute(the_mesh, the_shape)
+mesh.compute()
 
 # View
-# skin.set_transparency(0.5)
 gui = Viewer()
 gui.add(wingbox)
 gui.start()
-gui.add(the_mesh)
+gui.add(mesh.mesh)
 gui.start()

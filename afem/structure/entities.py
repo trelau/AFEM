@@ -80,6 +80,11 @@ class Part(ShapeHolder):
         msg = ' '.join(['Creating part:', name])
         logger.info(msg)
 
+        # Groups for meshing
+        self._node_group = None
+        self._edge_group = None
+        self._face_group = None
+
     @property
     def id(self):
         """
@@ -87,6 +92,42 @@ class Part(ShapeHolder):
         :rtype: int
         """
         return self._id
+
+    @property
+    def node_group(self):
+        """
+        :return: The mesh node group.
+        :rtype: afem.smesh.entities.MeshGroup
+
+        :raise AttributeError: If group doesn't exist.
+        """
+        if self._node_group is None:
+            raise AttributeError('Node group does not exist.')
+        return self._node_group
+
+    @property
+    def edge_group(self):
+        """
+        :return: The mesh edge group.
+        :rtype: afem.smesh.entities.MeshGroup
+
+        :raise AttributeError: If group doesn't exist.
+        """
+        if self._edge_group is None:
+            raise AttributeError('Edge group does not exist.')
+        return self._edge_group
+
+    @property
+    def face_group(self):
+        """
+        :return: The mesh face group.
+        :rtype: afem.smesh.entities.MeshGroup
+
+        :raise AttributeError: If group doesn't exist.
+        """
+        if self._face_group is None:
+            raise AttributeError('Face group does not exist.')
+        return self._face_group
 
     def distance(self, other):
         """
@@ -455,6 +496,25 @@ class Part(ShapeHolder):
         if not as_compound:
             return edges
         return CompoundByShapes(edges).compound
+
+    def init_meshing(self, mesh):
+        """
+        Initialize the part for meshing. This includes creating node, edge, and
+        face groups.
+
+        :param afem.smesh.entities.Mesh mesh: The top-level mesh that will
+            contain the groups.
+
+        :return: None.
+        """
+        name = ' '.join([self.name, 'nodes'])
+        self._node_group = mesh.create_group(name, mesh.NODE, self.shape)
+
+        name = ' '.join([self.name, 'edges'])
+        self._edge_group = mesh.create_group(name, mesh.EDGE, self.shape)
+
+        name = ' '.join([self.name, 'faces'])
+        self._face_group = mesh.create_group(name, mesh.FACE, self.shape)
 
     @classmethod
     def reset(cls):

@@ -313,6 +313,14 @@ Check
 -----
 .. autoclass:: afem.structure.check.CheckPart
 
+Mesh
+----
+.. py:currentmodule:: afem.structure.mesh
+
+MeshVehicle
+~~~~~~~~~~~
+.. autoclass:: MeshVehicle
+
 Utilities
 ---------
 .. automodule:: afem.structure.utils

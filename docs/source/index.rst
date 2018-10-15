@@ -20,9 +20,9 @@ developed by Laughlin Research, LLC.
    sketch
    topology
    adaptor
+   smesh
    oml
    structure
-   smesh
    exchange
    graphics
 

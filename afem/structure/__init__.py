@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from afem.structure.group import *
 from afem.structure.check import *
 from afem.structure.create import *
 from afem.structure.entities import *
 from afem.structure.fix import *
+from afem.structure.group import *
 from afem.structure.join import *
+from afem.structure.mesh import MeshVehicle
 from afem.structure.modify import *
