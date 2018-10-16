@@ -405,7 +405,7 @@ class QuadrangleAlgo2D(Algorithm):
         """
         Check if this algorithm can mesh the shape.
 
-        :param shape: The shape.
+        :param afem.topology.entities.Shape shape: The shape.
         :param bool check_all: If *True*, this check returns *True* if all
             shapes are applicable. If *False* this check returns *True* if at
             least one shape is ok.
@@ -413,7 +413,13 @@ class QuadrangleAlgo2D(Algorithm):
         :return: Check whether algorithm is applicable.
         :rtype: bool
         """
-        return StdMeshers_Quadrangle_2D.IsApplicable_(shape.object, check_all)
+        if not StdMeshers_Quadrangle_2D.IsApplicable_(shape.object, check_all):
+            return False
+
+        # Check for 3-sided faces
+        for face in shape.faces:
+            if face.num_edges < 4:
+                return False
 
 
 class QuadrangleHypo2D(Hypothesis):
