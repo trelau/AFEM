@@ -120,5 +120,7 @@ the_gen.compute(the_mesh)
 # View
 gui = Viewer()
 gui.add(GroupAPI.get_master())
+gui.start()
+gui.clear()
 gui.add(the_mesh)
 gui.start()

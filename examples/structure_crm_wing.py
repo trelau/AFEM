@@ -169,26 +169,18 @@ skin.set_transparency(0.5)
 parts = GroupAPI.get_parts()
 
 # Mesh
-shape_to_mesh = GroupAPI.prepare_shape_to_mesh()
-the_gen = MeshGen()
-the_mesh = the_gen.create_mesh(shape_to_mesh)
-
-# Global mesh defaults
-ngh = NetgenSimple2D(the_gen, 4.)
-nga = NetgenAlgo2D(the_gen)
-hyp1d = MaxLength1D(the_gen, 4.)
-alg1d = Regular1D(the_gen)
-status = the_mesh.add_hypotheses([ngh, nga, hyp1d, alg1d])
+the_mesh = MeshVehicle(4)
 
 # Local mesh
-quad_hyp = QuadrangleHypo2D(the_gen)
-quad_alg = QuadrangleAlgo2D(the_gen)
+quad_hyp = QuadrangleHypo2D(the_mesh.gen)
+quad_alg = QuadrangleAlgo2D(the_mesh.gen)
 for part in internal_parts:
-    if quad_alg.is_applicable(part.shape, True):
-        the_mesh.add_hypotheses([quad_alg, quad_hyp], part.shape)
+    for face in part.shape.faces:
+        if quad_alg.is_applicable(face, True):
+            the_mesh.add_controls([quad_alg, quad_hyp], face)
 
 print('Computing mesh...')
-the_gen.compute(the_mesh, shape_to_mesh)
+the_mesh.compute()
 
 # View
 gui = Viewer()

@@ -3,7 +3,6 @@ from afem.config import Settings
 from afem.exchange import ImportVSP, StepWrite
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -337,34 +336,27 @@ def build(wing, fuselage):
     # user friendly and intuitive.
 
     # Retrieve the global shape to mesh
-    the_shape = GroupAPI.prepare_shape_to_mesh()
-    the_gen = MeshGen()
-    the_mesh = the_gen.create_mesh(the_shape)
-
-    # Unstructured quad-dominant algorithm and hypotheses
-    netgen_hyp = NetgenSimple2D(the_gen, 4.)
-    netgen_alg = NetgenAlgo2D(the_gen)
-    the_mesh.add_hypotheses([netgen_alg, netgen_hyp], the_shape)
+    the_mesh = MeshVehicle(4.)
 
     # Compute the mesh
     print('Computing mesh...')
-    the_gen.compute(the_mesh, the_shape)
+    the_mesh.compute()
 
     # View the mesh. Adjust these transparencies if you want to see the
     # internal mesh better.
     wskin.set_transparency(0.)
     fskin.set_transparency(0.)
-    gui.display_mesh(the_mesh.object, 2)
+    gui.add(the_mesh)
     gui.start()
     gui.clear()
 
     # Export the shape to a STEP file
     step = StepWrite('AP203', 'in')
-    step.transfer(the_shape)
+    step.transfer(the_mesh.shape)
     step.write('supersonic.step')
 
     # Export the mesh (nodes and elements) to a bulk data file
-    afem.exchange.nastran.export_bdf(the_mesh, 'supersonic.bdf')
+    afem.exchange.nastran.export_bdf(the_mesh.mesh, 'supersonic.bdf')
 
 
 if __name__ == '__main__':

@@ -277,38 +277,26 @@ def build_wingbox(wing, params):
 
     # MESH --------------------------------------------------------------------
     # Initialize
-    shape_to_mesh = GroupAPI.prepare_shape_to_mesh()
-    the_gen = MeshGen()
-    the_mesh = the_gen.create_mesh(shape_to_mesh)
-
-    # Use a single global hypothesis based on maximum length.
-    hyp1d = MaxLength1D(the_gen, 4.)
-    alg1d = Regular1D(the_gen)
-    the_mesh.add_hypotheses([hyp1d, alg1d], shape_to_mesh)
-
-    # Netgen unstructured quad-dominated
-    netgen_hyp = NetgenSimple2D(the_gen, 4.)
-    netgen_alg = NetgenAlgo2D(the_gen)
-    the_mesh.add_hypotheses([netgen_hyp, netgen_alg], shape_to_mesh)
+    the_mesh = MeshVehicle(4.)
 
     # Apply mapped quadrangle to internal structure
-    mapped_hyp = QuadrangleHypo2D(the_gen)
-    mapped_algo = QuadrangleAlgo2D(the_gen)
+    mapped_hyp = QuadrangleHypo2D(the_mesh.gen)
+    mapped_algo = QuadrangleAlgo2D(the_mesh.gen)
     for part_ in internal_parts:
         for face in part_.shape.faces:
             if mapped_algo.is_applicable(face):
-                the_mesh.add_hypotheses([mapped_algo, mapped_hyp], face)
+                the_mesh.add_controls([mapped_algo, mapped_hyp], face)
 
     # Compute the mesh
     mesh_start = time.time()
     print('Computing mesh...')
-    status = the_gen.compute(the_mesh, shape_to_mesh)
+    status = the_mesh.compute()
     if not status:
         print('Failed to compute mesh')
     else:
         print('Meshing complete in ', time.time() - mesh_start, ' seconds.')
 
-    gui.display_mesh(the_mesh.object, 2)
+    gui.add(the_mesh)
     gui.start()
     gui.clear()
 

@@ -718,7 +718,7 @@ class Curve2D(Geometry2D):
         h_crv = self.object.Copy()
         return Curve2D.wrap(h_crv)
 
-    def local_to_global_param(self, *args):
+    def local_to_global_u(self, *args):
         """
         Convert parameter(s) from local domain 0. <= u <= 1. to global domain
         a <= u <= b.
@@ -730,7 +730,7 @@ class Curve2D(Geometry2D):
         """
         return geom_utils.local_to_global_param(self.u1, self.u2, *args)
 
-    def global_to_local_param(self, *args):
+    def global_to_local_u(self, *args):
         """
         Convert parameter(s) from global domain a <= u <= b to local domain
         0. <= u <= 1.

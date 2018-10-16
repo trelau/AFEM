@@ -32,22 +32,7 @@ FuseSurfaceParts([skin], internal_parts)
 
 # Mesh
 print('Creating mesh')
-mesh = MeshVehicle()
-
-# 1-d
-hyp1d = LocalLength1D(mesh.gen, 4.)
-alg1d = Regular1D(mesh.gen)
-edges = mesh.shape.edges
-cmp = CompoundByShapes(edges).compound
-mesh.add_control(hyp1d, cmp)
-mesh.add_control(alg1d, cmp)
-
-# Unstructured quad-dominant
-hyp2d = NetgenSimple2D(mesh.gen, 4.)
-alg2d = NetgenAlgo2D(mesh.gen)
-mesh.add_control(hyp2d)
-mesh.add_control(alg2d)
-
+mesh = MeshVehicle(4.)
 mesh.compute()
 
 # View

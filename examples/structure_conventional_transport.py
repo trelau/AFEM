@@ -40,7 +40,7 @@ face = FaceByPlane(pln, -18, 18, 0, 72).face
 bh2.cut(face)
 
 # Rear pressure bulkhead
-p = vtail.eval(0, 0)
+p = vtail.sref.eval(0, 0)
 pln = PlaneByAxes(p, 'yz').plane
 section = IntersectShapes(fuselage.shape, pln).shape
 cg = LinearProps(section).cg
@@ -56,17 +56,17 @@ cg = LinearProps(section).cg
 rear_pressure_bh_pln = PlaneByAxes(cg, 'yz').plane
 
 # Fwd bulkhead at 25% wing chord
-p0 = wing.eval(0.25, 0.)
+p0 = wing.sref.eval(0.25, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
 fwd_bh = BulkheadByShape('fwd bh', pln, fuselage).part
 
 # Rear bulkhead at 65% wing chord
-p0 = wing.eval(0.65, 0.)
+p0 = wing.sref.eval(0.65, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
 rear_bh = BulkheadByShape('rear bh', pln, fuselage).part
 
 # Aft bulkhead at 85% wing chord
-p0 = wing.eval(0.85, 0.)
+p0 = wing.sref.eval(0.85, 0.)
 pln = PlaneByAxes(p0, 'yz').plane
 aft_bh = BulkheadByShape('aft bh', pln, fuselage).part
 
@@ -84,11 +84,11 @@ fskin = SkinByBody('fuselage skin', fuselage).part
 fskin.set_transparency(0.5)
 
 # Cutting solids.
-p0 = wing.eval(0., 0.)
+p0 = wing.sref.eval(0., 0.)
 fwd_pln = PlaneByAxes(p0, 'yz').plane
 # fwd_cut = SolidByPlane(fwd_pln, 1.e6, 1.e6, -1.e6).solid
 
-p0 = wing.eval(1., 0.)
+p0 = wing.sref.eval(1., 0.)
 aft_pln = PlaneByAxes(p0, 'yz').plane
 # aft_cut = SolidByPlane(aft_pln, 1.e6, 1.e6, 1.e6).solid
 

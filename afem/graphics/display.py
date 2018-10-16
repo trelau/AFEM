@@ -25,6 +25,7 @@ from OCCT.Visualization import BasicViewer
 from afem.base.entities import ViewableItem
 from afem.smesh.entities import Mesh, SubMesh, MeshGroup
 from afem.structure.group import Group
+from afem.structure.mesh import MeshVehicle
 
 __all__ = ["Viewer"]
 
@@ -78,7 +79,8 @@ class Viewer(BasicViewer):
             OCCT.SMESH.SMESH_subMesh or
             afem.smesh.entities.Mesh or
             afem.smesh.entities.SubMesh or
-            afem.smesh.entities.MeshGroup
+            afem.smesh.entities.MeshGroup or
+            afem.structure.mesh.MeshVehicle
 
         :return: None.
         """
@@ -95,3 +97,5 @@ class Viewer(BasicViewer):
                 self.display_mesh(item)
             elif isinstance(item, MeshGroup):
                 self.display_mesh(item.mesh.object, group=item.object)
+            elif isinstance(item, MeshVehicle):
+                self.display_mesh(item.mesh.object)

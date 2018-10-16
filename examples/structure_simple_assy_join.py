@@ -4,7 +4,6 @@ from afem.config import Settings
 from afem.geometry import *
 from afem.graphics import Viewer
 from afem.oml import Body
-from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -99,21 +98,11 @@ tool = ExploreFreeEdges(shape)
 
 parts = GroupAPI.get_master().get_parts()
 
-# MESH
-master_group = GroupAPI.get_master()
-shape_to_mesh = master_group.prepare_shape_to_mesh()
-the_gen = MeshGen()
-the_mesh = the_gen.create_mesh(shape_to_mesh)
-
-# Use a single global hypothesis based on local length.
-hyp = NetgenSimple2D(the_gen, 4.)
-alg = NetgenAlgo2D(the_gen)
-the_mesh.add_hypotheses([hyp, alg], shape_to_mesh)
-
-# Compute the mesh
+# Mesh
+the_mesh = MeshVehicle(4.)
 mesh_start = time.time()
 print('Computing mesh...')
-status = the_gen.compute(the_mesh, shape_to_mesh)
+status = the_mesh.compute()
 if not status:
     print('Failed to compute mesh')
 else:
@@ -121,5 +110,5 @@ else:
 
 gui = Viewer()
 gui.add(*tool.free_edges)
-gui.display_mesh(the_mesh.object, 2)
+gui.add(the_mesh)
 gui.start()

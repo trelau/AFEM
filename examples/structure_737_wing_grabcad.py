@@ -2,8 +2,8 @@ from afem.config import Settings
 from afem.exchange import StepRead
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import *
 from afem.oml import *
+from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -131,13 +131,8 @@ skin.discard_by_solid(hs)
 
 # Mesh
 print('Meshing the shape...')
-the_shape = GroupAPI.prepare_shape_to_mesh()
-the_gen = MeshGen()
-the_mesh = the_gen.create_mesh(the_shape)
-alg2d = NetgenAlgo2D(the_gen)
-hyp2d = NetgenSimple2D(the_gen, 4.)
-the_mesh.add_hypotheses([hyp2d, alg2d])
-the_gen.compute(the_mesh, the_shape)
+the_mesh = MeshVehicle(4.)
+the_mesh.compute()
 
 # View
 skin.set_transparency(0.5)

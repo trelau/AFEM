@@ -17,6 +17,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from afem.smesh.entities import MeshGen
+from afem.smesh.hypotheses import (Regular1D, NetgenAlgo2D,
+                                   NetgenSimple2D, LocalLength1D)
 from afem.structure.group import GroupAPI
 
 __all__ = ["MeshVehicle"]
@@ -26,10 +28,15 @@ class MeshVehicle(object):
     """
     Tool for assisting in vehicle-level mesh generation. The "master" group
     will be used to define the top-level shape for meshing, which should
-    include all the parts and therefore shapes to be meshed.
+    include all the parts and therefore shapes to be meshed. Default mesh
+    controls are applied to the top-level shape based on the target element
+    size.
+
+    :param float target_size: Default global element size.
+    :param bool allow_quads: Option to generate quad-dominated mesh.
     """
 
-    def __init__(self):
+    def __init__(self, target_size, allow_quads=True):
         group = GroupAPI.get_master()
         self._shape = group.prepare_shape_to_mesh()
         self._gen = MeshGen()
@@ -38,6 +45,13 @@ class MeshVehicle(object):
         # Initialize each part for meshing
         for part in group.get_parts():
             part.init_meshing(self._mesh)
+
+        # Define global mesh control based on target size
+        hyp1d = LocalLength1D(self._gen, target_size)
+        alg1d = Regular1D(self._gen)
+        hyp2d = NetgenSimple2D(self._gen, target_size, allow_quads=allow_quads)
+        alg2d = NetgenAlgo2D(self._gen)
+        self.add_controls([hyp1d, alg1d, hyp2d, alg2d])
 
     @property
     def shape(self):
