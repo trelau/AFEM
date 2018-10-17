@@ -37,7 +37,8 @@ from OCCT.GeomConvert import GeomConvert_CompCurveToBSplineCurve
 from OCCT.ShapeAnalysis import ShapeAnalysis_Edge, ShapeAnalysis_ShapeTolerance
 from OCCT.ShapeFix import ShapeFix_Solid
 from OCCT.TopAbs import TopAbs_ShapeEnum
-from OCCT.TopExp import TopExp_Explorer
+from OCCT.TopExp import TopExp
+from OCCT.TopTools import TopTools_IndexedMapOfShape
 from OCCT.TopoDS import (TopoDS, TopoDS_Vertex, TopoDS_Edge, TopoDS_Wire,
                          TopoDS_Face, TopoDS_Shell, TopoDS_Solid,
                          TopoDS_Compound, TopoDS_CompSolid, TopoDS_Shape,
@@ -290,12 +291,24 @@ class Shape(ViewableItem):
         return self._get_shapes(self.COMPSOLID)
 
     @property
+    def num_vertices(self):
+        """
+        :return: The number of vertices in the shape.
+        :rtype: int
+        """
+        map_ = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(self.object, Shape.VERTEX, map_)
+        return map_.Extent()
+
+    @property
     def num_edges(self):
         """
         :return: The number of edges in the shape.
         :rtype: int
         """
-        return len(self.edges)
+        map_ = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(self.object, Shape.EDGE, map_)
+        return map_.Extent()
 
     @property
     def num_faces(self):
@@ -303,7 +316,9 @@ class Shape(ViewableItem):
         :return: The number of faces in the shape.
         :rtype: int
         """
-        return len(self.faces)
+        map_ = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(self.object, Shape.FACE, map_)
+        return map_.Extent()
 
     @property
     def tol_avg(self):
@@ -404,18 +419,11 @@ class Shape(ViewableItem):
         """
         Get sub-shapes of a specified type from the shape.
         """
-        explorer = TopExp_Explorer(self.object, type_)
+        map_ = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(self.object, type_, map_)
         shapes = []
-        while explorer.More():
-            si = Shape.wrap(explorer.Current())
-            is_unique = True
-            for s in shapes:
-                if s.is_same(si):
-                    is_unique = False
-                    break
-            if is_unique:
-                shapes.append(si)
-            explorer.Next()
+        for i in range(1, map_.Size() + 1):
+            shapes.append(Shape.wrap(map_.FindKey(i)))
         return shapes
 
     def nullify(self):
