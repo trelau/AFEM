@@ -20,7 +20,7 @@ from setuptools import setup
 
 setup(
     name='afem',
-    version='0.3.0',
+    version='1.0.0',
     packages=['afem', 'afem.adaptor', 'afem.base', 'afem.core',
               'afem.exchange', 'afem.geometry', 'afem.graphics',
               'afem.misc', 'afem.occ', 'afem.oml', 'afem.sketch',
@@ -28,5 +28,6 @@ setup(
     author='Laughlin Research, LLC',
     author_email='info@laughlinresearch.com',
     description='Airframe Finite Element Modeler',
+    url='https://github.com/LaughlinResearch/AFEM',
     license='LGPL v2.1'
 )
