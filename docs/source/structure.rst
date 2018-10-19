@@ -1,6 +1,9 @@
 Structure
 =========
 **NOT YET COMPLETE***
+
+The ``afem.structure`` package
+
 This section describes the structure package. The entities and tools can be
 imported by::
 
@@ -262,9 +265,6 @@ Beam2DBySweep
 ~~~~~~~~~~~~~
 .. autoclass:: Beam2DBySweep
 
-Explore
--------
-
 Join
 ----
 .. py:currentmodule:: afem.structure.join
@@ -311,7 +311,11 @@ FixGroup
 
 Check
 -----
-.. autoclass:: afem.structure.check.CheckPart
+.. py:currentmodule:: afem.structure.check
+
+CheckPart
+~~~~~~~~~
+.. autoclass:: CheckPart
 
 Mesh
 ----

@@ -11,9 +11,9 @@ following process:
 
 .. code-block:: python
 
-    v = Viewer()
-    v.add(*args)
-    v.start()
+    gui = Viewer()
+    gui.add(*args)
+    gui.start()
 
 The ``add()`` method will try and process the argument given its type and is the
 most generic method to call. More specific methods giving the user more control

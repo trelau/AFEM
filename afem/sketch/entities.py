@@ -16,8 +16,13 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from afem.geometry import *
-from afem.topology import *
+from afem.geometry.check import CheckGeom
+from afem.geometry.create import (PlaneByAxes, NurbsCurve2DByApprox,
+                                  NurbsCurve2DByInterp, NurbsCurve2DByPoints)
+from afem.geometry.entities import Point2D
+from afem.topology.bop import FuseShapes
+from afem.topology.create import WiresByConnectedEdges, FaceByPlanarWire
+from afem.topology.entities import Face, Edge
 
 __all__ = ["CrossSection", "Airfoil"]
 

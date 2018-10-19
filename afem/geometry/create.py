@@ -42,8 +42,11 @@ from afem.adaptor.entities import AdaptorCurve
 from afem.config import logger
 from afem.geometry import utils as geom_utils
 from afem.geometry.check import CheckGeom
-from afem.geometry.entities import *
-from afem.geometry.project import *
+from afem.geometry.entities import (Direction, Vector, Point, Line, Circle,
+                                    Plane, NurbsCurve, Geometry, NurbsCurve2D,
+                                    Curve, TrimmedCurve, Axis3,
+                                    NurbsSurface)
+from afem.geometry.project import ProjectPointToCurve, ProjectPointToSurface
 from afem.occ import utils as occ_utils
 
 __all__ = ["PointByXYZ", "PointByArray",

@@ -21,18 +21,32 @@ from warnings import warn
 
 from afem.adaptor.entities import WireAdaptorCurve
 from afem.geometry.check import CheckGeom
-from afem.geometry.create import *
-from afem.geometry.entities import *
-from afem.structure.entities import *
+from afem.geometry.create import (NurbsCurveByPoints,
+                                  PlanesBetweenPlanesByNumber,
+                                  PlanesBetweenPlanesByDistance,
+                                  PlanesAlongCurveByNumber,
+                                  PlanesAlongCurveByDistance,
+                                  PlaneByOrientation,
+                                  PlanesAlongCurveAndSurfaceByDistance)
+from afem.geometry.entities import Curve, Surface
+from afem.structure.entities import (Part, CurvePart, Beam1D, SurfacePart,
+                                     WingPart, Spar, Rib, FuselagePart,
+                                     Bulkhead, Floor, Frame, Skin,
+                                     Stiffener1D, Stiffener2D, Stringer,
+                                     Beam2D)
 from afem.structure.utils import shape_of_entity
-from afem.topology.bop import *
-from afem.topology.create import *
+from afem.topology.bop import (IntersectShapes, CommonShapes, CutShapes,
+                               TrimOpenWire)
+from afem.topology.create import (EdgeByCurve, WiresByConnectedEdges,
+                                  FaceBySurface, WireByPlanarOffset,
+                                  FaceByPlanarWire, WireByConcat,
+                                  EdgeByPoints, CompoundByShapes, WiresByShape)
 from afem.topology.distance import DistanceShapeToShape
 from afem.topology.entities import Shape, Edge, Wire
 from afem.topology.explore import ExploreFreeEdges
 from afem.topology.modify import SewShape
 from afem.topology.offset import SweepShapeWithNormal, SweepShape
-from afem.topology.props import *
+from afem.topology.props import LengthOfShapes
 
 __all__ = [
     "CreatePartByName", "PartBuilder", "PartsBuilder",

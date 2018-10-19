@@ -35,10 +35,11 @@ from afem.geometry.entities import Geometry
 from afem.occ import utils as occ_utils
 from afem.oml.entities import Body
 from afem.topology.check import CheckShape
-from afem.topology.entities import *
+from afem.topology.entities import Compound, Face, Wire, Solid, Shell, Edge
 from afem.topology.fix import FixShape
-from afem.topology.modify import *
-from afem.topology.props import *
+from afem.topology.modify import (DivideClosedShape, SewShape, UnifyShape,
+                                  ShapeBSplineRestriction)
+from afem.topology.props import SurfaceProps, LinearProps
 
 __all__ = ["ImportVSP"]
 

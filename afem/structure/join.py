@@ -23,6 +23,7 @@ from afem.topology.bop import FuseShapes, IntersectShapes, SplitShapes
 from afem.topology.create import CompoundByShapes, EdgeByCurve
 from afem.topology.entities import Shape
 from afem.topology.modify import RebuildShapesByTool, SewShape
+from afem.config import logger
 
 __all__ = ["FuseSurfaceParts", "FuseSurfacePartsByCref", "CutParts",
            "SewSurfaceParts", "SplitParts", "FuseGroups"]
@@ -121,6 +122,9 @@ class FuseSurfacePartsByCref(object):
                 if not bop.vertices:
                     continue
                 # Store potential join
+                msg = 'Found joint between {} and {}.'.format(main.name,
+                                                              other.name)
+                logger.info(msg)
                 other_parts.append(other)
             if other_parts:
                 main_parts.append(main)
