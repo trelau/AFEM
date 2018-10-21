@@ -16,7 +16,8 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from afem.smesh.entities import MeshGen
+from afem.exchange import nastran
+from afem.smesh.entities import MeshGen, MeshGroup, Mesh
 from afem.smesh.hypotheses import (Regular1D, NetgenAlgo2D,
                                    NetgenSimple2D, LocalLength1D,
                                    NumberOfSegments1D, MaxLength1D,
@@ -183,3 +184,49 @@ class MeshVehicle(object):
         :rtype: bool
         """
         return self._gen.compute(self._mesh, self._shape)
+
+    def create_node_group(self, shape, name='node_group'):
+        """
+        Create a mesh node group from the shape.
+
+        :param afem.topology.entities.Shape shape: The shape.
+        :param str name: The group name.
+
+        :return: The node group.
+        :rtype: afem.smesh.entities.MeshGroup
+        """
+        return MeshGroup(self.mesh, name, Mesh.NODE, shape)
+
+    def create_edge_group(self, shape, name='edge_group'):
+        """
+        Create a mesh edge group from the shape.
+
+        :param afem.topology.entities.Shape shape: The shape.
+        :param str name: The group name.
+
+        :return: The edge group.
+        :rtype: afem.smesh.entities.MeshGroup
+        """
+        return MeshGroup(self.mesh, name, Mesh.EDGE, shape)
+
+    def create_face_group(self, shape, name='node_group'):
+        """
+        Create a mesh face group from the shape.
+
+        :param afem.topology.entities.Shape shape: The shape.
+        :param str name: The group name.
+
+        :return: The face group.
+        :rtype: afem.smesh.entities.MeshGroup
+        """
+        return MeshGroup(self.mesh, name, Mesh.FACE, shape)
+
+    def export_nastran(self, fn):
+        """
+        Export the mesh to a Nastran bulk data file.
+
+        :param str fn: The filename.
+
+        :return: None.
+        """
+        nastran.export_bdf(self.mesh, fn)

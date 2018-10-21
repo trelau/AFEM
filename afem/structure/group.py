@@ -150,6 +150,32 @@ class Group(NamedItem):
         shapes = [part.shape for part in parts]
         return CompoundByShapes(shapes).compound
 
+    def create_subgroup(self, name, active=True):
+        """
+        Create a new sub-group of this one.
+
+        :param str name: The group name.
+        :param bool active: Option to make this new group the active one.
+
+        :return: The new sub-group.
+        :rtype: afem.structure.group.Group
+        """
+        return GroupAPI.create_group(name, self, active)
+
+    @staticmethod
+    def parts_to_compound(parts):
+        """
+        Convert the list of parts into a single compound using each of their
+        shapes.
+
+        :param collections.Sequence(afem.structure.entities.Part) parts: The
+            parts.
+
+        :return: The compound.
+        :rtype: afem.topology.entities.Compound
+        """
+        return CompoundByShapes([part.shape for part in parts]).compound
+
 
 class GroupAPI(object):
     """
