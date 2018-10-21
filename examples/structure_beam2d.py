@@ -60,7 +60,7 @@ gui.start()
 
 # Mesh
 print('Computing the mesh...')
-the_shape = GroupAPI.prepare_shape_to_mesh()
+the_shape = GroupAPI.get_shape()
 the_gen = MeshGen()
 the_mesh = MeshGen.create_mesh(the_gen)
 the_mesh.shape_to_mesh(the_shape)

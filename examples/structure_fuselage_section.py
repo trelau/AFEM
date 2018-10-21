@@ -93,7 +93,7 @@ all_parts = GroupAPI.get_parts(order=True)
 join = SplitParts(all_parts)
 
 # Mesh
-the_shape = GroupAPI.prepare_shape_to_mesh()
+the_shape = GroupAPI.get_shape()
 the_gen = MeshGen()
 the_mesh = the_gen.create_mesh(the_shape)
 

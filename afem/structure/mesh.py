@@ -38,7 +38,7 @@ class MeshVehicle(object):
 
     def __init__(self, target_size, allow_quads=True):
         group = GroupAPI.get_master()
-        self._shape = group.prepare_shape_to_mesh()
+        self._shape = group.get_shape()
         self._gen = MeshGen()
         self._mesh = self._gen.create_mesh(self._shape)
 

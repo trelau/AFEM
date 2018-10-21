@@ -134,28 +134,16 @@ class Group(NamedItem):
         part = self.get_part(name)
         self._parts.discard(part)
 
-    def prepare_shape_to_mesh(self, include_subgroup=True):
+    def get_shape(self, include_subgroup=True):
         """
-        Prepare a shape to mesh using the parts in the group and its
-        subgroups. This puts all the parts into a single compound which
-        can be used as the master shape for the meshing process.
+        Get a shape derived from all parts in the group. This puts all the
+        parts into a single compound which could be used as the master shape
+        for the meshing process.
 
         :param bool include_subgroup: Option to recursively include parts
             from any subgroups.
 
-        :return: The parts as a compound.
-        :rtype: afem.topology.entities.Compound
-        """
-        return self.as_compound(include_subgroup)
-
-    def as_compound(self, include_subgroup=True):
-        """
-        Build a Compound from all the parts of the group.
-
-        :param bool include_subgroup: Option to recursively include parts
-            from any subgroups.
-
-        :return: The parts as a compound.
+        :return: The part shapes as a compound.
         :rtype: afem.topology.entities.Compound
         """
         parts = self.get_parts(include_subgroup)
@@ -352,11 +340,11 @@ class GroupAPI(object):
         group.remove_part(name)
 
     @classmethod
-    def prepare_shape_to_mesh(cls, group='_master', include_subgroup=True):
+    def get_shape(cls, group='_master', include_subgroup=True):
         """
-        Prepare a shape to mesh using the parts in the group and its
-        subgroups. This puts all the parts into a single compound which
-        can be used as the master shape for the meshing process.
+        Get a shape derived from all parts in the group. This puts all the
+        parts into a single compound which could be used as the master shape
+        for the meshing process.
 
         :param group: The group. If ``None`` then the active group is
             used. By default the master model is used.
@@ -368,24 +356,7 @@ class GroupAPI(object):
         :rtype: afem.topology.entities.Compound
         """
         group = cls.get_group(group)
-        return group.prepare_shape_to_mesh(include_subgroup)
-
-    @classmethod
-    def as_compound(cls, group='_master', include_subgroup=True):
-        """
-        Build a Compound from all the parts of the group.
-
-        :param group: The group. If ``None`` then the active group is
-            used. By default the master model is used.
-        :type group: str or afem.structure.group.Group or None
-        :param bool include_subgroup: Option to recursively include parts
-            from any subgroups.
-
-        :return: The parts as a compound.
-        :rtype: afem.topology.entities.Compound
-        """
-        group = cls.get_group(group)
-        return group.as_compound(include_subgroup)
+        return group.get_shape(include_subgroup)
 
     @classmethod
     def save_model(cls, fn, binary=True):

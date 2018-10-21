@@ -184,7 +184,7 @@ class Part(ShapeHolder):
         """
         if context is not None:
             if not isinstance(context, Shape):
-                context = GroupAPI.as_compound(context, include_subgroup)
+                context = GroupAPI.get_shape(context, include_subgroup)
 
         new_shape = FixShape(self._shape, precision, min_tol, max_tol,
                              context).shape
