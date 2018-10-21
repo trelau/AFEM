@@ -147,10 +147,25 @@ gui.start()
 # Begin meshing
 print('Creating mesh')
 mesh = MeshVehicle(4.)
+
+spars = wingbox.get_parts(rtype=Spar)
+skins = wingbox.get_parts(rtype=Skin)
+shape = ExploreParts.shared_edges(spars, skins, True)
+mesh.set_number_segments_1d(6, shape)
+
+ribs = wingbox.get_parts(rtype=Rib)
+shape = ExploreParts.shared_edges(spars, ribs, True)
+mesh.set_number_segments_1d(4, shape)
+
+shape = ExploreParts.shared_edges(skins, ribs, True)
+mesh.set_number_segments_1d(15, shape)
+
+for part in wingbox.get_parts():
+    mesh.set_quadrangle_2d(part.shape)
+
 mesh.compute()
 
 # View
 gui.clear()
-gui.add(wingbox)
-gui.add(mesh.mesh)
+gui.add(mesh)
 gui.start()

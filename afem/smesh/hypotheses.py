@@ -421,6 +421,8 @@ class QuadrangleAlgo2D(Algorithm):
             if face.num_edges < 4:
                 return False
 
+        return True
+
 
 class QuadrangleHypo2D(Hypothesis):
     """

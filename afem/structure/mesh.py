@@ -18,7 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 from afem.smesh.entities import MeshGen
 from afem.smesh.hypotheses import (Regular1D, NetgenAlgo2D,
-                                   NetgenSimple2D, LocalLength1D)
+                                   NetgenSimple2D, LocalLength1D,
+                                   NumberOfSegments1D, MaxLength1D,
+                                   QuadrangleAlgo2D, QuadrangleHypo2D)
 from afem.structure.group import GroupAPI
 
 __all__ = ["MeshVehicle"]
@@ -118,6 +120,60 @@ class MeshVehicle(object):
             status = self.add_control(hyp, shape)
             status_dict[hyp] = status
         return status_dict
+
+    def set_number_segments_1d(self, nseg, shape):
+        """
+        Set the number of edge segments for the shape.
+
+        :param int nseg: The number of segments.
+        :param afem.topology.entities.Shape shape: The shape.
+
+        :return: None.
+        """
+        alg = Regular1D(self.gen)
+        hyp = NumberOfSegments1D(self.gen, nseg)
+        self.add_controls([alg, hyp], shape)
+
+    def set_local_length_1d(self, local_length, shape):
+        """
+        Set the local length of edge segments for the shape.
+
+        :param float local_length: The local length.
+        :param afem.topology.entities.Shape shape: The shape.
+
+        :return: None.
+        """
+        alg = Regular1D(self.gen)
+        hyp = LocalLength1D(self.gen, local_length)
+        self.add_controls([alg, hyp], shape)
+
+    def set_max_length_1d(self, max_length, shape):
+        """
+        Set the max length of edge segments for the shape.
+
+        :param float max_length: The max length.
+        :param afem.topology.entities.Shape shape: The shape.
+
+        :return: None.
+        """
+        alg = Regular1D(self.gen)
+        hyp = MaxLength1D(self.gen, max_length)
+        self.add_controls([alg, hyp], shape)
+
+    def set_quadrangle_2d(self, shape):
+        """
+        Set the mesh control to use structured quadrangle mesh for the shape.
+
+        :param afem.topology.entities.Shape shape: The shape. The algorithm is
+            applied to each face of the shape only if it is applicable.
+
+        :return: None.
+        """
+        alg = QuadrangleAlgo2D(self.gen)
+        hyp = QuadrangleHypo2D(self.gen)
+        for face in shape.faces:
+            if alg.is_applicable(face):
+                self.add_controls([alg, hyp], face)
 
     def compute(self):
         """
