@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
-from itertools import product
 from math import sqrt
 
 from OCCT.BRep import BRep_Tool, BRep_Builder
@@ -498,59 +497,101 @@ class Shape(ViewableItem):
         """
         return Shape.wrap(BRepBuilderAPI_Copy(self.object, geom).Shape())
 
-    def shared_vertices(self, other):
+    def shared_vertices(self, other, as_compound=False):
         """
         Get shared vertices between this shape and the other.
 
         :param afem.topology.entities.Shape other: The other shape.
+        :param bool as_compound: Option to return shared shapes as a single
+            compound.
 
         :return: Shared vertices.
-        :rtype: list(afem.topology.entities.Vertex)
+        :rtype: list(afem.topology.entities.Vertex) or
+            afem.topology.entities.Compound
         """
-        verts1 = self.vertices
-        verts2 = other.vertices
-        if not verts1 or not verts2:
+        this_map = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(self.object, Shape.VERTEX, this_map)
+        if this_map.Extent() == 0:
             return []
 
-        shared_verts = []
-        for v1, v2 in product(verts1, verts2):
-            if v1.is_same(v2):
-                unique = True
-                for vi in shared_verts:
-                    if vi.is_same(v1):
-                        unique = False
-                        break
-                if unique:
-                    shared_verts.append(v1)
+        other_map = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(other.object, Shape.VERTEX, other_map)
+        if other_map.Extent() == 0:
+            return []
 
-        return shared_verts
+        verts = []
+        for i in range(1, this_map.Size() + 1):
+            v1 = this_map.FindKey(i)
+            if other_map.Contains(v1):
+                verts.append(Shape.wrap(v1))
 
-    def shared_edges(self, other):
+        if as_compound:
+            return Compound.by_shapes(verts)
+        return verts
+
+    def shared_edges(self, other, as_compound=False):
         """
         Get shared edges between this shape and the other.
 
         :param afem.topology.entities.Shape other: The other shape.
+        :param bool as_compound: Option to return shared shapes as a single
+            compound.
 
         :return: Shared edges.
-        :rtype: list(afem.topology.entities.Edge)
+        :rtype: list(afem.topology.entities.Edge) or
+            afem.topology.entities.Compound
         """
-        edges1 = self.edges
-        edges2 = other.edges
-        if not edges1 or not edges2:
+        this_map = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(self.object, Shape.EDGE, this_map)
+        if this_map.Extent() == 0:
             return []
 
-        shared_edges = []
-        for e1, e2 in product(edges1, edges2):
-            if e1.is_same(e2):
-                unique = True
-                for ei in shared_edges:
-                    if ei.is_same(e1):
-                        unique = False
-                        break
-                if unique:
-                    shared_edges.append(e1)
+        other_map = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(other.object, Shape.EDGE, other_map)
+        if other_map.Extent() == 0:
+            return []
 
-        return shared_edges
+        edges = []
+        for i in range(1, this_map.Size() + 1):
+            e1 = this_map.FindKey(i)
+            if other_map.Contains(e1):
+                edges.append(Shape.wrap(e1))
+
+        if as_compound:
+            return Compound.by_shapes(edges)
+        return edges
+
+    def shared_faces(self, other, as_compound=False):
+        """
+        Get shared faces between this shape and the other.
+
+        :param afem.topology.entities.Shape other: The other shape.
+        :param bool as_compound: Option to return shared shapes as a single
+            compound.
+
+        :return: Shared faces.
+        :rtype: list(afem.topology.entities.Face) or
+            afem.topology.entities.Compound
+        """
+        this_map = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(self.object, Shape.FACE, this_map)
+        if this_map.Extent() == 0:
+            return []
+
+        other_map = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_(other.object, Shape.FACE, other_map)
+        if other_map.Extent() == 0:
+            return []
+
+        faces = []
+        for i in range(1, this_map.Size() + 1):
+            f1 = this_map.FindKey(i)
+            if other_map.Contains(f1):
+                faces.append(Shape.wrap(f1))
+
+        if as_compound:
+            return Compound.by_shapes(faces)
+        return faces
 
     @staticmethod
     def wrap(shape):
