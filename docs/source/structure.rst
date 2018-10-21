@@ -301,6 +301,14 @@ DiscardByCref
 ~~~~~~~~~~~~~
 .. autoclass:: DiscardByCref
 
+Explore
+--------
+.. py:currentmodule:: afem.structure.explore
+
+ExploreParts
+~~~~~~~~~~~~
+.. autoclass:: ExploreParts
+
 Fix
 ---
 .. py:currentmodule:: afem.structure.fix

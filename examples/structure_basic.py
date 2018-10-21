@@ -28,13 +28,13 @@ wing.set_transparency(0.75)
 wingbox = GroupAPI.create_group('wing box')
 
 # Define a front spar between parameters on the wing reference surface
-fspar = RibByParameters('fspar', 0.15, 0.1, 0.15, 0.98, wing).part
+fspar = SparByParameters('fspar', 0.15, 0.1, 0.15, 0.98, wing).part
 
 # gui.add(wing.sref, fspar, fspar.cref, fspar.cref.p1, fspar.cref.p2)
 # gui.start()
 
 # Define a rear spar between parameters on the wing reference surface
-rspar = RibByParameters('rspar', 0.65, 0.1, 0.65, 0.98, wing).part
+rspar = SparByParameters('rspar', 0.65, 0.1, 0.65, 0.98, wing).part
 
 # gui.add(rspar, rspar.cref, rspar.cref.p1, rspar.cref.p2)
 # gui.start()

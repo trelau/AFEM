@@ -19,6 +19,7 @@
 from afem.structure.check import *
 from afem.structure.create import *
 from afem.structure.entities import *
+from afem.structure.explore import *
 from afem.structure.fix import *
 from afem.structure.group import *
 from afem.structure.join import *
