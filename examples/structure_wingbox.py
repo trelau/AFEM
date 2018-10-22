@@ -4,7 +4,6 @@ from afem.config import Settings
 from afem.geometry import *
 from afem.graphics import Viewer
 from afem.oml import Body
-from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -278,12 +277,8 @@ def build_wingbox(wing, params):
     the_mesh = MeshVehicle(4.)
 
     # Apply mapped quadrangle to internal structure
-    mapped_hyp = QuadrangleHypo2D(the_mesh.gen)
-    mapped_algo = QuadrangleAlgo2D(the_mesh.gen)
     for part_ in internal_parts:
-        for face in part_.shape.faces:
-            if mapped_algo.is_applicable(face):
-                the_mesh.add_controls([mapped_algo, mapped_hyp], face)
+        the_mesh.set_quadrangle_2d(part_.shape)
 
     # Compute the mesh
     mesh_start = time.time()

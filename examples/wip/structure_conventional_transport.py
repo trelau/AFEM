@@ -12,7 +12,7 @@ Settings.log_to_console()
 Settings.set_units('in')
 
 # Import model
-fn = r'../models/777-200LR.xbf'
+fn = r'../../models/777-200LR.xbf'
 bodies = Body.load_bodies(fn)
 
 # Get components.

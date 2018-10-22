@@ -9,9 +9,9 @@ from afem.topology import *
 
 Settings.log_to_console()
 
-fn = r'../models/777-200LR.xbf'
+# Import geometry and get bodies
+fn = r'../../models/777-200LR.xbf'
 bodies = Body.load_bodies(fn)
-
 wing = bodies['Wing']
 fuselage = bodies['Fuselage']
 htail = bodies['Htail']
@@ -21,7 +21,6 @@ fuselage.set_transparency(0.5)
 
 # WING
 wing_group = GroupAPI.create_group('wing group')
-
 rib_group = GroupAPI.create_group('rib group', wing_group)
 
 root = RibByParameters('root', 0.15, 0.05, 0.70, 0.05, wing).part
@@ -36,10 +35,11 @@ rib_group.activate()
 RibsAlongCurveByNumber('rib', rspar.cref, 5, fspar.shape, rspar.shape, wing,
                        d1=30., d2=-50)
 
-# Use FuseGroups
+# Join groups and discard
 FuseGroups([rib_group, spar_group])
 DiscardByCref(wing_group.get_parts())
 
+# Wing skin
 wing_group.activate()
 skin = SkinByBody('wing skin', wing).part
 parts = rib_group.get_parts() + spar_group.get_parts()
@@ -51,17 +51,20 @@ skin.set_transparency(0.5)
 # FUSELAGE
 fuse_group = GroupAPI.create_group('fuse group')
 
+# Fuselage skin
 skin = SkinByBody('fuselage skin', fuselage).part
 skin.set_transparency(0.5)
 
+# Discard half
+pln = PlaneByAxes().plane
+solid = HalfspaceBySurface(pln, (0, -1, 0)).solid
+skin.discard_by_solid(solid)
+
+# Frame
 pln = PlaneByAxes(root.point_from_parameter(0.5, is_rel=True), 'yz').plane
 frame = FrameByPlane('frame', pln, fuselage, 3.).part
 
-# Causing issues with fusing group
-# vol = VolumesFromShapes(wing_group.get_parts()).shape
-# skin.cut(vol)
-# frame.cut(vol)
-
+# Join fuselage and frame
 skin.fuse(frame)
 
 # HTAIL

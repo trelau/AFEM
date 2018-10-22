@@ -93,29 +93,13 @@ all_parts = GroupAPI.get_parts(order=True)
 join = SplitParts(all_parts)
 
 # Mesh
-the_shape = GroupAPI.get_shape()
-the_gen = MeshGen()
-the_mesh = the_gen.create_mesh(the_shape)
-
-# Unstructured quad-dominant
-ngh = NetgenSimple2D(the_gen, 4.)
-nga = NetgenAlgo2D(the_gen)
-the_mesh.add_hypotheses([ngh, nga])
-
-# Max edge length
-hy1d = MaxLength1D(the_gen, 4.)
-alg1d = Regular1D(the_gen)
-the_mesh.add_hypotheses([hy1d, alg1d])
+the_mesh = MeshVehicle(4.)
 
 # Mapped quads applied to applicable faces
-mapped_hyp = QuadrangleHypo2D(the_gen)
-mapped_algo = QuadrangleAlgo2D(the_gen)
+the_mesh.set_quadrangle_2d(the_mesh.shape)
 
-for face in the_shape.faces:
-    if mapped_algo.is_applicable(face, True):
-        the_mesh.add_hypotheses([mapped_hyp, mapped_algo], face)
-
-the_gen.compute(the_mesh)
+print('Computing the mesh...')
+the_mesh.compute()
 
 # View
 gui = Viewer()

@@ -8,7 +8,7 @@ from afem.topology import *
 Settings.log_to_console()
 
 # Import model
-fname = r'..\models\tbw.xbf'
+fname = r'..\..\models\tbw.xbf'
 bodies = Body.load_bodies(fname)
 
 # Get bodies.

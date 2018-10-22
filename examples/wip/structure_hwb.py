@@ -8,7 +8,7 @@ from afem.topology import *
 Settings.log_to_console()
 
 # Inputs
-fname = r'..\models\hwb_nosplit.stp'
+fname = r'..\..\models\hwb_nosplit.stp'
 # Length of flight deck from nose.
 fd_length = 10. * 12.
 # Cabin length as absolute value (> 1) or percent root chord ( < 1)

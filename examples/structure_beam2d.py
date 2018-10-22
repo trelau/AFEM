@@ -60,24 +60,8 @@ gui.start()
 
 # Mesh
 print('Computing the mesh...')
-the_shape = GroupAPI.get_shape()
-the_gen = MeshGen()
-the_mesh = MeshGen.create_mesh(the_gen)
-the_mesh.shape_to_mesh(the_shape)
-
-# 2-D mesh
-hyp2d = NetgenSimple2D(the_gen, 1.)
-alg2d = NetgenAlgo2D(the_gen)
-the_mesh.add_hypothesis(hyp2d, the_shape)
-the_mesh.add_hypothesis(alg2d, the_shape)
-
-# 1-D mesh for beam
-hyp1d = MaxLength1D(the_gen, 1.)
-alg1d = Regular1D(the_gen)
-the_mesh.add_hypotheses([hyp1d, alg1d], beam2.shape)
-
-the_gen.compute(the_mesh, the_shape)
-
+mesh = MeshVehicle(1.)
+mesh.compute()
 gui.clear()
-gui.add(the_mesh)
+gui.add(mesh)
 gui.start()

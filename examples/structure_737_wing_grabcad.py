@@ -3,7 +3,6 @@ from afem.exchange import StepRead
 from afem.geometry import *
 from afem.graphics import Viewer
 from afem.oml import *
-from afem.smesh import *
 from afem.structure import *
 from afem.topology import *
 
@@ -139,5 +138,6 @@ skin.set_transparency(0.5)
 gui = Viewer()
 gui.add(GroupAPI.get_master())
 gui.start()
+gui.clear()
 gui.add(the_mesh)
 gui.start()

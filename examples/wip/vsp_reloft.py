@@ -43,7 +43,7 @@ gui = Viewer()
 # flat end caps. The lower the tolerance the longer it takes to run, but too
 # high a tolerance causes self-intersecting results if the TE is thin. Just
 # doesn't seem to be a general/robust solution.
-fname = r'..\models\777-200LR_nosplit.stp'
+fname = r'..\..\models\777-200LR_nosplit.stp'
 vsp_import = ImportVSP(fname, reloft=True, tol=0.01)
 # tol=0.005 causes issues...
 # ImportVSP.step_file(fname, reloft=True, tol=0.005)

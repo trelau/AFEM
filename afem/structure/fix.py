@@ -42,7 +42,7 @@ class FixGroup(object):
             raise TypeError('Could not find group.')
 
         parts = group.get_parts()
-        compound = group.as_compound()
+        compound = group.get_shape()
 
         fix = FixShape(compound, precision, min_tol, max_tol)
 
@@ -69,7 +69,7 @@ class FixGroup(object):
         if not isinstance(group, Group):
             raise TypeError('Could not find group.')
 
-        shape = group.as_compound()
+        shape = group.get_shape()
         return FixShape.limit_tolerance(shape, tol)
 
     @staticmethod
@@ -90,5 +90,5 @@ class FixGroup(object):
         if not isinstance(group, Group):
             raise TypeError('Could not find group.')
 
-        shape = group.as_compound()
+        shape = group.get_shape()
         return FixShape.set_tolerance(shape, tol)

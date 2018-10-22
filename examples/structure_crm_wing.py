@@ -169,22 +169,24 @@ skin.set_transparency(0.5)
 parts = GroupAPI.get_parts()
 
 # Mesh
+print('Computing mesh...')
 the_mesh = MeshVehicle(4)
 
-# Local mesh
+# Structured quad mesh if applicable
 quad_hyp = QuadrangleHypo2D(the_mesh.gen)
 quad_alg = QuadrangleAlgo2D(the_mesh.gen)
 for part in internal_parts:
-    for face in part.shape.faces:
-        if quad_alg.is_applicable(face, True):
-            the_mesh.add_controls([quad_alg, quad_hyp], face)
+    the_mesh.set_quadrangle_2d(part.shape)
+    # for face in part.shape.faces:
+    #     if quad_alg.is_applicable(face, True):
+    #         the_mesh.add_controls([quad_alg, quad_hyp], face)
 
-print('Computing mesh...')
 the_mesh.compute()
 
 # View
 gui = Viewer()
 gui.add(GroupAPI.get_master())
 gui.start()
+gui.clear()
 gui.add(the_mesh)
 gui.start()
