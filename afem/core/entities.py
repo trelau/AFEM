@@ -50,7 +50,7 @@ class ShapeHolder(NamedItem, ViewableItem):
     :type sref: afem.geometry.entities.Surface or None
     :param expected_types: The expected type(s).
     :type expected_types: Type(afem.topology.entities.Shape) or
-        tuple(Type(afem.topology.entities.Shape))
+        collections.Sequence(Type(afem.topology.entities.Shape))
     """
 
     def __init__(self, name, shape, cref=None, sref=None,

@@ -1,9 +1,9 @@
 Settings
 ========
-Default settings for the AFEM program are provided in the ``Settings`` class
-and accessed as class variables. These settings can be adjusted during use and
-are passed to many of the classes and methods. The ``Settings`` class can be
-accessed by::
+Default settings for the AFEM program are provided in the :class:`.Settings`
+class and accessed as class variables. These settings can be adjusted during
+use and are passed to many of the classes and methods. The :class:`.Settings`
+class can be accessed by::
 
     from afem.config import Settings
 

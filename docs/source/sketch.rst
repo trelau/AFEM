@@ -52,8 +52,8 @@ The ``sketch`` entities and tools are imported by:
     from afem.sketch import *
     from afem.topology import *
 
-A special type of ``CrossSection`` will be used to generate a section from an
-airfoil file::
+A special type of :class:`.CrossSection` will be used to generate a section
+from an airfoil file::
 
     cs = Airfoil()
 

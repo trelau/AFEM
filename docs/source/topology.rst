@@ -19,7 +19,7 @@ underlying ``TopoDS_Shape`` object. This is an attempt to provide a more
 provided for the user to easily create, modify, and operate on shapes. If a
 tool is not available, the user can still use the pyOCCT package and access
 the wrapped ``TopoDS_Shape`` instance using the ``object`` property of
-``Shape``.
+:class:`.Shape`.
 
 A subset of ``afem.topology`` entities and tools are featured in the following
 example:
@@ -174,7 +174,7 @@ The two shapes are shown below:
 
 Boolean operations are some of the most commonly used and most powerful
 modeling tools. The two shapes are fused together to form, in this case, a
-single solid using the ``FuseShapes`` tool:
+single solid using the :class:`.FuseShapes` tool:
 
 .. code-block:: python
 
@@ -186,7 +186,7 @@ box has been removed and the union of the box and cylinder is shown below:
 
 .. image:: ./resources/topology_basic2.png
 
-The cylinder is cut from the box using the ``CutShapes`` tool:
+The cylinder is cut from the box using the :class:`.CutShapes` tool:
 
 .. code-block:: python
 
@@ -198,8 +198,8 @@ result is shown below:
 
 .. image:: ./resources/topology_basic3.png
 
-Finding common material between two shapes is done by the ``CommonShapes``
-tool:
+Finding common material between two shapes is done by the
+:class:`.CommonShapes` tool:
 
 .. code-block:: python
 
@@ -212,8 +212,8 @@ result is shown below where the original box is shown for reference:
 
 .. image:: ./resources/topology_basic4.png
 
-The intersection of shapes is done by ``IntersectShapes`` and in this case
-the resulting shape is a compound of edges:
+The intersection of shapes is done by :class:`.IntersectShapes` and in this
+case the resulting shape is a compound of edges:
 
 .. code-block:: python
 
@@ -226,8 +226,8 @@ in red in the image below:
 
 .. image:: ./resources/topology_basic5.png
 
-The ``SplitShapes`` tool splits arbitrary shapes with each other and in this
-example is used to split the box with the cylinder:
+The :class:`.SplitShapes` tool splits arbitrary shapes with each other and in
+this example is used to split the box with the cylinder:
 
 .. code-block:: python
 
@@ -239,12 +239,12 @@ solids as shown below:
 
 .. image:: ./resources/topology_basic6.png
 
-The ``SplitShapes`` tool is very general and can be used for splitting faces
-with edges, among other applications.
+The :class:`.SplitShapes` tool is very general and can be used for splitting
+faces with edges, among other applications.
 
 In some cases it may be desirable to only split a sub-shape of a basis shape.
-This example uses the ``LocalSplit`` tool to split one of the front face of the
-original solid box with a plane:
+This example uses the :class:`.LocalSplit` tool to split one of the front face
+of the original solid box with a plane:
 
 .. code-block:: python
 
@@ -260,7 +260,7 @@ split:
 
 .. image:: ./resources/topology_basic7.png
 
-The ``OffsetShape`` tool is used to offset the solid box:
+The :class:`.OffsetShape` tool is used to offset the solid box:
 
 .. code-block:: python
 
@@ -274,12 +274,13 @@ The resulting offset shape is shown below:
 The rest of the example script demonstrates rebuilding (or substituting) shapes
 using specified substitutions or, in this example, the results of a Boolean
 operation. The rebuilding tools may not be used that often in practice, but
-set up an example of using the ``CheckShape`` and ``FixShape`` tools. Since a
-face was removed from the solid, it is not longer a valid, closed solid. This
-is detected by the ``CheckShape`` tool and fixed with the generic ``FixShape``
-tool. In this example the only fix was just switching the type from a ``Solid``
-to a ``Shell``, but they can be used to detect and fix more complicated errors
-like self-intersecting shapes or improperly defined geometry.
+set up an example of using the :class:`.CheckShape` and :class:`.FixShape`
+tools. Since a face was removed from the solid, it is not longer a valid,
+closed solid. This is detected by the :class:`.CheckShape` tool and fixed with
+the generic :class:`.FixShape` tool. In this example the only fix was just
+switching the type from a :class:`.Solid` to a :class:`.Shell`, but they can be
+used to detect and fix more complicated errors like self-intersecting shapes or
+improperly defined geometry.
 
 Entities
 --------

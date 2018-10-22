@@ -5,15 +5,15 @@ to make defining structural components easier and more efficient. Many of the
 tools used to create parts require a solid defining the common material of
 the part given its basis shape. Some tools are more automated and parametric
 and therefore need more information, like a reference surface or curve. The
-``oml`` package, and more specifically the ``Body`` class, are intended to
-provide a single type that contains all necessary information. The entities
+``oml`` package, and more specifically the :class:`.Body` class, are intended
+to provide a single type that contains all necessary information. The entities
 and tools can be imported by::
 
     from afem.oml import *
 
-The intent of the ``oml`` package and the ``Body`` class is best understood by
-manually building a solid shape that represents a basic wing as shown in the
-following example:
+The intent of the ``oml`` package and the :class:`.Body` class is best
+understood by manually building a solid shape that represents a basic wing as
+shown in the following example:
 
 .. code-block:: python
 
@@ -135,9 +135,9 @@ An airfoil from the UIUC airfoil database is used to create the cross section:
     cs = Airfoil()
     cs.read_uiuc('../models/clarky.dat')
 
-One advantage of using an ``Airfoil`` is that the leading and trailing edge
-points are stored and from that a chord line can be built which later will be
-used to build additional reference geometry stored with the wing.
+One advantage of using an :class:`.Airfoil` is that the leading and trailing
+edge points are stored and from that a chord line can be built which later will
+be used to build additional reference geometry stored with the wing.
 
 Three planes are defined using the points derived from the wing parameters:
 
@@ -168,17 +168,17 @@ These wires are then used to loft a solid shape::
 The ``make_ruled=True`` option was used to produce linear segments between the
 airfoil cross sections, rather than blending them together with approximation.
 
-At this point, a solid body (i.e., a ``Solid``) has been defined and a
-``Body`` can be initialized::
+At this point, a solid body (i.e., a :class:`.Solid`) has been defined and a
+:class:`.Body` can be initialized::
 
     wing = Body(shape, 'Wing')
 
 The ``name`` parameter, given as "Wing" in this example, is optional but is
 useful and can be treated as a default type of metadata. Defining a valid
-``Solid`` is the only hard requirement when defining a ``Body`` for use
-during structural modeling. The user can use all the tools available to create
-them manually as done above, or they can be derived by importing data from
-other sources such as STEP files. The wing derived above is shown below:
+:class:`.Solid` is the only hard requirement when defining a :class:`.Body` for
+use during structural modeling. The user can use all the tools available to
+create them manually as done above, or they can be derived by importing data
+from other sources such as STEP files. The wing derived above is shown below:
 
 .. image:: ./resources/oml_basic1.png
 
@@ -189,8 +189,8 @@ semispan. This leads to the need for some kind of "reference geometry" on which
 to evaluate these types of parameters. For a wing, a natural solution is to
 define a continuous surface that generally represents its planform shape. Since
 many of the structural modeling tools use this type of surface, storing a
-"reference surface" and other reference geometry is provided by the ``Body``
-class.
+"reference surface" and other reference geometry is provided by the
+:class:`.Body` class.
 
 For the wing shown above, a reference surface will be built by lofting the
 chord lines of the three airfoil cross sections:
@@ -240,18 +240,18 @@ between two points as shown below::
 
     crv = wing.extract_curve(0.15, 0.05, 0.15, 0.95)
 
-This method will generated a ``TrimmedCurve`` between the parameters by
+This method will generated a :class:`.TrimmedCurve` between the parameters by
 intersecting a ``basis_shape`` with the reference surface. If a basis shape is
 not provided, a plane will be constructed as described above. The result of
 these methods are shown below:
 
 .. image:: ./resources/oml_basic3.png
 
-The main takeaway for the ``oml`` package and the ``Body`` class is that it is
-meant to be a container for minimum data needed for structural modeling with
-minimal restrictions and assumptions. Creating the solid contained by the Body,
-as well as any associated reference geometry, can be as complex or as simple as
-the user needs and/or desires.
+The main takeaway for the ``oml`` package and the :class:`.Body` class is that
+it is meant to be a container for minimum data needed for structural modeling
+with minimal restrictions and assumptions. Creating the solid contained by the
+:class:`.Body`, as well as any associated reference geometry, can be as complex
+or as simple as the user needs and/or desires.
 
 Entities
 --------

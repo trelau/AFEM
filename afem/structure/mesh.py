@@ -39,7 +39,7 @@ class MeshVehicle(object):
     :param bool allow_quads: Option to generate quad-dominated mesh.
     """
 
-    def __init__(self, target_size, allow_quads=True):
+    def __init__(self, target_size=1., allow_quads=True):
         group = GroupAPI.get_master()
         self._shape = group.get_shape()
         self._gen = MeshGen()

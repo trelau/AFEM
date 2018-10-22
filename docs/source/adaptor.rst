@@ -120,12 +120,12 @@ surface (i.e., the face) is shown below:
 .. image:: ./resources/adaptor_basic2.png
 
 Creating points along the adaptor curve for the edge can be done using the
-``PointsAlongCurveByNumber`` tool:
+:class:`.PointsAlongCurveByNumber` tool:
 
 .. image:: ./resources/adaptor_basic3.png
 
 Creating points along the adaptor curve for the wire can also be done using the
-``PointsAlongCurveByNumber`` tool:
+:class:`.PointsAlongCurveByNumber` tool:
 
 .. image:: ./resources/adaptor_basic4.png
 

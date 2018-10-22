@@ -33,6 +33,8 @@ XDE
 ---
 .. automodule:: afem.exchange.xde
 
+.. _importvsp:
+
 OpenVSP
 -------
 The ``ImportVSP`` tool is developed specifically for translating STEP files

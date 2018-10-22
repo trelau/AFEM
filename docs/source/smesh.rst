@@ -82,7 +82,7 @@ imported:
                             Regular1D)
     from afem.topology import *
 
-The ``BoxBySize`` tool is used to create a simple solid box::
+The :class:`.BoxBySize` tool is used to create a simple solid box::
 
     bbox = BoxBySize(10, 10, 10).solid
 
@@ -90,11 +90,11 @@ Providing three numbers creates a box with one corner at (0, 0, 0) and the
 other at x=10, y=10, and z=10.
 
 When it is time to begin the meshing process, it is required to first
-initialize the core mesh generator and data structure ``MeshGen``. This entity
-is responsible for managing the entire meshing data structure and typically
-only one should be created. Generating more than one instance might be used if
-two entirely different meshes need to be created in a single process. Create an
-instance by::
+initialize the core mesh generator and data structure :class:`.MeshGen`. This
+entity is responsible for managing the entire meshing data structure and
+typically only one should be created. Generating more than one instance might
+be used if two entirely different meshes need to be created in a single
+process. Create an instance by::
 
     gen = MeshGen()
 
@@ -111,7 +111,7 @@ The ``box`` variable is provided to this method so that is sets the box as the
 "shape to mesh." Selecting the shape to mesh is an important step as this main
 shape will be used to derive and access information if sub-meshes or local
 meshing controls are applied later in the process. In practice, the main shape
-to mesh will typically be a single ``Compound`` that contains all the
+to mesh will typically be a single :class:`.Compound` that contains all the
 shapes of the current model. An error will result if a sub-mesh or local mesh
 control is applied to a sub-shape that is not a member of the original main
 shape.
@@ -159,8 +159,8 @@ used. Controlling the mesh along a specific edge can be done by::
 
 It should be noted that the provided shape (or sub-shape) can be a single shape
 like an edge, face, or solid, but it could also be a compound of multiple
-shapes or sub-shapes. That is, edges could be put into a ``Compound`` and the
-1-D controls would be applied to all edges in that compound.
+shapes or sub-shapes. That is, edges could be put into a :class:`.Compound` and
+the 1-D controls would be applied to all edges in that compound.
 
 With the shape set and meshing controls applied, the mesh is computed by::
 
@@ -172,8 +172,8 @@ access nodes and elements.
 
 .. image:: ./resources/simple_mesh.png
 
-Towards the end of the script a small demonstration of the ``MeshGroup`` class
-is provided:
+Towards the end of the script a small demonstration of the :class:`.MeshGroup`
+class is provided:
 
 .. code-block:: python
 

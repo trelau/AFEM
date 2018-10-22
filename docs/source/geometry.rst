@@ -106,11 +106,11 @@ The entities, tool, and viewing tool are imported by:
     from afem.geometry import *
     from afem.graphics import Viewer
 
-The first variable created is a ``Point`` and is constructed directly from the
-entity itself. Since the ``Point`` class is derived from the OpenCASCADE type
-``OCCT.gp.gp_Pnt``, one of the available constructor methods is using three
-floats to define an x-, y-, and z-coordinate. By default the location is
-(0., 0., 0.)::
+The first variable created is a :class:`.Point` and is constructed directly
+from the entity itself. Since the :class:`.Point` class is derived from the
+OpenCASCADE type ``OCCT.gp.gp_Pnt``, one of the available constructor methods
+is using three floats to define an x-, y-, and z-coordinate. By default the
+location is (0., 0., 0.)::
 
     p1 = Point()
 
@@ -131,14 +131,14 @@ be directly applied to the entity depending on its type::
     c2 = c1.copy()
     c2.translate((0, 10, 0))
 
-Here, a new ``NurbsCurve`` was created and then translated in the y-direction
-by 10 units. This new curve is then copied again and translated in both the
-y- and z-directions by 10 units each::
+Here, a new :class:`.NurbsCurve` was created and then translated in the
+y-direction by 10 units. This new curve is then copied again and translated in
+both the y- and z-directions by 10 units each::
 
     c3 = c2.copy()
     c3.translate((0, 10, 10))
 
-These three curves are then used to approximate a ``NurbsSurface``::
+These three curves are then used to approximate a :class:`.NurbsSurface`::
 
     s1 = NurbsSurfaceByApprox([c1, c2, c3]).surface
 
@@ -152,10 +152,11 @@ of 1 unit::
 
     pnts = PointsAlongCurveByDistance(c4, 1.).points
 
-The ``PointsAlongCurveByDistance`` tool can also return the number of points
-created, the parameters on the curve for each point, the final spacing, and the
-interior points (i.e., exclude first and last). Others tools exist for creating
-points (and planes) along curves by a specified number rather than distance.
+The :class:`.PointsAlongCurveByDistance` tool can also return the number of
+points created, the parameters on the curve for each point, the final spacing,
+and the interior points (i.e., exclude first and last). Others tools exist for
+creating points (and planes) along curves by a specified number rather than
+distance.
 
 At this point the created geometry should look similar to the image below.
 
@@ -167,17 +168,17 @@ found by::
     c5 = s1.v_iso(0.5)
     cci = IntersectCurveCurve(c4, c5)
 
-The ``IntersectCurveCurve`` tool provides intersection results including the
-point(s), parameter(s) on each curve, and number of intersections. Other tools
-exist for curve/surface and surface/surface intersections. Intersecting a plane
-and a surface is shown by::
+The :class:`.IntersectCurveCurve` tool provides intersection results including
+the point(s), parameter(s) on each curve, and number of intersections. Other
+tools exist for curve/surface and surface/surface intersections. Intersecting a
+plane and a surface is shown by::
 
     pln = PlaneFromParameter(c4, 0., 2.).plane
     ssi = IntersectSurfaceSurface(s1, pln)
 
-A ``Plane`` is first created using the ``PlaneFromParameter`` tool and then
-used in the ``IntersectSurfaceSurface`` tool. The resulting intersection curves
-are approximated in 3-D space.
+A :class:`.Plane` is first created using the :class:`.PlaneFromParameter` tool
+and then used in the :class:`.IntersectSurfaceSurface` tool. The resulting
+intersection curves are approximated in 3-D space.
 
 Projections to curves and surfaces are available using the projection tools. By
 default, projections are usually performed normal to the curve or surface, but
@@ -192,8 +193,8 @@ normal projection to the surface::
 
 The ``line`` variable is created mostly for visualization purposes and to
 demonstrate some of the data that can be retrieved from the
-``ProjectPointToSurface`` tool. All point projection results are stored in the
-tool and sorted by minimum to maximum distance.
+:class:`.ProjectPointToSurface` tool. All point projection results are stored
+in the tool and sorted by minimum to maximum distance.
 
 The intersection and projection results should look similar to the image below.
 Note that there are no renderings for infinite planes.

@@ -2,7 +2,7 @@ Graphics
 ========
 The ``afem.graphics`` package provides a base class for viewable objects as
 well as a minimal tool to visualize AFEM shapes, geometry, and meshes. The most
-used tool will be the ``Viewer`` class which can be imported by::
+used tool will be the :class:`.Viewer` class which can be imported by::
 
     from afem.graphics import Viewer
 
