@@ -1,4 +1,3 @@
-import afem.exchange.nastran
 from afem.config import Settings
 from afem.exchange import ImportVSP, StepWrite
 from afem.geometry import *
@@ -344,8 +343,7 @@ def build(wing, fuselage):
 
     # View the mesh. Adjust these transparencies if you want to see the
     # internal mesh better.
-    wskin.set_transparency(0.)
-    fskin.set_transparency(0.)
+    gui.clear()
     gui.add(the_mesh)
     gui.start()
     gui.clear()
@@ -356,7 +354,7 @@ def build(wing, fuselage):
     step.write('supersonic.step')
 
     # Export the mesh (nodes and elements) to a bulk data file
-    afem.exchange.nastran.export_bdf(the_mesh.mesh, 'supersonic.bdf')
+    the_mesh.export_nastran('supersonic.bdf')
 
 
 if __name__ == '__main__':

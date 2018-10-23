@@ -1,6 +1,5 @@
 from afem.geometry import *
 from afem.graphics import Viewer
-from afem.smesh import *
 from afem.oml import *
 from afem.structure import *
 from afem.topology import *

@@ -3,6 +3,11 @@
 [![Documentation Status](https://readthedocs.org/projects/afem/badge/?version=latest)](http://afem.readthedocs.io/en/latest/?badge=latest)
 [![Join the chat at https://gitter.im/AFEM_/Lobby](https://badges.gitter.im/AFEM_/Lobby.svg)](https://gitter.im/AFEM_/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+[![Anaconda-Server Badge](https://anaconda.org/laughlinresearch/afem/badges/installer/conda.svg)](https://anaconda.org/laughlinresearch/afem)
+[![Anaconda-Server Badge](https://anaconda.org/laughlinresearch/afem/badges/platforms.svg)](https://anaconda.org/laughlinresearch/afem)
+[![Anaconda-Server Badge](https://anaconda.org/laughlinresearch/afem/badges/downloads.svg)](https://anaconda.org/laughlinresearch/afem)
+[![Anaconda-Server Badge](https://anaconda.org/laughlinresearch/afem/badges/latest_release_date.svg)](https://anaconda.org/laughlinresearch/afem)
+
 AFEM is a "fit-for-purpose" engineering development toolkit designed to support
 the use of high-order structural analysis during the early phases of aircraft
 conceptual design. As a development toolkit, it provides the engineer with a
@@ -66,7 +71,7 @@ The [pyOCCT](https://github.com/LaughlinResearch/pyOCCT) package developed by
 Laughlin Research should now be installed. For supported platforms, installing
 pyOCCT can be done by:
 
-    conda install -c laughlinresearch pyocct
+    conda install -c laughlinresearch -c conda-forge pyocct
 
 Other dependencies such as NumPy and SciPy can be installed as needed using
 the conda package manager:

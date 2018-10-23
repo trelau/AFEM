@@ -42,7 +42,7 @@ The `pyOCCT <https://github.com/LaughlinResearch/pyOCCT>`_ package developed by
 Laughlin Research should now be installed. For supported platforms, installing
 pyOCCT can be done by::
 
-    conda install -c laughlinresearch pyocct
+    conda install -c laughlinresearch -c conda-forge pyocct
 
 Other dependencies such as NumPy and SciPy can be installed as needed using
 the conda package manager::

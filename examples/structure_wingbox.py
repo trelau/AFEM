@@ -193,11 +193,11 @@ def build_wingbox(wing, params):
 
     # Aux ribs
     if build_aux_spar:
-        group = GroupAPI.get_active()
+        group_ = GroupAPI.get_active()
         aux_rib_id = 1
         for rib_id in aux_rib_list:
             rib_name = ' '.join(['rib', rib_id])
-            rib = group.get_part(rib_name)
+            rib = group_.get_part(rib_name)
             if not rib:
                 continue
             # Since the structure is not joined yet, intersect the rear spar
