@@ -8,7 +8,7 @@ commonly used packages for scientific computing.
 A specific environment for AFEM should be created using an Anaconda Command
 Prompt. Installing AFEM and all necessary dependencies will look like::
 
-    conda create -n afem python=3.7
+    conda create -n afem python=3.8
     activate afem
     conda install -c conda-forge -c trelau afem
 

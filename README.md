@@ -3,10 +3,10 @@
 [![Documentation Status](https://readthedocs.org/projects/afem/badge/?version=latest)](http://afem.readthedocs.io/en/latest/?badge=latest)
 [![Join the chat at https://gitter.im/AFEM_/Lobby](https://badges.gitter.im/AFEM_/Lobby.svg)](https://gitter.im/AFEM_/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-![Workflow](https://github.com/LaughlinResearch/AFEM/workflows/Workflow/badge.svg)
-[![Anaconda-Server Badge](https://anaconda.org/laughlinresearch/afem/badges/installer/conda.svg)](https://anaconda.org/laughlinresearch/afem)
-[![Anaconda-Server Badge](https://anaconda.org/laughlinresearch/afem/badges/platforms.svg)](https://anaconda.org/laughlinresearch/afem)
-[![Anaconda-Server Badge](https://anaconda.org/laughlinresearch/afem/badges/downloads.svg)](https://anaconda.org/laughlinresearch/afem)
+![Workflow](https://github.com/trelau/AFEM/workflows/Workflow/badge.svg)
+[![Anaconda-Server Badge](https://anaconda.org/trelau/afem/badges/installer/conda.svg)](https://anaconda.org/trelau/afem)
+[![Anaconda-Server Badge](https://anaconda.org/trelau/afem/badges/platforms.svg)](https://anaconda.org/trelau/afem)
+[![Anaconda-Server Badge](https://anaconda.org/trelau/afem/badges/downloads.svg)](https://anaconda.org/trelau/afem)
 
 AFEM is a "fit-for-purpose" engineering development toolkit designed to support
 the use of high-order structural analysis during the early phases of aircraft
@@ -27,7 +27,7 @@ disciplines and/or domains.
 [Conda packages](https://anaconda.org/trelau/dashboard/) are
 available for a number of platforms and Python versions. Get started with:
 
-    conda create -n afem python=3.7
+    conda create -n afem python=3.8
     activate afem
     conda install -c conda-forge -c trelau afem
     
