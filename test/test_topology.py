@@ -1,7 +1,8 @@
 # This file is part of AFEM which provides an engineering toolkit for airframe
 # finite element modeling during conceptual design.
 #
-# Copyright (C) 2016-2018  Laughlin Research, LLC (info@laughlinresearch.com)
+# Copyright (C) 2016-2018 Laughlin Research, LLC
+# Copyright (C) 2019-2020 Trevor Laughlin
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -18,6 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
 import unittest
 
+import afem.topology.transform
 from afem.exchange import brep
 from afem.geometry import *
 from afem.graphics import Viewer
@@ -249,8 +251,8 @@ class TestTopologyCreate(unittest.TestCase):
 
     def test_box_by_size(self):
         builder = BoxBySize(10., 10., 10.)
-        self.assertIsInstance(builder.shell, Shell)
         self.assertIsInstance(builder.solid, Solid)
+        self.assertIsInstance(builder.shell, Shell)
         self.assertIsInstance(builder.bottom_face, Face)
         self.assertIsInstance(builder.back_face, Face)
         self.assertIsInstance(builder.front_face, Face)
@@ -260,8 +262,8 @@ class TestTopologyCreate(unittest.TestCase):
 
     def test_box_by_2_points(self):
         builder = BoxBy2Points((0, 0, 0), (10, 10, 10))
-        self.assertIsInstance(builder.shell, Shell)
         self.assertIsInstance(builder.solid, Solid)
+        self.assertIsInstance(builder.shell, Shell)
         self.assertIsInstance(builder.bottom_face, Face)
         self.assertIsInstance(builder.back_face, Face)
         self.assertIsInstance(builder.front_face, Face)
@@ -397,15 +399,37 @@ class TestTopologyBop(unittest.TestCase):
         split.build()
         self.assertTrue(split.is_done)
 
-    def test_cut_cylindrical_hole(self):
+    @unittest.expectedFailure
+    def test_cut_cylindrical_hole_through_face(self):
+        """
+        This feature seems to have stopped working on faces as of OCCT 7.4.0.
+        Will submit to OpenCASCADE.
+        """
         pln = PlaneByAxes().plane
         face = FaceByPlane(pln, -2., 2., -2., 2.).face
-        # The small offset is a workaround for planar cuts
-        p = Point(0., 0.1, 0.)
+        p = Point(0., 0., 0.)
         d = Direction(0., 1., 0.)
         ax1 = Axis1(p, d)
         cut = CutCylindricalHole(face, 1., ax1)
         self.assertTrue(cut.is_done)
+
+    def test_cut_cylindrical_hole_through_shell(self):
+        shell = BoxBySize(10., 10., 10.).shell
+        p = Point(5., 5., 5.)
+        d = Direction(0., 1., 0.)
+        ax1 = Axis1(p, d)
+        cut = CutCylindricalHole(shell, 1., ax1)
+        self.assertTrue(cut.is_done)
+        self.assertEqual(cut.shape.num_faces, 6)
+
+    def test_cut_cylindrical_hole_through_solid(self):
+        solid = BoxBySize(10., 10., 10.).solid
+        p = Point(5., 5., 5.)
+        d = Direction(0., 1., 0.)
+        ax1 = Axis1(p, d)
+        cut = CutCylindricalHole(solid, 1., ax1)
+        self.assertTrue(cut.is_done)
+        self.assertEqual(cut.shape.num_faces, 7)
 
     def test_local_split(self):
         pln = PlaneByAxes().plane
@@ -500,7 +524,6 @@ class TestTopologyBop(unittest.TestCase):
         faces = shape.faces
         self.assertGreater(len(faces), 0)
 
-    @unittest.expectedFailure
     def test_section_fail_03012018(self):
         """
         Intersection between xz-plane and a face. The intersection should be
@@ -601,6 +624,15 @@ class TestTopologyModify(unittest.TestCase):
         shape = FixShape(new_shape).shape
         self.assertTrue(shape.is_shell)
 
+    def test_unify_shape(self):
+        builder = BoxBySize(10, 10, 10)
+        box = builder.solid
+        pln = PlaneByAxes((5, 5, 5), 'xz').plane
+        shape = LocalSplit(builder.front_face, pln, box).shape
+        self.assertEqual(shape.num_faces, 7)
+        unify = UnifyShape(shape)
+        self.assertEqual(unify.shape.num_faces, 6)
+
 
 class TestTopologyOffset(unittest.TestCase):
     """
@@ -658,6 +690,21 @@ class TestTopologyProps(unittest.TestCase):
         self.assertAlmostEqual(p.x, 0.5)
         self.assertAlmostEqual(p.y, 0.5)
         self.assertAlmostEqual(p.z, 0.5)
+
+
+class TestTopologyTransform(unittest.TestCase):
+    """
+    Test cases for afem.topology.transform.
+    """
+
+    def test_translate(self):
+        box = BoxBySize().solid
+        vec = VectorByXYZ().vector
+
+        new_box = afem.topology.transform.translate_shape(box, vec)
+
+        prop = VolumeProps(new_box)
+        self.assertAlmostEqual(1.5, prop.cg.x)
 
 
 if __name__ == '__main__':

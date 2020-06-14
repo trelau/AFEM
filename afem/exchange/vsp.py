@@ -1,7 +1,8 @@
 # This file is part of AFEM which provides an engineering toolkit for airframe
 # finite element modeling during conceptual design.
 #
-# Copyright (C) 2016-2018  Laughlin Research, LLC (info@laughlinresearch.com)
+# Copyright (C) 2016-2018 Laughlin Research, LLC
+# Copyright (C) 2019-2020 Trevor Laughlin
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -104,6 +105,14 @@ class ImportVSP(object):
         :rtype: list(afem.oml.entities.Body)
         """
         return list(self._bodies.values())
+
+    @property
+    def num_bodies(self):
+        """
+        :return: The number of bodies.
+        :rtype: int
+        """
+        return len(self.all_bodies)
 
     @property
     def has_invalid(self):
@@ -549,8 +558,8 @@ def _build_solid(compound, divide_closed):
     if isinstance(sewn_shape, Face):
         sewn_shape = sewn_shape.to_shell()
 
-    # Attempt to unify planar domains
-    shell = UnifyShape(sewn_shape).shape
+    # Attempt to unify planar faces
+    shell = UnifyShape(sewn_shape, False).shape
 
     # Make solid
     if not isinstance(shell, Shell):
@@ -653,13 +662,21 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
 
     # Get the surface.
     master_surf = face.surface
-    # master_surf = NurbsSurface(master_surf.object)
     uknots, vknots = master_surf.uknots, master_surf.vknots
     vsplit = master_surf.local_to_global_param('v', 0.5)
 
+    # Detect if a thick trailing edge exists. If so, adjust the chordwise
+    # locations where the TE is trimmed.
+    vk_te1, vk_te2 = vknots[1], vknots[-2]
+    for u in uknots:
+        p1 = master_surf.eval(u, vknots[1])
+        p2 = master_surf.eval(u, vknots[-2])
+        if p1.is_equal(p2):
+            vk_te1, vk_te2 = vknots[0], vknots[-1]
+
     # Segment off the end caps and the trailing edges.
     u1, u2 = uknots[1], uknots[-2]
-    v1, v2 = vknots[1], vknots[-2]
+    v1, v2 = vk_te1, vk_te2
     s1 = master_surf.copy()
     s1.segment(u1, u2, v1, v2)
 
@@ -699,22 +716,22 @@ def _process_unsplit_wing(compound, divide_closed, reloft, tol):
 
         # Segment off end caps
         u1, u2 = uknots[0], uknots[1]
-        v1, v2 = vknots[1], vsplit
+        v1, v2 = vk_te1, vsplit
         s2 = master_surf.copy()
         s2.segment(u1, u2, v1, v2)
 
         u1, u2 = uknots[0], uknots[1]
-        v1, v2 = vsplit, vknots[-2]
+        v1, v2 = vsplit, vk_te2
         s3 = master_surf.copy()
         s3.segment(u1, u2, v1, v2)
 
         u1, u2 = uknots[-2], uknots[-1]
-        v1, v2 = vknots[1], vsplit
+        v1, v2 = vk_te1, vsplit
         s4 = master_surf.copy()
         s4.segment(u1, u2, v1, v2)
 
         u1, u2 = uknots[-2], uknots[-1]
-        v1, v2 = vsplit, vknots[-2]
+        v1, v2 = vsplit, vk_te2
         s5 = master_surf.copy()
         s5.segment(u1, u2, v1, v2)
 
