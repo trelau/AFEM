@@ -391,6 +391,13 @@ class TestGeometryIntersect(unittest.TestCase):
         self.assertAlmostEqual(p.y, 0.)
         self.assertAlmostEqual(p.z, 0.)
 
+    @unittest.expectedFailure
+    def test_intersect_curve_curve_07132020(self):
+        circle = CircleByNormal(Point(0, 0, 0), Direction(0, 0, 1), 20).circle
+        line = LineByVector(Point(0, 0, 0), Direction(0, 1, 0)).line
+        icc = IntersectCurveCurve(circle, line)
+        self.assertEqual(icc.npts, 2)
+
     def test_intersect_curve_surface(self):
         c = NurbsCurveByPoints([(5., 5., 10.), (5., 5., -10.)]).curve
         c1 = NurbsCurveByPoints([(0., 0., 0.), (10., 0., 0.)]).curve
